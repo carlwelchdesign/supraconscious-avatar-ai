@@ -1,0 +1,210 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model - stores user profile and preferences
+model User {
+  id                   String   @id @default(cuid())
+  clerkId              String   @unique // Clerk user ID
+  email                String   @unique
+  name                 String?
+  avatarTone           String   @default("balanced") // gentle, balanced, direct
+  intensityLevel       Int      @default(3) // 1-5 scale
+  currentLevel         Int      @default(1) // 1-5: Awareness to Conscious Choice
+  avatarStage          Int      @default(1) // 1-5: Echo to Inner Author
+  safetyModeEnabled    Boolean  @default(true)
+  patternMemoryEnabled Boolean  @default(true)
+  onboardingComplete   Boolean  @default(false)
+  topicsToAvoid        Json? // Array of topics to handle gently
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  journalEntries   JournalEntry[]
+  entryAnalyses    EntryAnalysis[]
+  avatarResponses  AvatarResponse[]
+  generatedPrompts GeneratedPrompt[]
+  patternMemories  PatternMemory[]
+  safetyEvents     SafetyEvent[]
+  subscriptions    Subscription[]
+}
+
+// Journal entry - raw user input
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  rawText   String   @db.Text
+  inputMode String   @default("text") // text, voice
+  isDraft   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analysis         EntryAnalysis?
+  avatarResponse   AvatarResponse?
+  generatedPrompts GeneratedPrompt[]
+  patternMemories  PatternMemory[]
+  safetyEvents     SafetyEvent[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Entry analysis - structured AI analysis of journal entry
+model EntryAnalysis {
+  id             String @id @default(cuid())
+  journalEntryId String @unique
+  userId         String
+
+  // Analysis results as JSON
+  emotionalSignals     Json
+  languageMarkers      Json
+  behavioralPatterns   Json
+  contradictionSignals Json?
+  avoidanceSignals     Json?
+  intensityScore       Float  @default(0)
+  suggestedLevel       Int    @default(1)
+  safetyFlags          Json
+  summary              String @db.Text
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Avatar response - the reflective response from the Inner Avatar
+model AvatarResponse {
+  id             String @id @default(cuid())
+  journalEntryId String @unique
+  userId         String
+
+  // Response fields
+  openingLine      String? @db.Text
+  mirror           String? @db.Text
+  patternName      String?
+  contradiction    String? @db.Text
+  socraticQuestion String? @db.Text
+  integrationStep  String? @db.Text
+  closingLine      String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Generated prompt - personalized symbolic journaling prompt
+model GeneratedPrompt {
+  id             String  @id @default(cuid())
+  userId         String
+  journalEntryId String?
+
+  // Prompt structure
+  level         Int // 1-5
+  title         String
+  context       String  @db.Text
+  materials     String? @db.Text
+  execution     String  @db.Text
+  integration   String  @db.Text
+  targetPattern String?
+
+  userResponse String?   @db.Text
+  completedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Pattern memory - tracked patterns across sessions
+model PatternMemory {
+  id             String  @id @default(cuid())
+  userId         String
+  journalEntryId String?
+
+  patternType   String // over-responsibility, people-pleasing, etc.
+  patternLabel  String
+  evidenceCount Int     @default(1)
+  confidence    Float   @default(0)
+  examples      Json? // Array of example excerpts
+  active        Boolean @default(true)
+
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([patternType])
+  @@index([lastSeenAt])
+}
+
+// Safety event - logged safety concerns
+model SafetyEvent {
+  id             String  @id @default(cuid())
+  userId         String
+  journalEntryId String?
+
+  severity          String // none, low, medium, high
+  flags             Json // Array of detected flags
+  recommendedAction String?
+  resolved          Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+// Subscription - Stripe subscription data
+model Subscription {
+  id     String @id @default(cuid())
+  userId String
+
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+  plan                 String  @default("free") // free, starter, pro
+  status               String  @default("inactive") // active, inactive, past_due, canceled
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+}
