@@ -64,7 +64,7 @@ export default async function AvatarPage() {
           className="absolute top-1/2 right-12 -translate-y-1/2 w-72 h-72 rounded-full blur-[80px] opacity-15 pointer-events-none"
           style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
         />
-        <AvatarOrb size="lg" className="flex-shrink-0 relative z-10" />
+        <AvatarOrb size="lg" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
         <div className="relative z-10 text-center sm:text-left">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
             Current stage · {user.avatarStage ?? 1} of 5
@@ -120,20 +120,11 @@ export default async function AvatarPage() {
                   opacity: isFuture ? 0.5 : 1,
                 }}
               >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-medium flex-shrink-0 mt-0.5"
-                  style={{
-                    background: isCurrent
-                      ? "var(--clay)"
-                      : isPast
-                      ? "rgba(43,27,53,0.08)"
-                      : "transparent",
-                    color: isCurrent ? "var(--cream)" : "var(--plum-soft)",
-                    border: isFuture ? "1.5px dashed rgba(43,27,53,0.2)" : "none",
-                  }}
-                >
-                  {i + 1}
-                </div>
+                <AvatarOrb
+                  size="xs"
+                  stage={(i + 1) as 1|2|3|4|5}
+                  className="flex-shrink-0 mt-0.5"
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">

@@ -72,16 +72,14 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           }}
         >
           {/* Header */}
-          <div className="flex items-center gap-4 px-7 pt-7 pb-5">
-            <AvatarOrb size="sm" className="flex-shrink-0" />
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
-                Avatar reflection
-              </p>
-              <p className="font-display text-[18px] font-light text-[var(--cream)]">
-                Echo · Stage {user.avatarStage ?? 1}
-              </p>
-            </div>
+          <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
+            <AvatarOrb size="sm" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="mb-3" />
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
+              Avatar reflection
+            </p>
+            <p className="font-display text-[18px] font-light text-[var(--cream)]">
+              Echo · Stage {user.avatarStage ?? 1}
+            </p>
           </div>
 
           <div

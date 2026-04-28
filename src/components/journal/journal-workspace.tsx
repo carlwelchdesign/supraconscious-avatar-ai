@@ -36,7 +36,7 @@ type AnalysisResult = {
   }
 }
 
-export function JournalWorkspace() {
+export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 }) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
@@ -169,18 +169,16 @@ export function JournalWorkspace() {
               borderColor: "rgba(43,27,53,0.07)",
             }}
           >
-            <div className="flex items-center gap-3 mb-5">
-              <AvatarOrb size="sm" />
-              <div>
-                <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-                  Avatar Response
-                </p>
-                <p className="text-[12px] font-light text-[var(--plum-soft)]">
-                  {result
-                    ? `${AVATAR_STAGES[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
-                    : "Echo · Stage 1"}
-                </p>
-              </div>
+            <div className="flex flex-col items-center text-center mb-5">
+              <AvatarOrb size="lg" stage={result ? result.progression.newStage as 1|2|3|4|5 : avatarStage} className="mb-3" />
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+                Avatar Response
+              </p>
+              <p className="text-[12px] font-light text-[var(--plum-soft)]">
+                {result
+                  ? `${AVATAR_STAGES[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
+                  : "Echo · Stage 1"}
+              </p>
             </div>
 
             {result ? (
@@ -265,7 +263,7 @@ export function JournalWorkspace() {
                 style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
               />
               <div className="relative z-10 text-center space-y-3">
-                <AvatarOrb size="sm" className="mx-auto" />
+                <AvatarOrb size="lg" stage={result.progression.newStage as 1|2|3|4|5} className="mx-auto" />
                 <div>
                   <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[var(--clay-light)] mb-1">
                     Your Avatar has deepened

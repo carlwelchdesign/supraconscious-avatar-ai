@@ -4,6 +4,8 @@ import { logoutAction } from "@/lib/auth/actions"
 import { getCurrentUser } from "@/lib/auth/session"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
 
+const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
+
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/journal", label: "Journal", icon: BookOpen },
@@ -57,30 +59,28 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Avatar presence + user */}
-        <div className="px-5 py-5 border-t space-y-4" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
-          <div className="flex items-center gap-3">
-            <AvatarOrb size="xs" />
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
-                Your Avatar
-              </p>
-              <p className="text-[12px] font-light text-[var(--plum-soft)] truncate">
-                Echo — Stage 1
-              </p>
-            </div>
+        <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
+          <div className="flex flex-col items-center text-center mb-4">
+            <AvatarOrb size="xs" stage={(user?.avatarStage ?? 1) as 1|2|3|4|5} className="mb-2" />
+            <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
+              Your Avatar
+            </p>
+            <p className="text-[12px] font-light text-[var(--plum-soft)]">
+              {AVATAR_STAGE_NAMES[(user?.avatarStage ?? 1) - 1]} · Stage {user?.avatarStage ?? 1}
+            </p>
           </div>
 
           {user && (
-            <div className="pt-1 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
-              <p className="text-[12px] font-light text-[var(--plum-soft)] truncate mb-2">
+            <div className="pt-3 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
+              <p className="text-[11px] font-light text-[var(--plum-soft)] truncate mb-2">
                 {user.email}
               </p>
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 text-[12px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
+                  className="flex items-center gap-2 text-[11px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3 h-3" />
                   Sign out
                 </button>
               </form>
