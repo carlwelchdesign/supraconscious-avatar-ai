@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, BookOpen } from "lucide-react"
 import { requireAppUser } from "@/lib/auth/user"
 import { prisma } from "@/lib/db"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
@@ -7,15 +7,18 @@ import { AvatarOrb } from "@/components/ui/avatar-orb"
 export default async function DashboardPage() {
   const user = await requireAppUser()
 
-  const [entryCount, patternCount, latestEntry] = await Promise.all([
+  const [entryCount, patternCount, recentEntries] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
-    prisma.journalEntry.findFirst({
+    prisma.journalEntry.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
+      take: 6,
       include: { avatarResponse: true },
     }),
   ])
+
+  const latestEntry = recentEntries[0] ?? null
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -159,6 +162,91 @@ export default async function DashboardPage() {
             Begin writing
             <ArrowRight className="w-4 h-4" />
           </Link>
+        </div>
+      )}
+
+      {/* ── Past reflections ─────────────────────────────────── */}
+      {recentEntries.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="w-4 h-4 text-[var(--clay)]" />
+              <h2 className="text-[13px] font-medium tracking-[0.08em] uppercase text-[var(--clay)]">
+                Past reflections
+              </h2>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {recentEntries.map((entry) => {
+              const date = new Date(entry.createdAt)
+              const label = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+              const excerpt = entry.rawText.length > 140
+                ? entry.rawText.slice(0, 140).trimEnd() + "…"
+                : entry.rawText
+              const reflection = entry.avatarResponse?.mirror
+              const pattern = entry.avatarResponse?.patternName
+
+              return (
+                <Link
+                  key={entry.id}
+                  href={`/journal/${entry.id}`}
+                  className="group flex items-start gap-5 rounded-2xl border p-5 transition-all hover:-translate-y-px hover:shadow-sm"
+                  style={{
+                    background: "var(--pearl)",
+                    borderColor: "rgba(43,27,53,0.07)",
+                  }}
+                >
+                  {/* Date column */}
+                  <div className="flex-shrink-0 w-14 pt-0.5 text-center">
+                    <p className="font-display text-[28px] font-light leading-none text-[var(--clay)]">
+                      {date.getDate()}
+                    </p>
+                    <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--plum-soft)] mt-0.5">
+                      {date.toLocaleDateString("en-US", { month: "short" })}
+                    </p>
+                  </div>
+
+                  {/* Divider */}
+                  <span
+                    className="flex-shrink-0 w-px self-stretch opacity-20"
+                    style={{ background: "var(--primary)" }}
+                  />
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--plum-soft)]">
+                        {label}
+                      </p>
+                      {pattern && (
+                        <span
+                          className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                          style={{
+                            background: "rgba(184,137,90,0.10)",
+                            color: "var(--clay)",
+                          }}
+                        >
+                          {pattern}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[14px] font-light leading-[1.65] text-[var(--primary)] line-clamp-2">
+                      {excerpt}
+                    </p>
+                    {reflection && (
+                      <p className="font-display italic text-[13px] font-light text-[var(--plum-soft)] mt-2 line-clamp-1">
+                        &ldquo;{reflection}&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Arrow */}
+                  <ArrowRight className="flex-shrink-0 w-4 h-4 text-[var(--plum-soft)] opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

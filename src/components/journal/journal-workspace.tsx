@@ -4,6 +4,9 @@ import { useState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
 
+const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
+const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
+
 type AnalysisResult = {
   safety: { severity: string; flags: string[] }
   analysis: { summary: string } | null
@@ -22,6 +25,14 @@ type AnalysisResult = {
     materials: string | null
     execution: string
     integration: string
+  }
+  progression: {
+    levelChanged: boolean
+    stageChanged: boolean
+    newLevel: number
+    newStage: number
+    previousLevel: number
+    previousStage: number
   }
 }
 
@@ -165,7 +176,9 @@ export function JournalWorkspace() {
                   Avatar Response
                 </p>
                 <p className="text-[12px] font-light text-[var(--plum-soft)]">
-                  Echo · Stage 1
+                  {result
+                    ? `${AVATAR_STAGES[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
+                    : "Echo · Stage 1"}
                 </p>
               </div>
             </div>
@@ -240,6 +253,54 @@ export function JournalWorkspace() {
               </p>
             )}
           </div>
+
+          {/* Progression moment */}
+          {result?.progression.stageChanged && (
+            <div
+              className="rounded-3xl border p-6 relative overflow-hidden"
+              style={{ background: "var(--primary)", borderColor: "var(--primary)" }}
+            >
+              <span
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[48px] opacity-20 pointer-events-none"
+                style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
+              />
+              <div className="relative z-10 text-center space-y-3">
+                <AvatarOrb size="sm" className="mx-auto" />
+                <div>
+                  <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[var(--clay-light)] mb-1">
+                    Your Avatar has deepened
+                  </p>
+                  <p className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
+                    {AVATAR_STAGES[result.progression.previousStage - 1]} is becoming{" "}
+                    <em className="italic text-[var(--clay-light)]">
+                      {AVATAR_STAGES[result.progression.newStage - 1]}
+                    </em>
+                  </p>
+                </div>
+                <p className="text-[13px] font-light text-[var(--cream)]/50">
+                  Stage {result.progression.newStage} of 5
+                </p>
+              </div>
+            </div>
+          )}
+
+          {result?.progression.levelChanged && !result.progression.stageChanged && (
+            <div
+              className="rounded-3xl border p-5"
+              style={{
+                background: "rgba(184,137,90,0.07)",
+                borderColor: "rgba(184,137,90,0.18)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
+                Reflection depth
+              </p>
+              <p className="font-display text-[16px] font-light text-[var(--primary)]">
+                You are entering{" "}
+                <em className="italic">{LEVELS[result.progression.newLevel - 1]}</em>
+              </p>
+            </div>
+          )}
 
           {/* Generated prompt */}
           {(result || !result) && (

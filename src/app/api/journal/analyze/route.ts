@@ -3,6 +3,7 @@ import { analyzeEntry } from "@/lib/ai/analyze-entry"
 import { generateAvatarResponse } from "@/lib/ai/generate-avatar-response"
 import { generateSymbolicPrompt } from "@/lib/ai/generate-symbolic-prompt"
 import { updatePatternMemory } from "@/lib/ai/pattern-memory"
+import { checkAndAdvanceProgression } from "@/lib/ai/progression"
 import { classifyJournalSafety } from "@/lib/ai/safety-classifier"
 import { JournalAnalyzeRequestSchema } from "@/lib/ai/schemas"
 import { requireAppUser } from "@/lib/auth/user"
@@ -122,12 +123,19 @@ export async function POST(request: Request) {
       updatePatternMemory(user.id, journalEntry.id, analysis),
     ])
 
+    const progression = await checkAndAdvanceProgression(
+      user.id,
+      user.currentLevel,
+      user.avatarStage,
+    )
+
     return NextResponse.json({
       journalEntry,
       safety,
       analysis: storedAnalysis,
       avatarResponse,
       prompt: generatedPrompt,
+      progression,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to analyze journal entry."
