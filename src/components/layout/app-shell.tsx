@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { UserButton } from "@clerk/nextjs"
-import { BookOpen, CircleUserRound, LayoutDashboard, Settings, Sparkles } from "lucide-react"
-import { isClerkConfigured } from "@/lib/auth/config"
+import { BookOpen, CircleUserRound, LayoutDashboard, LogOut, Settings, Shield, Sparkles } from "lucide-react"
+import { logoutAction } from "@/lib/auth/actions"
+import { getCurrentUser } from "@/lib/auth/session"
+import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -11,8 +12,8 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const clerkConfigured = isClerkConfigured()
+export async function AppShell({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser()
 
   return (
     <div className="min-h-screen bg-background">
@@ -33,8 +34,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {item.label}
                 </Link>
               ))}
+              {user?.role === "admin" ? (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+              ) : null}
             </nav>
-            {clerkConfigured ? <UserButton /> : <div className="rounded-md border px-2 py-1 text-xs text-muted-foreground">Demo</div>}
+            <form action={logoutAction}>
+              <Button type="submit" variant="ghost" size="sm" className="gap-2">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </form>
           </div>
         </div>
       </header>

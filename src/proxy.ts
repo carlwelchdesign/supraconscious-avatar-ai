@@ -1,41 +1,34 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthConfigurationMessage, isClerkConfigured, isLocalDemoAuthEnabled } from "@/lib/auth/config"
 
-const isProtectedRoute = createRouteMatcher([
+const protectedRoutePrefixes = [
   "/dashboard(.*)",
   "/journal(.*)",
   "/patterns(.*)",
   "/avatar(.*)",
   "/settings(.*)",
+  "/admin(.*)",
   "/api/journal(.*)",
   "/api/avatar(.*)",
   "/api/prompts(.*)",
   "/api/patterns(.*)",
-])
+]
 
-const protectedProxy = clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect()
-  }
-})
+export default function proxy(req: NextRequest) {
+  const isProtected = protectedRoutePrefixes.some((pattern) => {
+    const prefix = pattern.replace("(.*)", "")
+    return req.nextUrl.pathname === prefix || req.nextUrl.pathname.startsWith(`${prefix}/`)
+  })
 
-function unconfiguredProxy(req: NextRequest) {
-  if (isLocalDemoAuthEnabled() || !isProtectedRoute(req)) {
+  if (!isProtected || req.cookies.has("inner_avatar_session")) {
     return NextResponse.next()
   }
 
-  if (new URL(req.url).pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: getAuthConfigurationMessage() }, { status: 503 })
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  return new NextResponse(getAuthConfigurationMessage(), {
-    status: 503,
-    headers: { "content-type": "text/plain; charset=utf-8" },
-  })
+  return NextResponse.redirect(new URL("/login", req.url))
 }
-
-export default isClerkConfigured() ? protectedProxy : unconfiguredProxy
 
 export const config = {
   matcher: [

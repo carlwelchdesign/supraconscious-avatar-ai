@@ -1,13 +1,10 @@
 import Link from "next/link"
-import { auth } from "@clerk/nextjs/server"
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getAuthConfigurationState, isClerkConfigured } from "@/lib/auth/config"
+import { getCurrentUser } from "@/lib/auth/session"
 
 export default async function Home() {
-  const clerkConfigured = isClerkConfigured()
-  const authState = getAuthConfigurationState()
-  const { userId } = clerkConfigured ? await auth() : { userId: null }
+  const user = await getCurrentUser()
 
   return (
     <main className="min-h-screen bg-background">
@@ -24,10 +21,10 @@ export default async function Home() {
             Inner Avatar is a reflective journaling experience that helps you notice patterns, clarify emotions, and turn awareness into one grounded next step.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            {userId || authState === "local-demo" ? (
+            {user ? (
               <Button asChild size="lg" className="gap-2">
                 <Link href="/journal">
-                  {authState === "local-demo" ? "Open Demo Journal" : "Open Journal"}
+                  Open Journal
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

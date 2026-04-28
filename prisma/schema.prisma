@@ -12,9 +12,11 @@ datasource db {
 // User model - stores user profile and preferences
 model User {
   id                   String   @id @default(cuid())
-  clerkId              String   @unique // Clerk user ID
   email                String   @unique
+  passwordHash         String   @default("")
   name                 String?
+  role                 String   @default("user") // user, admin
+  emailVerified        Boolean  @default(false)
   avatarTone           String   @default("balanced") // gentle, balanced, direct
   intensityLevel       Int      @default(3) // 1-5 scale
   currentLevel         Int      @default(1) // 1-5: Awareness to Conscious Choice
@@ -34,6 +36,22 @@ model User {
   patternMemories  PatternMemory[]
   safetyEvents     SafetyEvent[]
   subscriptions    Subscription[]
+  sessions         Session[]
+}
+
+// Session - first-party login session stored as a hashed token
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  tokenHash    String   @unique
+  expiresAt    DateTime
+  lastSeenAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // Journal entry - raw user input
