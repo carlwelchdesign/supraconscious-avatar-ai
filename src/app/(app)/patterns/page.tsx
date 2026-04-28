@@ -2,11 +2,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireAppUser } from "@/lib/auth/user"
 import { prisma } from "@/lib/db"
 
+type PatternSummary = {
+  id: string
+  patternLabel: string
+  evidenceCount: number
+  confidence: number
+}
+
 export default async function PatternsPage() {
   const user = await requireAppUser()
-  const patterns = await prisma.patternMemory.findMany({
+  const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
     where: { userId: user.id, active: true },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
+    select: {
+      id: true,
+      patternLabel: true,
+      evidenceCount: true,
+      confidence: true,
+    },
   })
 
   return (
