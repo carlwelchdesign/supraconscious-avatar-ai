@@ -1,19 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
+import { Loader2, ArrowRight } from "lucide-react"
+import { AvatarOrb } from "@/components/ui/avatar-orb"
 
 type AnalysisResult = {
-  safety: {
-    severity: string
-    flags: string[]
-  }
-  analysis: {
-    summary: string
-  } | null
+  safety: { severity: string; flags: string[] }
+  analysis: { summary: string } | null
   avatarResponse: {
     openingLine: string | null
     mirror: string | null
@@ -50,91 +43,245 @@ export function JournalWorkspace() {
         body: JSON.stringify({ text }),
       })
       const payload = await response.json()
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Reflection failed.")
-      }
-
+      if (!response.ok) throw new Error(payload.error ?? "Reflection failed.")
       setResult(payload)
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Reflection failed.")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reflection failed.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,.95fr)]">
-      <section className="flex min-h-[520px] flex-col gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-normal">Journal</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Write plainly. The reflection will stay short, structured, and non-clinical.
-          </p>
-        </div>
-        <Textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="What is present today?"
-          className="min-h-[360px] resize-none rounded-lg border-border bg-card p-4 text-base leading-7 shadow-sm"
-        />
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">Private by default. Pattern memory can be adjusted in settings.</p>
-          <Button onClick={handleSubmit} disabled={isSubmitting || text.trim().length < 20} className="gap-2">
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Reflect
-          </Button>
-        </div>
-        {error ? <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
-      </section>
+    <div className="space-y-6">
 
-      <section className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Avatar Reflection</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm leading-6">
-            {result ? (
-              <>
-                {result.avatarResponse.openingLine ? <p className="font-medium">{result.avatarResponse.openingLine}</p> : null}
-                {result.avatarResponse.mirror ? <p>{result.avatarResponse.mirror}</p> : null}
-                {result.avatarResponse.patternName ? (
-                  <p className="text-muted-foreground">Pattern: {result.avatarResponse.patternName}</p>
-                ) : null}
-                {result.avatarResponse.contradiction ? <p>{result.avatarResponse.contradiction}</p> : null}
-                {result.avatarResponse.socraticQuestion ? (
-                  <p className="border-l-2 border-accent pl-3 font-medium">{result.avatarResponse.socraticQuestion}</p>
-                ) : null}
-                {result.avatarResponse.integrationStep ? (
-                  <p className="rounded-lg bg-accent p-3 text-accent-foreground">{result.avatarResponse.integrationStep}</p>
-                ) : null}
-                {result.avatarResponse.closingLine ? <p className="text-muted-foreground">{result.avatarResponse.closingLine}</p> : null}
-              </>
-            ) : (
-              <p className="text-muted-foreground">Your reflection will appear here after you submit an entry.</p>
-            )}
-          </CardContent>
-        </Card>
+      {/* ── Page header ─────────────────────────────────────────── */}
+      <div>
+        <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
+          Journal
+        </p>
+        <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
+          What is present today?
+        </h1>
+        <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
+          Write plainly. The reflection will stay short, structured, and non-clinical.
+        </p>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Generated Prompt</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+
+        {/* ── Editor ─────────────────────────────────────────────── */}
+        <section className="space-y-0">
+          <div
+            className="rounded-3xl border overflow-hidden"
+            style={{
+              background: "var(--pearl)",
+              borderColor: "rgba(43,27,53,0.08)",
+              boxShadow: "0 4px 32px rgba(43,27,53,0.06)",
+            }}
+          >
+            {/* Editor top bar */}
+            <div
+              className="flex items-center justify-between px-8 py-4 border-b"
+              style={{ borderColor: "rgba(43,27,53,0.06)" }}
+            >
+              <span className="text-[12px] font-light text-[var(--plum-soft)]">
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+              <span className="text-[12px] font-light text-[var(--plum-soft)]">
+                {wordCount} {wordCount === 1 ? "word" : "words"}
+              </span>
+            </div>
+
+            {/* Writing area */}
+            <div className="px-8 pt-6 pb-8">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Write what is present — emotions, observations, tensions. No structure required…"
+                className="w-full min-h-[340px] resize-none bg-transparent outline-none font-display text-[18px] font-light leading-[1.95] text-[var(--primary)] placeholder:text-[var(--primary)]/20 journal-lines"
+                style={{ caretColor: "var(--clay)" }}
+              />
+            </div>
+
+            {/* Editor footer */}
+            <div
+              className="flex items-center justify-between px-8 py-4 border-t"
+              style={{ borderColor: "rgba(43,27,53,0.06)" }}
+            >
+              <p className="text-[12px] font-light text-[var(--plum-soft)]/70">
+                Private by default · Pattern memory adjustable in settings
+              </p>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || text.trim().length < 20}
+                className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-2.5 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="w-4 h-4" />
+                )}
+                {isSubmitting ? "Reflecting…" : "Reflect"}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div
+              className="mt-3 rounded-2xl px-5 py-4 text-[13px] font-light"
+              style={{
+                background: "rgba(191,64,64,0.07)",
+                border: "1px solid rgba(191,64,64,0.2)",
+                color: "var(--destructive)",
+              }}
+            >
+              {error}
+            </div>
+          )}
+        </section>
+
+        {/* ── Reflection panel ───────────────────────────────────── */}
+        <aside className="space-y-4">
+
+          {/* Avatar header */}
+          <div
+            className="rounded-3xl border p-6"
+            style={{
+              background: result ? "var(--pearl)" : "var(--pearl)",
+              borderColor: "rgba(43,27,53,0.07)",
+            }}
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <AvatarOrb size="sm" />
+              <div>
+                <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+                  Avatar Response
+                </p>
+                <p className="text-[12px] font-light text-[var(--plum-soft)]">
+                  Echo · Stage 1
+                </p>
+              </div>
+            </div>
+
             {result ? (
-              <>
-                <h2 className="text-lg font-semibold">{result.prompt.title}</h2>
-                <p>{result.prompt.context}</p>
-                {result.prompt.materials ? <p className="text-muted-foreground">{result.prompt.materials}</p> : null}
-                <p>{result.prompt.execution}</p>
-                <p className="font-medium">{result.prompt.integration}</p>
-              </>
+              <div className="space-y-4">
+                {result.avatarResponse.openingLine && (
+                  <p className="font-display text-[16px] font-medium text-[var(--primary)] leading-snug">
+                    {result.avatarResponse.openingLine}
+                  </p>
+                )}
+                {result.avatarResponse.mirror && (
+                  <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)] leading-[1.75]">
+                    {result.avatarResponse.mirror}
+                  </p>
+                )}
+                {result.avatarResponse.patternName && (
+                  <div
+                    className="inline-flex items-center gap-2 text-[11px] font-medium tracking-[0.1em] uppercase px-3 py-1.5 rounded-full"
+                    style={{
+                      background: "rgba(184,137,90,0.08)",
+                      color: "var(--clay)",
+                    }}
+                  >
+                    <span className="w-1 h-1 rounded-full bg-[var(--clay)]" />
+                    {result.avatarResponse.patternName}
+                  </div>
+                )}
+                {result.avatarResponse.contradiction && (
+                  <p className="text-[14px] font-light text-[var(--plum-soft)] leading-relaxed">
+                    {result.avatarResponse.contradiction}
+                  </p>
+                )}
+                {result.avatarResponse.socraticQuestion && (
+                  <div
+                    className="rounded-2xl px-5 py-4 border-l-2"
+                    style={{
+                      background: "rgba(43,27,53,0.03)",
+                      borderLeftColor: "var(--clay)",
+                    }}
+                  >
+                    <p className="font-display italic text-[15px] font-medium text-[var(--primary)] leading-[1.65]">
+                      {result.avatarResponse.socraticQuestion}
+                    </p>
+                  </div>
+                )}
+                {result.avatarResponse.integrationStep && (
+                  <div
+                    className="rounded-2xl px-5 py-4"
+                    style={{
+                      background: "rgba(184,137,90,0.07)",
+                      border: "1px solid rgba(184,137,90,0.15)",
+                    }}
+                  >
+                    <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] mb-2">
+                      One grounded step
+                    </p>
+                    <p className="text-[14px] font-light text-[var(--plum-soft)] leading-relaxed">
+                      {result.avatarResponse.integrationStep}
+                    </p>
+                  </div>
+                )}
+                {result.avatarResponse.closingLine && (
+                  <p className="text-[13px] font-light text-[var(--plum-soft)]/60 italic">
+                    {result.avatarResponse.closingLine}
+                  </p>
+                )}
+              </div>
             ) : (
-              <p className="text-muted-foreground">A grounded prompt will be generated from the reflection.</p>
+              <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)]/60 leading-relaxed">
+                Your reflection will appear here after you write and submit an entry.
+              </p>
             )}
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+
+          {/* Generated prompt */}
+          {(result || !result) && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)] mb-4">
+                Generated Prompt
+              </p>
+              {result ? (
+                <div className="space-y-3">
+                  <h3 className="font-display text-[20px] font-medium text-[var(--primary)] leading-snug">
+                    {result.prompt.title}
+                  </h3>
+                  <p className="text-[14px] font-light text-[var(--plum-soft)] leading-relaxed">
+                    {result.prompt.context}
+                  </p>
+                  {result.prompt.materials && (
+                    <p className="text-[13px] font-light text-[var(--plum-soft)]/70 leading-relaxed">
+                      {result.prompt.materials}
+                    </p>
+                  )}
+                  <p className="text-[14px] font-light text-[var(--plum-soft)] leading-relaxed">
+                    {result.prompt.execution}
+                  </p>
+                  <p className="text-[14px] font-medium text-[var(--primary)] leading-relaxed">
+                    {result.prompt.integration}
+                  </p>
+                </div>
+              ) : (
+                <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)]/60 leading-relaxed">
+                  A grounded prompt will be generated from your reflection.
+                </p>
+              )}
+            </div>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

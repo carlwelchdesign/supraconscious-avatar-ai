@@ -1,25 +1,55 @@
 @import "tailwindcss";
 
+/* ─── Inner Avatar Design System ─────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-  --primary: #18181b;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #eef2f2;
-  --accent-foreground: #18181b;
-  --destructive: #b91c1c;
-  --destructive-foreground: #fafafa;
-  --border: #e4e4e7;
-  --input: #d4d4d8;
-  --ring: #71717a;
+  /* Surfaces */
+  --background: #F4EDE4;
+  --foreground: #1A1020;
+  --card: #FAF7F3;
+  --card-foreground: #1A1020;
+  --popover: #FAF7F3;
+  --popover-foreground: #1A1020;
+
+  /* Primary: Deep Plum */
+  --primary: #2B1B35;
+  --primary-foreground: #F4EDE4;
+
+  /* Secondary */
+  --secondary: #EDE4DA;
+  --secondary-foreground: #2B1B35;
+
+  /* Muted */
+  --muted: #EAE0D6;
+  --muted-foreground: #7A6B8A;
+
+  /* Accent: warm clay tint */
+  --accent: #F0E5D8;
+  --accent-foreground: #2B1B35;
+
+  /* Destructive */
+  --destructive: #BF4040;
+  --destructive-foreground: #FAF7F3;
+
+  /* Borders / Inputs */
+  --border: rgba(43, 27, 53, 0.10);
+  --input: rgba(43, 27, 53, 0.09);
+  --ring: #B8895A;
+
+  --radius: 0.75rem;
+
+  /* ── Brand palette (used directly in components) */
+  --clay: #B8895A;
+  --clay-light: #D4AA82;
+  --clay-pale: #F0E5D8;
+  --plum-mid: #4A3260;
+  --plum-soft: #7A6B8A;
+  --plum-pale: rgba(43, 27, 53, 0.06);
+  --moonblue: #7B9BB5;
+  --sage: #9BAF9B;
+  --rose: #C4A5A5;
+  --cream: #F4EDE4;
+  --pearl: #FAF7F3;
+  --sand: #D8C9B8;
 }
 
 @theme inline {
@@ -42,39 +72,150 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-cormorant);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #101112;
-    --foreground: #f5f5f4;
-    --card: #181a1b;
-    --card-foreground: #f5f5f4;
-    --popover: #181a1b;
-    --popover-foreground: #f5f5f4;
-    --primary: #e7e5e4;
-    --primary-foreground: #18181b;
-    --secondary: #27272a;
-    --secondary-foreground: #f5f5f4;
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
-    --accent: #203432;
-    --accent-foreground: #f5f5f4;
-    --destructive: #ef4444;
-    --destructive-foreground: #fafafa;
-    --border: #303437;
-    --input: #3f3f46;
-    --ring: #a1a1aa;
-  }
-}
-
+/* ─── Base ─────────────────────────────────────────────────────────── */
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
 
 * {
   border-color: var(--border);
+}
+
+/* ─── Avatar Orb Animations ─────────────────────────────────────────── */
+@keyframes orb-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 40px rgba(184, 137, 90, 0.25),
+      0 0 80px rgba(184, 137, 90, 0.10),
+      inset 0 -16px 32px rgba(43, 27, 53, 0.18);
+  }
+  50% {
+    transform: scale(1.055);
+    box-shadow:
+      0 0 60px rgba(184, 137, 90, 0.38),
+      0 0 120px rgba(184, 137, 90, 0.16),
+      inset 0 -16px 32px rgba(43, 27, 53, 0.22);
+  }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.035); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes float-gentle-alt {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(24px, -16px) scale(1.04); }
+  66% { transform: translate(-16px, 22px) scale(0.97); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.75); }
+}
+
+/* ─── Utility Classes ───────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.animate-orb-breathe {
+  animation: orb-breathe 5.5s ease-in-out infinite;
+}
+
+.animate-orb-breathe-slow {
+  animation: orb-breathe 7s ease-in-out infinite;
+}
+
+.animate-ring-1 {
+  animation: ring-pulse 5.5s ease-in-out infinite;
+}
+
+.animate-ring-2 {
+  animation: ring-pulse 5.5s ease-in-out infinite 0.9s;
+}
+
+.animate-ring-3 {
+  animation: ring-pulse 5.5s ease-in-out infinite 1.8s;
+}
+
+.animate-float {
+  animation: float-gentle 7s ease-in-out infinite;
+}
+
+.animate-float-alt {
+  animation: float-gentle-alt 9s ease-in-out infinite;
+}
+
+.animate-blob-1 {
+  animation: blob-drift 14s ease-in-out infinite;
+}
+
+.animate-blob-2 {
+  animation: blob-drift 18s ease-in-out infinite reverse;
+}
+
+.animate-blob-3 {
+  animation: blob-drift 22s ease-in-out infinite 4s;
+}
+
+.animate-dot-pulse {
+  animation: dot-pulse 2.2s ease-in-out infinite;
+}
+
+/* staggered hero entrance */
+.hero-item-1 { animation: fade-up 0.65s ease both 0.10s; }
+.hero-item-2 { animation: fade-up 0.65s ease both 0.22s; }
+.hero-item-3 { animation: fade-up 0.65s ease both 0.36s; }
+.hero-item-4 { animation: fade-up 0.65s ease both 0.52s; }
+.hero-visual  { animation: fade-up 0.85s ease both 0.28s; }
+
+/* ─── Journal Editor ───────────────────────────────────────────────── */
+.journal-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    rgba(43, 27, 53, 0.055) 32px
+  );
+  background-size: 100% 32px;
+}
+
+/* ─── Grain Overlay ────────────────────────────────────────────────── */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.026;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
 }
