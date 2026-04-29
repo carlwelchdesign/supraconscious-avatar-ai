@@ -10,6 +10,14 @@ type Props = {
   disabled?: boolean
 }
 
+const MIME_TYPE_CANDIDATES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/aac",
+  "audio/mpeg",
+]
+
 export function MicButton({ onTranscribe, disabled }: Props) {
   const [state, setState] = useState<MicState>("idle")
   const [errorMsg, setErrorMsg] = useState("")
@@ -17,14 +25,28 @@ export function MicButton({ onTranscribe, disabled }: Props) {
   const chunksRef = useRef<Blob[]>([])
 
   const stopRecording = useCallback(() => {
-    mediaRecorderRef.current?.stop()
+    const recorder = mediaRecorderRef.current
+    if (!recorder || recorder.state === "inactive") return
+    recorder.requestData()
+    recorder.stop()
   }, [])
 
   const startRecording = useCallback(async () => {
     setErrorMsg("")
     try {
+      if (!window.isSecureContext) {
+        throw new Error("Microphone requires HTTPS")
+      }
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+        throw new Error("Recording is not supported on this browser")
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
+      const mimeType = getSupportedMimeType()
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream)
+
       mediaRecorderRef.current = mediaRecorder
       chunksRef.current = []
 
@@ -34,9 +56,11 @@ export function MicButton({ onTranscribe, disabled }: Props) {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop())
-        const blob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType })
+        const blobType = mediaRecorder.mimeType || chunksRef.current[0]?.type || "audio/webm"
+        const blob = new Blob(chunksRef.current, { type: blobType })
 
         if (blob.size < 500) {
+          setErrorMsg("No speech captured")
           setState("idle")
           return
         }
@@ -44,7 +68,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
         setState("processing")
         try {
           const fd = new FormData()
-          fd.append("audio", blob, "recording.webm")
+          fd.append("audio", blob, `recording.${extensionForMimeType(blob.type)}`)
           const res = await fetch("/api/voice/transcribe", { method: "POST", body: fd })
           const data = await res.json()
           if (!res.ok) throw new Error(data.error ?? "Transcription failed")
@@ -58,13 +82,10 @@ export function MicButton({ onTranscribe, disabled }: Props) {
         }
       }
 
-      mediaRecorder.start()
+      mediaRecorder.start(1000)
       setState("recording")
     } catch (e) {
-      const msg =
-        e instanceof Error && e.name === "NotAllowedError"
-          ? "Microphone access denied"
-          : "Microphone unavailable"
+      const msg = microphoneErrorMessage(e)
       setErrorMsg(msg)
       setState("error")
       setTimeout(() => setState("idle"), 3000)
@@ -82,6 +103,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
   return (
     <div className="relative inline-flex items-center">
       <button
+        type="button"
         onClick={handleClick}
         disabled={disabled || isProcessing}
         title={isRecording ? "Stop recording" : "Dictate entry"}
@@ -122,4 +144,23 @@ export function MicButton({ onTranscribe, disabled }: Props) {
       )}
     </div>
   )
+}
+
+function getSupportedMimeType() {
+  return MIME_TYPE_CANDIDATES.find((type) => MediaRecorder.isTypeSupported(type))
+}
+
+function extensionForMimeType(mimeType: string) {
+  if (mimeType.includes("mp4")) return "mp4"
+  if (mimeType.includes("aac")) return "aac"
+  if (mimeType.includes("mpeg")) return "mp3"
+  if (mimeType.includes("ogg")) return "ogg"
+  return "webm"
+}
+
+function microphoneErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) return "Microphone unavailable"
+  if (error.name === "NotAllowedError") return "Microphone access denied"
+  if (error.name === "NotFoundError") return "No microphone found"
+  return error.message || "Microphone unavailable"
 }

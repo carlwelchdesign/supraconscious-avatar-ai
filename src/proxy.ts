@@ -11,6 +11,7 @@ const protectedRoutePrefixes = [
   "/api/avatar(.*)",
   "/api/prompts(.*)",
   "/api/patterns(.*)",
+  "/api/voice(.*)",
 ]
 
 export default function proxy(req: NextRequest) {

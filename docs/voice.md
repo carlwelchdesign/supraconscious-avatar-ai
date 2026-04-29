@@ -41,6 +41,12 @@ Backend:
 
 The current implementation does not store uploaded audio.
 
+Mobile notes:
+
+- Microphone capture requires HTTPS on phones and tablets. Local network HTTP URLs such as `http://192.168.x.x:3000` usually cannot access the microphone.
+- The recorder chooses the first browser-supported format from WebM/Opus, WebM, MP4, AAC, and MP3. This is important for iOS Safari, which may not support WebM recording.
+- The upload filename extension is matched to the recorded MIME type before sending audio to OpenAI transcription.
+
 ## Text-To-Speech
 
 Route: `POST /api/voice/speak`
