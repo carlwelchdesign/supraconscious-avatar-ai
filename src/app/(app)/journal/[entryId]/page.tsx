@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react"
 import { requireAppUser } from "@/lib/auth/user"
 import { prisma } from "@/lib/db"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
+import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { buildSpeakText } from "@/lib/voice/voice-config"
 
 export default async function JournalEntryPage({ params }: { params: Promise<{ entryId: string }> }) {
   const user = await requireAppUser()
@@ -23,6 +25,12 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
     year: "numeric",
   })
   const r = entry.avatarResponse
+  const speakText = r ? buildSpeakText(r) : ""
+  const voicePrefs = {
+    gender: user.voiceGender ?? "female",
+    style: user.voiceStyle ?? "warm",
+    speed: user.voiceSpeed ?? 1.0,
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -147,6 +155,20 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
               <p className="text-[13px] font-light italic text-[var(--cream)]/50 pt-1">
                 {r.closingLine}
               </p>
+            )}
+
+            {speakText && (
+              <div
+                className="pt-3 border-t"
+                style={{ borderColor: "rgba(255,255,255,0.08)" }}
+              >
+                <AudioPlayer
+                  text={speakText}
+                  voiceGender={voicePrefs.gender}
+                  voiceStyle={voicePrefs.style}
+                  voiceSpeed={voicePrefs.speed}
+                />
+              </div>
             )}
           </div>
         </div>

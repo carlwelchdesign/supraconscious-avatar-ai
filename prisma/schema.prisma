@@ -25,6 +25,12 @@ model User {
   patternMemoryEnabled Boolean  @default(true)
   onboardingComplete   Boolean  @default(false)
   topicsToAvoid        Json? // Array of topics to handle gently
+  voiceEnabled         Boolean  @default(false)
+  voiceAutoPlay        Boolean  @default(false)
+  voiceInputDefault    String   @default("text") // text, voice, ask
+  voiceGender          String   @default("female") // female, male
+  voiceStyle           String   @default("warm") // warm, neutral, deep, soft
+  voiceSpeed           Float    @default(1.0) // 0.75, 1.0, 1.25
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

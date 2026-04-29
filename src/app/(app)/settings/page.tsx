@@ -1,4 +1,5 @@
 import { requireAppUser } from "@/lib/auth/user"
+import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
   label,
@@ -171,6 +172,18 @@ export default async function SettingsPage() {
           />
         </div>
       </div>
+
+      {/* ── Voice & Audio ───────────────────────────────────────── */}
+      <VoiceSettingsSection
+        initial={{
+          voiceEnabled: user.voiceEnabled ?? false,
+          voiceAutoPlay: user.voiceAutoPlay ?? false,
+          voiceInputDefault: (user.voiceInputDefault ?? "text") as "text" | "voice" | "ask",
+          voiceGender: (user.voiceGender ?? "female") as "female" | "male",
+          voiceStyle: (user.voiceStyle ?? "warm") as "warm" | "neutral" | "deep" | "soft",
+          voiceSpeed: user.voiceSpeed ?? 1.0,
+        }}
+      />
 
       <p className="text-[12px] font-light text-[var(--plum-soft)]/50 leading-relaxed">
         Billing, data export, and account deletion controls will appear here as the product expands.

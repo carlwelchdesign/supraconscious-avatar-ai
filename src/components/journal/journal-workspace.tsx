@@ -3,6 +3,9 @@
 import { useState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
+import { MicButton } from "@/components/voice/MicButton"
+import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
@@ -36,11 +39,32 @@ type AnalysisResult = {
   }
 }
 
-export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 }) {
+type VoicePrefs = {
+  voiceEnabled: boolean
+  voiceAutoPlay: boolean
+  voiceGender: string
+  voiceStyle: string
+  voiceSpeed: number
+}
+
+type Props = {
+  avatarStage?: 1 | 2 | 3 | 4 | 5
+  voicePrefs?: VoicePrefs
+}
+
+export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<AnalysisResult | null>(null)
+
+  const voice = voicePrefs ?? {
+    voiceEnabled: false,
+    voiceAutoPlay: false,
+    voiceGender: "female",
+    voiceStyle: "warm",
+    voiceSpeed: 1.0,
+  }
 
   async function handleSubmit() {
     setError("")
@@ -63,7 +87,15 @@ export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 
     }
   }
 
+  const handleTranscribe = (transcribed: string) => {
+    setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
+  }
+
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+
+  const speakText = result
+    ? buildSpeakText(result.avatarResponse)
+    : ""
 
   return (
     <div className="space-y-6">
@@ -126,9 +158,14 @@ export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 
               className="flex items-center justify-between px-8 py-4 border-t"
               style={{ borderColor: "rgba(43,27,53,0.06)" }}
             >
-              <p className="text-[12px] font-light text-[var(--plum-soft)]/70">
-                Private by default · Pattern memory adjustable in settings
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="text-[12px] font-light text-[var(--plum-soft)]/70">
+                  Private by default · Pattern memory adjustable in settings
+                </p>
+                {voice.voiceEnabled && (
+                  <MicButton onTranscribe={handleTranscribe} disabled={isSubmitting} />
+                )}
+              </div>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || text.trim().length < 20}
@@ -165,7 +202,7 @@ export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 
           <div
             className="rounded-3xl border p-6"
             style={{
-              background: result ? "var(--pearl)" : "var(--pearl)",
+              background: "var(--pearl)",
               borderColor: "rgba(43,27,53,0.07)",
             }}
           >
@@ -243,6 +280,22 @@ export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 
                   <p className="text-[13px] font-light text-[var(--plum-soft)]/60 italic">
                     {result.avatarResponse.closingLine}
                   </p>
+                )}
+
+                {/* Audio player — only shown if safety allows and voice is configured */}
+                {speakText && result.safety.severity !== "high" && (
+                  <div
+                    className="pt-2 border-t"
+                    style={{ borderColor: "rgba(43,27,53,0.06)" }}
+                  >
+                    <AudioPlayer
+                      text={speakText}
+                      voiceGender={voice.voiceGender}
+                      voiceStyle={voice.voiceStyle}
+                      voiceSpeed={voice.voiceSpeed}
+                      autoPlay={voice.voiceAutoPlay}
+                    />
+                  </div>
                 )}
               </div>
             ) : (
