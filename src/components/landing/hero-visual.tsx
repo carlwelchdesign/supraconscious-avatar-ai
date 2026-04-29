@@ -49,7 +49,7 @@ export function HeroVisual() {
           Pattern noticed
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
-          "I keep returning to this feeling of…"
+          &ldquo;I keep returning to this feeling of…&rdquo;
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export function HeroVisual() {
           Avatar reflection
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
-          "There's a recurring theme of self-permission here."
+          &ldquo;There&apos;s a recurring theme of self-permission here.&rdquo;
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export function HeroVisual() {
           Today&apos;s entry
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
-          "I noticed I soften when I stop performing…"
+          &ldquo;I noticed I soften when I stop performing…&rdquo;
         </p>
       </div>
     </div>

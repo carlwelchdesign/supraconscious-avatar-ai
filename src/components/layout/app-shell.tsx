@@ -3,6 +3,7 @@ import { BookOpen, BarChart2, Sparkles, Settings, LogOut, LayoutDashboard, Shiel
 import { logoutAction } from "@/lib/auth/actions"
 import { getCurrentUser } from "@/lib/auth/session"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 
@@ -98,30 +99,26 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           borderColor: "rgba(43,27,53,0.08)",
         }}
       >
-        <span className="font-display text-lg font-medium text-[var(--primary)]">
+        <Link href="/dashboard" className="font-display text-lg font-medium text-[var(--primary)]">
           Inner Avatar
-        </span>
-        <div className="flex items-center gap-3">
-          {navItems.slice(0, 3).map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="p-1.5 text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
-            >
-              <item.icon className="w-5 h-5" />
-            </Link>
-          ))}
-          <form action={logoutAction}>
-            <button type="submit" className="p-1.5 text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </form>
-        </div>
+        </Link>
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            className="p-1.5 text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </form>
       </div>
+
+      {/* ── Mobile bottom nav ──────────────────────────────────── */}
+      <MobileBottomNav />
 
       {/* ── Main content ───────────────────────────────────────── */}
       <main className="flex-1 min-w-0 md:pt-0 pt-16">
-        <div className="max-w-4xl mx-auto px-6 py-10">
+        <div className="max-w-4xl mx-auto px-6 py-10 md:pb-10 pb-24">
           {children}
         </div>
       </main>

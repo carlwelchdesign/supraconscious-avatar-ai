@@ -2,6 +2,19 @@
 
 Inner Avatar is a guided AI journaling SaaS built with Next.js, first-party email/password auth, Prisma Postgres, and OpenAI.
 
+## Documentation
+
+Start here:
+
+- [Documentation Index](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Local Setup and Deployment](docs/setup-and-deployment.md)
+- [Authentication](docs/authentication.md)
+- [AI Journaling Pipeline](docs/ai-pipeline.md)
+- [Voice Features](docs/voice.md)
+- [Admin and Operations](docs/admin-and-operations.md)
+- [Wiki Home](docs/wiki/Home.md)
+
 ## Getting Started
 
 Install dependencies and run the development server:
@@ -23,7 +36,7 @@ DATABASE_URL="postgres://..."
 OPENAI_API_KEY="sk-..."
 ```
 
-The first registered account becomes an admin. Admin users can access `/admin` for user, subscription, analytics, and prompt-management views.
+The first credentialed account becomes an admin. Admin users can access `/admin` for user, subscription, analytics, and prompt-management views.
 
 ## Verification
 

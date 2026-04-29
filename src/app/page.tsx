@@ -233,7 +233,7 @@ export default async function Home() {
                 Avatar reflection
               </p>
               <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)] leading-[1.7]">
-                "The word &lsquo;performing&rsquo; has come up in your last four entries. There&apos;s something here worth staying with."
+                &ldquo;The word &lsquo;performing&rsquo; has come up in your last four entries. There&apos;s something here worth staying with.&rdquo;
               </p>
             </div>
           </div>

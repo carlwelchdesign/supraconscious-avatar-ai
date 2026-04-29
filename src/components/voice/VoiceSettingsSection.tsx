@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useActionState } from "react"
 import { Check, Loader2 } from "lucide-react"
+import { updateVoicePreferences, type VoiceActionState } from "@/app/(app)/settings/actions"
 
 type VoicePrefs = {
   voiceEnabled: boolean
@@ -12,69 +13,78 @@ type VoicePrefs = {
   voiceSpeed: number
 }
 
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ name, defaultChecked }: { name: string; defaultChecked: boolean }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={() => onChange(!on)}
-      className="relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-all duration-200"
-      style={{ background: on ? "var(--clay)" : "rgba(43,27,53,0.12)" }}
-    >
+    <label className="inline-flex items-center cursor-pointer select-none">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="sr-only peer" />
       <span
-        className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform duration-200"
-        style={{ transform: on ? "translateX(18px)" : "translateX(3px)" }}
+        className="
+          relative block w-11 h-6 rounded-full cursor-pointer
+          bg-[rgba(43,27,53,0.12)] peer-checked:bg-[var(--clay)]
+          transition-colors duration-200
+          after:content-[''] after:absolute after:top-1 after:left-1
+          after:bg-white after:rounded-full after:h-4 after:w-4
+          after:shadow-sm after:transition-all after:duration-200
+          peer-checked:after:translate-x-5
+        "
       />
-    </button>
+    </label>
   )
 }
 
-function OptionGroup<T extends string>({
+function PillGroup({
+  name,
+  defaultValue,
   options,
-  value,
-  onChange,
 }: {
-  options: { value: T; label: string }[]
-  value: T
-  onChange: (v: T) => void
+  name: string
+  defaultValue: string
+  options: { value: string; label: string }[]
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={() => onChange(opt.value)}
-          className="text-[12px] font-medium px-3 py-1 rounded-full transition-all"
-          style={
-            opt.value === value
-              ? { background: "var(--primary)", color: "var(--cream)" }
-              : { background: "rgba(43,27,53,0.06)", color: "var(--plum-soft)" }
-          }
-        >
-          {opt.label}
-        </button>
+        <label key={opt.value} className="cursor-pointer">
+          <input
+            type="radio"
+            name={name}
+            value={opt.value}
+            defaultChecked={opt.value === defaultValue}
+            className="sr-only peer"
+          />
+          <span
+            className="
+              inline-block text-[13px] font-medium px-4 py-2.5 rounded-full
+              cursor-pointer transition-colors duration-150
+              bg-[rgba(43,27,53,0.06)] text-[var(--plum-soft)]
+              peer-checked:bg-[var(--primary)] peer-checked:text-[var(--cream)]
+            "
+          >
+            {opt.label}
+          </span>
+        </label>
       ))}
     </div>
   )
 }
 
-function SettingRow({
+function Row({
   label,
   description,
-  control,
+  children,
+  inline = false,
 }: {
   label: string
   description?: string
-  control: React.ReactNode
+  children: React.ReactNode
+  inline?: boolean
 }) {
   return (
     <div
-      className="flex items-center justify-between gap-6 py-5 border-b last:border-0"
+      className={`py-5 border-b last:border-0 ${inline ? "flex items-center justify-between gap-4" : "space-y-3"}`}
       style={{ borderColor: "rgba(43,27,53,0.07)" }}
     >
-      <div className="flex-1 min-w-0">
+      <div className={inline ? "flex-1 min-w-0" : ""}>
         <p className="text-[14px] font-medium text-[var(--primary)]">{label}</p>
         {description && (
           <p className="text-[12px] font-light text-[var(--plum-soft)] mt-0.5 leading-relaxed">
@@ -82,40 +92,20 @@ function SettingRow({
           </p>
         )}
       </div>
-      <div className="flex-shrink-0">{control}</div>
+      <div className={inline ? "flex-shrink-0" : ""}>{children}</div>
     </div>
   )
 }
 
 export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
-  const [prefs, setPrefs] = useState<VoicePrefs>(initial)
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
-
-  const update = <K extends keyof VoicePrefs>(key: K, value: VoicePrefs[K]) => {
-    setPrefs((p) => ({ ...p, [key]: value }))
-    setSaveState("idle")
-  }
-
-  const save = async () => {
-    setSaveState("saving")
-    try {
-      const res = await fetch("/api/voice/preferences", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(prefs),
-      })
-      if (!res.ok) throw new Error()
-      setSaveState("saved")
-      setTimeout(() => setSaveState("idle"), 2500)
-    } catch {
-      setSaveState("error")
-      setTimeout(() => setSaveState("idle"), 3000)
-    }
-  }
+  const [state, formAction, isPending] = useActionState<VoiceActionState, FormData>(
+    updateVoicePreferences,
+    null,
+  )
 
   return (
     <div
-      className="rounded-2xl border overflow-hidden"
+      className="rounded-2xl border"
       style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}
     >
       <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
@@ -124,124 +114,99 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
         </p>
       </div>
 
-      <div className="px-6">
-        <SettingRow
-          label="Voice journaling"
-          description="Show a microphone button so you can dictate entries."
-          control={
-            <Toggle on={prefs.voiceEnabled} onChange={(v) => update("voiceEnabled", v)} />
-          }
-        />
+      <form action={formAction}>
+        <div className="px-6">
+          <Row inline label="Voice journaling" description="Show a mic button to dictate entries.">
+            <Toggle name="voiceEnabled" defaultChecked={initial.voiceEnabled} />
+          </Row>
 
-        {prefs.voiceEnabled && (
-          <SettingRow
-            label="Default input mode"
-            description="How the journal opens by default."
-            control={
-              <OptionGroup
-                options={[
-                  { value: "text", label: "Text" },
-                  { value: "voice", label: "Voice" },
-                  { value: "ask", label: "Ask each time" },
-                ]}
-                value={prefs.voiceInputDefault}
-                onChange={(v) => update("voiceInputDefault", v)}
-              />
-            }
-          />
-        )}
-
-        <SettingRow
-          label="Avatar voice"
-          description="Play Avatar reflections as audio."
-          control={<Toggle on={prefs.voiceAutoPlay === false ? false : prefs.voiceEnabled && prefs.voiceAutoPlay} onChange={(v) => { if (!prefs.voiceEnabled) update("voiceEnabled", true); update("voiceAutoPlay", v) }} />}
-        />
-
-        <SettingRow
-          label="Auto-play responses"
-          description="Automatically play the Avatar response after each reflection."
-          control={
-            <Toggle
-              on={prefs.voiceAutoPlay}
-              onChange={(v) => update("voiceAutoPlay", v)}
+          <Row label="Default input mode" description="How the journal opens by default.">
+            <PillGroup
+              name="voiceInputDefault"
+              defaultValue={initial.voiceInputDefault}
+              options={[
+                { value: "text",  label: "Text" },
+                { value: "voice", label: "Voice" },
+                { value: "ask",   label: "Ask each time" },
+              ]}
             />
-          }
-        />
+          </Row>
 
-        <SettingRow
-          label="Voice"
-          description="Choose the tone of your Avatar's voice."
-          control={
-            <div className="space-y-2">
-              <OptionGroup
+          <Row inline label="Auto-play responses" description="Play the Avatar response as audio after each reflection.">
+            <Toggle name="voiceAutoPlay" defaultChecked={initial.voiceAutoPlay} />
+          </Row>
+
+          <Row label="Voice character" description="Choose the tone of your Avatar's voice.">
+            <div className="space-y-2.5">
+              <PillGroup
+                name="voiceGender"
+                defaultValue={initial.voiceGender}
                 options={[
                   { value: "female", label: "Feminine" },
-                  { value: "male", label: "Masculine" },
+                  { value: "male",   label: "Masculine" },
                 ]}
-                value={prefs.voiceGender}
-                onChange={(v) => update("voiceGender", v)}
               />
-              <OptionGroup
+              <PillGroup
+                name="voiceStyle"
+                defaultValue={initial.voiceStyle}
                 options={[
-                  { value: "warm", label: "Warm" },
+                  { value: "warm",    label: "Warm" },
                   { value: "neutral", label: "Neutral" },
-                  { value: "soft", label: "Soft" },
-                  { value: "deep", label: "Deep" },
+                  { value: "soft",    label: "Soft" },
+                  { value: "deep",    label: "Deep" },
                 ]}
-                value={prefs.voiceStyle}
-                onChange={(v) => update("voiceStyle", v)}
               />
             </div>
-          }
-        />
+          </Row>
 
-        <SettingRow
-          label="Playback speed"
-          control={
-            <OptionGroup
+          <Row label="Playback speed">
+            <PillGroup
+              name="voiceSpeed"
+              defaultValue={String(initial.voiceSpeed)}
               options={[
                 { value: "0.75", label: "0.75×" },
-                { value: "1", label: "1.0×" },
+                { value: "1",    label: "1.0×" },
                 { value: "1.25", label: "1.25×" },
               ]}
-              value={String(prefs.voiceSpeed)}
-              onChange={(v) => update("voiceSpeed", parseFloat(v))}
             />
-          }
-        />
-      </div>
-
-      <div className="px-6 pb-5 pt-2 flex items-center justify-between">
-        <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
-          Voice audio is never stored. Processed once and discarded.
-        </p>
-        <button
-          onClick={save}
-          disabled={saveState === "saving"}
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium px-4 py-2 rounded-full transition-all disabled:opacity-50"
-          style={{ background: "var(--primary)", color: "var(--cream)" }}
-        >
-          {saveState === "saving" ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : saveState === "saved" ? (
-            <Check className="w-3.5 h-3.5" />
-          ) : null}
-          {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save"}
-        </button>
-      </div>
-
-      {saveState === "error" && (
-        <div
-          className="mx-6 mb-5 px-4 py-3 rounded-xl text-[12px] font-light"
-          style={{
-            background: "rgba(191,64,64,0.07)",
-            border: "1px solid rgba(191,64,64,0.15)",
-            color: "var(--destructive)",
-          }}
-        >
-          Failed to save preferences. Please try again.
+          </Row>
         </div>
-      )}
+
+        <div
+          className="px-6 pb-5 pt-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between border-t"
+          style={{ borderColor: "rgba(43,27,53,0.06)" }}
+        >
+          <p className="text-[11px] font-light text-[var(--plum-soft)]/60 order-2 sm:order-1">
+            Voice audio is never stored. Processed once and discarded.
+          </p>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="order-1 sm:order-2 inline-flex items-center justify-center gap-2 text-[14px] font-medium px-6 py-3 sm:py-2.5 rounded-full transition-all disabled:opacity-60"
+            style={{ background: "var(--primary)", color: "var(--cream)" }}
+          >
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : state?.ok ? (
+              <Check className="w-4 h-4" />
+            ) : null}
+            {isPending ? "Saving…" : state?.ok ? "Saved" : "Save preferences"}
+          </button>
+        </div>
+
+        {state?.ok === false && (
+          <div
+            className="mx-6 mb-5 px-4 py-3 rounded-xl text-[12px] font-light"
+            style={{
+              background: "rgba(191,64,64,0.07)",
+              border: "1px solid rgba(191,64,64,0.15)",
+              color: "var(--destructive)",
+            }}
+          >
+            Failed to save. Please try again.
+          </div>
+        )}
+      </form>
     </div>
   )
 }
