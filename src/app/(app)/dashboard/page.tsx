@@ -4,6 +4,9 @@ import { requireAppUser } from "@/lib/auth/user"
 import { prisma } from "@/lib/db"
 import { AvatarOrb } from "@/components/ui/avatar-orb"
 
+const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
+const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
+
 export default async function DashboardPage() {
   const user = await requireAppUser()
 
@@ -40,8 +43,8 @@ export default async function DashboardPage() {
             {user.name ?? "Welcome back"}
           </h1>
           <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-            Your current stage is{" "}
-            <span className="font-medium text-[var(--primary)]">Awareness</span>.
+            Your current level is{" "}
+            <span className="font-medium text-[var(--primary)]">{LEVEL_NAMES[(user.currentLevel ?? 1) - 1]}</span>.
           </p>
         </div>
         <Link
@@ -71,10 +74,10 @@ export default async function DashboardPage() {
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Your Avatar · Stage 1
+            Your Avatar · Stage {user.avatarStage ?? 1}
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
-            Echo
+            {AVATAR_STAGE_NAMES[(user.avatarStage ?? 1) - 1]}
           </h2>
           <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
             Reflecting your language back with care. Each entry deepens the connection.

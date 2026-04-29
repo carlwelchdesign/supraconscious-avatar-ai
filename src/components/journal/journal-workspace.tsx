@@ -177,7 +177,7 @@ export function JournalWorkspace({ avatarStage = 1 }: { avatarStage?: 1|2|3|4|5 
               <p className="text-[12px] font-light text-[var(--plum-soft)]">
                 {result
                   ? `${AVATAR_STAGES[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
-                  : "Echo · Stage 1"}
+                  : `${AVATAR_STAGES[avatarStage - 1]} · Stage ${avatarStage}`}
               </p>
             </div>
 
