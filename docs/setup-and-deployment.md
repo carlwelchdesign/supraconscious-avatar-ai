@@ -105,8 +105,6 @@ yarn build:admin
 
 The repository includes a Dockerfile and CI workflow for the ChatGPT MCP App:
 
-- Dockerfile: `apps/chatgpt-app/Dockerfile` (multi-stage build: install deps → build → runtime)
-- GitHub Actions workflow: `.github/workflows/chatgpt-app-deploy.yml`
 
 Build and run locally:
 
@@ -117,9 +115,13 @@ docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
 
 CI notes:
 
-- The workflow runs `yarn --cwd apps/chatgpt-app build` and `yarn --cwd apps/chatgpt-app test` before building the Docker image.
-- To publish the Docker image to GitHub Container Registry, set `GHCR_PAT` in repository secrets.
 
+```bash
+node .yarn/releases/yarn-4.cjs install --immutable
+node .yarn/releases/yarn-4.cjs --cwd apps/web build
+```
+
+The workflow runs `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build` and `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test` before building the Docker image.
 
 Set production database schema before using the apps:
 

@@ -67,6 +67,17 @@ The workflow is at `.github/workflows/chatgpt-app-deploy.yml` and does:
 - Install dependencies, build, run tests
 - Build Docker image
 - Optionally push to GitHub Container Registry when `GHCR_PAT` is set in repo secrets
+ - Install dependencies, build, run tests
+ - Build Docker image
+ - Optionally push to GitHub Container Registry when `GHCR_PAT` is set in repo secrets
+
+If your CI host does not support Corepack, use the repository Yarn launcher:
+
+```bash
+node .yarn/releases/yarn-4.cjs install --immutable
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
+```
 
 ## Runtime configuration
 

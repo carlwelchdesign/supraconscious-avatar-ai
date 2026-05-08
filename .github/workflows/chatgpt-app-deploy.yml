@@ -21,19 +21,17 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Enable Corepack
-        run: |
-          corepack enable
-          corepack prepare yarn@stable --activate
+      - name: Use repository Yarn launcher
+        run: node .yarn/releases/yarn-4.cjs --version || true
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: node .yarn/releases/yarn-4.cjs install --immutable
 
       - name: Build chatgpt app
-        run: yarn --cwd apps/chatgpt-app build
+        run: node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
 
       - name: Run chatgpt app tests
-        run: yarn --cwd apps/chatgpt-app test
+        run: node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 
       - name: Build Docker image
         run: docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:${{ github.sha }} .
