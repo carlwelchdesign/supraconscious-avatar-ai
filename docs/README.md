@@ -11,6 +11,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Voice Features](voice.md): microphone transcription, text-to-speech playback, preferences, and API routes.
 - [Admin and Operations](admin-and-operations.md): separate admin app, privacy controls, audit logging, users, subscriptions, safety, prompt templates, feature flags, and operational checks.
 - [Wiki Home](wiki/Home.md): GitHub-wiki-style navigation page that can be copied into an actual GitHub Wiki.
+ - [ChatGPT MCP App](chatgpt-mcp-app.md): ChatGPT MCP server package, MCP tools, static widget, test harness, and deployment (Docker + GitHub Actions).
 
 ## Current Product
 

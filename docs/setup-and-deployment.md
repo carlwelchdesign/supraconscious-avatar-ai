@@ -66,6 +66,13 @@ yarn build:web
 yarn build:admin
 ```
 
+To build and test the ChatGPT MCP server package locally:
+
+```bash
+yarn --cwd apps/chatgpt-app build
+yarn --cwd apps/chatgpt-app test
+```
+
 Useful route smoke checks:
 
 ```bash
@@ -93,6 +100,26 @@ Recommended build commands:
 yarn build:web
 yarn build:admin
 ```
+
+### Docker / GitHub Actions (ChatGPT MCP App)
+
+The repository includes a Dockerfile and CI workflow for the ChatGPT MCP App:
+
+- Dockerfile: `apps/chatgpt-app/Dockerfile` (multi-stage build: install deps → build → runtime)
+- GitHub Actions workflow: `.github/workflows/chatgpt-app-deploy.yml`
+
+Build and run locally:
+
+```bash
+docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:latest .
+docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
+```
+
+CI notes:
+
+- The workflow runs `yarn --cwd apps/chatgpt-app build` and `yarn --cwd apps/chatgpt-app test` before building the Docker image.
+- To publish the Docker image to GitHub Container Registry, set `GHCR_PAT` in repository secrets.
+
 
 Set production database schema before using the apps:
 
