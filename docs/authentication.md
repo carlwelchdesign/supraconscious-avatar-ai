@@ -2,19 +2,22 @@
 
 ## Overview
 
-The app uses first-party email/password authentication. Clerk has been removed.
+The monorepo uses first-party email/password authentication. Clerk has been removed.
 
-Auth code lives in:
+Auth code lives in `packages/auth`:
 
-- `src/lib/auth/actions.ts`: register, login, logout server actions.
-- `src/lib/auth/session.ts`: password hashing, session cookie management, session lookup, and auth guards.
-- `src/lib/auth/user.ts`: compatibility export for `requireAppUser` and `requireAdminUser`.
-- `src/proxy.ts`: early protected-route checks.
-- `src/components/auth/auth-form.tsx`: shared login/register form.
+- `actions.ts`: web register/login/logout and admin login/logout server actions.
+- `session.ts`: password hashing, scoped session cookie management, session lookup, and auth guards.
+- `user.ts`: compatibility exports for user guards.
+
+App route protection lives in:
+
+- `apps/web/src/proxy.ts`
+- `apps/admin/src/proxy.ts`
 
 ## Registration
 
-`/register` renders the custom registration form.
+Web `/register` creates normal product accounts.
 
 Registration requires:
 
@@ -22,33 +25,38 @@ Registration requires:
 - email
 - password with at least 8 characters
 
-The server action:
+The server action validates input, normalizes email, rejects duplicates, hashes the password, creates a `User`, creates a web-scoped session, and redirects to `/dashboard`.
 
-1. Validates input with Zod.
-2. Normalizes email to lowercase.
-3. Rejects duplicate emails.
-4. Hashes the password with bcrypt.
-5. Creates a `User`.
-6. Makes the first credentialed user an `admin`.
-7. Creates a session and redirects to `/dashboard`.
+If the email appears in `SUPER_ADMIN_EMAILS`, the user is assigned `super_admin`. Otherwise new users default to `user`.
 
-## Login
+## Web Login
 
-`/login` renders the custom login form.
+Web `/login` creates an `ia_web_session` cookie with `Session.scope = "web"`.
 
-The server action:
+Invalid credentials return the same graceful form error for unregistered users and wrong passwords:
 
-1. Validates email/password input.
-2. Looks up the user by email.
-3. Verifies the password hash.
-4. Returns `Email or password is incorrect.` for unregistered users or wrong passwords.
-5. Creates a session and redirects to `/dashboard`.
+```text
+Email or password is incorrect.
+```
 
-Database/schema failures are caught and returned as form errors instead of raw `500` crashes where possible.
+Database/schema failures are caught and returned as form errors where possible.
+
+## Admin Login
+
+Admin `/login` creates an `ia_admin_session` cookie with `Session.scope = "admin"`.
+
+Only users with `admin` or `super_admin` can create admin-scoped sessions. A normal web session does not grant admin access.
+
+Emails in `SUPER_ADMIN_EMAILS` are upgraded to `super_admin` during login.
 
 ## Sessions
 
-`createSession()` generates a random token, hashes it with SHA-256, stores the hash in `Session.tokenHash`, and sends the raw token as the `inner_avatar_session` cookie.
+`createSession()` generates a random token, hashes it with SHA-256, stores the hash in `Session.tokenHash`, and sends the raw token in a scoped cookie.
+
+Session cookies:
+
+- web: `ia_web_session`
+- admin: `ia_admin_session`
 
 Cookie settings:
 
@@ -57,34 +65,32 @@ Cookie settings:
 - `secure: true` in production
 - 30-day expiry
 
-`getCurrentUser()` reads the cookie, hashes the token, finds the matching `Session`, deletes expired sessions, updates `lastSeenAt`, and returns the related `User`.
+`getCurrentUser(scope)` reads the corresponding cookie, hashes the token, finds the matching `Session`, verifies the stored scope, deletes expired sessions, updates `lastSeenAt`, and returns the related `User`.
 
 ## Route Protection
 
-`src/proxy.ts` checks for `inner_avatar_session` on protected routes:
+Web protected routes:
 
 - `/dashboard`
 - `/journal`
 - `/patterns`
 - `/avatar`
 - `/settings`
-- `/admin`
 - `/api/journal`
 - `/api/avatar`
 - `/api/prompts`
 - `/api/patterns`
+- `/api/voice`
 
-Browser requests without a session redirect to `/login`. Protected API requests without a session return `401`.
+Admin protected routes:
 
-Server pages and API routes still call `requireAppUser()` or `requireAdminUser()` because middleware cookie presence is not a full authorization check.
+- every admin route except `/login` and static assets.
 
-## Admin Access
+Server-side authorization must still be called inside pages, server actions, and API routes:
 
-Admin access is role-based through `User.role === "admin"`.
-
-The first credentialed registered user becomes admin. Later users default to `user`.
-
-Admin pages call `requireAdminUser()` and redirect non-admin users to `/dashboard`.
+- `requireAppUser()` for web account data.
+- `requireAdminUser()` for admin pages/actions.
+- `requireSuperAdminUser()` for super-admin-only operations.
 
 ## Known Gaps
 
@@ -92,4 +98,3 @@ Admin pages call `requireAdminUser()` and redirect non-admin users to `/dashboar
 - No email verification flow yet.
 - No rate limiting or bot protection yet.
 - No session management UI yet.
-- No audit log yet.

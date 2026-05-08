@@ -2,63 +2,65 @@
 
 ## High-Level Shape
 
-The app is a Next.js App Router application using route groups:
+The repo is a Yarn workspaces + Turborepo monorepo with two independently deployable Next.js apps.
 
-- `src/app/(marketing)`: public marketing pages such as pricing.
-- `src/app/(auth)`: custom login and registration pages.
-- `src/app/(app)`: authenticated product pages and admin pages.
-- `src/app/api`: server routes for journaling, Avatar preferences, patterns, and voice.
+- `apps/web`: public marketing pages, login/register, authenticated journaling product, voice APIs, and journal AI route handlers.
+- `apps/admin`: internal admin panel with its own `/login`, own session cookie, own route protection, and its own deployment target.
+- `packages/db`: Prisma schema at `packages/db/prisma/schema.prisma`, Prisma client singleton, and shared DB access.
+- `packages/auth`: password hashing, login/register/logout server actions, scoped session cookies, and RBAC guards.
+- `packages/ai`: OpenAI client helper, Zod schemas, safety classifier, analysis, Avatar response, prompt generation, pattern memory, and progression logic.
+- `packages/billing`: Stripe checkout, billing portal, webhook sync helpers, plan mapping, and subscription status normalization.
+- `packages/ui`: shared UI primitives and visual components used by both apps.
+- `packages/types`: shared TypeScript unions such as `UserRole` and `SessionScope`.
+- `packages/config`: shared TypeScript configuration.
 
-Shared modules live under:
+There is no `apps/api` in this phase. Route handlers remain inside the app that owns the behavior.
 
-- `src/lib/auth`: password hashing, session creation, session lookup, server actions, and auth guards.
-- `src/lib/ai`: OpenAI client, safety classifier, analysis, Avatar response generation, prompt generation, progression, schemas, and pattern memory.
-- `src/lib/voice`: voice selection, speech synthesis, and transcription helpers.
-- `src/components`: UI, journal workspace, layout, auth forms, voice controls, and landing visuals.
+## App Boundaries
+
+The web app owns user-facing routes:
+
+- `/`: public landing page.
+- `/pricing`: public pricing page.
+- `/login` and `/register`: web account entry points.
+- `/dashboard`, `/journal`, `/journal/[entryId]`, `/patterns`, `/avatar`, `/settings`: authenticated product routes.
+- `/api/journal/*`, `/api/avatar/*`, `/api/prompts/*`, `/api/patterns`, `/api/voice/*`: user-facing backend routes.
+- `/api/billing/portal` and `/api/billing/webhook`: Stripe billing portal and webhook sync routes.
+
+The admin app owns internal operations routes:
+
+- `/login`: admin login.
+- `/`: admin dashboard.
+- `/users`, `/subscriptions`, `/safety`, `/health`, `/prompts`, `/avatar-stages`, `/feature-flags`, `/ai-quality`.
+
+The web app must not contain `/admin` routes. Admin functionality is not bundled into the public app.
 
 ## Request Flow
 
-1. Public visitors land on `/`, `/pricing`, `/login`, or `/register`.
-2. Registration/login creates an `inner_avatar_session` cookie and a `Session` row.
-3. Protected pages are guarded by `src/proxy.ts`, which redirects unauthenticated browser requests to `/login` and returns `401` for protected API requests without a session cookie.
-4. Server pages and APIs call `requireAppUser()` for the authoritative user record.
-5. Admin pages call `requireAdminUser()`, which redirects non-admin users to `/dashboard`.
+1. Public visitors use `apps/web`.
+2. Web registration/login creates an `ia_web_session` cookie and a `Session` row with `scope = "web"`.
+3. Web protected pages are guarded by `apps/web/src/proxy.ts` and by server-side `requireAppUser()`.
+4. Admin users use `apps/admin`.
+5. Admin login creates an `ia_admin_session` cookie and a `Session` row with `scope = "admin"`.
+6. Admin protected pages are guarded by `apps/admin/src/proxy.ts` and by server-side `requireAdminUser()` or `requireSuperAdminUser()`.
 
-## Product Pages
-
-- `/dashboard`: summary of entries, patterns, and recent reflections.
-- `/journal`: primary writing surface, optional mic input, Avatar reflection panel, generated prompt, progression notices, and optional audio playback.
-- `/journal/[entryId]`: saved journal entry and reflection detail.
-- `/patterns`: repeated pattern dashboard.
-- `/avatar`: current Avatar stage and reflection settings.
-- `/settings`: account, reflection, safety, pattern memory, and voice preferences.
-- `/admin`: admin dashboard and links for user, subscription, analytics, and prompt operations.
-
-## API Routes
-
-- `POST /api/journal/analyze`: full journal analysis pipeline.
-- `POST /api/journal/create`: draft/simple journal entry creation.
-- `GET /api/patterns`: current user's pattern memory and recent entries.
-- `PATCH /api/avatar/preferences`: Avatar preference updates.
-- `PATCH /api/voice/preferences`: voice preference updates.
-- `POST /api/voice/transcribe`: multipart audio transcription.
-- `POST /api/voice/speak`: text-to-speech response audio.
-- `POST /api/avatar/respond` and `POST /api/prompts/generate`: placeholders that currently point callers to the combined journal pipeline.
+Cookie presence is only an early check. Server pages, server actions, and API routes still enforce authorization server-side.
 
 ## Database Models
 
-The Prisma schema is the source of truth in `prisma/schema.prisma`.
+The Prisma schema is the source of truth in `packages/db/prisma/schema.prisma`.
+
+Core models:
 
 - `User`: account, role, reflection preferences, progression state, safety/memory flags, and voice preferences.
-- `Session`: hashed session token, expiry, last-seen timestamp.
-- `JournalEntry`: raw user input.
-- `EntryAnalysis`: structured AI analysis.
-- `AvatarResponse`: short reflective response fields.
-- `GeneratedPrompt`: generated symbolic journaling prompt and optional user completion.
-- `PatternMemory`: repeated themes across entries.
-- `SafetyEvent`: stored safety flags and handling recommendation.
-- `Subscription`: Stripe-ready subscription metadata.
+- `Session`: hashed session token, expiry, last-seen timestamp, and `scope` (`web` or `admin`).
+- `JournalEntry`, `EntryAnalysis`, `AvatarResponse`, `GeneratedPrompt`, `PatternMemory`, `SafetyEvent`: journaling and AI pipeline data.
+- `Subscription`: Stripe subscription metadata synced from checkout and webhook events.
+- `AuditLog`: immutable record of sensitive admin actions.
+- `PromptTemplate`: admin-managed prompt/system text.
+- `FeatureFlag`: admin-managed product gates.
+- `AvatarStageConfig`: editable admin metadata for Avatar stages.
 
 ## Styling
 
-The app uses Tailwind CSS plus local UI components. Several product screens use CSS custom properties from `src/app/globals.css` for the warm editorial visual system. MUI is present through `src/components/providers/mui-provider.tsx`, but the current core surfaces are mostly custom/Tailwind.
+Both apps use Tailwind CSS and shared primitives from `@inner-avatar/ui`. App-local components stay inside their app unless they are reused by both apps.

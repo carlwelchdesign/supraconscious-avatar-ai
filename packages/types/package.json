@@ -1,0 +1,16 @@
+{
+  "name": "@inner-avatar/types",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@inner-avatar/config": "workspace:*"
+  }
+}

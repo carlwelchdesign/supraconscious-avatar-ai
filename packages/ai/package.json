@@ -1,0 +1,23 @@
+{
+  "name": "@inner-avatar/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./openai": "./src/openai.ts",
+    "./schemas": "./src/schemas.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inner-avatar/db": "workspace:*",
+    "openai": "^6.35.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@inner-avatar/config": "workspace:*"
+  }
+}

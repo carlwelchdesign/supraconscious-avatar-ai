@@ -27,7 +27,7 @@ Inner Avatar is a guided journaling app. Users create an account, write or dicta
 
 ## Maintainer Notes
 
-- Keep `prisma/schema.prisma` and docs in sync.
+- Keep `packages/db/prisma/schema.prisma` and docs in sync.
 - Keep auth docs updated when session, password, or admin logic changes.
 - Keep AI docs updated when model names, schemas, safety behavior, or prompt rules change.
-- Run `npm run build` before deploying.
+- Run `yarn build:web` and `yarn build:admin` before deploying.

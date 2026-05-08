@@ -1,0 +1,4 @@
+{
+  "extends": "@inner-avatar/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

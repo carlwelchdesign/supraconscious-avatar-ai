@@ -3,56 +3,67 @@
 ## Requirements
 
 - Node.js compatible with Next.js 16 and Prisma 7.
+- Yarn 4 using `nodeLinker: node-modules`.
 - PostgreSQL database URL.
 - OpenAI API key for real AI, transcription, and speech behavior.
 
 ## Environment Variables
 
-Required:
+Web app (`apps/web/.env.example`):
 
 ```bash
 DATABASE_URL="postgres://..."
 OPENAI_API_KEY="sk-..."
-```
-
-Optional:
-
-```bash
 OPENAI_MODEL="gpt-5-mini"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_STARTER_PRICE_ID="price_..."
+STRIPE_PRO_PRICE_ID="price_..."
 ```
 
-If `OPENAI_MODEL` is omitted, the app uses `gpt-5-mini`.
+Admin app (`apps/admin/.env.example`):
+
+```bash
+DATABASE_URL="postgres://..."
+SUPER_ADMIN_EMAILS="you@example.com"
+NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
+STRIPE_SECRET_KEY="sk_test_..."
+```
+
+`SUPER_ADMIN_EMAILS` is a comma-separated allowlist. Matching emails are promoted to `super_admin` during registration or login.
 
 ## Install and Run
 
 ```bash
-npm install
-npm run dev
+yarn install
+yarn db:generate
+yarn dev:web
+yarn dev:admin
 ```
 
-The `postinstall` script runs `prisma generate`. The build script also runs `prisma generate` before `next build` so fresh Vercel installs have a generated Prisma client.
+The web app runs on port `3000`. The admin app runs on port `3001`.
 
 ## Database Setup
 
 For local schema sync:
 
 ```bash
-npx prisma validate
-npx prisma generate
-npx prisma db push
+yarn db:generate
+yarn db:push
 ```
 
-Use `npx prisma db push --accept-data-loss` only when intentionally dropping or replacing obsolete columns. This was previously needed when removing Clerk's `clerkId` column.
+Use destructive Prisma flags only when intentionally dropping or replacing data.
 
 ## Verification
 
 Run:
 
 ```bash
-npm run lint
-npm run build
-npx prisma validate
+yarn lint
+yarn typecheck
+yarn build:web
+yarn build:admin
 ```
 
 Useful route smoke checks:
@@ -61,29 +72,53 @@ Useful route smoke checks:
 curl -I http://localhost:3000/login
 curl -I http://localhost:3000/register
 curl -I http://localhost:3000/journal
-curl -I http://localhost:3000/admin
+curl -I http://localhost:3001/login
+curl -I http://localhost:3001/users
 ```
 
-Without a session, `/journal` and `/admin` should redirect to `/login`.
+Without a session, web product routes should redirect to web `/login`. Admin routes should redirect to admin `/login`.
 
 ## Vercel Deployment
 
-Set Vercel environment variables for production:
+Create two Vercel projects:
+
+- Web project root directory: `apps/web`.
+- Admin project root directory: `apps/admin`.
+
+Use the same repository but separate project settings, domains, and environment variables. Shared packages are resolved through Yarn workspaces during each app build.
+
+Recommended build commands:
 
 ```bash
-DATABASE_URL="postgres://..."
-OPENAI_API_KEY="sk-..."
-OPENAI_MODEL="gpt-5-mini"
+yarn build:web
+yarn build:admin
 ```
 
-Then deploy with the normal Vercel Next.js build. No Clerk variables are required.
+Set production database schema before using the apps:
 
-If deployment fails with Prisma client type errors, confirm `npm install` is running and `postinstall` is not disabled. If deployment succeeds but registration/login fails, make sure the production database has been updated with the latest Prisma schema.
+```bash
+yarn db:generate
+yarn db:push
+```
+
+Configure the Stripe webhook endpoint for the web deployment:
+
+```text
+POST https://your-web-domain.com/api/billing/webhook
+```
+
+Subscribe to these events:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
 
 ## Security Notes
 
 - Do not commit `.env`; it is ignored.
-- Sessions are HTTP-only cookies.
+- Web and admin use different HTTP-only cookies.
 - Session tokens are stored hashed in the database.
 - Passwords are hashed with bcrypt.
-- The app currently does not implement email verification or password reset.
+- Admin access is denied by default unless the user has `admin` or `super_admin`.
+- The app currently does not implement email verification, password reset, rate limiting, or bot protection.

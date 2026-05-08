@@ -21,7 +21,7 @@ The client submits text from `JournalWorkspace`. The route:
 
 ## OpenAI Model Configuration
 
-The main reflective model is configured in `src/lib/ai/openai.ts`:
+The main reflective model is configured in `packages/ai/src/openai.ts`:
 
 ```ts
 export const reflectiveModel = process.env.OPENAI_MODEL ?? "gpt-5-mini"

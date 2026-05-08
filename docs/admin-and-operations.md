@@ -1,79 +1,92 @@
 # Admin and Operations
 
-## Admin Dashboard
+## Separate Admin App
 
-Admin pages live under `/admin` and require `User.role === "admin"`.
+The admin panel lives in `apps/admin` and deploys separately from `apps/web`.
 
-Current pages:
+There are no `/admin` routes inside the public web app. Admin functionality is not bundled into the user-facing deployment.
 
-- `/admin`: high-level counts and links.
-- `/admin/users`: recent users, roles, entry counts, session counts.
-- `/admin/subscriptions`: subscription rows and linked user identities.
-- `/admin/analytics`: counts for users, entries, analyses, safety events, and tracked patterns.
-- `/admin/prompts`: recent generated prompts.
+Current admin routes:
 
-The first credentialed registered user becomes admin. Later users default to `user`.
+- `/`: high-level counts and system links.
+- `/users`: users, roles, account dates, entry counts.
+- `/subscriptions`: subscription state and billing metadata.
+- `/safety`: safety events and flagged entry metadata.
+- `/health`: database and runtime configuration checks.
+- `/prompts`: prompt template create/list/edit.
+- `/avatar-stages`: editable Avatar stage metadata.
+- `/feature-flags`: feature flag create/list/update.
+- `/ai-quality`: metadata-only AI output review.
+
+## Access Control
+
+Admin access uses a separate session scope:
+
+- web cookie: `ia_web_session`
+- admin cookie: `ia_admin_session`
+
+Only users with `admin` or `super_admin` may create an admin session. `SUPER_ADMIN_EMAILS` bootstraps `super_admin` access at registration/login.
+
+Every admin page or server action must call `requireAdminUser()` or `requireSuperAdminUser()` server-side. Client-side role checks are never enough.
+
+## Privacy and Audit Logging
+
+Admin list views are metadata-first and should not show raw journal content.
+
+The safety page can reveal raw journal text only through `revealFlaggedEntryAction()`, which requires:
+
+- a signed-in admin session
+- a safety event ID
+- an explicit reason
+- a server-side authorization check
+- an `AuditLog` row with actor, action, target, reason, metadata, IP, user agent, and timestamp
+
+Use raw reveal only for support, moderation, or safety review.
 
 ## Subscriptions
 
-The `Subscription` model is Stripe-ready but Stripe is not fully wired yet.
+The web app starts Stripe Checkout from `/pricing`, opens Stripe Billing Portal from `/settings`, and syncs subscription state through `POST /api/billing/webhook`.
 
-Stored fields include:
+Stored fields include Stripe customer ID, subscription ID, price ID, plan, status, and current period dates. Admin `/subscriptions` shows a searchable metadata table.
 
-- Stripe customer ID
-- Stripe subscription ID
-- Stripe price ID
-- plan
-- status
-- current period start/end
+Required web env vars:
 
-Future Stripe work should add checkout, billing portal, webhook verification, subscription upsert logic, and admin visibility into webhook failures.
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_STARTER_PRICE_ID`
+- `STRIPE_PRO_PRICE_ID`
 
 ## Prompt Management
 
-The current prompt admin page lists recently generated prompts. It does not yet support editing system prompts, versioning prompt templates, approving generated prompts, or disabling patterns.
-
-The generation logic currently lives in code under `src/lib/ai`.
-
-## Analytics
-
-Analytics are database counts only. There is no product analytics vendor, event stream, retention cohorting, or funnel tracking yet.
-
-Current counters:
-
-- users
-- journal entries
-- analyses
-- safety events
-- tracked patterns
+Prompt template records live in `PromptTemplate`. Admin changes write audit logs. The AI package still contains core hardcoded prompt logic; template-driven runtime prompt selection can be layered in later.
 
 ## Operational Checks
 
 Before deploy:
 
 ```bash
-npm run lint
-npm run build
-npx prisma validate
+yarn lint
+yarn typecheck
+yarn build:web
+yarn build:admin
 ```
 
 After deploy:
 
-- visit `/login`
-- register the first admin account if needed
-- confirm `/dashboard` loads after login
-- confirm `/journal` redirects to `/login` when signed out
-- confirm `/admin` redirects non-admin users to `/dashboard`
-- submit a low-risk journal entry
-- confirm `JournalEntry`, `EntryAnalysis`, `AvatarResponse`, and `GeneratedPrompt` rows are created
+- visit web `/login`
+- register or login with an allowlisted `SUPER_ADMIN_EMAILS` account
+- visit admin `/login`
+- confirm normal `user` accounts cannot access admin routes
+- confirm `/safety` does not show raw journal content in list views
+- reveal a flagged entry with a reason and confirm an `AuditLog` row is created
 
 ## Incident Notes
 
 If login throws database errors about missing columns, regenerate the Prisma client and push the schema to the active database:
 
 ```bash
-npx prisma generate
-npx prisma db push
+yarn db:generate
+yarn db:push
 ```
 
-If production is using a different database than local development, run the schema update against the production `DATABASE_URL`.
+If production uses a different database than local development, run the schema update against the production `DATABASE_URL`.

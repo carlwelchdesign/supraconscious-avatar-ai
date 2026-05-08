@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inner Avatar Reflection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <header class="header">
+                <div class="avatar-orb">
+                    <div class="orb"></div>
+                </div>
+                <h1>Inner Avatar</h1>
+            </header>
+
+            <div id="journal-input-section" class="section">
+                <h2>Share what's on your mind</h2>
+                <textarea
+                    id="journal-text"
+                    placeholder="Write about what's happening right now..."
+                    rows="4"
+                ></textarea>
+                <button id="analyze-btn" class="btn-primary">Reflect</button>
+            </div>
+
+            <div id="reflection-section" class="section hidden">
+                <div id="avatar-reflection" class="reflection-card">
+                    <h3>Inner Avatar Reflection</h3>
+                    <div id="reflection-content"></div>
+                </div>
+
+                <div id="personalized-prompt" class="prompt-card">
+                    <h3>Personalized Prompt</h3>
+                    <div id="prompt-content"></div>
+                </div>
+
+                <div class="actions">
+                    <button id="save-btn" class="btn-secondary">Save to Inner Avatar</button>
+                    <button id="continue-btn" class="btn-link">Continue in Full App</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Reflecting...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="widget.js"></script>
+</body>
+</html>
