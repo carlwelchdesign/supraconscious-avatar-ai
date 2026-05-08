@@ -22,19 +22,21 @@ export async function getRecentPatterns(input: any, userId?: string, deps: { pri
       orderBy: { lastSeenAt: 'desc' },
       take: validatedInput.limit,
       select: {
-        label: true,
+        patternLabel: true,
         evidenceCount: true,
         lastSeenAt: true,
-        summary: true
+        examples: true
       }
     })
 
     return {
-      patterns: patterns.map(p => ({
-        label: p.label,
+      patterns: patterns.map((p: any) => ({
+        label: p.patternLabel,
         evidenceCount: p.evidenceCount,
         lastSeenAt: p.lastSeenAt.toISOString(),
-        summary: p.summary
+        summary: Array.isArray(p.examples) && typeof p.examples[0] === 'string'
+          ? p.examples[0]
+          : p.patternLabel
       }))
     }
   } catch (error) {

@@ -1,6 +1,6 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai"
-import { SafetyCheckSchema, type SafetyCheck } from "./schemas"
+import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { SafetyCheckSchema, type SafetyCheck } from "./schemas.js"
 
 export async function classifyJournalSafety(text: string): Promise<SafetyCheck> {
   if (!isOpenAIConfigured()) {

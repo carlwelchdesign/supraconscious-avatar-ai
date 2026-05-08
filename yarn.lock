@@ -995,6 +995,8 @@ __metadata:
     "@inner-avatar/types": "workspace:*"
     bcryptjs: "npm:^3.0.3"
     next: "npm:16.2.4"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     server-only: "npm:^0.0.1"
     zod: "npm:^4.3.6"
   languageName: unknown
@@ -1030,6 +1032,7 @@ __metadata:
     node-fetch: "npm:^3.3.2"
     openai: "npm:^6.35.0"
     tsx: "npm:^4.7.1"
+    typescript: "npm:^5"
     zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
@@ -1070,6 +1073,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     next: "npm:16.2.4"
     react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     tailwind-merge: "npm:^3.5.0"
   languageName: unknown
   linkType: soft

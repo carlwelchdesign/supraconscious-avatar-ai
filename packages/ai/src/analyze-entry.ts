@@ -1,7 +1,7 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt"
-import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai"
-import { EntryAnalysisSchema, type EntryAnalysis, type SafetyCheck } from "./schemas"
+import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt.js"
+import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { EntryAnalysisSchema, type EntryAnalysis, type SafetyCheck } from "./schemas.js"
 
 export async function analyzeEntry(text: string, safety: SafetyCheck): Promise<EntryAnalysis> {
   if (!isOpenAIConfigured()) {

@@ -41,19 +41,19 @@ export async function analyzeJournalEntry(input: any, deps: {
     const safety = await classifyFn(text)
 
     // Analyze the entry
-    const analysis = await analyzeFn(text, safety)
+    const analysis: any = await analyzeFn(text, safety)
 
     return {
       safetyStatus: safety.severity === "none" ? "clear" :
                    safety.severity === "low" ? "needs_grounding" : "crisis",
       emotionalSignals: analysis.emotionalSignals.primary,
       languagePatterns: analysis.languageMarkers.repeatedWords,
-      behavioralPatterns: analysis.behavioralPatterns.map(p => ({
+      behavioralPatterns: analysis.behavioralPatterns.map((p: any) => ({
         label: p.label,
         evidenceCount: p.evidence.length,
         confidence: p.confidence
       })),
-      contradictions: analysis.contradictionSignals.map(c => ({
+      contradictions: analysis.contradictionSignals.map((c: any) => ({
         statedDesire: c.statedDesire,
         conflictingBehavior: c.conflictingBehavior
       })),

@@ -72,7 +72,7 @@ export async function generateAvatarReflection(input: any, deps: {
       tone: validatedInput.tone,
       intensity: 5,
       currentLevel: 3,
-      avatarStage: "reflection"
+      avatarStage: 3
     })
 
     return {

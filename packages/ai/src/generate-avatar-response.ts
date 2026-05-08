@@ -1,12 +1,12 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_STAGES, AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt"
-import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai"
+import { AVATAR_STAGES, AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
+import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import {
   AvatarResponseSchema,
   type AvatarResponse,
   type EntryAnalysis,
   type SafetyCheck,
-} from "./schemas"
+} from "./schemas.js"
 
 type AvatarOptions = {
   tone: string

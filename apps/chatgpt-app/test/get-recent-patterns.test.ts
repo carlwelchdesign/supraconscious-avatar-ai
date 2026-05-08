@@ -15,10 +15,10 @@ test('getRecentPatterns returns mapped pattern list for authenticated user', asy
     patternMemory: {
       findMany: async () => [
         {
-          label: 'Cycle of doubt',
+          patternLabel: 'Cycle of doubt',
           evidenceCount: 3,
           lastSeenAt: fakeDate,
-          summary: 'Repeated hesitation before decisions.'
+          examples: ['Repeated hesitation before decisions.']
         }
       ]
     }

@@ -1,2 +1,2 @@
-export { authMiddleware, type AuthenticatedRequest } from "./auth"
-export { safetyMiddleware } from "./safety"
+export { authMiddleware, type AuthenticatedRequest } from "./auth.js"
+export { safetyMiddleware } from "./safety.js"

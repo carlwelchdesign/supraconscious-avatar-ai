@@ -1,8 +1,8 @@
 import { prisma } from "@inner-avatar/db"
-import type { EntryAnalysis } from "./schemas"
+import type { EntryAnalysis } from "./schemas.js"
 
 export async function updatePatternMemory(userId: string, journalEntryId: string, analysis: EntryAnalysis) {
-  const patterns = analysis.behavioralPatterns.filter((pattern) => pattern.confidence >= 0.55).slice(0, 3)
+  const patterns = analysis.behavioralPatterns.filter((pattern: any) => pattern.confidence >= 0.55).slice(0, 3)
 
   for (const pattern of patterns) {
     const patternType = slugify(pattern.label)

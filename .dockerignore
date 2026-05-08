@@ -1,0 +1,27 @@
+# Node artifacts
+node_modules
+**/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist
+**/dist
+.turbo
+
+# Git
+.git
+.gitignore
+
+# Environments
+.env
+.env.*
+
+# Editor files
+.vscode
+.idea
+.DS_Store
+
+# Logs
+*.log

@@ -45,9 +45,10 @@ export async function createJournalEntry(input: any, deps: { prisma?: typeof pri
       saved: validatedInput.save
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
     }
-    throw new Error(`Failed to create journal entry: ${error.message}`)
+    throw new Error(`Failed to create journal entry: ${message}`)
   }
 }

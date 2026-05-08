@@ -1,12 +1,12 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt"
-import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai"
+import { AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
+import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import {
   GeneratedPromptSchema,
   type EntryAnalysis,
   type GeneratedPrompt,
   type SafetyCheck,
-} from "./schemas"
+} from "./schemas.js"
 
 export async function generateSymbolicPrompt(
   analysis: EntryAnalysis,

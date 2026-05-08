@@ -3,6 +3,8 @@ import cors from "cors"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
 import path from "path"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
 import {
   createJournalEntry,
   analyzeJournalEntry,
@@ -10,11 +12,13 @@ import {
   generatePersonalizedPrompt,
   getRecentPatterns,
   saveReflectionSession
-} from "./tools"
-import { authMiddleware, safetyMiddleware } from "./middleware"
+} from "./tools/index.js"
+import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 export const app = express()
-const PORT = process.env.CHATGPT_APP_PORT || 3002
+const PORT = Number(process.env.CHATGPT_APP_PORT) || 3002
 
 // Middleware
 app.use(helmet())
@@ -150,10 +154,10 @@ app.post('/mcp/tools/:toolName',
         result = await generatePersonalizedPrompt(input)
         break
       case 'get_recent_patterns':
-        result = await getRecentPatterns(input, req.userId)
+        result = await getRecentPatterns(input, (req as AuthenticatedRequest).userId)
         break
       case 'save_reflection_session':
-        result = await saveReflectionSession(input, req.userId)
+        result = await saveReflectionSession(input, (req as AuthenticatedRequest).userId)
         break
       default:
         return res.status(404).json({ error: 'Tool not found' })
@@ -168,7 +172,7 @@ app.post('/mcp/tools/:toolName',
 })
 
 // Widget resources
-app.use('/widget', express.static('src/widget'))
+app.use('/widget', express.static(path.join(__dirname, 'widget')))
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -184,6 +188,6 @@ export function startChatGptApp(port: number = Number(process.env.CHATGPT_APP_PO
   })
 }
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   startChatGptApp(PORT)
 }
