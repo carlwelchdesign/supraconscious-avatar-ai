@@ -1,11 +1,23 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { runPilotLaunchReadiness } from "@inner-avatar/ai"
-import { createPilotCohortAction, enrollPilotUserAction } from "./actions"
+import { runPilotIterationReport, runPilotLaunchReadiness } from "@inner-avatar/ai"
+import { createPilotCohortAction, enrollPilotUserAction, reviewPilotSessionAction } from "./actions"
+
+const QUALITY_LABELS = [
+  ["reviewed", "Reviewed"],
+  ["grounded", "Grounded"],
+  ["too_vague", "Too vague"],
+  ["too_intense", "Too intense"],
+  ["unsupported", "Unsupported"],
+  ["safety_concern", "Safety concern"],
+] as const
 
 export default async function PilotReadinessPage() {
-  const readiness = await runPilotLaunchReadiness()
+  const [readiness, iteration] = await Promise.all([
+    runPilotLaunchReadiness(),
+    runPilotIterationReport(),
+  ])
   const schemaReady = !readiness.blockers.some((blocker) => blocker.code === "database_schema_not_ready")
   const [cohorts, feedback] = schemaReady ? await Promise.all([
     prisma.pilotCohort.findMany({
@@ -23,9 +35,6 @@ export default async function PilotReadinessPage() {
       _count: { feedbackType: true },
     }),
   ]) : [[], []]
-  const completionRate = readiness.metrics.enrolledUsers
-    ? Math.round((readiness.metrics.firstSessionsCompleted / readiness.metrics.enrolledUsers) * 100)
-    : 0
   const orientationRate = readiness.metrics.enrolledUsers
     ? Math.round((readiness.metrics.orientationCompleteUsers / readiness.metrics.enrolledUsers) * 100)
     : 0
@@ -35,10 +44,10 @@ export default async function PilotReadinessPage() {
       <div>
         <h1 className="text-2xl font-semibold">Pilot Readiness</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Internal pilot launch checklist, cohort setup, source readiness, eval status, safety review, and quality blockers.
+          Daily pilot operations, launch readiness, feedback review, source readiness, eval status, and quality blockers.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Last checked {new Date(readiness.checkedAt).toLocaleString()}
+          Last checked {new Date(iteration.checkedAt).toLocaleString()}
         </p>
       </div>
 
@@ -81,9 +90,26 @@ export default async function PilotReadinessPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Metric title="Pilot users" value={readiness.metrics.enrolledUsers} />
         <Metric title="Orientation" value={`${orientationRate}%`} />
-        <Metric title="First sessions" value={`${completionRate}%`} />
-        <Metric title="Gate saves" value={readiness.metrics.embodimentGateSaves} />
+        <Metric title="First sessions" value={`${iteration.cohortMetrics.firstSessionCompletionRate}%`} />
+        <Metric title="Gate saves" value={`${iteration.cohortMetrics.gateSaveRate}%`} />
       </div>
+
+      <div className="grid gap-4 md:grid-cols-5">
+        <Metric title="Helpful" value={iteration.feedbackMetrics.helpful} />
+        <Metric title="Not accurate" value={iteration.feedbackMetrics.notAccurate} />
+        <Metric title="Too intense" value={iteration.feedbackMetrics.tooIntense} />
+        <Metric title="Unclear" value={iteration.feedbackMetrics.unclear} />
+        <Metric title="Source reports" value={iteration.feedbackMetrics.unsupportedSource} />
+      </div>
+
+      {iteration.recommendations.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Daily Recommendations</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            {iteration.recommendations.map((recommendation) => <p key={recommendation}>{recommendation}</p>)}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -92,6 +118,7 @@ export default async function PilotReadinessPage() {
             <p>Safety queue: {readiness.metrics.unresolvedSafetyReviews}</p>
             <p>Quality blockers: {readiness.metrics.qualityBlockers}</p>
             <p>Feedback records: {readiness.metrics.feedbackTotal}</p>
+            <p>Feedback needing review: {iteration.feedbackMetrics.needsReview}</p>
           </CardContent>
         </Card>
         <Card>
@@ -138,6 +165,63 @@ export default async function PilotReadinessPage() {
           {feedback.length ? feedback.map((item) => (
             <p key={item.feedbackType}>{item.feedbackType}: {item._count.feedbackType}</p>
           )) : <p className="text-muted-foreground">No session feedback yet.</p>}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Feedback Review Queue</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {iteration.qualityQueue.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No feedback-driven review items are open.</p>
+          ) : iteration.qualityQueue.map((item) => (
+            <div key={item.councilSessionId} className="rounded-md border p-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium">{item.userEmail} · {new Date(item.createdAt).toLocaleString()}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    feedback: {item.feedbackTypes.join(", ")} · disposition: {item.disposition} · source: {item.sourceMode}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    latest review: {item.latestReviewLabel ?? "none"}{item.latestReviewSeverity === "pilot_blocker" ? " · pilot blocker" : ""}
+                  </p>
+                </div>
+                <Link href="/council" className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
+                  Review details
+                </Link>
+              </div>
+              <form action={reviewPilotSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_auto_1fr_auto]">
+                <input type="hidden" name="councilSessionId" value={item.councilSessionId} />
+                <select name="label" defaultValue={item.latestReviewLabel ?? "reviewed"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  {QUALITY_LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <select name="disposition" defaultValue={item.disposition === "needs_review" ? "reviewed" : item.disposition} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  <option value="reviewed">reviewed</option>
+                  <option value="cleared">cleared</option>
+                  <option value="blocked">blocked</option>
+                </select>
+                <select name="severity" defaultValue={item.latestReviewSeverity ?? "normal"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  <option value="normal">normal</option>
+                  <option value="pilot_blocker">pilot blocker</option>
+                </select>
+                <input name="reason" placeholder="Reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+              </form>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Safety Escalations</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {iteration.safetyQueue.length === 0 ? (
+            <p className="text-muted-foreground">No active safety items in the pilot queue.</p>
+          ) : iteration.safetyQueue.map((item) => (
+            <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
+              <p>{item.severity} · {item.reviewStatus} · {new Date(item.createdAt).toLocaleString()}</p>
+              <Link href="/safety" className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Safety review</Link>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

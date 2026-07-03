@@ -23,8 +23,13 @@ export default async function DashboardPage() {
           select: {
             sourceMode: true,
             safetySnapshot: true,
-            feedback: { select: { id: true } },
+            feedback: { select: { id: true, feedbackType: true } },
             embodimentGateResponses: { select: { id: true } },
+            qualityReviews: {
+              orderBy: { reviewedAt: "desc" },
+              take: 1,
+              select: { label: true, severity: true, metadata: true },
+            },
           },
         },
       },
@@ -200,9 +205,16 @@ export default async function DashboardPage() {
               const reflection = entry.avatarResponse?.mirror
               const pattern = entry.avatarResponse?.patternName
               const safety = entry.councilSession?.safetySnapshot as { severity?: string } | undefined
+              const feedbackTypes = entry.councilSession?.feedback.map((item) => item.feedbackType) ?? []
+              const review = entry.councilSession?.qualityReviews[0]
+              const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
+              const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
               const statuses = [
                 entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
-                entry.councilSession?.feedback.length ? "Feedback received" : entry.councilSession ? "Feedback needed" : null,
+                entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
+                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under pilot review" : null,
+                review?.severity === "pilot_blocker" ? "Pilot blocker" : null,
+                reviewMetadata?.feedbackDisposition === "cleared" ? "Review cleared" : null,
                 entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
                 safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
               ].filter(Boolean)
@@ -260,9 +272,16 @@ export default async function DashboardPage() {
                       </p>
                     )}
                     {statuses.length > 0 && (
-                      <p className="mt-2 text-[11px] font-light text-[var(--plum-soft)]/70">
-                        {statuses.join(" · ")}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-[11px] font-light text-[var(--plum-soft)]/70">
+                          {statuses.join(" · ")}
+                        </p>
+                        {entry.councilSession?.feedback.length ? (
+                          <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
+                            Pilot note: feedback helps reviewers improve guidance; it does not automatically retrain the model.
+                          </p>
+                        ) : null}
+                      </div>
                     )}
                   </div>
 

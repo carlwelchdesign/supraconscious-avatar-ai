@@ -15,6 +15,14 @@ const EnrollmentSchema = z.object({
   email: z.string().trim().email().toLowerCase(),
 })
 
+const PilotSessionReviewSchema = z.object({
+  councilSessionId: z.string().min(1),
+  label: z.enum(["grounded", "too_vague", "too_intense", "unsupported", "safety_concern", "reviewed"]),
+  disposition: z.enum(["reviewed", "blocked", "cleared"]),
+  severity: z.enum(["normal", "pilot_blocker"]).default("normal"),
+  reason: z.string().trim().min(10, "A pilot review reason is required."),
+})
+
 export async function createPilotCohortAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = CohortSchema.parse(Object.fromEntries(formData))
@@ -78,4 +86,49 @@ export async function enrollPilotUserAction(formData: FormData) {
   })
 
   revalidatePath("/pilot")
+}
+
+export async function reviewPilotSessionAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = PilotSessionReviewSchema.parse(Object.fromEntries(formData))
+
+  const session = await prisma.councilSession.findUnique({
+    where: { id: parsed.councilSessionId },
+    select: { id: true },
+  })
+  if (!session) throw new Error("Council session not found.")
+
+  const review = await prisma.qualityReview.create({
+    data: {
+      reviewerId: actor.id,
+      councilSessionId: parsed.councilSessionId,
+      targetType: "PilotSessionFeedback",
+      label: parsed.label,
+      severity: parsed.severity,
+      reason: parsed.reason,
+      metadata: {
+        feedbackDisposition: parsed.disposition,
+        reviewedFrom: "admin_pilot",
+      },
+    },
+  })
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: actor.id,
+      action: "pilot_session.feedback_review.update",
+      targetType: "CouncilSession",
+      targetId: parsed.councilSessionId,
+      reason: parsed.reason,
+      metadata: {
+        qualityReviewId: review.id,
+        label: parsed.label,
+        severity: parsed.severity,
+        feedbackDisposition: parsed.disposition,
+      },
+    },
+  })
+
+  revalidatePath("/pilot")
+  revalidatePath("/council")
 }

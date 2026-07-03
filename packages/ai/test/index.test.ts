@@ -11,6 +11,7 @@ import {
   parseCurriculumDaysFromParagraphs,
   runKeywordRagEvals,
   runPilotCouncilEvals,
+  readDisposition,
   sanitizeProperties,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
@@ -287,4 +288,11 @@ test("pilot launch readiness passes with internal-pilot prerequisites met", () =
   assert.equal(report.passed, true)
   assert.equal(report.blockers.length, 0)
   assert.ok(report.warnings.includes("RAG is off. Pilot reflections may use approved curriculum/product context only after the activation gate enables it."))
+})
+
+test("pilot iteration feedback disposition stays privacy-safe and reviewable", () => {
+  assert.equal(readDisposition(undefined, "helpful"), "reviewed")
+  assert.equal(readDisposition(undefined, "too_intense"), "needs_review")
+  assert.equal(readDisposition({ feedbackDisposition: "blocked" }, "helpful"), "blocked")
+  assert.equal(readDisposition({ feedbackDisposition: "cleared" }, "unsupported_source"), "cleared")
 })

@@ -18,6 +18,9 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Review unresolved safety events before inviting additional users.
 - Review quality blockers before considering any source or cohort expansion.
 - Watch no-source/RAG rates, feedback mix, first-session completion, Embodiment Gate saves, and unsupported-source reports.
+- Run the pilot iteration report after each active pilot day and review the feedback queue before inviting additional users.
+- Treat `not_accurate`, `too_intense`, `unclear`, and `unsupported_source` feedback as review-required until an admin records a disposition.
+- Go/no-go defaults: continue only when launch readiness passes, safety queue is clear or consciously escalated, no pilot blockers remain, and negative feedback has a reviewer disposition.
 
 ## Rollback Criteria
 - Disable `rag_enabled` immediately if source citation validation fails, quote leakage appears, or unsupported-source reports cluster.
