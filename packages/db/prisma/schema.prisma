@@ -40,11 +40,16 @@ model User {
   avatarResponses  AvatarResponse[]
   generatedPrompts GeneratedPrompt[]
   patternMemories  PatternMemory[]
+  patternMemoryFeedback PatternMemoryFeedback[]
   safetyEvents     SafetyEvent[]
   subscriptions    Subscription[]
   sessions         Session[]
   auditLogs        AuditLog[]
   promptTemplates  PromptTemplate[]
+  councilSessions  CouncilSession[]
+  embodimentGateResponses EmbodimentGateResponse[]
+  sourceDocuments  SourceDocument[]
+  generationTraces GenerationTrace[]
 }
 
 // Session - first-party login session stored as a hashed token
@@ -148,6 +153,8 @@ model JournalEntry {
   generatedPrompts GeneratedPrompt[]
   patternMemories  PatternMemory[]
   safetyEvents     SafetyEvent[]
+  councilSession   CouncilSession?
+  embodimentGateResponses EmbodimentGateResponse[]
 
   @@index([userId])
   @@index([createdAt])
@@ -252,10 +259,236 @@ model PatternMemory {
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  feedback     PatternMemoryFeedback[]
 
   @@index([userId])
   @@index([patternType])
   @@index([lastSeenAt])
+}
+
+// Pattern memory feedback - user/admin correction or suppression signal
+model PatternMemoryFeedback {
+  id              String   @id @default(cuid())
+  userId          String
+  patternMemoryId String
+  feedbackType    String // helpful, not_accurate, too_intense, suppress, restore
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patternMemory PatternMemory @relation(fields: [patternMemoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([patternMemoryId])
+  @@index([feedbackType])
+}
+
+// Council session - one structured Inner Council reflection run
+model CouncilSession {
+  id             String   @id @default(cuid())
+  userId         String
+  journalEntryId String   @unique
+  status         String   @default("completed") // pending, completed, grounded, failed
+  observerSignal Json
+  safetySnapshot Json
+  sourceMode     String   @default("none") // none, curriculum, rag
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry  JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  messages      CouncilMessage[]
+  synthesis     CouncilSynthesis?
+  embodimentGateResponses EmbodimentGateResponse[]
+  generationTraces GenerationTrace[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Council message - bounded role output from an inner archetype
+model CouncilMessage {
+  id               String   @id @default(cuid())
+  councilSessionId String
+  role             String // protector, conditioned_self, visionary, truth_self
+  displayName      String
+  lens             String
+  content          String   @db.Text
+  evidence         Json?
+  confidence       Float    @default(0)
+  riskLevel        String   @default("low")
+  abstained        Boolean  @default(false)
+  abstainReason    String?  @db.Text
+  sourceChunkIds   Json?
+  createdAt        DateTime @default(now())
+
+  councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+
+  @@index([councilSessionId])
+  @@index([role])
+}
+
+// Council synthesis - final Head of Council output
+model CouncilSynthesis {
+  id                 String   @id @default(cuid())
+  councilSessionId   String   @unique
+  guideName          String   @default("Supraconscious Guide")
+  openingLine        String?  @db.Text
+  coreTension        String?  @db.Text
+  integratorQuestion String   @db.Text
+  integrationStep    String   @db.Text
+  closingLine        String?  @db.Text
+  sourceChunkIds     Json?
+  createdAt          DateTime @default(now())
+
+  councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+}
+
+// Embodiment Gate response - user-owned micro-shift after integration
+model EmbodimentGateResponse {
+  id               String   @id @default(cuid())
+  userId           String
+  journalEntryId   String?
+  councilSessionId String?
+  text             String   @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry   JournalEntry?   @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([journalEntryId])
+  @@index([councilSessionId])
+}
+
+// Source document - canonical source file/version registry
+model SourceDocument {
+  id           String   @id @default(cuid())
+  importedById String?
+  title        String
+  author       String?
+  work         String?
+  sourceType   String // manuscript, curriculum, product_doctrine, image, external
+  filePath     String?  @db.Text
+  checksum     String?  @unique
+  language     String   @default("en")
+  rightsStatus String   @default("needs_review")
+  reviewState  String   @default("imported")
+  metadata     Json?
+  importedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  importedBy User? @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  sections   SourceSection[]
+  chunks     SourceChunk[]
+  curriculumDays CurriculumDay[]
+
+  @@index([sourceType])
+  @@index([reviewState])
+  @@index([rightsStatus])
+}
+
+// Source section - structural unit from books, docs, or product doctrine
+model SourceSection {
+  id               String   @id @default(cuid())
+  sourceDocumentId String
+  headingPath      Json?
+  sectionType      String   @default("section")
+  pageStart        Int?
+  pageEnd          Int?
+  paragraphStart   Int?
+  paragraphEnd     Int?
+  canonicalText    String   @db.Text
+  reviewState      String   @default("parsed")
+  createdAt        DateTime @default(now())
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  chunks         SourceChunk[]
+
+  @@index([sourceDocumentId])
+  @@index([sectionType])
+  @@index([reviewState])
+}
+
+// Source chunk - retrieval unit with provenance
+model SourceChunk {
+  id               String   @id @default(cuid())
+  sourceDocumentId String
+  sourceSectionId  String?
+  chunkText        String   @db.Text
+  quoteSafeExcerpt String?  @db.Text
+  tokenCount       Int      @default(0)
+  chunkKind        String   @default("semantic")
+  sourcePriority   Int      @default(0)
+  conceptTags      Json?
+  councilRoleTags  Json?
+  safetyIntensity  String   @default("normal")
+  quotePermission  String   @default("paraphrase_only")
+  reviewState      String   @default("parsed")
+  embedding        Json?
+  createdAt        DateTime @default(now())
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  sourceSection  SourceSection? @relation(fields: [sourceSectionId], references: [id], onDelete: SetNull)
+  traces         GenerationTrace[]
+
+  @@index([sourceDocumentId])
+  @@index([sourceSectionId])
+  @@index([reviewState])
+  @@index([chunkKind])
+}
+
+// Curriculum day - structured monthly quote/frame/question content
+model CurriculumDay {
+  id               String   @id @default(cuid())
+  sourceDocumentId String?
+  month            Int
+  day              Int
+  theme            String
+  title            String?
+  quote            String?  @db.Text
+  frameOfThought   String   @db.Text
+  socraticQuestion String   @db.Text
+  publishState     String   @default("needs_review")
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@unique([month, day])
+  @@index([publishState])
+  @@index([theme])
+}
+
+// Generation trace - source and model provenance for AI outputs
+model GenerationTrace {
+  id               String   @id @default(cuid())
+  userId           String?
+  councilSessionId String?
+  sourceChunkId    String?
+  traceType        String // retrieval, council, synthesis, prompt, safety
+  model            String?
+  promptVersion    String?
+  inputHash        String?
+  outputJson       Json?
+  validationStatus String   @default("unreviewed")
+  latencyMs        Int?
+  tokenUsage       Json?
+  fallbackReason   String?  @db.Text
+  createdAt        DateTime @default(now())
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+  sourceChunk    SourceChunk?    @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([councilSessionId])
+  @@index([traceType])
+  @@index([validationStatus])
 }
 
 // Safety event - logged safety concerns

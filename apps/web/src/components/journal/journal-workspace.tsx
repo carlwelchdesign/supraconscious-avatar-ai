@@ -11,6 +11,9 @@ const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Aut
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 
 type AnalysisResult = {
+  journalEntry?: {
+    id: string
+  }
   safety: { severity: string; flags: string[] }
   analysis: { summary: string } | null
   avatarResponse: {
@@ -37,6 +40,30 @@ type AnalysisResult = {
     previousLevel: number
     previousStage: number
   }
+  councilSession?: {
+    id: string
+    observerSignal: {
+      coreTension?: string
+      emotionalTone?: string
+      patternLanguage?: string[]
+      contradiction?: string
+      userEvidence?: string[]
+    }
+    messages: Array<{
+      id: string
+      role: string
+      displayName: string
+      lens: string
+      content: string
+      confidence: number
+      abstained: boolean
+    }>
+    synthesis: {
+      integratorQuestion: string
+      integrationStep: string
+      coreTension: string | null
+    } | null
+  }
 }
 
 type VoicePrefs = {
@@ -47,15 +74,29 @@ type VoicePrefs = {
   voiceSpeed: number
 }
 
+type ThresholdPrompt = {
+  id: string
+  month: number
+  day: number
+  theme: string
+  quote: string | null
+  frameOfThought: string
+  socraticQuestion: string
+} | null
+
 type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
   voicePrefs?: VoicePrefs
+  thresholdPrompt?: ThresholdPrompt
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null }: Props) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingShift, setIsSavingShift] = useState(false)
   const [error, setError] = useState("")
+  const [embodimentText, setEmbodimentText] = useState("")
+  const [embodimentSaved, setEmbodimentSaved] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -69,6 +110,8 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
   async function handleSubmit() {
     setError("")
     setResult(null)
+    setEmbodimentText("")
+    setEmbodimentSaved(false)
     setIsSubmitting(true)
 
     try {
@@ -91,6 +134,31 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
     setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
   }
 
+  async function handleSaveEmbodiment() {
+    if (!result?.councilSession || !embodimentText.trim()) return
+
+    setError("")
+    setIsSavingShift(true)
+    try {
+      const response = await fetch("/api/council/embodiment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          councilSessionId: result.councilSession.id,
+          journalEntryId: result.journalEntry?.id,
+          text: embodimentText,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? "Unable to save your shift.")
+      setEmbodimentSaved(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to save your shift.")
+    } finally {
+      setIsSavingShift(false)
+    }
+  }
+
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
 
   const speakText = result
@@ -109,9 +177,38 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
           What is present today?
         </h1>
         <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-          Write plainly. The reflection will stay short, structured, and non-clinical.
+          Inspired by Maria Olon Tsaroucha&apos;s teachings. This guide is not Maria, not therapy, and not a spiritual authority.
         </p>
       </div>
+
+      {thresholdPrompt && (
+        <section
+          className="rounded-3xl border px-6 py-5"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+            boxShadow: "0 4px 24px rgba(43,27,53,0.05)",
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+              Threshold · Month {thresholdPrompt.month}, Day {thresholdPrompt.day}
+            </p>
+            <p className="text-[11px] font-light text-[var(--plum-soft)]">{thresholdPrompt.theme}</p>
+          </div>
+          {thresholdPrompt.quote && (
+            <p className="mt-3 font-display text-[18px] font-light italic leading-relaxed text-[var(--primary)]">
+              {thresholdPrompt.quote}
+            </p>
+          )}
+          <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {thresholdPrompt.frameOfThought}
+          </p>
+          <p className="mt-4 font-display text-[17px] font-medium italic leading-relaxed text-[var(--primary)]">
+            {thresholdPrompt.socraticQuestion}
+          </p>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
@@ -305,6 +402,70 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
             )}
           </div>
 
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Inner Council
+              </p>
+              <h2 className="font-display text-[22px] font-light text-[var(--primary)] leading-snug">
+                {result.councilSession.observerSignal.coreTension ?? "The Council has gathered around the pattern."}
+              </h2>
+              {result.councilSession.observerSignal.contradiction && (
+                <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {result.councilSession.observerSignal.contradiction}
+                </p>
+              )}
+
+              <div className="mt-5 space-y-3">
+                {result.councilSession.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="rounded-2xl border px-4 py-3"
+                    style={{
+                      background: "rgba(43,27,53,0.025)",
+                      borderColor: "rgba(43,27,53,0.06)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
+                        {message.displayName}
+                      </p>
+                      <span className="text-[10px] font-light text-[var(--plum-soft)]">
+                        {Math.round(message.confidence * 100)}%
+                      </span>
+                    </div>
+                    <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                      {message.abstained ? "This voice is quiet while grounding comes first." : message.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {result.councilSession.synthesis && (
+                <div
+                  className="mt-5 rounded-2xl px-5 py-4"
+                  style={{
+                    background: "rgba(184,137,90,0.08)",
+                    border: "1px solid rgba(184,137,90,0.18)",
+                  }}
+                >
+                  <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                    Supraconscious Guide
+                  </p>
+                  <p className="font-display italic text-[17px] font-medium leading-[1.55] text-[var(--primary)]">
+                    {result.councilSession.synthesis.integratorQuestion}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Progression moment */}
           {result?.progression.stageChanged && (
             <div
@@ -390,6 +551,42 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
                   A grounded prompt will be generated from your reflection.
                 </p>
               )}
+            </div>
+          )}
+
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--primary)",
+                borderColor: "var(--primary)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
+                Embodiment Gate
+              </p>
+              <h3 className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
+                What is one small shift you can carry today?
+              </h3>
+              <textarea
+                value={embodimentText}
+                onChange={(event) => {
+                  setEmbodimentText(event.target.value)
+                  setEmbodimentSaved(false)
+                }}
+                placeholder="One small shift..."
+                className="mt-4 w-full min-h-[110px] resize-none rounded-2xl border bg-[rgba(244,237,228,0.06)] px-4 py-3 text-[14px] font-light leading-relaxed text-[var(--cream)] outline-none placeholder:text-[var(--cream)]/35"
+                style={{ borderColor: "rgba(244,237,228,0.14)" }}
+              />
+              <button
+                type="button"
+                onClick={handleSaveEmbodiment}
+                disabled={isSavingShift || embodimentText.trim().length < 3 || embodimentSaved}
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--cream)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary)] disabled:opacity-45"
+              >
+                {isSavingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                {embodimentSaved ? "Gate crossed" : "Cross the Gate"}
+              </button>
             </div>
           )}
         </aside>

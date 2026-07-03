@@ -1,5 +1,6 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { updateReflectionPreferences } from "./actions"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
@@ -87,7 +88,7 @@ export default async function SettingsPage() {
             Private by default
           </p>
           <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your entries are never used to train models, shared with third parties, or stored beyond your account. You own everything you write.
+            Your entries are used only to generate your reflections, safety checks, voice transcription, and speech playback. AI providers may process the text or audio needed for those features; raw journal text stays protected in this app.
           </p>
         </div>
       </div>
@@ -108,7 +109,7 @@ export default async function SettingsPage() {
             Reflection preferences
           </p>
         </div>
-        <div className="px-6">
+        <form action={updateReflectionPreferences} className="px-6">
           <SettingRow
             label="Avatar tone"
             description="How your Avatar speaks to you during reflections."
@@ -129,15 +130,31 @@ export default async function SettingsPage() {
           />
           <SettingRow
             label="Pattern memory"
-            description="Allows your Avatar to notice recurring themes across entries."
-            value={<StatusPill on={user.patternMemoryEnabled ?? true} />}
+            description="Stores recurring signals and short evidence excerpts unless you turn it off."
+            value={
+              <input
+                name="patternMemoryEnabled"
+                type="checkbox"
+                defaultChecked={user.patternMemoryEnabled ?? true}
+                className="h-5 w-5 accent-[var(--clay)]"
+                aria-label="Enable pattern memory"
+              />
+            }
           />
           <SettingRow
             label="Safety mode"
-            description="High-intensity or crisis entries receive grounded support instead of symbolic prompts."
-            value={<StatusPill on={user.safetyModeEnabled ?? true} />}
+            description="Crisis and high-risk entries always receive grounded support. This cannot be disabled."
+            value={<StatusPill on />}
           />
-        </div>
+          <div className="py-5">
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
+            >
+              Save reflection preferences
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* ── Billing ───────────────────────────────────────────── */}

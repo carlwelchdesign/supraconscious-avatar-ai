@@ -6,6 +6,21 @@ import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
 export type VoiceActionState = { ok: boolean } | null
+export async function updateReflectionPreferences(
+  formData: FormData,
+): Promise<void> {
+  const user = await requireAppUser()
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      patternMemoryEnabled: formData.get("patternMemoryEnabled") === "on",
+      safetyModeEnabled: true,
+    },
+  })
+
+  revalidatePath("/settings")
+}
 
 export async function updateVoicePreferences(
   _prev: VoiceActionState,

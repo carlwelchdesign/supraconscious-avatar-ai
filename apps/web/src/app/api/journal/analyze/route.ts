@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import { analyzeEntry } from "@inner-avatar/ai"
 import { generateAvatarResponse } from "@inner-avatar/ai"
+import { generateCouncilRun } from "@inner-avatar/ai"
 import { generateSymbolicPrompt } from "@inner-avatar/ai"
+import { getApprovedSourceContext } from "@inner-avatar/ai"
+import { shouldWritePatternMemory } from "@inner-avatar/ai"
 import { updatePatternMemory } from "@inner-avatar/ai"
 import { checkAndAdvanceProgression } from "@inner-avatar/ai"
 import { classifyJournalSafety } from "@inner-avatar/ai"
@@ -13,6 +16,10 @@ export async function POST(request: Request) {
   try {
     const user = await requireAppUser()
     const body = JournalAnalyzeRequestSchema.parse(await request.json())
+    const [councilModeEnabled, ragEnabled] = await Promise.all([
+      isFeatureEnabled("council_mode", true),
+      isFeatureEnabled("rag_enabled", false),
+    ])
 
     const journalEntry = await prisma.journalEntry.create({
       data: {
@@ -68,6 +75,143 @@ export async function POST(request: Request) {
     }
 
     const analysis = await analyzeEntry(body.text, safety)
+
+    if (councilModeEnabled) {
+      const sourceContext = ragEnabled ? await getApprovedSourceContext(body.text) : []
+      const councilRun = await generateCouncilRun(body.text, analysis, safety, {
+        tone: user.avatarTone,
+        intensity: user.intensityLevel,
+        currentLevel: user.currentLevel,
+        avatarStage: user.avatarStage,
+        sourceContext,
+      })
+
+      const prompt = await generateSymbolicPrompt(analysis, safety)
+      const storedAnalysis = await prisma.entryAnalysis.create({
+        data: {
+          userId: user.id,
+          journalEntryId: journalEntry.id,
+          emotionalSignals: analysis.emotionalSignals,
+          languageMarkers: analysis.languageMarkers,
+          behavioralPatterns: analysis.behavioralPatterns,
+          contradictionSignals: analysis.contradictionSignals,
+          avoidanceSignals: analysis.avoidanceSignals,
+          intensityScore: analysis.emotionalSignals.intensity,
+          suggestedLevel: analysis.suggestedLevel,
+          safetyFlags: analysis.safetyFlags,
+          summary: analysis.summary,
+        },
+      })
+
+      const councilSession = await prisma.councilSession.create({
+        data: {
+          userId: user.id,
+          journalEntryId: journalEntry.id,
+          status: "completed",
+          observerSignal: councilRun.observer,
+          safetySnapshot: safety,
+          sourceMode: ragEnabled ? "rag" : "none",
+          messages: {
+            create: councilRun.messages.map((message) => ({
+              role: message.role,
+              displayName: message.displayName,
+              lens: message.lens,
+              content: message.content,
+              evidence: message.evidence,
+              confidence: message.confidence,
+              riskLevel: message.riskLevel,
+              abstained: message.abstained,
+              abstainReason: message.abstainReason || null,
+              sourceChunkIds: message.sourceChunkIds,
+            })),
+          },
+          synthesis: {
+            create: {
+              guideName: councilRun.synthesis.guideName,
+              openingLine: councilRun.synthesis.openingLine,
+              coreTension: councilRun.synthesis.coreTension,
+              integratorQuestion: councilRun.synthesis.integratorQuestion,
+              integrationStep: councilRun.synthesis.integrationStep,
+              closingLine: councilRun.synthesis.closingLine,
+              sourceChunkIds: councilRun.synthesis.sourceChunkIds,
+            },
+          },
+          generationTraces: {
+            create: [
+              {
+                userId: user.id,
+                traceType: "council",
+                model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+                promptVersion: "inner-council-v1",
+                outputJson: councilRun,
+                validationStatus: "validated",
+              },
+              ...sourceContext.map((chunk) => ({
+                userId: user.id,
+                sourceChunkId: chunk.id,
+                traceType: "retrieval",
+                promptVersion: "inner-council-v1",
+                outputJson: chunk,
+                validationStatus: "selected",
+              })),
+            ],
+          },
+        },
+        include: {
+          messages: { orderBy: { createdAt: "asc" } },
+          synthesis: true,
+        },
+      })
+
+      const [avatarResponse, generatedPrompt] = await Promise.all([
+        prisma.avatarResponse.create({
+          data: {
+            userId: user.id,
+            journalEntryId: journalEntry.id,
+            openingLine: councilRun.synthesis.openingLine,
+            mirror: councilRun.synthesis.coreTension,
+            patternName: analysis.behavioralPatterns[0]?.label ?? "Inner Council",
+            contradiction: councilRun.observer.contradiction,
+            socraticQuestion: councilRun.synthesis.integratorQuestion,
+            integrationStep: councilRun.synthesis.integrationStep,
+            closingLine: councilRun.synthesis.closingLine,
+          },
+        }),
+        prisma.generatedPrompt.create({
+          data: {
+            userId: user.id,
+            journalEntryId: journalEntry.id,
+            level: prompt.level,
+            title: prompt.title,
+            context: prompt.context,
+            materials: prompt.materialsAndPreparation,
+            execution: prompt.execution,
+            integration: prompt.integration,
+            targetPattern: prompt.targetPattern,
+          },
+        }),
+        shouldWritePatternMemory(user.patternMemoryEnabled)
+          ? updatePatternMemory(user.id, journalEntry.id, analysis)
+          : Promise.resolve(),
+      ])
+
+      const progression = await checkAndAdvanceProgression(
+        user.id,
+        user.currentLevel,
+        user.avatarStage,
+      )
+
+      return NextResponse.json({
+        journalEntry,
+        safety,
+        analysis: storedAnalysis,
+        avatarResponse,
+        prompt: generatedPrompt,
+        progression,
+        councilSession,
+      })
+    }
+
     const [storedAnalysis, avatar, prompt] = await Promise.all([
       prisma.entryAnalysis.create({
         data: {
@@ -120,7 +264,9 @@ export async function POST(request: Request) {
           targetPattern: prompt.targetPattern,
         },
       }),
-      updatePatternMemory(user.id, journalEntry.id, analysis),
+      shouldWritePatternMemory(user.patternMemoryEnabled)
+        ? updatePatternMemory(user.id, journalEntry.id, analysis)
+        : Promise.resolve(),
     ])
 
     const progression = await checkAndAdvanceProgression(
@@ -141,4 +287,13 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Unable to analyze journal entry."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
+}
+
+async function isFeatureEnabled(key: string, defaultValue: boolean) {
+  const flag = await prisma.featureFlag.findUnique({
+    where: { key },
+    select: { enabled: true },
+  })
+
+  return flag?.enabled ?? defaultValue
 }

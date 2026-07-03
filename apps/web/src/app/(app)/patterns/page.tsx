@@ -6,6 +6,8 @@ type PatternSummary = {
   patternLabel: string
   evidenceCount: number
   confidence: number
+  examples: unknown
+  lastSeenAt: Date
 }
 
 function ConfidenceBar({ value }: { value: number }) {
@@ -38,7 +40,7 @@ export default async function PatternsPage() {
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
     where: { userId: user.id, active: true },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
-    select: { id: true, patternLabel: true, evidenceCount: true, confidence: true },
+    select: { id: true, patternLabel: true, evidenceCount: true, confidence: true, examples: true, lastSeenAt: true },
   })
 
   return (
@@ -87,8 +89,23 @@ export default async function PatternsPage() {
                 </div>
                 <p className="text-[13px] font-light text-[var(--plum-soft)]/70">
                   Seen {pattern.evidenceCount}{" "}
-                  {pattern.evidenceCount === 1 ? "time" : "times"} across your entries
+                  {pattern.evidenceCount === 1 ? "time" : "times"} across your entries · last seen{" "}
+                  {pattern.lastSeenAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </p>
+                {Array.isArray(pattern.examples) && pattern.examples.length > 0 && (
+                  <div
+                    className="mt-4 rounded-xl px-4 py-3"
+                    style={{ background: "rgba(43,27,53,0.035)" }}
+                  >
+                    <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] mb-2">
+                      Why this appeared
+                    </p>
+                    <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
+                      {String(pattern.examples[0]).slice(0, 180)}
+                      {String(pattern.examples[0]).length > 180 ? "..." : ""}
+                    </p>
+                  </div>
+                )}
                 <ConfidenceBar value={pattern.confidence} />
               </div>
             ))}
