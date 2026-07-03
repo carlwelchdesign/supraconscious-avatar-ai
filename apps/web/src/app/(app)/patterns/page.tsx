@@ -37,8 +37,22 @@ function ConfidenceBar({ value }: { value: number }) {
   )
 }
 
-export default async function PatternsPage() {
+const FEEDBACK_MESSAGES: Record<string, string> = {
+  helpful: "Marked helpful. Future pattern review can treat this signal as more useful.",
+  not_accurate: "Marked not accurate. This correction was saved for pattern review.",
+  too_intense: "Marked too intense. This signal was flagged for a gentler review.",
+  suppress: "Hidden from active pattern memory.",
+  restore: "Restored to active pattern memory.",
+}
+
+export default async function PatternsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ feedback?: string }>
+}) {
   const user = await requireAppUser()
+  const params = await searchParams
+  const feedbackMessage = params.feedback ? FEEDBACK_MESSAGES[params.feedback] : null
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
     where: { userId: user.id },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
@@ -62,6 +76,18 @@ export default async function PatternsPage() {
           Patterns appear only after they recur across multiple entries. Nothing is labeled from a single moment.
         </p>
       </div>
+
+      {feedbackMessage && (
+        <div
+          className="rounded-2xl border px-5 py-4 text-[13px] font-light text-[var(--plum-soft)]"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(184,137,90,0.18)",
+          }}
+        >
+          {feedbackMessage}
+        </div>
+      )}
 
       {/* ── Pattern grid ───────────────────────────────────────── */}
       {patterns.length > 0 ? (

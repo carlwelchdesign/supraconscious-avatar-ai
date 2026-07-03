@@ -13,6 +13,7 @@
     "import:sources": "tsx scripts/import-sources.ts",
     "lint": "eslint .",
     "test": "tsx test/index.test.ts",
+    "test:rag": "tsx scripts/run-rag-evals.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

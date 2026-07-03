@@ -11,6 +11,7 @@ const nav = [
   { href: "/health", label: "System Health", icon: HeartPulse },
   { href: "/prompts", label: "Prompts", icon: MessageSquareText },
   { href: "/sources", label: "Sources", icon: BookOpen },
+  { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },
   { href: "/council", label: "Council Review", icon: Sparkles },
   { href: "/avatar-stages", label: "Avatar Stages", icon: BarChart3 },
   { href: "/feature-flags", label: "Feature Flags", icon: Flag },

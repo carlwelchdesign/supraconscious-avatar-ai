@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { canDisplaySourceQuote, evaluateSourceEligibility } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -113,6 +114,51 @@ export async function updateSourceChunkStateAction(formData: FormData) {
   const parsed = ChunkStateSchema.parse(Object.fromEntries(formData))
   const conceptTags = parseCsv(parsed.conceptTags)
   const councilRoleTags = parseCsv(parsed.councilRoleTags)
+  const approving = ["approved", "approved_curriculum"].includes(parsed.reviewState)
+  const quoteSafe = parsed.quotePermission === "quote_safe"
+
+  if (approving || quoteSafe) {
+    const chunk = await prisma.sourceChunk.findUnique({
+      where: { id: parsed.sourceChunkId },
+      select: {
+        reviewState: true,
+        quotePermission: true,
+        safetyIntensity: true,
+        sourceDocument: {
+          select: {
+            reviewState: true,
+            rightsStatus: true,
+            rightsGrants: {
+              select: {
+                status: true,
+                allowedUses: true,
+                quoteAllowed: true,
+                expiresAt: true,
+                revokedAt: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!chunk) throw new Error("Source chunk not found.")
+
+    const proposedChunk = {
+      reviewState: parsed.reviewState,
+      quotePermission: parsed.quotePermission,
+      safetyIntensity: parsed.safetyIntensity,
+    }
+    const decision = evaluateSourceEligibility(chunk.sourceDocument, proposedChunk)
+
+    if (approving && !decision.eligible) {
+      throw new Error(`Chunk cannot be approved yet: ${decision.reasons.join(", ")}.`)
+    }
+
+    if (quoteSafe && !canDisplaySourceQuote(chunk.sourceDocument, proposedChunk)) {
+      throw new Error("Quote-safe display requires an approved direct-quote rights grant with quote allowed.")
+    }
+  }
 
   await prisma.sourceChunk.update({
     where: { id: parsed.sourceChunkId },

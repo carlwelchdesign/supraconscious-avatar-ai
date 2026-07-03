@@ -71,6 +71,9 @@ type AnalysisResult = {
       id: string
       title: string
       rank: number
+      score?: number
+      matchedTerms?: string[]
+      matchedFields?: string[]
       allowedUse: string
       displayExcerpt: string | null
     }>
@@ -503,6 +506,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                       <p className="text-[12px] font-medium text-[var(--primary)]">
                         {source.rank}. {source.title}
                       </p>
+                      {source.matchedTerms && source.matchedTerms.length > 0 && (
+                        <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
+                          Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                        </p>
+                      )}
                       {source.displayExcerpt && (
                         <p className="mt-2 text-[12px] font-light italic leading-relaxed text-[var(--plum-soft)]">
                           {source.displayExcerpt}

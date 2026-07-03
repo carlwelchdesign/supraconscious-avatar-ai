@@ -6,8 +6,8 @@ import {
 } from "./curriculum-docx.js"
 import {
   completeSourceImportBatch,
-  createSourceChunks,
   createSourceImportBatch,
+  createSourceSectionWithChunks,
   registerSourceDocument,
   upsertSourceRightsGrant,
 } from "./source-ingestion.js"
@@ -94,7 +94,14 @@ export async function importSourceCorpus(sourceRoot: string): Promise<SourceImpo
           reviewState: "parsed",
           metadata: { parser: "source-import-runner-v1", relativePath: relPath },
         })
-        await createSourceChunks(document.id, text, 2200)
+        await createSourceSectionWithChunks(document.id, {
+          headingPath: [classification.title],
+          sectionType: "product_doctrine",
+          paragraphStart: 1,
+          paragraphEnd: paragraphs.length,
+          canonicalText: text,
+          reviewState: "parsed",
+        }, 2200)
         await attachDefaultRights(document.id, classification.sourceType)
         result.imported += 1
         result.documents.push({

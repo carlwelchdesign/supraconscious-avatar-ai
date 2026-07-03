@@ -12,7 +12,29 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
   const { entryId } = await params
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
-    include: { analysis: true, avatarResponse: true, generatedPrompts: true },
+    include: {
+      analysis: true,
+      avatarResponse: true,
+      generatedPrompts: true,
+      councilSession: {
+        include: {
+          messages: { orderBy: { createdAt: "asc" } },
+          synthesis: true,
+          generationTraces: {
+            where: { traceType: "retrieval" },
+            orderBy: { createdAt: "asc" },
+            include: {
+              sourceChunk: {
+                select: {
+                  id: true,
+                  sourceDocument: { select: { title: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
 
   if (!entry) notFound()
@@ -31,6 +53,28 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
     style: user.voiceStyle ?? "warm",
     speed: user.voiceSpeed ?? 1.0,
   }
+  const retrievalTraces = entry.councilSession?.generationTraces ?? []
+  const selectedSources = retrievalTraces
+    .filter((trace) => trace.validationStatus === "selected")
+    .map((trace) => {
+      const output = trace.outputJson as {
+        title?: string
+        rank?: number
+        displayExcerpt?: string | null
+        matchedTerms?: string[]
+      } | null
+      return {
+        id: trace.sourceChunkId ?? trace.id,
+        title: output?.title ?? trace.sourceChunk?.sourceDocument.title ?? "Approved source",
+        rank: output?.rank ?? 0,
+        displayExcerpt: output?.displayExcerpt ?? null,
+        matchedTerms: output?.matchedTerms ?? [],
+      }
+    })
+  const sourceMode = entry.councilSession?.sourceMode ?? "none"
+  const sourceMessage = sourceMode === "rag"
+    ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
+    : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -180,6 +224,86 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           <p className="font-display text-[18px] font-light text-[var(--plum-soft)]">
             No reflection was generated for this entry.
           </p>
+        </div>
+      )}
+
+      {entry.councilSession && (
+        <div
+          className="rounded-2xl border p-7"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-3">
+            Inner Council
+          </p>
+          {entry.councilSession.synthesis && (
+            <div
+              className="rounded-xl px-5 py-4"
+              style={{
+                background: "rgba(184,137,90,0.07)",
+                border: "1px solid rgba(184,137,90,0.15)",
+              }}
+            >
+              <p className="font-display italic text-[17px] font-medium leading-[1.65] text-[var(--primary)]">
+                {entry.councilSession.synthesis.integratorQuestion}
+              </p>
+              <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
+                {entry.councilSession.synthesis.integrationStep}
+              </p>
+            </div>
+          )}
+          <div className="mt-5 space-y-3">
+            {entry.councilSession.messages.map((message) => (
+              <div key={message.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
+                  {message.displayName}
+                </p>
+                <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {message.abstained ? "This voice was quiet while grounding came first." : message.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {entry.councilSession && (
+        <div
+          className="rounded-2xl border p-7"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-2">
+            Source grounding
+          </p>
+          <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {sourceMessage}
+          </p>
+          {selectedSources.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {selectedSources.map((source) => (
+                <div key={source.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                  <p className="text-[12px] font-medium text-[var(--primary)]">
+                    {source.rank ? `${source.rank}. ` : ""}{source.title}
+                  </p>
+                  {source.matchedTerms.length > 0 && (
+                    <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
+                      Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                    </p>
+                  )}
+                  {source.displayExcerpt && (
+                    <p className="mt-2 text-[12px] font-light italic leading-relaxed text-[var(--plum-soft)]">
+                      {source.displayExcerpt}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

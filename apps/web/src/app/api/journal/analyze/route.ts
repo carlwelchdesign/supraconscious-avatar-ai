@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { NextResponse } from "next/server"
 import { analyzeEntry } from "@inner-avatar/ai"
 import { generateAvatarResponse } from "@inner-avatar/ai"
@@ -77,7 +78,12 @@ export async function POST(request: Request) {
     const analysis = await analyzeEntry(body.text, safety)
 
     if (councilModeEnabled) {
-      const sourceContext = ragEnabled ? await retrieveCouncilContext(body.text) : []
+      const sourceContext = ragEnabled
+        ? await retrieveCouncilContext(body.text, { safetySeverity: safety.severity })
+        : []
+      const sourceMode = ragEnabled
+        ? sourceContext.length > 0 ? "rag" : "no_eligible_source"
+        : "none"
       const councilRun = await generateCouncilRun(body.text, analysis, safety, {
         tone: user.avatarTone,
         intensity: user.intensityLevel,
@@ -91,12 +97,16 @@ export async function POST(request: Request) {
           sourceChunkId: chunk.id,
           traceType: "retrieval",
           promptVersion: "inner-council-v1",
+          inputHash: hashTraceInput(body.text),
           outputJson: {
             chunkId: chunk.id,
             sourceDocumentId: chunk.sourceDocumentId,
             title: chunk.title,
             rank: chunk.rank,
             matchReason: chunk.matchReason,
+            score: chunk.score,
+            matchedTerms: chunk.matchedTerms,
+            matchedFields: chunk.matchedFields,
             allowedUse: chunk.allowedUse,
             quotePermission: chunk.quotePermission,
             sourcePolicyVersion: chunk.sourcePolicyVersion,
@@ -109,6 +119,7 @@ export async function POST(request: Request) {
             userId: user.id,
             traceType: "retrieval",
             promptVersion: "inner-council-v1",
+            inputHash: hashTraceInput(body.text),
             outputJson: { sourcePolicyVersion: "source-policy-v1", selected: [] },
             validationStatus: "no_eligible_source",
             fallbackReason: "No approved rights-compatible source chunks matched the entry.",
@@ -139,7 +150,7 @@ export async function POST(request: Request) {
           status: "completed",
           observerSignal: councilRun.observer,
           safetySnapshot: safety,
-          sourceMode: ragEnabled ? "rag" : "none",
+          sourceMode,
           messages: {
             create: councilRun.messages.map((message) => ({
               role: message.role,
@@ -232,14 +243,17 @@ export async function POST(request: Request) {
         progression,
         councilSession,
         sourceProvenance: {
-          sourceMode: ragEnabled && sourceContext.length > 0 ? "rag" : "none",
-          message: ragEnabled && sourceContext.length > 0
-            ? "Grounded with approved source material."
-            : "No approved source material was used for this reflection.",
+          sourceMode,
+          message: sourceMode === "rag"
+            ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
+            : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules.",
           sources: sourceContext.map((chunk) => ({
             id: chunk.id,
             title: chunk.title,
             rank: chunk.rank,
+            score: chunk.score,
+            matchedTerms: chunk.matchedTerms,
+            matchedFields: chunk.matchedFields,
             allowedUse: chunk.allowedUse,
             displayExcerpt: chunk.displayExcerpt,
           })),
@@ -331,4 +345,8 @@ async function isFeatureEnabled(key: string, defaultValue: boolean) {
   })
 
   return flag?.enabled ?? defaultValue
+}
+
+function hashTraceInput(value: string) {
+  return createHash("sha256").update(value).digest("hex")
 }

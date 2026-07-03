@@ -137,11 +137,33 @@ export default async function CouncilReviewPage() {
                   <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                     {session.generationTraces.length === 0 ? (
                       <p>No trace records found for this session.</p>
-                    ) : session.generationTraces.map((trace) => (
-                      <p key={trace.id}>
-                        {trace.traceType} · {trace.sourceChunk?.sourceDocument.title ?? trace.model ?? "local"} · {trace.promptVersion ?? "no prompt version"} · {trace.validationStatus}
-                      </p>
-                    ))}
+                    ) : session.generationTraces.map((trace) => {
+                      const output = trace.outputJson as {
+                        title?: string
+                        rank?: number
+                        matchReason?: string
+                        matchedTerms?: string[]
+                        matchedFields?: string[]
+                        sourcePolicyVersion?: string
+                      } | null
+                      return (
+                        <div key={trace.id} className="rounded-md bg-muted/40 p-2">
+                          <p>
+                            {trace.traceType} · {output?.title ?? trace.sourceChunk?.sourceDocument.title ?? trace.model ?? "local"} · {trace.promptVersion ?? "no prompt version"} · {trace.validationStatus}
+                          </p>
+                          {trace.traceType === "retrieval" && (
+                            <p className="mt-1">
+                              rank {output?.rank ?? "none"} · {output?.matchReason ?? trace.fallbackReason ?? "no match reason"} · policy {output?.sourcePolicyVersion ?? "unknown"}
+                            </p>
+                          )}
+                          {output?.matchedTerms && output.matchedTerms.length > 0 && (
+                            <p className="mt-1">
+                              terms: {output.matchedTerms.join(", ")} · fields: {(output.matchedFields ?? []).join(", ") || "none"}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </CardContent>

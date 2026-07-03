@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -49,4 +50,5 @@ export async function submitPatternFeedbackAction(formData: FormData) {
   }
 
   revalidatePath("/patterns")
+  redirect(`/patterns?feedback=${parsed.feedbackType}`)
 }

@@ -255,10 +255,15 @@ export function validateCouncilSourceCitations(
     ...run,
     messages: run.messages.map((message) => ({
       ...message,
+      content: stripUnsupportedSourceLanguage(message.content),
       sourceChunkIds: message.sourceChunkIds.filter((id) => allowed.has(id)),
     })),
     synthesis: {
       ...run.synthesis,
+      openingLine: run.synthesis.openingLine ? stripUnsupportedSourceLanguage(run.synthesis.openingLine) : run.synthesis.openingLine,
+      coreTension: run.synthesis.coreTension ? stripUnsupportedSourceLanguage(run.synthesis.coreTension) : run.synthesis.coreTension,
+      integrationStep: stripUnsupportedSourceLanguage(run.synthesis.integrationStep),
+      closingLine: run.synthesis.closingLine ? stripUnsupportedSourceLanguage(run.synthesis.closingLine) : run.synthesis.closingLine,
       sourceChunkIds: run.synthesis.sourceChunkIds.filter((id) => allowed.has(id)),
     },
   }
@@ -269,10 +274,15 @@ function clearCouncilSourceIds(run: CouncilRun): CouncilRun {
     ...run,
     messages: run.messages.map((message) => ({
       ...message,
+      content: stripUnsupportedSourceLanguage(message.content),
       sourceChunkIds: [],
     })),
     synthesis: {
       ...run.synthesis,
+      openingLine: run.synthesis.openingLine ? stripUnsupportedSourceLanguage(run.synthesis.openingLine) : run.synthesis.openingLine,
+      coreTension: run.synthesis.coreTension ? stripUnsupportedSourceLanguage(run.synthesis.coreTension) : run.synthesis.coreTension,
+      integrationStep: stripUnsupportedSourceLanguage(run.synthesis.integrationStep),
+      closingLine: run.synthesis.closingLine ? stripUnsupportedSourceLanguage(run.synthesis.closingLine) : run.synthesis.closingLine,
       sourceChunkIds: [],
     },
   }
@@ -291,4 +301,13 @@ function ensureSingleQuestion(value: string) {
   const first = value.split("?")[0]?.trim()
   if (!first) return "What becomes clear now?"
   return `${first}?`
+}
+
+function stripUnsupportedSourceLanguage(value: string) {
+  return value
+    .replace(/\bMaria says\b/gi, "One possible reflection is")
+    .replace(/\baccording to Maria\b/gi, "within this reflective frame")
+    .replace(/\bthe source says\b/gi, "one approved source context suggests")
+    .replace(/\baccording to the source\b/gi, "within the approved source context")
+    .trim()
 }

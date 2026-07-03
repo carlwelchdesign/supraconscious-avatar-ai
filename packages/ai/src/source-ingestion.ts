@@ -53,6 +53,15 @@ export type SourceRightsGrantInput = {
   metadata?: Record<string, unknown>
 }
 
+export type SourceSectionInput = {
+  headingPath?: string[]
+  sectionType?: string
+  paragraphStart?: number
+  paragraphEnd?: number
+  canonicalText: string
+  reviewState?: string
+}
+
 export async function createSourceImportBatch(input: SourceImportBatchInput) {
   return prisma.sourceImportBatch.create({
     data: {
@@ -161,7 +170,7 @@ export async function upsertSourceRightsGrant(input: SourceRightsGrantInput) {
   })
 }
 
-export async function createSourceChunks(sourceDocumentId: string, text: string, chunkSize = 2800) {
+export async function createSourceChunks(sourceDocumentId: string, text: string, chunkSize = 2800, sourceSectionId?: string) {
   const chunks = splitIntoChunks(text, chunkSize)
 
   await prisma.sourceChunk.deleteMany({ where: { sourceDocumentId } })
@@ -171,6 +180,7 @@ export async function createSourceChunks(sourceDocumentId: string, text: string,
       prisma.sourceChunk.create({
         data: {
           sourceDocumentId,
+          sourceSectionId,
           chunkText,
           quoteSafeExcerpt: chunkText.slice(0, 240),
           tokenCount: Math.ceil(chunkText.length / 4),
@@ -181,6 +191,47 @@ export async function createSourceChunks(sourceDocumentId: string, text: string,
       }),
     ),
   )
+}
+
+export async function createSourceSectionWithChunks(
+  sourceDocumentId: string,
+  section: SourceSectionInput,
+  chunkSize = 2800,
+) {
+  await prisma.sourceChunk.deleteMany({ where: { sourceDocumentId } })
+  await prisma.sourceSection.deleteMany({ where: { sourceDocumentId } })
+
+  const createdSection = await prisma.sourceSection.create({
+    data: {
+      sourceDocumentId,
+      headingPath: section.headingPath,
+      sectionType: section.sectionType ?? "section",
+      paragraphStart: section.paragraphStart,
+      paragraphEnd: section.paragraphEnd,
+      canonicalText: section.canonicalText,
+      reviewState: section.reviewState ?? "parsed",
+    },
+  })
+
+  const chunks = splitIntoChunks(section.canonicalText, chunkSize)
+  const createdChunks = await Promise.all(
+    chunks.map((chunkText, index) =>
+      prisma.sourceChunk.create({
+        data: {
+          sourceDocumentId,
+          sourceSectionId: createdSection.id,
+          chunkText,
+          quoteSafeExcerpt: chunkText.slice(0, 240),
+          tokenCount: Math.ceil(chunkText.length / 4),
+          chunkKind: "semantic",
+          sourcePriority: chunks.length - index,
+          reviewState: "parsed",
+        },
+      }),
+    ),
+  )
+
+  return { section: createdSection, chunks: createdChunks }
 }
 
 export async function upsertCurriculumDay(sourceDocumentId: string | null, input: CurriculumDayInput) {

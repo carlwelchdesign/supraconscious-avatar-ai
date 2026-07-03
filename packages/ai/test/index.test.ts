@@ -8,6 +8,7 @@ import {
   enforceCouncilShape,
   INNER_COUNCIL_FEATURE_FLAGS,
   parseCurriculumDaysFromParagraphs,
+  runKeywordRagEvals,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
   validateCouncilSourceCitations,
@@ -167,4 +168,10 @@ test("citation validator removes citations outside retrieved context", () => {
 
 test("source policy version is stable for traces", () => {
   assert.equal(SOURCE_POLICY_VERSION, "source-policy-v1")
+})
+
+test("keyword RAG eval runner passes activation gate fixtures", () => {
+  const report = runKeywordRagEvals()
+  assert.equal(report.passed, true, JSON.stringify(report.cases.filter((item) => !item.passed)))
+  assert.equal(report.failed, 0)
 })
