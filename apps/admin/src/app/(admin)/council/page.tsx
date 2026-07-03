@@ -46,6 +46,11 @@ export default async function CouncilReviewPage() {
           },
         },
       },
+      qualityReviews: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1,
+        select: { label: true, severity: true, reason: true, reviewedAt: true },
+      },
       _count: { select: { generationTraces: true, embodimentGateResponses: true } },
     },
   })
@@ -110,19 +115,28 @@ export default async function CouncilReviewPage() {
                     <div>
                       <p className="text-xs font-medium">Quality label</p>
                       <p className="text-xs text-muted-foreground">
-                        Current: {session.generationTraces[0]?.validationStatus ?? "unreviewed"}
+                        Current: {session.qualityReviews[0]?.label ?? "unreviewed"}
+                        {session.qualityReviews[0]?.severity === "pilot_blocker" ? " · pilot blocker" : ""}
                       </p>
                     </div>
                     <form action={updateCouncilQualityLabelAction} className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="councilSessionId" value={session.id} />
                       <select
                         name="validationStatus"
-                        defaultValue={session.generationTraces[0]?.validationStatus ?? "unreviewed"}
+                        defaultValue={session.qualityReviews[0]?.label ?? "unreviewed"}
                         className="rounded-md border bg-background px-2 py-1 text-xs"
                       >
                         {QUALITY_LABELS.map((label) => (
                           <option key={label.value} value={label.value}>{label.label}</option>
                         ))}
+                      </select>
+                      <select
+                        name="severity"
+                        defaultValue={session.qualityReviews[0]?.severity ?? "normal"}
+                        className="rounded-md border bg-background px-2 py-1 text-xs"
+                      >
+                        <option value="normal">normal</option>
+                        <option value="pilot_blocker">pilot blocker</option>
                       </select>
                       <input
                         name="reason"

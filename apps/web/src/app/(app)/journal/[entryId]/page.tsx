@@ -6,6 +6,7 @@ import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { buildSpeakText } from "@/lib/voice/voice-config"
+import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 
 export default async function JournalEntryPage({ params }: { params: Promise<{ entryId: string }> }) {
   const user = await requireAppUser()
@@ -20,6 +21,8 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
         include: {
           messages: { orderBy: { createdAt: "asc" } },
           synthesis: true,
+          feedback: true,
+          embodimentGateResponses: true,
           generationTraces: {
             where: { traceType: "retrieval" },
             orderBy: { createdAt: "asc" },
@@ -97,6 +100,13 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           {dateLabel}
         </h1>
       </div>
+
+      <form action={deleteJournalEntryAction}>
+        <input type="hidden" name="journalEntryId" value={entry.id} />
+        <button className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+          Delete this entry
+        </button>
+      </form>
 
       {/* Entry text */}
       <div
@@ -265,6 +275,31 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
                 </p>
               </div>
             ))}
+          </div>
+          <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+            <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+              Pilot status
+            </p>
+            <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+              {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                ["helpful", "Helpful"],
+                ["not_accurate", "Not accurate"],
+                ["too_intense", "Too intense"],
+                ["unclear", "Unclear"],
+                ["unsupported_source", "Report source issue"],
+              ].map(([value, label]) => (
+                <form key={value} action={submitSavedSessionFeedbackAction}>
+                  <input type="hidden" name="councilSessionId" value={entry.councilSession!.id} />
+                  <input type="hidden" name="feedbackType" value={value} />
+                  <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                    {label}
+                  </button>
+                </form>
+              ))}
+            </div>
           </div>
         </div>
       )}

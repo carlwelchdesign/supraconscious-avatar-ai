@@ -4,22 +4,18 @@ import { emitPilotEvent } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
-const EmbodimentRequestSchema = z.object({
+const FeedbackRequestSchema = z.object({
   councilSessionId: z.string().min(1),
-  journalEntryId: z.string().min(1).optional(),
-  text: z.string().trim().min(3, "Write one small shift before crossing the gate."),
+  feedbackType: z.enum(["helpful", "not_accurate", "too_intense", "unclear", "unsupported_source"]),
+  note: z.string().trim().max(500).optional(),
 })
 
 export async function POST(request: Request) {
   try {
     const user = await requireAppUser()
-    const body = EmbodimentRequestSchema.parse(await request.json())
-
+    const body = FeedbackRequestSchema.parse(await request.json())
     const session = await prisma.councilSession.findFirst({
-      where: {
-        id: body.councilSessionId,
-        userId: user.id,
-      },
+      where: { id: body.councilSessionId, userId: user.id },
       select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },
     })
 
@@ -27,29 +23,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Council session not found." }, { status: 404 })
     }
 
-    const response = await prisma.embodimentGateResponse.create({
+    const feedback = await prisma.councilSessionFeedback.create({
       data: {
         userId: user.id,
         councilSessionId: session.id,
-        journalEntryId: body.journalEntryId ?? session.journalEntryId,
-        text: body.text,
+        feedbackType: body.feedbackType,
+        note: body.note,
       },
     })
 
     const safety = session.safetySnapshot as { severity?: string }
     await emitPilotEvent({
-      eventName: "embodiment_gate_saved",
+      eventName: "user_feedback_submitted",
       userId: user.id,
-      journalEntryId: body.journalEntryId ?? session.journalEntryId,
+      journalEntryId: session.journalEntryId,
       councilSessionId: session.id,
       sourceMode: session.sourceMode,
       safetySeverity: safety.severity ?? "unknown",
-      properties: { responseLength: body.text.length },
+      properties: { feedbackType: body.feedbackType, hasNote: Boolean(body.note) },
     })
 
-    return NextResponse.json({ response })
+    return NextResponse.json({ feedback })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to save embodiment response."
+    const message = error instanceof Error ? error.message : "Unable to save feedback."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

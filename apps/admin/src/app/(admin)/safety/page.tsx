@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { resolveSafetyEventAction } from "./actions"
 import { RevealEntryForm } from "./reveal-entry-form"
 
 export default async function SafetyPage() {
@@ -29,10 +30,22 @@ export default async function SafetyPage() {
                 <p>User: {event.user.email}</p>
                 <p>Created: {event.createdAt.toLocaleString()}</p>
                 <p>Journal entry: {event.journalEntry?.id ?? "none"}</p>
-                <p>Resolved: {event.resolved ? "yes" : "no"}</p>
+                <p>Review: {event.reviewStatus}</p>
               </div>
+              {event.reviewReason ? <p className="text-muted-foreground">Review note: {event.reviewReason}</p> : null}
               <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{JSON.stringify(event.flags, null, 2)}</pre>
               {event.recommendedAction ? <p className="text-muted-foreground">{event.recommendedAction}</p> : null}
+              <form action={resolveSafetyEventAction} className="flex flex-wrap items-center gap-2 rounded-md border p-3">
+                <input type="hidden" name="safetyEventId" value={event.id} />
+                <select name="reviewStatus" defaultValue={event.reviewStatus === "escalated" ? "escalated" : "resolved"} className="rounded-md border bg-background px-2 py-1 text-xs">
+                  <option value="resolved">resolved</option>
+                  <option value="escalated">escalated</option>
+                </select>
+                <input name="reason" placeholder="Review reason required" className="min-w-64 rounded-md border bg-background px-2 py-1 text-xs" />
+                <button className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
+                  Save review
+                </button>
+              </form>
               {event.journalEntry ? <RevealEntryForm safetyEventId={event.id} /> : null}
             </CardContent>
           </Card>

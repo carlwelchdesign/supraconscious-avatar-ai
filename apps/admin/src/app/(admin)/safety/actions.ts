@@ -1,6 +1,7 @@
 "use server"
 
 import { headers } from "next/headers"
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { requireAdminUser } from "@inner-avatar/auth/session"
@@ -8,6 +9,12 @@ import { requireAdminUser } from "@inner-avatar/auth/session"
 const RevealSchema = z.object({
   safetyEventId: z.string().min(1),
   reason: z.string().trim().min(10, "A support/moderation reason is required."),
+})
+
+const ResolveSchema = z.object({
+  safetyEventId: z.string().min(1),
+  reviewStatus: z.enum(["resolved", "escalated"]),
+  reason: z.string().trim().min(10, "A safety review reason is required."),
 })
 
 export type RevealState = {
@@ -46,4 +53,34 @@ export async function revealFlaggedEntryAction(_state: RevealState, formData: Fo
   })
 
   return { rawText: safetyEvent.journalEntry.rawText }
+}
+
+export async function resolveSafetyEventAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = ResolveSchema.parse(Object.fromEntries(formData))
+  const resolved = parsed.reviewStatus === "resolved"
+
+  await prisma.safetyEvent.update({
+    where: { id: parsed.safetyEventId },
+    data: {
+      reviewStatus: parsed.reviewStatus,
+      reviewerId: actor.id,
+      reviewReason: parsed.reason,
+      resolved,
+      resolvedAt: resolved ? new Date() : null,
+    },
+  })
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: actor.id,
+      action: "safety_event.review.update",
+      targetType: "SafetyEvent",
+      targetId: parsed.safetyEventId,
+      reason: parsed.reason,
+      metadata: { reviewStatus: parsed.reviewStatus, resolved },
+    },
+  })
+
+  revalidatePath("/safety")
 }

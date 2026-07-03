@@ -1,6 +1,6 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
-import { updateReflectionPreferences } from "./actions"
+import { clearPatternMemoryAction, revokeSessionsAction, updateReflectionPreferences } from "./actions"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
@@ -129,7 +129,7 @@ export default async function SettingsPage() {
             }
           />
           <SettingRow
-            label="Pattern memory"
+            label="Remember recurring signals"
             description="Stores recurring signals and short evidence excerpts unless you turn it off."
             value={
               <input
@@ -141,6 +141,13 @@ export default async function SettingsPage() {
               />
             }
           />
+          <div className="pb-5">
+            <form action={clearPatternMemoryAction}>
+              <button type="submit" className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                Clear remembered signals
+              </button>
+            </form>
+          </div>
           <SettingRow
             label="Safety mode"
             description="Crisis and high-risk entries always receive grounded support. This cannot be disabled."
@@ -260,8 +267,45 @@ export default async function SettingsPage() {
         }}
       />
 
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          background: "var(--pearl)",
+          borderColor: "rgba(43,27,53,0.07)",
+        }}
+      >
+        <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+          <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
+            Pilot data controls
+          </p>
+        </div>
+        <div className="px-6">
+          <SettingRow
+            label="Export your data"
+            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, and consent records."
+            value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Download JSON</a>}
+          />
+          <SettingRow
+            label="Delete individual entries"
+            description="Open any saved journal entry to delete that entry and its attached reflection records."
+            value={<a href="/dashboard" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Past entries</a>}
+          />
+          <SettingRow
+            label="Revoke active sessions"
+            description="Signs out this account across current app sessions."
+            value={
+              <form action={revokeSessionsAction}>
+                <button type="submit" className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)]">
+                  Revoke
+                </button>
+              </form>
+            }
+          />
+        </div>
+      </div>
+
       <p className="text-[12px] font-light text-[var(--plum-soft)]/50 leading-relaxed">
-        Data export and account deletion controls will appear here as the product expands.
+        Full account deletion and billing-customer deletion hardening are deferred to the full privacy lifecycle phase.
       </p>
     </div>
   )

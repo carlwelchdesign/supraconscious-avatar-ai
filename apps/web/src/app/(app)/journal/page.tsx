@@ -1,9 +1,11 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
+import { redirect } from "next/navigation"
 
 export default async function JournalPage() {
   const user = await requireAppUser()
+  if (!user.onboardingComplete) redirect("/onboarding")
   const today = new Date()
   const month = today.getMonth() + 1
   const day = today.getDate()

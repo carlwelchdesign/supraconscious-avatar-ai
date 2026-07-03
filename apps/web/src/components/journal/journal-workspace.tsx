@@ -108,9 +108,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingShift, setIsSavingShift] = useState(false)
+  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
   const [error, setError] = useState("")
   const [embodimentText, setEmbodimentText] = useState("")
   const [embodimentSaved, setEmbodimentSaved] = useState(false)
+  const [feedbackSaved, setFeedbackSaved] = useState("")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -126,6 +128,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
     setResult(null)
     setEmbodimentText("")
     setEmbodimentSaved(false)
+    setFeedbackSaved("")
     setIsSubmitting(true)
 
     try {
@@ -170,6 +173,29 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       setError(e instanceof Error ? e.message : "Unable to save your shift.")
     } finally {
       setIsSavingShift(false)
+    }
+  }
+
+  async function handleSessionFeedback(feedbackType: string) {
+    if (!result?.councilSession) return
+    setError("")
+    setIsSavingFeedback(true)
+    try {
+      const response = await fetch("/api/council/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          councilSessionId: result.councilSession.id,
+          feedbackType,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? "Unable to save feedback.")
+      setFeedbackSaved(feedbackType)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to save feedback.")
+    } finally {
+      setIsSavingFeedback(false)
     }
   }
 
@@ -485,6 +511,43 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
             </div>
           )}
 
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Session feedback
+              </p>
+              <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                Help tune the pilot. Your feedback is tied to this session, not used as a diagnosis.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[
+                  ["helpful", "Helpful"],
+                  ["not_accurate", "Not accurate"],
+                  ["too_intense", "Too intense"],
+                  ["unclear", "Unclear"],
+                  ["unsupported_source", "Report source issue"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    disabled={isSavingFeedback}
+                    onClick={() => handleSessionFeedback(value)}
+                    className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
+                    style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                  >
+                    {feedbackSaved === value ? "Saved" : label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {result?.sourceProvenance && (
             <div
               className="rounded-3xl border p-6"
@@ -625,6 +688,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               <h3 className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
                 What is one small shift you can carry today?
               </h3>
+              <p className="mt-2 text-[13px] font-light text-[var(--cream)]/60">
+                Save this as today&apos;s small shift.
+              </p>
               <textarea
                 value={embodimentText}
                 onChange={(event) => {

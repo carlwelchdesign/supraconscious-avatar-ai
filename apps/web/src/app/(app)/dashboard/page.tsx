@@ -17,7 +17,17 @@ export default async function DashboardPage() {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 6,
-      include: { avatarResponse: true },
+      include: {
+        avatarResponse: true,
+        councilSession: {
+          select: {
+            sourceMode: true,
+            safetySnapshot: true,
+            feedback: { select: { id: true } },
+            embodimentGateResponses: { select: { id: true } },
+          },
+        },
+      },
     }),
   ])
 
@@ -189,6 +199,13 @@ export default async function DashboardPage() {
                 : entry.rawText
               const reflection = entry.avatarResponse?.mirror
               const pattern = entry.avatarResponse?.patternName
+              const safety = entry.councilSession?.safetySnapshot as { severity?: string } | undefined
+              const statuses = [
+                entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
+                entry.councilSession?.feedback.length ? "Feedback received" : entry.councilSession ? "Feedback needed" : null,
+                entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
+                safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
+              ].filter(Boolean)
 
               return (
                 <Link
@@ -240,6 +257,11 @@ export default async function DashboardPage() {
                     {reflection && (
                       <p className="font-display italic text-[13px] font-light text-[var(--plum-soft)] mt-2 line-clamp-1">
                         &ldquo;{reflection}&rdquo;
+                      </p>
+                    )}
+                    {statuses.length > 0 && (
+                      <p className="mt-2 text-[11px] font-light text-[var(--plum-soft)]/70">
+                        {statuses.join(" · ")}
                       </p>
                     )}
                   </div>

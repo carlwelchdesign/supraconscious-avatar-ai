@@ -51,7 +51,7 @@ export async function registerAction(_state: AuthActionState, formData: FormData
     return { error: authDatabaseErrorMessage(error) }
   }
 
-  redirect("/dashboard")
+  redirect("/onboarding")
 }
 
 export async function loginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {

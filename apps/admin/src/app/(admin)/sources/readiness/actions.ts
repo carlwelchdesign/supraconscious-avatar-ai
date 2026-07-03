@@ -7,7 +7,7 @@ import { prisma } from "@inner-avatar/db"
 
 const ActivateRagSchema = z.object({
   reason: z.string().trim().min(20, "Explain why RAG is ready to activate."),
-  evalReport: z.string().trim().min(3, "Attach an eval report identifier or summary."),
+  evalReport: z.string().trim().min(10, "Attach a machine-readable eval report JSON."),
 })
 
 export async function activateRagAction(formData: FormData) {
@@ -17,6 +17,11 @@ export async function activateRagAction(formData: FormData) {
     evalReport: formData.get("evalReport"),
   })
   const readiness = await getRagReadinessCounts()
+  const evalReport = parseEvalReport(parsed.evalReport)
+
+  if (!evalReport.passed || !evalReport.rollbackCriteria) {
+    throw new Error("RAG activation requires eval report JSON with passed=true and rollbackCriteria.")
+  }
 
   if (readiness.approvedDocuments === 0 || readiness.eligibleChunks === 0) {
     throw new Error("RAG activation requires at least one approved source document and eligible chunk.")
@@ -35,7 +40,7 @@ export async function activateRagAction(formData: FormData) {
       metadata: {
         activatedBy: actor.id,
         activatedAt: new Date().toISOString(),
-        evalReport: parsed.evalReport,
+        evalReport,
         readiness,
       },
     },
@@ -44,7 +49,7 @@ export async function activateRagAction(formData: FormData) {
       metadata: {
         activatedBy: actor.id,
         activatedAt: new Date().toISOString(),
-        evalReport: parsed.evalReport,
+        evalReport,
         readiness,
       },
     },
@@ -59,7 +64,7 @@ export async function activateRagAction(formData: FormData) {
       reason: parsed.reason,
       metadata: {
         key: "rag_enabled",
-        evalReport: parsed.evalReport,
+        evalReport,
         readiness,
       },
     },
@@ -67,6 +72,19 @@ export async function activateRagAction(formData: FormData) {
 
   revalidatePath("/sources/readiness")
   revalidatePath("/feature-flags")
+}
+
+function parseEvalReport(value: string) {
+  try {
+    const parsed = JSON.parse(value) as { passed?: unknown; rollbackCriteria?: unknown }
+    return {
+      passed: parsed.passed === true,
+      rollbackCriteria: typeof parsed.rollbackCriteria === "string" ? parsed.rollbackCriteria : null,
+      raw: parsed,
+    }
+  } catch {
+    throw new Error("Eval report must be valid JSON.")
+  }
 }
 
 export async function getRagReadinessCounts() {

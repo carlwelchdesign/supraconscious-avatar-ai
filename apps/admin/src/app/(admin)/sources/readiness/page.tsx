@@ -74,7 +74,7 @@ export default async function RagReadinessPage() {
           <form action={activateRagAction} className="grid gap-3 md:grid-cols-2">
             <input
               name="evalReport"
-              placeholder="Eval report id or summary"
+              placeholder='{"passed":true,"rollbackCriteria":"disable if blocker rate exceeds threshold"}'
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
             <input
@@ -129,5 +129,9 @@ function Metric({ title, value }: { title: string; value: string | number }) {
 function readEvalReport(metadata: unknown) {
   if (!metadata || typeof metadata !== "object" || !("evalReport" in metadata)) return null
   const value = (metadata as { evalReport?: unknown }).evalReport
-  return typeof value === "string" ? value : null
+  if (typeof value === "string") return value
+  if (value && typeof value === "object" && "passed" in value) {
+    return `passed=${String((value as { passed?: unknown }).passed)}`
+  }
+  return null
 }

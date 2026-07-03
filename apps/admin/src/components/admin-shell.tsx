@@ -9,6 +9,7 @@ const nav = [
   { href: "/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/safety", label: "Safety", icon: FileWarning },
   { href: "/health", label: "System Health", icon: HeartPulse },
+  { href: "/pilot", label: "Pilot Readiness", icon: BarChart3 },
   { href: "/prompts", label: "Prompts", icon: MessageSquareText },
   { href: "/sources", label: "Sources", icon: BookOpen },
   { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },

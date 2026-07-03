@@ -9,8 +9,11 @@ import {
   INNER_COUNCIL_FEATURE_FLAGS,
   parseCurriculumDaysFromParagraphs,
   runKeywordRagEvals,
+  runPilotCouncilEvals,
+  sanitizeProperties,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
+  validateCouncilRunForPilot,
   validateCouncilSourceCitations,
   type EntryAnalysis,
   type SafetyCheck,
@@ -174,4 +177,34 @@ test("keyword RAG eval runner passes activation gate fixtures", () => {
   const report = runKeywordRagEvals()
   assert.equal(report.passed, true, JSON.stringify(report.cases.filter((item) => !item.passed)))
   assert.equal(report.failed, 0)
+})
+
+test("pilot council validator rejects prohibited source impersonation language", () => {
+  const run = buildLocalCouncilRun("I keep explaining before I choose.", analysis)
+  const validated = validateCouncilRunForPilot({
+    ...run,
+    messages: run.messages.map((message, index) => index === 0 ? {
+      ...message,
+      content: "Maria says this is guaranteed.",
+    } : message),
+  }, { safety: { ...highSafety, severity: "low", allowReflectiveFlow: true } })
+
+  assert.equal(validated.passed, false)
+  assert.ok(validated.failedRules.includes("prohibited_claim_language"))
+})
+
+test("pilot eval runner covers planned fixtures", () => {
+  const report = runPilotCouncilEvals()
+  assert.equal(report.passed, true, JSON.stringify(report.cases.filter((item) => !item.passed)))
+  assert.equal(report.total, 11)
+})
+
+test("pilot event properties remove raw journal text keys", () => {
+  const sanitized = sanitizeProperties({
+    rawText: "private",
+    journalText: "private",
+    text: "private",
+    sourceMode: "rag",
+  })
+  assert.deepEqual(sanitized, { sourceMode: "rag" })
 })
