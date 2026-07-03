@@ -20,15 +20,16 @@ export default async function CouncilReviewPage() {
       status: true,
       sourceMode: true,
       observerSignal: true,
+      safetySnapshot: true,
       createdAt: true,
       journalEntryId: true,
       user: { select: { email: true } },
-      messages: { select: { role: true, confidence: true, abstained: true } },
-      synthesis: { select: { integratorQuestion: true } },
+      messages: { select: { role: true, displayName: true, content: true, confidence: true, abstained: true, sourceChunkIds: true } },
+      synthesis: { select: { integratorQuestion: true, integrationStep: true, sourceChunkIds: true } },
       generationTraces: {
-        where: { traceType: { in: ["council", "synthesis"] } },
+        where: { traceType: { in: ["council", "synthesis", "retrieval"] } },
         orderBy: { createdAt: "desc" },
-        take: 3,
+        take: 8,
         select: {
           id: true,
           traceType: true,
@@ -37,6 +38,12 @@ export default async function CouncilReviewPage() {
           validationStatus: true,
           fallbackReason: true,
           sourceChunkId: true,
+          outputJson: true,
+          sourceChunk: {
+            select: {
+              sourceDocument: { select: { title: true } },
+            },
+          },
         },
       },
       _count: { select: { generationTraces: true, embodimentGateResponses: true } },
@@ -61,6 +68,7 @@ export default async function CouncilReviewPage() {
           </Card>
         ) : sessions.map((session) => {
           const observer = session.observerSignal as { coreTension?: string; emotionalTone?: string }
+          const safety = session.safetySnapshot as { severity?: string; flags?: string[] }
           return (
             <Card key={session.id}>
               <CardHeader>
@@ -74,6 +82,7 @@ export default async function CouncilReviewPage() {
                   <span>source: {session.sourceMode}</span>
                   <span>{session._count.generationTraces} traces</span>
                   <span>{session._count.embodimentGateResponses} gate responses</span>
+                  <span>safety: {safety.severity ?? "unknown"}</span>
                   <span>entry: {session.journalEntryId}</span>
                 </div>
                 <p className="text-muted-foreground">{observer.coreTension ?? "No observer summary"}</p>
@@ -87,9 +96,15 @@ export default async function CouncilReviewPage() {
                       <p className="text-muted-foreground">
                         {message.abstained ? "abstained" : `${Math.round(message.confidence * 100)}% confidence`}
                       </p>
+                      <p className="mt-2 line-clamp-4 text-muted-foreground">{message.content}</p>
                     </div>
                   ))}
                 </div>
+                {session.synthesis?.integrationStep ? (
+                  <p className="rounded-md border p-3 text-xs text-muted-foreground">
+                    Integration step: {session.synthesis.integrationStep}
+                  </p>
+                ) : null}
                 <div className="rounded-md border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -109,6 +124,11 @@ export default async function CouncilReviewPage() {
                           <option key={label.value} value={label.value}>{label.label}</option>
                         ))}
                       </select>
+                      <input
+                        name="reason"
+                        placeholder="Reason required"
+                        className="rounded-md border bg-background px-2 py-1 text-xs"
+                      />
                       <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                         Save label
                       </button>
@@ -119,7 +139,7 @@ export default async function CouncilReviewPage() {
                       <p>No trace records found for this session.</p>
                     ) : session.generationTraces.map((trace) => (
                       <p key={trace.id}>
-                        {trace.traceType} · {trace.model ?? "local"} · {trace.promptVersion ?? "no prompt version"} · {trace.validationStatus}
+                        {trace.traceType} · {trace.sourceChunk?.sourceDocument.title ?? trace.model ?? "local"} · {trace.promptVersion ?? "no prompt version"} · {trace.validationStatus}
                       </p>
                     ))}
                   </div>

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
+    "import:sources": "tsx scripts/import-sources.ts",
     "lint": "eslint .",
     "test": "tsx test/index.test.ts",
     "typecheck": "tsc --noEmit"

@@ -3,6 +3,9 @@ import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt.js"
 import { COUNCIL_ROLES } from "./council-roles.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import {
+  type CouncilRetrievedContext,
+} from "./source-context.js"
+import {
   CouncilRunSchema,
   type CouncilMessage,
   type CouncilRun,
@@ -21,6 +24,13 @@ export type CouncilOptions = {
     id: string
     title: string
     text: string
+    sourceDocumentId?: string
+    rank?: number
+    matchReason?: string
+    allowedUse?: string
+    quotePermission?: string
+    sourcePolicyVersion?: string
+    displayExcerpt?: string | null
   }>
 }
 
@@ -81,7 +91,10 @@ Return only the structured CouncilRun object.`,
     throw new Error("Council generator returned no structured output.")
   }
 
-  return enforceCouncilShape(response.output_parsed, analysis)
+  return validateCouncilSourceCitations(
+    enforceCouncilShape(response.output_parsed, analysis),
+    options.sourceContext ?? [],
+  )
 }
 
 export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): CouncilRun {
@@ -225,6 +238,42 @@ export function enforceCouncilShape(run: CouncilRun, analysis: EntryAnalysis): C
     synthesis: {
       ...run.synthesis,
       integratorQuestion: ensureSingleQuestion(run.synthesis.integratorQuestion),
+    },
+  }
+}
+
+export function validateCouncilSourceCitations(
+  run: CouncilRun,
+  sourceContext: Array<Pick<CouncilRetrievedContext, "id"> | { id: string }>,
+): CouncilRun {
+  const allowed = new Set(sourceContext.map((chunk) => chunk.id))
+  if (allowed.size === 0) {
+    return clearCouncilSourceIds(run)
+  }
+
+  return {
+    ...run,
+    messages: run.messages.map((message) => ({
+      ...message,
+      sourceChunkIds: message.sourceChunkIds.filter((id) => allowed.has(id)),
+    })),
+    synthesis: {
+      ...run.synthesis,
+      sourceChunkIds: run.synthesis.sourceChunkIds.filter((id) => allowed.has(id)),
+    },
+  }
+}
+
+function clearCouncilSourceIds(run: CouncilRun): CouncilRun {
+  return {
+    ...run,
+    messages: run.messages.map((message) => ({
+      ...message,
+      sourceChunkIds: [],
+    })),
+    synthesis: {
+      ...run.synthesis,
+      sourceChunkIds: [],
     },
   }
 }

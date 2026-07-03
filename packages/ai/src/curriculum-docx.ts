@@ -29,6 +29,7 @@ export type CurriculumImportOptions = {
   month?: number
   theme?: string
   publishState?: string
+  importBatchId?: string
 }
 
 export async function importCurriculumDocx(filePath: string, options: CurriculumImportOptions = {}) {
@@ -39,6 +40,7 @@ export async function importCurriculumDocx(filePath: string, options: Curriculum
     author: "Maria Olon Tsaroucha",
     sourceType: "curriculum",
     filePath,
+    importBatchId: options.importBatchId,
     text: paragraphs.join("\n"),
     rightsStatus: "needs_review",
     reviewState: "parsed",

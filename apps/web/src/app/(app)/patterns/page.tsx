@@ -1,5 +1,6 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { submitPatternFeedbackAction } from "./actions"
 
 type PatternSummary = {
   id: string
@@ -8,6 +9,7 @@ type PatternSummary = {
   confidence: number
   examples: unknown
   lastSeenAt: Date
+  active: boolean
 }
 
 function ConfidenceBar({ value }: { value: number }) {
@@ -38,10 +40,12 @@ function ConfidenceBar({ value }: { value: number }) {
 export default async function PatternsPage() {
   const user = await requireAppUser()
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
-    where: { userId: user.id, active: true },
+    where: { userId: user.id },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
-    select: { id: true, patternLabel: true, evidenceCount: true, confidence: true, examples: true, lastSeenAt: true },
+    select: { id: true, patternLabel: true, evidenceCount: true, confidence: true, examples: true, lastSeenAt: true, active: true },
   })
+  const activePatterns = patterns.filter((pattern) => pattern.active)
+  const hiddenPatterns = patterns.filter((pattern) => !pattern.active)
 
   return (
     <div className="space-y-10">
@@ -63,7 +67,7 @@ export default async function PatternsPage() {
       {patterns.length > 0 ? (
         <>
           <div className="grid gap-4 md:grid-cols-2">
-            {patterns.map((pattern) => (
+            {activePatterns.map((pattern) => (
               <div
                 key={pattern.id}
                 className="rounded-2xl border p-6 transition-all hover:-translate-y-0.5"
@@ -107,15 +111,62 @@ export default async function PatternsPage() {
                   </div>
                 )}
                 <ConfidenceBar value={pattern.confidence} />
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {[
+                    ["helpful", "Helpful"],
+                    ["not_accurate", "Not accurate"],
+                    ["too_intense", "Too intense"],
+                    ["suppress", "Hide"],
+                  ].map(([feedbackType, label]) => (
+                    <form key={feedbackType} action={submitPatternFeedbackAction}>
+                      <input type="hidden" name="patternMemoryId" value={pattern.id} />
+                      <input type="hidden" name="feedbackType" value={feedbackType} />
+                      <button
+                        type="submit"
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        {label}
+                      </button>
+                    </form>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
+
+          {hiddenPatterns.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="font-display text-[22px] font-light text-[var(--primary)]">
+                Hidden signals
+              </h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                {hiddenPatterns.map((pattern) => (
+                  <div key={pattern.id} className="rounded-2xl border p-4" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
+                    <p className="font-display text-[17px] font-medium text-[var(--primary)]">
+                      {pattern.patternLabel}
+                    </p>
+                    <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+                      Hidden from active pattern memory.
+                    </p>
+                    <form action={submitPatternFeedbackAction} className="mt-3">
+                      <input type="hidden" name="patternMemoryId" value={pattern.id} />
+                      <input type="hidden" name="feedbackType" value="restore" />
+                      <button type="submit" className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)]">
+                        Restore
+                      </button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Footnote */}
           <p
             className="text-[12px] font-light text-[var(--plum-soft)]/60 leading-relaxed max-w-lg px-1"
           >
-            Patterns are reflective signals from your language — they invite exploration, not conclusion. You can disable pattern memory in settings.
+            Patterns are draft reflective signals from your language. You can correct or hide any signal here, or disable pattern memory in settings.
           </p>
         </>
       ) : (

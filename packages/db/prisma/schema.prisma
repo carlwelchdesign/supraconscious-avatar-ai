@@ -49,6 +49,7 @@ model User {
   councilSessions  CouncilSession[]
   embodimentGateResponses EmbodimentGateResponse[]
   sourceDocuments  SourceDocument[]
+  sourceImportBatches SourceImportBatch[]
   generationTraces GenerationTrace[]
 }
 
@@ -368,6 +369,7 @@ model EmbodimentGateResponse {
 model SourceDocument {
   id           String   @id @default(cuid())
   importedById String?
+  importBatchId String?
   title        String
   author       String?
   work         String?
@@ -382,13 +384,66 @@ model SourceDocument {
   updatedAt    DateTime @updatedAt
 
   importedBy User? @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  importBatch SourceImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
   sections   SourceSection[]
   chunks     SourceChunk[]
   curriculumDays CurriculumDay[]
+  rightsGrants SourceRightsGrant[]
 
   @@index([sourceType])
   @@index([reviewState])
   @@index([rightsStatus])
+  @@index([importBatchId])
+}
+
+// Source import batch - deterministic corpus import run metadata
+model SourceImportBatch {
+  id             String   @id @default(cuid())
+  initiatedById  String?
+  sourceRoot     String   @db.Text
+  parserVersion  String
+  status         String   @default("completed") // completed, partial, failed
+  importedCount  Int      @default(0)
+  skippedCount   Int      @default(0)
+  failedCount    Int      @default(0)
+  errorLog       Json?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  initiatedBy     User? @relation(fields: [initiatedById], references: [id], onDelete: SetNull)
+  sourceDocuments SourceDocument[]
+
+  @@index([status])
+  @@index([initiatedById])
+  @@index([createdAt])
+}
+
+// Source rights grant - reviewable permission and allowed-use record
+model SourceRightsGrant {
+  id                  String    @id @default(cuid())
+  sourceDocumentId    String
+  ownerName           String
+  grantType           String    @default("provided_by_owner")
+  allowedUses         Json
+  quoteAllowed        Boolean   @default(false)
+  attributionRequired Boolean   @default(false)
+  attributionText     String?   @db.Text
+  status              String    @default("needs_review") // needs_review, approved, revoked, expired, blocked
+  reviewerId          String?
+  reviewedAt          DateTime?
+  expiresAt           DateTime?
+  revokedAt           DateTime?
+  reason              String    @db.Text
+  metadata            Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+
+  @@index([sourceDocumentId])
+  @@index([status])
+  @@index([reviewerId])
 }
 
 // Source section - structural unit from books, docs, or product doctrine

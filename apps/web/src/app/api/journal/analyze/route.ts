@@ -3,7 +3,7 @@ import { analyzeEntry } from "@inner-avatar/ai"
 import { generateAvatarResponse } from "@inner-avatar/ai"
 import { generateCouncilRun } from "@inner-avatar/ai"
 import { generateSymbolicPrompt } from "@inner-avatar/ai"
-import { getApprovedSourceContext } from "@inner-avatar/ai"
+import { retrieveCouncilContext } from "@inner-avatar/ai"
 import { shouldWritePatternMemory } from "@inner-avatar/ai"
 import { updatePatternMemory } from "@inner-avatar/ai"
 import { checkAndAdvanceProgression } from "@inner-avatar/ai"
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     const analysis = await analyzeEntry(body.text, safety)
 
     if (councilModeEnabled) {
-      const sourceContext = ragEnabled ? await getApprovedSourceContext(body.text) : []
+      const sourceContext = ragEnabled ? await retrieveCouncilContext(body.text) : []
       const councilRun = await generateCouncilRun(body.text, analysis, safety, {
         tone: user.avatarTone,
         intensity: user.intensityLevel,
@@ -85,6 +85,35 @@ export async function POST(request: Request) {
         avatarStage: user.avatarStage,
         sourceContext,
       })
+      const retrievalTraceCreates = sourceContext.length > 0
+        ? sourceContext.map((chunk) => ({
+          userId: user.id,
+          sourceChunkId: chunk.id,
+          traceType: "retrieval",
+          promptVersion: "inner-council-v1",
+          outputJson: {
+            chunkId: chunk.id,
+            sourceDocumentId: chunk.sourceDocumentId,
+            title: chunk.title,
+            rank: chunk.rank,
+            matchReason: chunk.matchReason,
+            allowedUse: chunk.allowedUse,
+            quotePermission: chunk.quotePermission,
+            sourcePolicyVersion: chunk.sourcePolicyVersion,
+            displayExcerpt: chunk.displayExcerpt,
+          },
+          validationStatus: "selected",
+        }))
+        : ragEnabled
+          ? [{
+            userId: user.id,
+            traceType: "retrieval",
+            promptVersion: "inner-council-v1",
+            outputJson: { sourcePolicyVersion: "source-policy-v1", selected: [] },
+            validationStatus: "no_eligible_source",
+            fallbackReason: "No approved rights-compatible source chunks matched the entry.",
+          }]
+          : []
 
       const prompt = await generateSymbolicPrompt(analysis, safety)
       const storedAnalysis = await prisma.entryAnalysis.create({
@@ -146,14 +175,7 @@ export async function POST(request: Request) {
                 outputJson: councilRun,
                 validationStatus: "validated",
               },
-              ...sourceContext.map((chunk) => ({
-                userId: user.id,
-                sourceChunkId: chunk.id,
-                traceType: "retrieval",
-                promptVersion: "inner-council-v1",
-                outputJson: chunk,
-                validationStatus: "selected",
-              })),
+              ...retrievalTraceCreates,
             ],
           },
         },
@@ -209,6 +231,19 @@ export async function POST(request: Request) {
         prompt: generatedPrompt,
         progression,
         councilSession,
+        sourceProvenance: {
+          sourceMode: ragEnabled && sourceContext.length > 0 ? "rag" : "none",
+          message: ragEnabled && sourceContext.length > 0
+            ? "Grounded with approved source material."
+            : "No approved source material was used for this reflection.",
+          sources: sourceContext.map((chunk) => ({
+            id: chunk.id,
+            title: chunk.title,
+            rank: chunk.rank,
+            allowedUse: chunk.allowedUse,
+            displayExcerpt: chunk.displayExcerpt,
+          })),
+        },
       })
     }
 

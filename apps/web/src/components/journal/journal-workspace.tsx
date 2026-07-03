@@ -64,6 +64,17 @@ type AnalysisResult = {
       coreTension: string | null
     } | null
   }
+  sourceProvenance?: {
+    sourceMode: string
+    message: string
+    sources: Array<{
+      id: string
+      title: string
+      rank: number
+      allowedUse: string
+      displayExcerpt: string | null
+    }>
+  }
 }
 
 type VoicePrefs = {
@@ -164,6 +175,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const speakText = result
     ? buildSpeakText(result.avatarResponse)
     : ""
+  const signalLabel = (confidence: number) => {
+    if (confidence >= 0.75) return "Strong recurring signal"
+    if (confidence >= 0.55) return "Based on your entry"
+    return "Light signal"
+  }
 
   return (
     <div className="space-y-6">
@@ -437,7 +453,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                         {message.displayName}
                       </p>
                       <span className="text-[10px] font-light text-[var(--plum-soft)]">
-                        {Math.round(message.confidence * 100)}%
+                        {message.abstained ? "Grounding" : signalLabel(message.confidence)}
                       </span>
                     </div>
                     <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
@@ -461,6 +477,39 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   <p className="font-display italic text-[17px] font-medium leading-[1.55] text-[var(--primary)]">
                     {result.councilSession.synthesis.integratorQuestion}
                   </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {result?.sourceProvenance && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Source grounding
+              </p>
+              <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                {result.sourceProvenance.message}
+              </p>
+              {result.sourceProvenance.sources.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {result.sourceProvenance.sources.map((source) => (
+                    <div key={source.id} className="rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                      <p className="text-[12px] font-medium text-[var(--primary)]">
+                        {source.rank}. {source.title}
+                      </p>
+                      {source.displayExcerpt && (
+                        <p className="mt-2 text-[12px] font-light italic leading-relaxed text-[var(--plum-soft)]">
+                          {source.displayExcerpt}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
