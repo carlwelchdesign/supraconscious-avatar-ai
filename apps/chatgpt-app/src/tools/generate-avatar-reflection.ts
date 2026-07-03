@@ -10,7 +10,7 @@ const GenerateAvatarReflectionSchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function generateAvatarReflection(input: any, deps: {
+export async function generateAvatarReflection(input: unknown, deps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   generateAvatarResponse?: typeof generateAvatarResponse
@@ -44,6 +44,7 @@ export async function generateAvatarReflection(input: any, deps: {
     // Check if we should block reflection generation
     if (safety.severity === "high") {
       return {
+        pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
         openingLine: "Pause here.",
         mirror: "This entry contains content that needs immediate attention. Please reach out to a trusted friend, family member, or professional for support.",
         patternName: "Grounding",
@@ -76,6 +77,7 @@ export async function generateAvatarReflection(input: any, deps: {
     })
 
     return {
+      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
       openingLine: avatar.openingLine,
       mirror: avatar.mirror,
       patternName: avatar.patternName,

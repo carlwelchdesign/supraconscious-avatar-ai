@@ -12,7 +12,9 @@
     "build": "tsc --noEmit",
     "import:sources": "tsx scripts/import-sources.ts",
     "lint": "eslint .",
+    "seed:pilot": "tsx scripts/seed-internal-pilot.ts",
     "test": "tsx test/index.test.ts",
+    "test:launch": "tsx scripts/run-pilot-launch-readiness.ts",
     "test:rag": "tsx scripts/run-rag-evals.ts",
     "test:pilot": "tsx scripts/run-pilot-evals.ts",
     "typecheck": "tsc --noEmit"

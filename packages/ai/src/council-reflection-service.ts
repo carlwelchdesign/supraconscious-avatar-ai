@@ -394,7 +394,7 @@ async function runCouncilMode(
     sourceProvenance: {
       sourceMode,
       message: sourceMode === "rag"
-        ? "Your entry was the main source. Approved source material may have shaped background language. Quotes appear only when allowed."
+        ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
         : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules.",
       sources: sourceContext.map((chunk) => ({
         id: chunk.id,
@@ -406,6 +406,7 @@ async function runCouncilMode(
         allowedUse: chunk.allowedUse,
         displayExcerpt: chunk.displayExcerpt,
       })),
+      pilotScope: "Internal pilot only. This guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority.",
     },
   }
 }

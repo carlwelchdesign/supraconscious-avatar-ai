@@ -64,10 +64,13 @@ export function validateCouncilRunForPilot(
     warnings.push("medium_safety_tone_may_be_too_intense")
   }
 
+  const highSafetyAbstained = context.safety?.severity === "high" && run.messages.every((message) => message.abstained)
   const evidenceTotal = run.messages.length
-  const evidenceCovered = run.messages.filter((message) => Array.isArray(message.evidence) && message.evidence.length > 0).length
+  const evidenceCovered = highSafetyAbstained
+    ? evidenceTotal
+    : run.messages.filter((message) => Array.isArray(message.evidence) && message.evidence.length > 0).length
   const evidenceCoverage = evidenceTotal ? evidenceCovered / evidenceTotal : 0
-  if (evidenceCoverage < 0.9) {
+  if (!highSafetyAbstained && evidenceCoverage < 0.9) {
     failedRules.push("role_evidence_coverage_low")
   }
 

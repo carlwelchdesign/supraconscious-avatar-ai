@@ -5,6 +5,7 @@ import {
   classifySourcePath,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
+  evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
   INNER_COUNCIL_FEATURE_FLAGS,
   parseCurriculumDaysFromParagraphs,
@@ -207,4 +208,83 @@ test("pilot event properties remove raw journal text keys", () => {
     sourceMode: "rag",
   })
   assert.deepEqual(sanitized, { sourceMode: "rag" })
+})
+
+test("pilot launch readiness reports blocking launch conditions", () => {
+  const report = evaluatePilotLaunchReadinessSnapshot({
+    metrics: {
+      activeCohorts: 0,
+      enrolledUsers: 1,
+      orientationCompleteUsers: 0,
+      firstSessionsCompleted: 0,
+      embodimentGateSaves: 0,
+      unresolvedSafetyReviews: 1,
+      qualityBlockers: 1,
+      feedbackTotal: 0,
+      sourceModeCounts: {},
+    },
+    sourceReadiness: {
+      productDoctrineEligibleChunks: 0,
+      currentMonthApprovedCurriculumDays: 0,
+      currentMonthEligibleCurriculumChunks: 0,
+      manuscriptEligibleChunks: 1,
+      checkedMonth: 7,
+    },
+    latestEvalMetadata: {
+      rag: { passed: false, total: 11, failed: 1 },
+      pilot: { passed: false, total: 11, failed: 1 },
+      ragActivationEvalPassed: false,
+      ragEnabled: true,
+      councilModeEnabled: false,
+    },
+  }, new Date("2026-07-03T12:00:00.000Z"))
+
+  assert.equal(report.passed, false)
+  assert.deepEqual(report.blockers.map((blocker) => blocker.code), [
+    "no_active_cohort",
+    "orientation_incomplete",
+    "unresolved_safety_reviews",
+    "quality_blockers",
+    "council_mode_disabled",
+    "rag_enabled_without_activation_eval",
+    "rag_eval_failed",
+    "pilot_eval_failed",
+    "missing_product_doctrine_allowlist",
+    "missing_current_month_curriculum",
+    "manuscript_retrieval_eligible",
+  ])
+})
+
+test("pilot launch readiness passes with internal-pilot prerequisites met", () => {
+  const report = evaluatePilotLaunchReadinessSnapshot({
+    metrics: {
+      activeCohorts: 1,
+      enrolledUsers: 2,
+      orientationCompleteUsers: 2,
+      firstSessionsCompleted: 0,
+      embodimentGateSaves: 0,
+      unresolvedSafetyReviews: 0,
+      qualityBlockers: 0,
+      feedbackTotal: 0,
+      sourceModeCounts: { none: 2 },
+    },
+    sourceReadiness: {
+      productDoctrineEligibleChunks: 3,
+      currentMonthApprovedCurriculumDays: 1,
+      currentMonthEligibleCurriculumChunks: 0,
+      manuscriptEligibleChunks: 0,
+      checkedMonth: 7,
+    },
+    latestEvalMetadata: {
+      rag: { passed: true, total: 11, failed: 0 },
+      pilot: { passed: true, total: 11, failed: 0 },
+      ragActivationEvalPassed: false,
+      ragEnabled: false,
+      councilModeEnabled: true,
+    },
+  }, new Date("2026-07-03T12:00:00.000Z"))
+
+  assert.equal(report.passed, true)
+  assert.equal(report.blockers.length, 0)
+  assert.ok(report.warnings.includes("RAG is off. Pilot reflections may use approved curriculum/product context only after the activation gate enables it."))
 })

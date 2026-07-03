@@ -80,7 +80,7 @@ function parseEvalReport(value: string) {
     return {
       passed: parsed.passed === true,
       rollbackCriteria: typeof parsed.rollbackCriteria === "string" ? parsed.rollbackCriteria : null,
-      raw: parsed,
+      raw: value,
     }
   } catch {
     throw new Error("Eval report must be valid JSON.")

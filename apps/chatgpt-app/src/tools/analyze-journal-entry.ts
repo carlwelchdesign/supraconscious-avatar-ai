@@ -9,7 +9,7 @@ const AnalyzeJournalEntrySchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function analyzeJournalEntry(input: any, deps: {
+export async function analyzeJournalEntry(input: unknown, deps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   analyzeEntry?: typeof analyzeEntry
@@ -41,19 +41,20 @@ export async function analyzeJournalEntry(input: any, deps: {
     const safety = await classifyFn(text)
 
     // Analyze the entry
-    const analysis: any = await analyzeFn(text, safety)
+    const analysis = await analyzeFn(text, safety)
 
     return {
+      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
       safetyStatus: safety.severity === "none" ? "clear" :
                    safety.severity === "low" ? "needs_grounding" : "crisis",
       emotionalSignals: analysis.emotionalSignals.primary,
       languagePatterns: analysis.languageMarkers.repeatedWords,
-      behavioralPatterns: analysis.behavioralPatterns.map((p: any) => ({
+      behavioralPatterns: analysis.behavioralPatterns.map((p) => ({
         label: p.label,
         evidenceCount: p.evidence.length,
         confidence: p.confidence
       })),
-      contradictions: analysis.contradictionSignals.map((c: any) => ({
+      contradictions: analysis.contradictionSignals.map((c) => ({
         statedDesire: c.statedDesire,
         conflictingBehavior: c.conflictingBehavior
       })),

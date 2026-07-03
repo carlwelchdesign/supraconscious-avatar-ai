@@ -24,7 +24,7 @@ export type PilotEventInput = {
   userId?: string | null
   journalEntryId?: string | null
   councilSessionId?: string | null
-  properties?: Record<string, unknown>
+  properties?: Record<string, string | number | boolean | null | string[]>
   inputText?: string | null
   sourceMode?: string | null
   safetySeverity?: string | null
@@ -55,9 +55,9 @@ export function hashPilotInput(value: string) {
   return createHash("sha256").update(value).digest("hex")
 }
 
-export function sanitizeProperties(properties: Record<string, unknown> | undefined) {
+export function sanitizeProperties(properties: PilotEventInput["properties"]) {
   if (!properties) return undefined
-  const safe: Record<string, unknown> = {}
+  const safe: Record<string, string | number | boolean | null | string[]> = {}
   for (const [key, value] of Object.entries(properties)) {
     if (FORBIDDEN_PROPERTY_KEYS.has(key)) continue
     if (typeof value === "string" && value.length > 500) {

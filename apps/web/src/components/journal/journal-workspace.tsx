@@ -67,6 +67,7 @@ type AnalysisResult = {
   sourceProvenance?: {
     sourceMode: string
     message: string
+    pilotScope?: string
     sources: Array<{
       id: string
       title: string
@@ -321,6 +322,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 {isSubmitting ? "Reflecting…" : "Reflect"}
               </button>
             </div>
+            {text.trim().length > 0 && text.trim().length < 20 && (
+              <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
+                Add a little more context so the council can reflect without guessing.
+              </p>
+            )}
           </div>
 
           {error && (
@@ -545,6 +551,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   </button>
                 ))}
               </div>
+              {feedbackSaved && (
+                <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
+                  Feedback saved for this pilot session.
+                </p>
+              )}
             </div>
           )}
 
@@ -562,6 +573,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 {result.sourceProvenance.message}
               </p>
+              {result.sourceProvenance.pilotScope && (
+                <p className="mt-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
+                  {result.sourceProvenance.pilotScope}
+                </p>
+              )}
               {result.sourceProvenance.sources.length > 0 && (
                 <div className="mt-4 space-y-2">
                   {result.sourceProvenance.sources.map((source) => (
