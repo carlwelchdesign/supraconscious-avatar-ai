@@ -11,6 +11,7 @@ import {
 
 export default async function FounderCalibrationSetupPage() {
   const report = await runFounderCalibrationSetupReport()
+  const webAppBaseUrl = readWebAppBaseUrl()
 
   return (
     <div className="space-y-6">
@@ -66,8 +67,8 @@ export default async function FounderCalibrationSetupPage() {
           </form>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <RequiredRoleStatus role="Carl" status={report.requiredRoles.carl} />
-            <RequiredRoleStatus role="Maria" status={report.requiredRoles.maria} />
+            <RequiredRoleStatus role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} />
+            <RequiredRoleStatus role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} />
           </div>
         </CardContent>
       </Card>
@@ -85,10 +86,10 @@ export default async function FounderCalibrationSetupPage() {
             </p>
           ))}
           <div className="flex flex-wrap gap-2">
-            <SafeLink href="/register" label="Register" />
-            <SafeLink href="/login" label="Login" />
-            <SafeLink href="/onboarding" label="Onboarding" />
-            <SafeLink href="/journal" label="Journal" />
+            <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} />
+            <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
+            <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
+            <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
             <SafeLink href="/calibration/live" label="Live review" />
           </div>
         </CardContent>
@@ -97,8 +98,8 @@ export default async function FounderCalibrationSetupPage() {
       <Card>
         <CardHeader><CardTitle>Founder Handoff</CardTitle></CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <FounderHandoff role="Carl" status={report.requiredRoles.carl} />
-          <FounderHandoff role="Maria" status={report.requiredRoles.maria} />
+          <FounderHandoff role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} />
+          <FounderHandoff role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} />
         </CardContent>
       </Card>
 
@@ -149,11 +150,11 @@ export default async function FounderCalibrationSetupPage() {
                   <p className="mt-1 text-xs text-muted-foreground">Next: {participant.nextAction}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <SafeLink href="/register" label="Register" />
-                  <SafeLink href="/login" label="Login" />
-                  <SafeLink href="/onboarding" label="Onboarding" />
-                  <SafeLink href="/journal" label="Journal" />
-                  {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" /> : null}
+                  <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} />
+                  <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
+                  <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
+                  <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
+                  {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} /> : null}
                 </div>
               </div>
               <div className="mt-3 grid gap-2 md:grid-cols-3">
@@ -240,9 +241,29 @@ function Metric({ title, value }: { title: string; value: string | number }) {
   )
 }
 
-function SafeLink({ href, label }: { href: string; label: string }) {
+const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
+
+function readWebAppBaseUrl() {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
+}
+
+function resolveHandoffHref(href: string | null, webAppBaseUrl: string) {
+  if (!href) return null
+  if (href.startsWith("http://") || href.startsWith("https://")) return href
+  if (FOUNDER_WEB_PATHS.has(href)) return `${webAppBaseUrl}${href}`
+  return href
+}
+
+function resolveHandoffText(text: string, webAppBaseUrl: string) {
+  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal)\b/g, (_match, prefix: string, path: string) => {
+    return `${prefix}${webAppBaseUrl}/${path}`
+  })
+}
+
+function SafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl?: string }) {
+  const resolvedHref = webAppBaseUrl ? resolveHandoffHref(href, webAppBaseUrl) : href
   return (
-    <Link href={href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
+    <Link href={resolvedHref ?? href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
       {label}
     </Link>
   )
@@ -251,6 +272,7 @@ function SafeLink({ href, label }: { href: string; label: string }) {
 function RequiredRoleStatus({
   role,
   status,
+  webAppBaseUrl,
 }: {
   role: string
   status: {
@@ -268,6 +290,7 @@ function RequiredRoleStatus({
     primaryHandoffHref: string | null
     handoffText: string
   }
+  webAppBaseUrl?: string
 }) {
   return (
     <div className="rounded-md border p-4 text-sm">
@@ -276,7 +299,7 @@ function RequiredRoleStatus({
           <p className="font-medium">{role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Not configured"}</p>
         </div>
-        {status.nextActionHref ? <SafeLink href={status.nextActionHref} label="Next action" /> : null}
+        {status.nextActionHref ? <SafeLink href={status.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} /> : null}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
       <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
@@ -296,6 +319,7 @@ function RequiredRoleStatus({
 function FounderHandoff({
   role,
   status,
+  webAppBaseUrl,
 }: {
   role: string
   status: {
@@ -304,7 +328,11 @@ function FounderHandoff({
     handoffText: string
     nextAction: string
   }
+  webAppBaseUrl: string
 }) {
+  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl)
+  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl)
+
   return (
     <div className="rounded-md border p-4 text-sm">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -312,19 +340,19 @@ function FounderHandoff({
           <p className="font-medium">Send this to {role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
         </div>
-        {status.primaryHandoffHref ? <SafeLink href={status.primaryHandoffHref} label="Primary link" /> : null}
+        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" /> : null}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
       <textarea
         readOnly
-        value={status.handoffText}
+        value={handoffText}
         className="mt-3 min-h-32 w-full rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground"
       />
       <div className="mt-3 flex flex-wrap gap-2">
-        <SafeLink href="/register" label="Register" />
-        <SafeLink href="/login" label="Login" />
-        <SafeLink href="/onboarding" label="Onboarding" />
-        <SafeLink href="/journal" label="Journal" />
+        <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} />
+        <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
+        <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
+        <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
         <SafeLink href="/calibration/live" label="Live review" />
       </div>
     </div>
