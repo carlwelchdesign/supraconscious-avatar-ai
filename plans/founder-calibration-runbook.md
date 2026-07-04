@@ -19,7 +19,7 @@
   - `FOUNDER_CALIBRATION_SETUP_ACTOR_EMAIL` when audit logging should attach to an existing admin user
 - Run `yarn setup:founder-calibration` to upsert founder participants and link any existing user accounts by email.
 - Verify setup with `yarn report:founder-calibration-setup`.
-- Run `yarn check:founder-calibration-launch` for a strict pass/fail check before asking Carl and Maria to start.
+- Run `yarn check:founder-calibration-launch` for a strict pass/fail check before asking Carl and Maria to start. The check prints the current blocker list plus copyable Carl/Maria handoff actions and safe links.
 
 ## Session Cadence
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.
