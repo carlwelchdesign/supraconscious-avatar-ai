@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
 import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
@@ -706,9 +707,29 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 </p>
               )}
               {feedbackSaved && (
-                <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide.
-                </p>
+                <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
+                  <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
+                    Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide.
+                  </p>
+                  {founderCalibrationMode && result.journalEntry?.id && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/journal/${result.journalEntry.id}`}
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        Review saved session
+                      </Link>
+                      <Link
+                        href="/dashboard"
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        Return to dashboard
+                      </Link>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
