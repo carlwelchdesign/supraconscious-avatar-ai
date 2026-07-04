@@ -266,7 +266,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
     }
   }
 
-  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+  const trimmedText = text.trim()
+  const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
+  const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
+  const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
+  const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
 
   const speakText = result
     ? buildSpeakText(result.avatarResponse)
@@ -317,7 +321,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, edit it if needed, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
                 </p>
               )}
             </div>
@@ -430,7 +434,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || text.trim().length < 20}
+                disabled={isSubmitting || !canSubmit}
                 className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-2.5 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isSubmitting ? (
@@ -444,6 +448,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
             {text.trim().length > 0 && text.trim().length < 20 && (
               <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
                 Add a little more context so the council can reflect without guessing.
+              </p>
+            )}
+            {founderOnlyHasPromptText && (
+              <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
+                Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.
               </p>
             )}
           </div>
