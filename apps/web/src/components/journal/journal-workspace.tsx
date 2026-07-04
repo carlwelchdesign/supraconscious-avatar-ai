@@ -145,7 +145,14 @@ type Props = {
 }
 
 export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
-  const [text, setText] = useState("")
+  const suggestedPrompt = suggestedCalibrationScenario
+    ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
+    : null
+  const initialText = founderCalibrationMode && needsFounderFirstSessionGuide && suggestedPrompt
+    ? suggestedPrompt.text
+    : ""
+
+  const [text, setText] = useState(initialText)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingShift, setIsSavingShift] = useState(false)
   const [isSavingFeedback, setIsSavingFeedback] = useState(false)
@@ -203,9 +210,6 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       return `${prev}\n\n${promptText}`
     })
   }
-  const suggestedPrompt = suggestedCalibrationScenario
-    ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
-    : null
   const founderFeedbackNoteRequired = founderCalibrationMode && result?.councilSession && feedbackNote.trim().length === 0
 
   const applyFeedbackTemplate = (template: string) => {
@@ -313,7 +317,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: use {suggestedPrompt?.label ?? "one guided prompt"}, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, edit it if needed, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
                 </p>
               )}
             </div>
