@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { emitPilotEvent } from "@inner-avatar/ai"
+import { emitPilotEvent, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -16,6 +16,11 @@ const FeedbackSchema = z.object({
 export async function submitSavedSessionFeedbackAction(formData: FormData) {
   const user = await requireAppUser()
   const parsed = FeedbackSchema.parse(Object.fromEntries(formData))
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
+  if (founderCalibrationMode && !parsed.note?.trim()) {
+    throw new Error("Founder calibration feedback needs a short note.")
+  }
+
   const session = await prisma.councilSession.findFirst({
     where: { id: parsed.councilSessionId, userId: user.id },
     select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },

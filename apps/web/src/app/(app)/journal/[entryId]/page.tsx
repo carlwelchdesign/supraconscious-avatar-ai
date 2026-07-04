@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -10,6 +11,7 @@ import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./ac
 
 export default async function JournalEntryPage({ params }: { params: Promise<{ entryId: string }> }) {
   const user = await requireAppUser()
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
@@ -298,6 +300,11 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide.
             </p>
+            {founderCalibrationMode && (
+              <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
+                A short note is required for Carl/Maria calibration evidence.
+              </p>
+            )}
             {entry.councilSession.feedback.length > 0 && (
               <div className="mt-3 space-y-2">
                 {entry.councilSession.feedback.map((feedback) => (
@@ -320,7 +327,8 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
               <textarea
                 name="note"
                 maxLength={500}
-                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                required={founderCalibrationMode}
+                placeholder={founderCalibrationMode ? "Required note: what felt right, what felt wrong, what Maria would say differently, or which source felt unsupported." : "Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."}
                 className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
