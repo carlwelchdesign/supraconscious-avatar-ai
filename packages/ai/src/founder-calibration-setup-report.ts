@@ -473,11 +473,11 @@ function buildParticipantMissingActions(input: {
 }) {
   if (input.status !== "active") return []
   const actions: FounderCalibrationMissingAction[] = []
-  if (!input.accountExists) actions.push({ code: "account_missing", email: input.email, message: `${input.email} needs to register.`, href: "/users" })
-  if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/users" })
-  if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/users" })
-  if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/calibration/live" })
-  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: "/calibration/live" })
+  if (!input.accountExists) actions.push({ code: "account_missing", email: input.email, message: `${input.email} needs to register.`, href: "/register" })
+  if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/onboarding" })
+  if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/onboarding" })
+  if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/journal" })
+  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: "/journal" })
   if (input.sessionCount > 0 && input.goldenExampleCount === 0) actions.push({ code: "golden_example_missing", email: input.email, message: `${input.email} needs at least one ready/golden example review.`, href: "/calibration/live" })
   return actions
 }

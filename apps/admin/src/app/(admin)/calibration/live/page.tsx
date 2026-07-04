@@ -15,6 +15,7 @@ const QUICK_LABELS = [
 ] as const
 
 export default async function LiveCalibrationPage() {
+  const webAppBaseUrl = readWebAppBaseUrl()
   const [comparison, setup, founderFilter] = await Promise.all([
     runFounderCalibrationComparison(),
     runFounderCalibrationSetupReport(),
@@ -69,7 +70,7 @@ export default async function LiveCalibrationPage() {
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">Founder setup is ready for live calibration.</p>
           ) : setup.missingActions.slice(0, 5).map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
-              {action.href ? <Link href={action.href} className="underline">{action.message}</Link> : action.message}
+              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
             </p>
           ))}
           {setup.warnings.map((warning) => (
@@ -202,4 +203,20 @@ function chooseNextAction(label: string | null, feedbackTypes: string[]) {
   if (label === "voice_wrong" || label === "too_generic" || label === "too_intense" || label === "prompt_regression") return { label: "Prompts", href: "/prompts" }
   if (label === "source_unsupported" || feedbackTypes.includes("unsupported_source")) return { label: "Sources", href: "/sources" }
   return { label: "Review", href: null }
+}
+
+const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
+
+function readWebAppBaseUrl() {
+  return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
+}
+
+function resolveFounderHref(href: string, webAppBaseUrl: string) {
+  if (href.startsWith("http://") || href.startsWith("https://")) return href
+  if (FOUNDER_WEB_PATHS.has(href)) return `${webAppBaseUrl}${href}`
+  return href
+}
+
+function InlineSafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl: string }) {
+  return <Link href={resolveFounderHref(href, webAppBaseUrl)} className="underline">{label}</Link>
 }

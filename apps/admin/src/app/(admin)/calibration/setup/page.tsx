@@ -83,7 +83,7 @@ export default async function FounderCalibrationSetupPage() {
             </p>
           ) : report.missingActions.slice(0, 4).map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
-              {action.href ? <Link href={action.href} className="underline">{action.message}</Link> : action.message}
+              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
             </p>
           ))}
           <div className="flex flex-wrap gap-2">
@@ -206,7 +206,7 @@ export default async function FounderCalibrationSetupPage() {
                 <div className="mt-3 space-y-2">
                   {participant.missingActions.map((action) => (
                     <p key={action.code} className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                      {action.href ? <Link href={action.href} className="underline">{action.message}</Link> : action.message}
+                      {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
                     </p>
                   ))}
                 </div>
@@ -268,6 +268,11 @@ function SafeLink({ href, label, webAppBaseUrl }: { href: string; label: string;
       {label}
     </Link>
   )
+}
+
+function InlineSafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl: string }) {
+  const resolvedHref = resolveHandoffHref(href, webAppBaseUrl) ?? href
+  return <Link href={resolvedHref} className="underline">{label}</Link>
 }
 
 function RequiredRoleStatus({

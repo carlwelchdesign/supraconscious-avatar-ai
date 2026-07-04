@@ -1013,6 +1013,7 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/register")
   assert.match(report.requiredRoles.maria.handoffText, /Please register/)
   assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.email === "maria@example.com"))
+  assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.href === "/register"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
@@ -1065,6 +1066,8 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   })
 
   assert.equal(report.requiredRoles.carl.primaryHandoffHref, "/onboarding")
+  assert.ok(report.missingActions.some((action) => action.code === "onboarding_incomplete" && action.href === "/onboarding"))
+  assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.href === "/onboarding"))
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
   assert.match(report.requiredRoles.carl.handoffText, /preselected voice_test guided calibration prompt/)
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
