@@ -3,8 +3,8 @@
 ## Branch State
 - Local branch: `codex/inner-council-stabilization`
 - Base branch: `main`
-- Current local branch position: `46f2e20 Add founder calibration release handoff`
-- Ahead of `main`: 81 commits
+- Current local branch position: run `git log -1 --oneline`
+- Ahead of `main`: run `git rev-list --left-right --count main...HEAD`
 - Remote branch: not pushed yet
 
 ## Summary
