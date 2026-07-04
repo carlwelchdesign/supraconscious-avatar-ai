@@ -1,6 +1,11 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
-import { clearPatternMemoryAction, revokeSessionsAction, updateReflectionPreferences } from "./actions"
+import {
+  changePasswordAction,
+  clearPatternMemoryAction,
+  revokeSessionsAction,
+  updateReflectionPreferences,
+} from "./actions"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
@@ -51,7 +56,12 @@ function StatusPill({ on }: { on: boolean }) {
   )
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ password?: string }>
+}) {
+  const params = await searchParams
   const user = await requireAppUser()
   const subscription = await prisma.subscription.findFirst({
     where: { userId: user.id },
@@ -256,6 +266,74 @@ export default async function SettingsPage() {
             }
           />
         </div>
+        <form action={changePasswordAction} className="border-t px-6 py-5 space-y-4" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+          <div>
+            <p className="text-[14px] font-medium text-[var(--primary)]">Change password</p>
+            <p className="mt-0.5 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
+              Use this when you know your current password. If you are locked out, a super-admin can issue a temporary password from the admin users page.
+            </p>
+          </div>
+          {params.password === "changed" ? (
+            <p className="rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
+              Password updated.
+            </p>
+          ) : null}
+          {params.password === "incorrect" ? (
+            <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Current password is incorrect.
+            </p>
+          ) : null}
+          {params.password === "invalid" ? (
+            <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Enter a new password with at least 8 characters and make sure both new-password fields match.
+            </p>
+          ) : null}
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
+              Current password
+              <input
+                name="currentPassword"
+                type="password"
+                required
+                autoComplete="current-password"
+                className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+              />
+            </label>
+            <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
+              New password
+              <input
+                name="newPassword"
+                type="password"
+                required
+                minLength={8}
+                maxLength={128}
+                autoComplete="new-password"
+                className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+              />
+            </label>
+            <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
+              Confirm password
+              <input
+                name="confirmPassword"
+                type="password"
+                required
+                minLength={8}
+                maxLength={128}
+                autoComplete="new-password"
+                className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+              />
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
+          >
+            Update password
+          </button>
+        </form>
       </div>
 
       {/* ── Voice & Audio ───────────────────────────────────────── */}

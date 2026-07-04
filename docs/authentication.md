@@ -49,6 +49,14 @@ Only users with `admin` or `super_admin` can create admin-scoped sessions. A nor
 
 Emails in `SUPER_ADMIN_EMAILS` are upgraded to `super_admin` during login.
 
+## Password Changes And Recovery
+
+Signed-in web users can change their own password from `/settings` by entering the current password and confirming a new password with at least 8 characters. The password is hashed before storage and the change writes an audit log without storing the password value.
+
+If a user is locked out, a `super_admin` can issue a temporary password from admin `/users`. That reset requires a reason, revokes the user's existing sessions, and writes audit logs without storing the temporary password.
+
+There is no email-delivered "forgot password" flow yet.
+
 ## Sessions
 
 `createSession()` generates a random token, hashes it with SHA-256, stores the hash in `Session.tokenHash`, and sends the raw token in a scoped cookie.
@@ -94,7 +102,7 @@ Server-side authorization must still be called inside pages, server actions, and
 
 ## Known Gaps
 
-- No password reset flow yet.
+- No email-delivered password reset flow yet.
 - No email verification flow yet.
 - No rate limiting or bot protection yet.
-- No session management UI yet.
+- No per-session management UI yet.

@@ -3,11 +3,24 @@
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
-import { requireAppUser } from "@inner-avatar/auth/session"
+import { hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
 export type VoiceActionState = { ok: boolean } | null
+
+const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8).max(128),
+    confirmPassword: z.string().min(8).max(128),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  })
+
 export async function updateReflectionPreferences(
   formData: FormData,
 ): Promise<void> {
@@ -22,6 +35,48 @@ export async function updateReflectionPreferences(
   })
 
   revalidatePath("/settings")
+}
+
+export async function changePasswordAction(formData: FormData) {
+  const user = await requireAppUser()
+  const parsed = ChangePasswordSchema.safeParse(Object.fromEntries(formData))
+
+  if (!parsed.success) {
+    redirect("/settings?password=invalid")
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true, passwordHash: true },
+  })
+
+  if (!currentUser || !(await verifyPassword(parsed.data.currentPassword, currentUser.passwordHash))) {
+    redirect("/settings?password=incorrect")
+  }
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await hashPassword(parsed.data.newPassword) },
+      select: { id: true },
+    }),
+    prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        action: "user.password.changed",
+        targetType: "User",
+        targetId: user.id,
+        reason: "User changed password from settings.",
+        metadata: {
+          passwordStored: false,
+          existingSessionsRevoked: false,
+        },
+      },
+    }),
+  ])
+
+  revalidatePath("/settings")
+  redirect("/settings?password=changed")
 }
 
 export async function clearPatternMemoryAction() {

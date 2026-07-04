@@ -38,7 +38,8 @@ Then:
 
 - open admin `/calibration/setup`
 - confirm active `carl` and `maria` participants are linked to the right accounts
-- if a linked founder cannot sign in, use the audited super-admin password reset in `/users`; do not create duplicate accounts or bypass onboarding
+- if a linked founder knows their current password, they can change it from web `/settings`
+- if a linked founder cannot sign in, use the audited super-admin temporary password reset in `/users`; do not create duplicate accounts or bypass onboarding
 - send the copyable handoff text manually
 - have each founder complete onboarding/consent through the normal web app
 - have each founder run one guided journal scenario and leave a specific feedback note
