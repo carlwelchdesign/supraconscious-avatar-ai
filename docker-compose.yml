@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-inner_avatar}
+      POSTGRES_USER: ${POSTGRES_USER:-inner_avatar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inner_avatar_dev}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-inner_avatar} -d ${POSTGRES_DB:-inner_avatar}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  db-push:
+    build:
+      context: .
+      dockerfile: Dockerfile.tools
+    environment:
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - setup
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
+      AUTH_SECRET: ${AUTH_SECRET:-compose-dev-auth-secret-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      INNER_AVATAR_WEB_URL: ${INNER_AVATAR_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    environment:
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
+      AUTH_SECRET: ${AUTH_SECRET:-compose-dev-auth-secret-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      INNER_AVATAR_WEB_URL: ${INNER_AVATAR_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  chatgpt-app:
+    build:
+      context: .
+      dockerfile: apps/chatgpt-app/Dockerfile
+    environment:
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
+      AUTH_SECRET: ${AUTH_SECRET:-compose-dev-auth-secret-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CHATGPT_APP_PORT: 3002
+      INNER_AVATAR_WEB_URL: ${INNER_AVATAR_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
