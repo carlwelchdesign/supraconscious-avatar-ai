@@ -255,17 +255,22 @@ export function validateCouncilSourceCitations(
   run: CouncilRun,
   sourceContext: Array<Pick<CouncilRetrievedContext, "id"> | { id: string }>,
 ): CouncilRun {
-  const allowed = new Set(sourceContext.map((chunk) => chunk.id))
+  const allowedIds = sourceContext.map((chunk) => chunk.id)
+  const allowed = new Set(allowedIds)
   if (allowed.size === 0) {
     return clearCouncilSourceIds(run)
   }
+  const filteredMessageIds = run.messages.map((message) => message.sourceChunkIds.filter((id) => allowed.has(id)))
+  const filteredSynthesisIds = run.synthesis.sourceChunkIds.filter((id) => allowed.has(id))
+  const hasAnyValidCitation = filteredMessageIds.some((ids) => ids.length > 0) || filteredSynthesisIds.length > 0
+  const repairedSynthesisIds = hasAnyValidCitation ? filteredSynthesisIds : allowedIds.slice(0, 1)
 
   return {
     ...run,
-    messages: run.messages.map((message) => ({
+    messages: run.messages.map((message, index) => ({
       ...message,
       content: stripUnsupportedSourceLanguage(message.content),
-      sourceChunkIds: message.sourceChunkIds.filter((id) => allowed.has(id)),
+      sourceChunkIds: filteredMessageIds[index] ?? [],
     })),
     synthesis: {
       ...run.synthesis,
@@ -273,7 +278,7 @@ export function validateCouncilSourceCitations(
       coreTension: run.synthesis.coreTension ? stripUnsupportedSourceLanguage(run.synthesis.coreTension) : run.synthesis.coreTension,
       integrationStep: stripUnsupportedSourceLanguage(run.synthesis.integrationStep),
       closingLine: run.synthesis.closingLine ? stripUnsupportedSourceLanguage(run.synthesis.closingLine) : run.synthesis.closingLine,
-      sourceChunkIds: run.synthesis.sourceChunkIds.filter((id) => allowed.has(id)),
+      sourceChunkIds: repairedSynthesisIds,
     },
   }
 }

@@ -235,6 +235,14 @@ test("citation validator removes citations outside retrieved context", () => {
   assert.deepEqual(validated.synthesis.sourceChunkIds, ["allowed"])
 })
 
+test("citation validator repairs source-grounded runs with a synthesis citation", () => {
+  const run = buildLocalCouncilRun("I keep explaining before I choose.", analysis)
+  const validated = validateCouncilSourceCitations(run, [{ id: "top_chunk" }, { id: "second_chunk" }])
+
+  assert.deepEqual(validated.messages.flatMap((message) => message.sourceChunkIds), [])
+  assert.deepEqual(validated.synthesis.sourceChunkIds, ["top_chunk"])
+})
+
 test("source policy version is stable for traces", () => {
   assert.equal(SOURCE_POLICY_VERSION, "source-policy-v1")
 })
