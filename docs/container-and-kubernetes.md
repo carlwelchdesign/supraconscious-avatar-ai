@@ -39,10 +39,10 @@ The Compose stack exposes:
 
 Health endpoints:
 
-- Web: `http://localhost:3000/api/health`
-- Admin readiness: `http://localhost:3001/api/health`
+- Web readiness: `http://localhost:3000/api/health` checks Postgres and returns `503` if the database is unavailable.
+- Admin readiness: `http://localhost:3001/api/health` checks Postgres and returns `503` if the database is unavailable.
 - Admin browser health page: `http://localhost:3001/health`
-- ChatGPT/MCP: `http://localhost:3002/health`
+- ChatGPT/MCP liveness: `http://localhost:3002/health`
 
 ## Runtime Environment
 
@@ -81,9 +81,9 @@ Do not add Kubernetes manifests until there is real traffic or an explicit infra
 - Kubernetes Secrets for `DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, Stripe values, and admin configuration.
 - Ingress routes for public web, admin, and ChatGPT/MCP hostnames.
 - Readiness and liveness probes:
-  - Web: `/api/health`
-  - Admin: `/api/health`
-  - ChatGPT/MCP: `/health`
+  - Web readiness: `/api/health`
+  - Admin readiness: `/api/health`
+  - ChatGPT/MCP liveness: `/health`
 - HorizontalPodAutoscaler for `web` and `chatgpt-app` first.
 - Conservative admin scaling unless review traffic grows.
 - Database connection pooling before high replica counts. Use a managed pooler or PgBouncer so autoscaling does not exhaust Postgres connections.
