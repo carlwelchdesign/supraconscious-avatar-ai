@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 
 export default async function RegisterPage() {
   const user = await getCurrentUser()
-  if (user) redirect("/dashboard")
+  if (user) redirect(user.onboardingComplete ? "/dashboard" : "/onboarding")
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 relative overflow-hidden" style={{ background: "var(--cream)" }}>

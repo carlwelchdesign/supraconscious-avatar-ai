@@ -59,6 +59,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
   }
+  let redirectTo = "/dashboard"
 
   try {
     const user = await prisma.user.findUnique({
@@ -75,11 +76,12 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       : user
 
     await createSession(effectiveUser.id, "web")
+    redirectTo = effectiveUser.onboardingComplete ? "/dashboard" : "/onboarding"
   } catch (error) {
     return { error: authDatabaseErrorMessage(error) }
   }
 
-  redirect("/dashboard")
+  redirect(redirectTo)
 }
 
 export async function logoutAction() {
