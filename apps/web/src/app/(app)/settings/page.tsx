@@ -1,8 +1,9 @@
-import { requireAppUser } from "@inner-avatar/auth/session"
+import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import {
   changePasswordAction,
   clearPatternMemoryAction,
+  revokeSessionAction,
   revokeSessionsAction,
   updateReflectionPreferences,
 } from "./actions"
@@ -63,9 +64,21 @@ export default async function SettingsPage({
 }) {
   const params = await searchParams
   const user = await requireAppUser()
+  const currentSession = await getCurrentSession("web")
   const subscription = await prisma.subscription.findFirst({
     where: { userId: user.id },
     orderBy: { updatedAt: "desc" },
+  })
+  const sessions = await prisma.session.findMany({
+    where: { userId: user.id },
+    orderBy: { lastSeenAt: "desc" },
+    select: {
+      id: true,
+      scope: true,
+      createdAt: true,
+      lastSeenAt: true,
+      expiresAt: true,
+    },
   })
 
   return (
@@ -385,9 +398,70 @@ export default async function SettingsPage({
         </div>
       </div>
 
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          background: "var(--pearl)",
+          borderColor: "rgba(43,27,53,0.07)",
+        }}
+      >
+        <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+          <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
+            Session management
+          </p>
+        </div>
+        <div className="px-6">
+          {sessions.length === 0 ? (
+            <p className="py-5 text-[12px] font-light text-[var(--plum-soft)]">
+              No active sessions were found.
+            </p>
+          ) : (
+            <div className="divide-y" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
+              {sessions.map((session) => {
+                const isCurrent = session.id === currentSession?.id
+
+                return (
+                  <div key={session.id} className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[14px] font-medium text-[var(--primary)]">
+                        {session.scope === "admin" ? "Admin session" : "Web session"}
+                        {isCurrent ? " · current" : ""}
+                      </p>
+                      <p className="mt-0.5 text-[12px] font-light text-[var(--plum-soft)]">
+                        Last seen {formatSettingsDate(session.lastSeenAt)} · Expires {formatSettingsDate(session.expiresAt)}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-light text-[var(--plum-soft)]/70">
+                        Created {formatSettingsDate(session.createdAt)}
+                      </p>
+                    </div>
+                    <form action={revokeSessionAction}>
+                      <input type="hidden" name="sessionId" value={session.id} />
+                      <button
+                        type="submit"
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        {isCurrent ? "Sign out here" : "Revoke"}
+                      </button>
+                    </form>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
       <p className="text-[12px] font-light text-[var(--plum-soft)]/50 leading-relaxed">
         Full account deletion and billing-customer deletion hardening are deferred to the full privacy lifecycle phase.
       </p>
     </div>
   )
+}
+
+function formatSettingsDate(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date)
 }

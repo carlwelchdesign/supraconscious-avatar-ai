@@ -87,6 +87,8 @@ Cookie settings:
 
 `getCurrentUser(scope)` reads the corresponding cookie, hashes the token, finds the matching `Session`, verifies the stored scope, deletes expired sessions, updates `lastSeenAt`, and returns the related `User`.
 
+Users can review active sessions from `/settings`, revoke a single session, revoke the current session, or revoke all sessions. Revoking the current session signs the user out. Session revocation writes audit and pilot-event metadata without storing raw journal content.
+
 ## Route Protection
 
 Web protected routes:
@@ -117,4 +119,3 @@ Server-side authorization must still be called inside pages, server actions, and
 - No email-delivered password reset flow yet.
 - No email verification flow yet.
 - No CAPTCHA or bot-protection challenge yet.
-- No per-session management UI yet.

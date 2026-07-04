@@ -90,6 +90,32 @@ export async function getCurrentUser(scope: SessionScope = "web") {
   return session.user
 }
 
+export async function getCurrentSession(scope: SessionScope = "web") {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(getSessionCookieName(scope))?.value
+  if (!token) return null
+
+  const session = await prisma.session.findUnique({
+    where: { tokenHash: hashSessionToken(token) },
+    include: { user: true },
+  })
+
+  if (!session || session.scope !== scope || session.expiresAt <= new Date()) {
+    if (session) {
+      await prisma.session.delete({ where: { id: session.id } })
+    }
+    cookieStore.delete(getSessionCookieName(scope))
+    return null
+  }
+
+  await prisma.session.update({
+    where: { id: session.id },
+    data: { lastSeenAt: new Date() },
+  })
+
+  return session
+}
+
 export async function requireAppUser(scope: SessionScope = "web") {
   const user = await getCurrentUser(scope)
   if (!user) {

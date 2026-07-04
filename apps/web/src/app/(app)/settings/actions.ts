@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
-import { hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
+import { getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
 export type VoiceActionState = { ok: boolean } | null
@@ -20,6 +20,10 @@ const ChangePasswordSchema = z
     message: "Passwords do not match.",
     path: ["confirmPassword"],
   })
+
+const RevokeSessionSchema = z.object({
+  sessionId: z.string().min(1),
+})
 
 export async function updateReflectionPreferences(
   formData: FormData,
@@ -128,6 +132,46 @@ export async function revokeSessionsAction() {
   })
 
   redirect("/login")
+}
+
+export async function revokeSessionAction(formData: FormData) {
+  const user = await requireAppUser()
+  const parsed = RevokeSessionSchema.parse(Object.fromEntries(formData))
+  const currentSession = await getCurrentSession("web")
+  const isCurrentSession = currentSession?.id === parsed.sessionId
+
+  const deleted = await prisma.session.deleteMany({
+    where: {
+      id: parsed.sessionId,
+      userId: user.id,
+    },
+  })
+
+  if (deleted.count > 0) {
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        action: "session.revoke_one",
+        targetType: "Session",
+        targetId: parsed.sessionId,
+        reason: isCurrentSession ? "User revoked current session." : "User revoked one session.",
+        metadata: {
+          currentSession: isCurrentSession,
+        },
+      },
+    })
+    await emitPilotEvent({
+      eventName: "session_revoked",
+      userId: user.id,
+      properties: { revokedAll: false, currentSession: isCurrentSession },
+    })
+  }
+
+  if (isCurrentSession) {
+    redirect("/login")
+  }
+
+  revalidatePath("/settings")
 }
 
 export async function updateVoicePreferences(
