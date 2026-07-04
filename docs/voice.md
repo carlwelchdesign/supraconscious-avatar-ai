@@ -49,6 +49,8 @@ Mobile notes:
 - The upload filename extension is matched to the recorded MIME type before sending audio to OpenAI transcription.
 - If upload/transcription fails after audio is captured, the mic control keeps the last recording in memory and lets the user retry from the same button. The recording is not persisted.
 
+Browser-specific permission notes live in [Voice Browser Troubleshooting](voice-browser-troubleshooting.md).
+
 ## Text-To-Speech
 
 Route: `POST /api/voice/speak`
@@ -92,4 +94,3 @@ If speech generation or playback fails, the audio control shows the provider/app
 ## Known Gaps
 
 - Usage limits are in-process per app instance. A higher-scale deployment should move voice metering to a shared store or provider/edge-level quota.
-- No detailed browser-by-browser troubleshooting page for microphone permissions yet.
