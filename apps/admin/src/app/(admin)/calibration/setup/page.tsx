@@ -83,7 +83,7 @@ export default async function FounderCalibrationSetupPage() {
             </p>
           ) : report.missingActions.slice(0, 4).map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
-              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
+              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} email={action.email} /> : action.message}
             </p>
           ))}
           <div className="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export default async function FounderCalibrationSetupPage() {
                   <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
                   <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
                   <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
-                  {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} /> : null}
+                  {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} email={participant.email} /> : null}
                 </div>
               </div>
               <div className="mt-3 grid gap-2 md:grid-cols-3">
@@ -206,7 +206,7 @@ export default async function FounderCalibrationSetupPage() {
                 <div className="mt-3 space-y-2">
                   {participant.missingActions.map((action) => (
                     <p key={action.code} className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                      {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
+                      {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} email={action.email} /> : action.message}
                     </p>
                   ))}
                 </div>
@@ -275,8 +275,8 @@ function SafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: 
   )
 }
 
-function InlineSafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl: string }) {
-  const resolvedHref = resolveHandoffHref(href, webAppBaseUrl) ?? href
+function InlineSafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl: string; email?: string | null }) {
+  const resolvedHref = resolveHandoffHref(href, webAppBaseUrl, email) ?? href
   return <Link href={resolvedHref} className="underline">{label}</Link>
 }
 
@@ -310,7 +310,7 @@ function RequiredRoleStatus({
           <p className="font-medium">{role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Not configured"}</p>
         </div>
-        {status.nextActionHref ? <SafeLink href={status.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} /> : null}
+        {status.nextActionHref ? <SafeLink href={status.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} email={status.email} /> : null}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
       <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
