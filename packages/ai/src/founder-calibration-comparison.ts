@@ -1,4 +1,5 @@
 import { prisma } from "@inner-avatar/db"
+import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
 import {
   FOUNDER_CALIBRATION_SCENARIOS,
   readFounderCalibrationScenario,
@@ -57,8 +58,9 @@ const PROMPT_LABELS = new Set(["voice_wrong", "too_generic", "too_intense", "too
 const EMBODIMENT_LABELS = new Set(["embodiment_weak"])
 
 export async function runFounderCalibrationComparison(now = new Date()): Promise<FounderCalibrationComparisonReport> {
+  const filter = await resolveFounderCalibrationUserFilter()
   const users = await prisma.user.findMany({
-    where: buildFounderUserWhere(),
+    where: filter.where,
     select: { id: true },
   })
   const userIds = users.map((user) => user.id)
@@ -84,7 +86,7 @@ export async function runFounderCalibrationComparison(now = new Date()): Promise
     },
   })
 
-  return buildFounderCalibrationComparisonFromSnapshot({
+  const report = buildFounderCalibrationComparisonFromSnapshot({
     checkedAt: now,
     sessions: sessions.map((session) => ({
       id: session.id,
@@ -94,6 +96,11 @@ export async function runFounderCalibrationComparison(now = new Date()): Promise
       generationTraces: session.generationTraces,
     })),
   })
+
+  return {
+    ...report,
+    nextActions: [...filter.warnings, ...report.nextActions],
+  }
 }
 
 export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderCalibrationComparisonSnapshot): FounderCalibrationComparisonReport {
@@ -149,16 +156,6 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
     unresolvedIssues,
     nextActions: buildNextActions(snapshot.sessions.length, goldenExamples.length, unresolvedIssues),
   }
-}
-
-function buildFounderUserWhere() {
-  const emails = (process.env.FOUNDER_CALIBRATION_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-
-  if (emails.length > 0) return { email: { in: emails } }
-  return { email: { notIn: ["demo@inner-avatar.ai"] } }
 }
 
 function readSessionScenario(session: FounderCalibrationComparisonSession) {

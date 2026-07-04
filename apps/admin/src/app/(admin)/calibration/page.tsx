@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { runFounderCalibrationReport } from "@inner-avatar/ai"
+import { resolveFounderCalibrationUserFilter, runFounderCalibrationReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { reviewCalibrationSessionAction } from "./actions"
@@ -26,9 +26,12 @@ const ISSUE_TYPES = [
 ] as const
 
 export default async function CalibrationPage() {
-  const report = await runFounderCalibrationReport()
+  const [report, founderFilter] = await Promise.all([
+    runFounderCalibrationReport(),
+    resolveFounderCalibrationUserFilter(),
+  ])
   const sessions = await prisma.councilSession.findMany({
-    where: { user: founderUserWhere() },
+    where: { user: founderFilter.where },
     orderBy: { createdAt: "desc" },
     take: 30,
     select: {
@@ -73,12 +76,14 @@ export default async function CalibrationPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Carl/Maria calibration review. Raw journal text is hidden; use notes, council output, and source traces to tune the experience.
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Set `FOUNDER_CALIBRATION_EMAILS` to override the default Carl/Maria email filter.
-        </p>
-        <Link href="/calibration/live" className="mt-3 inline-flex rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
-          Open live calibration cockpit
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link href="/calibration/live" className="inline-flex rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
+            Open live calibration cockpit
+          </Link>
+          <Link href="/calibration/setup" className="inline-flex rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
+            Founder setup
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -279,19 +284,6 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
   )
-}
-
-function founderUserWhere() {
-  const emails = (process.env.FOUNDER_CALIBRATION_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-
-  if (emails.length > 0) return { email: { in: emails } }
-
-  return {
-    email: { notIn: ["demo@inner-avatar.ai"] },
-  }
 }
 
 function readPilotValidation(value: unknown) {

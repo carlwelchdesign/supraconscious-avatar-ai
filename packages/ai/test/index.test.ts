@@ -6,6 +6,7 @@ import {
   buildPilotReviewCoverageReportFromSnapshot,
   buildFounderCalibrationReportFromSnapshot,
   buildFounderCalibrationComparisonFromSnapshot,
+  buildFounderCalibrationSetupReportFromSnapshot,
   buildCouncilPromptVersion,
   classifySourcePath,
   DEFAULT_COUNCIL_PROMPT_KEY,
@@ -20,6 +21,7 @@ import {
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
   readFounderCalibrationScenario,
+  resolveFounderCalibrationFilterFromInputs,
   resolveCouncilPromptTemplate,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
@@ -827,6 +829,93 @@ test("founder calibration comparison groups scenarios without raw notes", () => 
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.goldenExamples, 1)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
   assert.equal(report.promptVersions[0]?.promptVersion, "council.system@v3")
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder participant filter prefers DB participants before env fallback", () => {
+  const dbFilter = resolveFounderCalibrationFilterFromInputs({
+    activeParticipantEmails: ["Maria@Example.com", "carl@example.com"],
+    envEmails: "other@example.com",
+  })
+  assert.equal(dbFilter.mode, "db")
+  assert.deepEqual(dbFilter.where.email.in, ["carl@example.com", "maria@example.com"])
+
+  const envFilter = resolveFounderCalibrationFilterFromInputs({
+    activeParticipantEmails: [],
+    envEmails: "founder@example.com",
+  })
+  assert.equal(envFilter.mode, "env")
+  assert.deepEqual(envFilter.where.email.in, ["founder@example.com"])
+
+  const fallbackFilter = resolveFounderCalibrationFilterFromInputs({
+    activeParticipantEmails: [],
+    envEmails: "",
+  })
+  assert.equal(fallbackFilter.mode, "fallback")
+  assert.deepEqual(fallbackFilter.where.email.notIn, ["demo@inner-avatar.ai"])
+})
+
+test("founder calibration setup report lists missing actions without raw notes", () => {
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: true,
+        consentCount: 5,
+        sessions: [{
+          id: "session_carl",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: true }],
+          qualityReviews: [{ label: "ready", severity: "normal" }],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
+        }],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: null,
+        userName: null,
+        onboardingComplete: false,
+        consentCount: 0,
+        sessions: [],
+      },
+      {
+        id: "participant_paused",
+        email: "paused@example.com",
+        participantRole: "reviewer",
+        status: "paused",
+        userId: "user_paused",
+        userName: "Paused",
+        onboardingComplete: false,
+        consentCount: 0,
+        sessions: [{
+          id: "paused_session",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: false }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "source_grounding_test" } } }],
+        }],
+      },
+    ],
+  })
+
+  assert.equal(report.readiness.configuredParticipants, 3)
+  assert.equal(report.readiness.activeParticipants, 2)
+  assert.equal(report.readiness.participantsWithGoldenExamples, 1)
+  assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.email === "maria@example.com"))
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
+  assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
 })

@@ -1,7 +1,7 @@
 import { prisma } from "@inner-avatar/db"
+import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
 
-const DEFAULT_EXCLUDED_EMAILS = new Set(["demo@inner-avatar.ai"])
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
 const PROMPT_ISSUE_LABELS = new Set(["voice_wrong", "too_generic", "too_intense", "too_vague"])
 const READY_LABELS = new Set(["ready", "voice_good", "source_good", "grounded"])
@@ -126,8 +126,9 @@ export type FounderCalibrationSessionSnapshot = {
 }
 
 export async function runFounderCalibrationReport(now = new Date()): Promise<FounderCalibrationReport> {
+  const filter = await resolveFounderCalibrationUserFilter()
   const users = await prisma.user.findMany({
-    where: buildFounderUserWhere(),
+    where: filter.where,
     select: { id: true },
   })
   const userIds = users.map((user) => user.id)
@@ -162,7 +163,7 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
     },
   })
 
-  return buildFounderCalibrationReportFromSnapshot({
+  const report = buildFounderCalibrationReportFromSnapshot({
     checkedAt: now,
     sessions: sessions.map((session) => ({
       id: session.id,
@@ -182,6 +183,12 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
       })),
     })),
   })
+
+  return {
+    ...report,
+    blockers: filter.mode === "fallback" ? ["Founder calibration participants are not configured.", ...report.blockers] : report.blockers,
+    recommendations: [...filter.warnings, ...report.recommendations],
+  }
 }
 
 export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalibrationSnapshot): FounderCalibrationReport {
@@ -373,21 +380,6 @@ function readSessionScenario(session: FounderCalibrationSessionSnapshot) {
   const calibration = (output as { calibration?: unknown }).calibration
   if (!calibration || typeof calibration !== "object" || !("scenario" in calibration)) return "freeform"
   return readFounderCalibrationScenario((calibration as { scenario?: unknown }).scenario)
-}
-
-function buildFounderUserWhere() {
-  const configuredEmails = (process.env.FOUNDER_CALIBRATION_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-
-  if (configuredEmails.length > 0) {
-    return { email: { in: configuredEmails } }
-  }
-
-  return {
-    email: { notIn: Array.from(DEFAULT_EXCLUDED_EMAILS) },
-  }
 }
 
 function addTheme(themes: Map<string, Set<string>>, theme: string, sessionId: string) {

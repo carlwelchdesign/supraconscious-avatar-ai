@@ -57,6 +57,8 @@ model User {
   consentEvents ConsentEvent[]
   qualityReviews QualityReview[]
   councilSessionFeedback CouncilSessionFeedback[]
+  founderCalibrationParticipants FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantUser")
+  founderCalibrationParticipantsAdded FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantAddedBy")
   reviewedSafetyEvents SafetyEvent[] @relation("SafetyEventReviewer")
 }
 
@@ -115,6 +117,28 @@ model PromptTemplate {
 
   @@index([active])
   @@index([createdById])
+}
+
+// Founder calibration participant - explicit Carl/Maria setup for real calibration sessions
+model FounderCalibrationParticipant {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  userId          String?
+  participantRole String   @default("other_founder") // carl, maria, reviewer, other_founder
+  status          String   @default("active") // active, paused
+  addedById       String?
+  reason          String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user    User? @relation("FounderCalibrationParticipantUser", fields: [userId], references: [id], onDelete: SetNull)
+  addedBy User? @relation("FounderCalibrationParticipantAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([userId])
+  @@index([participantRole])
+  @@index([status])
+  @@index([addedById])
 }
 
 // Feature flag - admin-managed product gates

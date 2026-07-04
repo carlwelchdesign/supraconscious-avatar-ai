@@ -1,5 +1,6 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { redirect } from "next/navigation"
 
@@ -38,12 +39,13 @@ export default async function JournalPage() {
     },
     )
   const thresholdPrompt = todaysPrompt ?? fallbackPrompt
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
 
   return (
     <JournalWorkspace
       avatarStage={(user.avatarStage ?? 1) as 1 | 2 | 3 | 4 | 5}
       thresholdPrompt={thresholdPrompt}
-      founderCalibrationMode={user.email !== "demo@inner-avatar.ai"}
+      founderCalibrationMode={founderCalibrationMode}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,

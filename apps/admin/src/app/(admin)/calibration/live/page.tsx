@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { runFounderCalibrationComparison } from "@inner-avatar/ai"
+import { resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { reviewCalibrationSessionAction } from "../actions"
@@ -15,44 +15,65 @@ const QUICK_LABELS = [
 ] as const
 
 export default async function LiveCalibrationPage() {
-  const [comparison, sessions] = await Promise.all([
+  const [comparison, setup, founderFilter] = await Promise.all([
     runFounderCalibrationComparison(),
-    prisma.councilSession.findMany({
-      where: { user: founderUserWhere() },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      select: {
-        id: true,
-        sourceMode: true,
-        createdAt: true,
-        observerSignal: true,
-        user: { select: { email: true } },
-        feedback: { select: { feedbackType: true, note: true } },
-        synthesis: { select: { integratorQuestion: true, integrationStep: true } },
-        qualityReviews: {
-          orderBy: { reviewedAt: "desc" },
-          take: 1,
-          select: { label: true, severity: true, reason: true, metadata: true },
-        },
-        generationTraces: {
-          where: { traceType: "council" },
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { promptVersion: true, outputJson: true, validationStatus: true },
-        },
-      },
-    }),
+    runFounderCalibrationSetupReport(),
+    resolveFounderCalibrationUserFilter(),
   ])
+  const sessions = await prisma.councilSession.findMany({
+    where: { user: founderFilter.where },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      sourceMode: true,
+      createdAt: true,
+      observerSignal: true,
+      user: { select: { email: true } },
+      feedback: { select: { feedbackType: true, note: true } },
+      synthesis: { select: { integratorQuestion: true, integrationStep: true } },
+      qualityReviews: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1,
+        select: { label: true, severity: true, reason: true, metadata: true },
+      },
+      generationTraces: {
+        where: { traceType: "council" },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { promptVersion: true, outputJson: true, validationStatus: true },
+      },
+    },
+  })
 
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/calibration" className="text-xs text-muted-foreground hover:text-foreground">Back to calibration</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/calibration" className="text-xs text-muted-foreground hover:text-foreground">Back to calibration</Link>
+          <Link href="/calibration/setup" className="text-xs text-muted-foreground hover:text-foreground">Founder setup</Link>
+        </div>
         <h1 className="mt-2 text-2xl font-semibold">Live Founder Calibration</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Carl/Maria live review cockpit. Raw journal text is hidden; use scenario, council output, notes, prompt version, and source mode.
         </p>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle>Setup Readiness</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {setup.missingActions.length === 0 ? (
+            <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">Founder setup is ready for live calibration.</p>
+          ) : setup.missingActions.slice(0, 5).map((action) => (
+            <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
+              {action.href ? <Link href={action.href} className="underline">{action.message}</Link> : action.message}
+            </p>
+          ))}
+          {setup.warnings.map((warning) => (
+            <p key={warning} className="text-xs text-muted-foreground">{warning}</p>
+          ))}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Metric title="Golden examples" value={comparison.goldenExamples.length} />
@@ -149,16 +170,6 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
   )
-}
-
-function founderUserWhere() {
-  const emails = (process.env.FOUNDER_CALIBRATION_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-
-  if (emails.length > 0) return { email: { in: emails } }
-  return { email: { notIn: ["demo@inner-avatar.ai"] } }
 }
 
 function readScenario(outputJson: unknown) {

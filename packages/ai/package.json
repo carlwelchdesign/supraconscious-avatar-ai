@@ -22,6 +22,7 @@
     "report:pilot-review-coverage": "tsx scripts/run-pilot-review-coverage-report.ts",
     "report:founder-calibration": "tsx scripts/run-founder-calibration-report.ts",
     "report:founder-calibration-comparison": "tsx scripts/run-founder-calibration-comparison.ts",
+    "report:founder-calibration-setup": "tsx scripts/run-founder-calibration-setup-report.ts",
     "smoke:rag": "tsx scripts/run-internal-rag-smoke.ts",
     "test:rag": "tsx scripts/run-rag-evals.ts",
     "test:pilot": "tsx scripts/run-pilot-evals.ts",
