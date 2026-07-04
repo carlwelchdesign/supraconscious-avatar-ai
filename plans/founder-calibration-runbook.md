@@ -2,6 +2,7 @@
 
 ## Setup
 - Start the local founder calibration surfaces with `yarn dev:founder-calibration` when running the web and admin apps side by side.
+- Before live founder use, run `yarn verify:founder-calibration-code` to check the code path, reports, evals, builds, and ChatGPT app tests. This does not replace the live launch gate.
 - In admin, open `/calibration/setup`.
 - Use the Carl/Maria Setup panel to enter Carl's email, Maria's email, optional reviewer emails, and a setup reason.
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
