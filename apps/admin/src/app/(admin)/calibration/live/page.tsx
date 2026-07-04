@@ -151,7 +151,7 @@ export default async function LiveCalibrationPage() {
                   </select>
                   <input name="relatedPromptVersion" defaultValue={promptVersion === "missing" ? "" : promptVersion} placeholder="Prompt version" className="rounded-md border bg-background px-3 py-2 text-xs" />
                   <input name="relatedGoldenExampleId" placeholder="Related golden example id" className="rounded-md border bg-background px-3 py-2 text-xs" />
-                  <input name="reason" placeholder="Review reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                  <input name="reason" placeholder="Review reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
                   <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save</button>
                 </form>
               </div>

@@ -8,6 +8,7 @@ import { prisma } from "@inner-avatar/db"
 import {
   FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
   normalizeFounderCalibrationEmail,
+  resolveFounderCalibrationUserFilter,
   setupFounderCalibrationParticipants,
 } from "@inner-avatar/ai"
 
@@ -42,11 +43,12 @@ const FounderPairSetupSchema = z.object({
 export async function reviewCalibrationSessionAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = CalibrationReviewSchema.parse(Object.fromEntries(formData))
-  const session = await prisma.councilSession.findUnique({
-    where: { id: parsed.councilSessionId },
+  const founderFilter = await resolveFounderCalibrationUserFilter()
+  const session = await prisma.councilSession.findFirst({
+    where: { id: parsed.councilSessionId, user: founderFilter.where },
     select: { id: true },
   })
-  if (!session) throw new Error("Council session not found.")
+  if (!session) throw new Error("Founder calibration session not found.")
 
   const review = await prisma.qualityReview.create({
     data: {
