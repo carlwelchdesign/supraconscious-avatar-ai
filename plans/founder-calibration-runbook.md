@@ -7,6 +7,7 @@
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
 - Copy the founder handoff text for each person and send it manually. Protected links route through login with the founder email prefilled and the intended next step preserved.
 - The app does not send email invites, create magic links, create passwords, create sessions, or impersonate founders.
+- Optional CLI launch packet: run `yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` to print the start command, admin review links, Carl/Maria handoff messages, blockers, and after-session review commands.
 - Optional CLI handoff: run `yarn handoff:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` to print the same next-step messages outside the admin UI.
 - Have each founder register through the normal web app and complete onboarding consent.
 - Active founder participants will see a founder calibration note on onboarding; after consent, the app redirects them to `/journal`.

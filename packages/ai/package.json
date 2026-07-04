@@ -27,6 +27,7 @@
     "report:founder-calibration-comparison": "tsx scripts/run-founder-calibration-comparison.ts",
     "report:founder-calibration-setup": "tsx scripts/run-founder-calibration-setup-report.ts",
     "handoff:founder-calibration": "tsx scripts/run-founder-handoff.ts",
+    "packet:founder-calibration": "tsx scripts/run-founder-launch-packet.ts",
     "check:founder-calibration-launch": "tsx scripts/check-founder-calibration-launch.ts",
     "smoke:rag": "tsx scripts/run-internal-rag-smoke.ts",
     "test:rag": "tsx scripts/run-rag-evals.ts",

@@ -22,6 +22,7 @@
     "test:auth": "yarn --cwd packages/auth test",
     "setup:founder-calibration": "yarn --cwd packages/ai setup:founder-calibration",
     "handoff:founder-calibration": "yarn --cwd packages/ai handoff:founder-calibration",
+    "packet:founder-calibration": "yarn --cwd packages/ai packet:founder-calibration",
     "report:founder-calibration": "yarn --cwd packages/ai report:founder-calibration",
     "report:founder-calibration-comparison": "yarn --cwd packages/ai report:founder-calibration-comparison",
     "report:founder-calibration-setup": "yarn --cwd packages/ai report:founder-calibration-setup",
