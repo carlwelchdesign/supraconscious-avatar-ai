@@ -13,10 +13,12 @@ export default async function JournalPage() {
       userId: user.id,
       consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
     },
+    orderBy: { createdAt: "desc" },
     select: {
       consentType: true,
       consentVersion: true,
       granted: true,
+      createdAt: true,
     },
   })
   if (!hasRequiredPilotConsents(consentRecords)) redirect("/onboarding?error=consent_required")

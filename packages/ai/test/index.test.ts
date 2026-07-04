@@ -1093,9 +1093,10 @@ test("founder calibration setup report requires all current required consent rec
         userId: "user_maria",
         userName: "Maria",
         onboardingComplete: true,
-        consentCount: 4,
+        consentCount: 5,
         consentRecords: [
-          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: false, createdAt: "2026-07-02T00:00:00.000Z" },
           { consentType: "ai_processing", consentVersion: PILOT_CONSENT_VERSION, granted: true },
           { consentType: "pilot_participation", consentVersion: PILOT_CONSENT_VERSION, granted: true },
           { consentType: "safety_limits", consentVersion: PILOT_CONSENT_VERSION, granted: true },
@@ -1106,9 +1107,10 @@ test("founder calibration setup report requires all current required consent rec
   })
 
   assert.equal(report.requiredRoles.carl.consentPresent, false)
-  assert.equal(report.requiredRoles.maria.consentPresent, true)
+  assert.equal(report.requiredRoles.maria.consentPresent, false)
   assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.email === "carl@example.com"))
-  assert.equal(report.readiness.participantsWithConsent, 1)
+  assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.email === "maria@example.com"))
+  assert.equal(report.readiness.participantsWithConsent, 0)
 })
 
 test("founder calibration setup report requires active Carl and Maria roles", () => {

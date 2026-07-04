@@ -18,10 +18,12 @@ export async function readPostLoginRedirect(user: { id: string; email: string; o
       userId: user.id,
       consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
     },
+    orderBy: { createdAt: "desc" },
     select: {
       consentType: true,
       consentVersion: true,
       granted: true,
+      createdAt: true,
     },
   })
 

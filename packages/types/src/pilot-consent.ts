@@ -17,14 +17,37 @@ export type PilotConsentRecord = {
   consentType: string
   consentVersion: string
   granted: boolean
+  createdAt?: Date | string
 }
 
 export function hasRequiredPilotConsents(records: PilotConsentRecord[]) {
-  const grantedTypes = new Set(
-    records
-      .filter((record) => record.granted && record.consentVersion === PILOT_CONSENT_VERSION)
-      .map((record) => record.consentType),
-  )
+  const latestByType = new Map<string, PilotConsentRecord>()
 
-  return REQUIRED_PILOT_CONSENTS.every((consentType) => grantedTypes.has(consentType))
+  for (const record of records) {
+    const existing = latestByType.get(record.consentType)
+    if (!existing || isNewerConsentRecord(record, existing)) {
+      latestByType.set(record.consentType, record)
+    }
+  }
+
+  return REQUIRED_PILOT_CONSENTS.every((consentType) => {
+    const latest = latestByType.get(consentType)
+    return Boolean(latest?.granted && latest.consentVersion === PILOT_CONSENT_VERSION)
+  })
+}
+
+function isNewerConsentRecord(candidate: PilotConsentRecord, existing: PilotConsentRecord) {
+  const candidateTime = readConsentTime(candidate.createdAt)
+  const existingTime = readConsentTime(existing.createdAt)
+
+  if (candidateTime === null && existingTime === null) return false
+  if (candidateTime === null) return false
+  if (existingTime === null) return true
+  return candidateTime > existingTime
+}
+
+function readConsentTime(value: Date | string | undefined) {
+  if (!value) return null
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
 }

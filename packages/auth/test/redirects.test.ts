@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { hasRequiredPilotConsents, PILOT_CONSENT_VERSION } from "../src/consent"
 import { choosePostLoginRedirect } from "../src/redirect-rules"
 
 test("post-login redirect sends incomplete onboarding to onboarding", () => {
@@ -59,5 +60,29 @@ test("post-login redirect sends non-founder users to dashboard", () => {
       councilSessionCount: 0,
     }),
     "/dashboard",
+  )
+})
+
+test("required pilot consent uses the latest event per consent type", () => {
+  assert.equal(
+    hasRequiredPilotConsents([
+      { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: false, createdAt: "2026-07-02T00:00:00.000Z" },
+      { consentType: "ai_processing", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "pilot_participation", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "safety_limits", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+    ]),
+    false,
+  )
+
+  assert.equal(
+    hasRequiredPilotConsents([
+      { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: false, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-02T00:00:00.000Z" },
+      { consentType: "ai_processing", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "pilot_participation", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+      { consentType: "safety_limits", consentVersion: PILOT_CONSENT_VERSION, granted: true, createdAt: "2026-07-01T00:00:00.000Z" },
+    ]),
+    true,
   )
 })

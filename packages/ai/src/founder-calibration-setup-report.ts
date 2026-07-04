@@ -171,7 +171,10 @@ async function readSetupParticipantsSafely() {
             id: true,
             name: true,
             onboardingComplete: true,
-            consentEvents: { select: { consentType: true, consentVersion: true, granted: true } },
+            consentEvents: {
+              orderBy: { createdAt: "desc" },
+              select: { consentType: true, consentVersion: true, granted: true, createdAt: true },
+            },
             councilSessions: {
               orderBy: { createdAt: "desc" },
               take: 50,
