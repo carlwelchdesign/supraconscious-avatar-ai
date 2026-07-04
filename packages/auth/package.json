@@ -13,6 +13,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint .",
+    "test": "tsx test/redirects.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@inner-avatar/config": "workspace:*",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tsx": "^4.21.0"
   }
 }

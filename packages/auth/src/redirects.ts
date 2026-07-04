@@ -1,17 +1,23 @@
 import "server-only"
 
 import { prisma } from "@inner-avatar/db"
+import { choosePostLoginRedirect } from "./redirect-rules"
+
+export { choosePostLoginRedirect } from "./redirect-rules"
 
 export async function readPostLoginRedirect(user: { id: string; email: string; onboardingComplete: boolean }) {
-  if (!user.onboardingComplete) return "/onboarding"
-
   const founderParticipant = await linkFounderParticipantIfConfigured(user.id, user.email)
-  if (!founderParticipant) return "/dashboard"
+  const councilSessionCount = founderParticipant
+    ? await prisma.councilSession.count({
+      where: { userId: user.id },
+    })
+    : 0
 
-  const councilSessionCount = await prisma.councilSession.count({
-    where: { userId: user.id },
+  return choosePostLoginRedirect({
+    onboardingComplete: user.onboardingComplete,
+    isFounderParticipant: Boolean(founderParticipant),
+    councilSessionCount,
   })
-  return councilSessionCount === 0 ? "/journal" : "/dashboard"
 }
 
 export async function linkFounderParticipantIfConfigured(userId: string, email: string) {
