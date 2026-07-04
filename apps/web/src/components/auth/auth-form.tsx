@@ -49,6 +49,12 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
         }}
       >
         {nextPath && <input type="hidden" name="next" value={nextPath} />}
+        <div className="hidden" aria-hidden="true">
+          <label>
+            Website
+            <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+          </label>
+        </div>
         {isRegister && (
           <label className="block space-y-1.5">
             <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">

@@ -14,12 +14,14 @@ const RegisterSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
   next: z.string().optional(),
+  website: z.string().optional(),
 })
 
 const LoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(1, "Password is required"),
   next: z.string().optional(),
+  website: z.string().optional(),
 })
 
 export type AuthActionState = {
@@ -31,6 +33,10 @@ export async function registerAction(_state: AuthActionState, formData: FormData
   if (!parsed.success) {
     await recordAuthFailure("register")
     return { error: parsed.error.issues[0]?.message ?? "Could not create account." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    await recordAuthFailure("register", parsed.data.email)
+    return { error: "Could not create account." }
   }
   if (await isAuthRateLimited("register", parsed.data.email)) {
     return { error: rateLimitMessage("register") }
@@ -72,6 +78,10 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     await recordAuthFailure("web_login")
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
   }
+  if (isBotSubmission(parsed.data.website)) {
+    await recordAuthFailure("web_login", parsed.data.email)
+    return { error: "Email or password is incorrect." }
+  }
   if (await isAuthRateLimited("web_login", parsed.data.email)) {
     return { error: rateLimitMessage("web_login") }
   }
@@ -112,6 +122,10 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
   if (!parsed.success) {
     await recordAuthFailure("admin_login")
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    await recordAuthFailure("admin_login", parsed.data.email)
+    return { error: "Email or password is incorrect." }
   }
   if (await isAuthRateLimited("admin_login", parsed.data.email)) {
     return { error: rateLimitMessage("admin_login") }
@@ -162,6 +176,10 @@ function authDatabaseErrorMessage(error: unknown) {
 function rateLimitMessage(scope: "web_login" | "admin_login" | "register") {
   if (scope === "register") return "Too many account creation attempts. Please wait a few minutes and try again."
   return "Too many sign-in attempts. Please wait a few minutes and try again."
+}
+
+function isBotSubmission(value: string | undefined) {
+  return Boolean(value?.trim())
 }
 
 function roleForEmail(email: string): UserRole {

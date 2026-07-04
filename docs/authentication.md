@@ -69,6 +69,8 @@ Current limits:
 
 This is an application-level guard for the current deployment shape. A future high-traffic deployment should move throttling to shared infrastructure such as an edge/WAF layer or a shared store so limits apply consistently across many app replicas.
 
+The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts. This is a basic bot trap, not a substitute for managed abuse protection.
+
 ## Sessions
 
 `createSession()` generates a random token, hashes it with SHA-256, stores the hash in `Session.tokenHash`, and sends the raw token in a scoped cookie.
@@ -124,4 +126,4 @@ Server-side authorization must still be called inside pages, server actions, and
 
 - No email-delivered password reset flow yet.
 - No email verification flow yet.
-- No CAPTCHA or bot-protection challenge yet.
+- No CAPTCHA or managed bot-protection challenge yet.

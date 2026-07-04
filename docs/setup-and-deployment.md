@@ -177,4 +177,4 @@ Subscribe to these events:
 - Session tokens are stored hashed in the database.
 - Passwords are hashed with bcrypt.
 - Admin access is denied by default unless the user has `admin` or `super_admin`.
-- The app has basic server-side auth throttling for registration and login. It does not yet implement email verification, email-delivered password reset, CAPTCHA, or bot-protection challenges.
+- The app has basic server-side auth throttling and honeypot protection for registration and login. It does not yet implement email verification, email-delivered password reset, CAPTCHA, or managed bot-protection challenges.

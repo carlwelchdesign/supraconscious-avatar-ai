@@ -34,6 +34,12 @@ export function AdminLoginForm() {
       <CardContent sx={{ p: 4 }}>
         <Box component="form" action={formAction}>
           <Stack spacing={3}>
+            <Box sx={{ display: "none" }} aria-hidden="true">
+              <label>
+                Website
+                <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </label>
+            </Box>
             <Stack spacing={1}>
               <Typography variant="h5" component="h1">
                 Admin Login
