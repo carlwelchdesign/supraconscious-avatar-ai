@@ -37,23 +37,15 @@ export async function registerAction(_state: AuthActionState, formData: FormData
       return { error: "An account already exists for this email." }
     }
 
-    const user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          name: parsed.data.name,
-          email: parsed.data.email,
-          passwordHash: await hashPassword(parsed.data.password),
-          role: roleForEmail(parsed.data.email),
-        },
-      })
-
-      await tx.founderCalibrationParticipant.updateMany({
-        where: { email: parsed.data.email, userId: null },
-        data: { userId: createdUser.id },
-      })
-
-      return createdUser
+    const user = await prisma.user.create({
+      data: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        passwordHash: await hashPassword(parsed.data.password),
+        role: roleForEmail(parsed.data.email),
+      },
     })
+    await linkFounderParticipantIfConfigured(user.id, user.email)
 
     await createSession(user.id, "web")
   } catch (error) {
@@ -85,7 +77,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       : user
 
     await createSession(effectiveUser.id, "web")
-    redirectTo = effectiveUser.onboardingComplete ? "/dashboard" : "/onboarding"
+    redirectTo = await readPostLoginRedirect(effectiveUser)
   } catch (error) {
     return { error: authDatabaseErrorMessage(error) }
   }
@@ -135,12 +127,50 @@ export async function adminLogoutAction() {
   redirect("/login")
 }
 
+async function readPostLoginRedirect(user: { id: string; email: string; onboardingComplete: boolean }) {
+  if (!user.onboardingComplete) return "/onboarding"
+
+  const founderParticipant = await linkFounderParticipantIfConfigured(user.id, user.email)
+  if (!founderParticipant) return "/dashboard"
+
+  const councilSessionCount = await prisma.councilSession.count({
+    where: { userId: user.id },
+  })
+  return councilSessionCount === 0 ? "/journal" : "/dashboard"
+}
+
+async function linkFounderParticipantIfConfigured(userId: string, email: string) {
+  try {
+    const participant = await prisma.founderCalibrationParticipant.findFirst({
+      where: { email, status: "active" },
+      select: { id: true, userId: true },
+    })
+    if (!participant) return null
+    if (participant.userId === userId) return participant
+
+    await prisma.founderCalibrationParticipant.update({
+      where: { id: participant.id },
+      data: { userId },
+    })
+    return participant
+  } catch (error) {
+    if (isMissingFounderParticipantTable(error)) return null
+    throw error
+  }
+}
+
 function authDatabaseErrorMessage(error: unknown) {
   if (error instanceof Error && error.message.includes("does not exist in the current database")) {
     return "Account tables are not up to date. Please run the latest database migration and try again."
   }
 
   return "We could not process that account request. Please try again."
+}
+
+function isMissingFounderParticipantTable(error: unknown) {
+  if (!error || typeof error !== "object") return false
+  const record = error as { code?: unknown; message?: unknown }
+  return record.code === "P2021" || (typeof record.message === "string" && record.message.includes("FounderCalibrationParticipant"))
 }
 
 function roleForEmail(email: string): UserRole {
