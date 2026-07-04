@@ -50,6 +50,8 @@ Compose also defines container healthchecks for web, admin, and ChatGPT/MCP usin
 
 Containers read configuration from Compose environment variables or the deployment platform. `.env` files are ignored by Docker and are not copied into images.
 
+The local `sources/` corpus is also excluded from Docker build context. Import or register source material before building images, and rely on reviewed database records at runtime rather than copying manuscripts into containers.
+
 Expected runtime values:
 
 - `DATABASE_URL`

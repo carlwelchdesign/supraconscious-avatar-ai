@@ -23,11 +23,20 @@ coverage
 # Environments
 .env
 .env.*
+**/.env
+**/.env.*
+*.pem
+**/*.pem
+
+# Local source corpus
+sources
+sources/**
 
 # Editor files
 .vscode
 .idea
 .DS_Store
+**/.DS_Store
 
 # Logs
 *.log
