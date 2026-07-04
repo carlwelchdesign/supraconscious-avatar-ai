@@ -55,6 +55,9 @@ export default async function DashboardPage() {
   const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilSession ? `/journal/${latestCouncilSession.journalEntryId}` : "/journal"
   const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && (founderNeedsSession || founderNeedsFeedbackNote)
   const founderNeedsReview = founderCalibrationMode && Boolean(founderParticipant) && (founderParticipant?.sessionCount ?? 0) > 0 && (founderParticipant?.reviewedSessionCount ?? 0) === 0
+  const adminReviewHref = user.role === "admin" || user.role === "super_admin"
+    ? `${readAdminBaseUrl()}/calibration/live`
+    : null
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -133,6 +136,16 @@ export default async function DashboardPage() {
           <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
             Your first calibration evidence has been captured. The admin review step is next: mark it ready/golden or route it to a voice, source, prompt, intensity, or embodiment fix.
           </p>
+          {adminReviewHref && (
+            <Link
+              href={adminReviewHref}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+              style={{ borderColor: "rgba(43,27,53,0.08)" }}
+            >
+              Open admin review
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          )}
         </div>
       )}
 
@@ -361,4 +374,8 @@ export default async function DashboardPage() {
       )}
     </div>
   )
+}
+
+function readAdminBaseUrl() {
+  return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001").replace(/\/+$/, "")
 }
