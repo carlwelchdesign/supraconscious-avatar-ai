@@ -30,7 +30,10 @@ export default async function LiveCalibrationPage() {
       createdAt: true,
       observerSignal: true,
       user: { select: { email: true } },
-      feedback: { select: { feedbackType: true, note: true } },
+      feedback: {
+        orderBy: { createdAt: "desc" },
+        select: { feedbackType: true, note: true, createdAt: true },
+      },
       synthesis: { select: { integratorQuestion: true, integrationStep: true } },
       qualityReviews: {
         orderBy: { reviewedAt: "desc" },
@@ -138,6 +141,18 @@ export default async function LiveCalibrationPage() {
                   {session.synthesis?.integratorQuestion ? (
                     <p className="mt-2">{session.synthesis.integratorQuestion}</p>
                   ) : null}
+                </div>
+
+                <div className="mt-3 rounded-md border p-3">
+                  <p className="font-medium">Feedback notes</p>
+                  {session.feedback.length === 0 ? (
+                    <p className="mt-1 text-xs text-muted-foreground">No feedback yet.</p>
+                  ) : session.feedback.map((feedback) => (
+                    <p key={`${feedback.feedbackType}-${feedback.createdAt.toISOString()}`} className="mt-1 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">{feedback.feedbackType}:</span>{" "}
+                      {feedback.note?.trim() || "No note provided."}
+                    </p>
+                  ))}
                 </div>
 
                 <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_1fr_1fr_1fr_auto]">
