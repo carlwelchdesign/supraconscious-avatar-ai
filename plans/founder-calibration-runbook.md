@@ -1,6 +1,7 @@
 # Founder Calibration Runbook
 
 ## Setup
+- Start the local founder calibration surfaces with `yarn dev:founder-calibration` when running the web and admin apps side by side.
 - In admin, open `/calibration/setup`.
 - Use the Carl/Maria Setup panel to enter Carl's email, Maria's email, optional reviewer emails, and a setup reason.
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.

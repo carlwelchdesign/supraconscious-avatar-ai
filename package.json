@@ -10,6 +10,7 @@
   "scripts": {
     "dev:web": "turbo dev --filter=@inner-avatar/web",
     "dev:admin": "turbo dev --filter=@inner-avatar/admin",
+    "dev:founder-calibration": "turbo dev --filter=@inner-avatar/web --filter=@inner-avatar/admin",
     "dev:chatgpt": "turbo dev --filter=@inner-avatar/chatgpt-app",
     "build:web": "turbo build --filter=@inner-avatar/web",
     "build:admin": "turbo build --filter=@inner-avatar/admin",
