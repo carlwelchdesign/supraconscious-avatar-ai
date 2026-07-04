@@ -57,6 +57,6 @@ Use this when microphone recording or audio playback fails in the web app.
 ## Support Notes
 
 - The app does not store uploaded audio.
-- Transcription requests are limited to 20 per signed-in user per hour per app instance.
-- Speech playback requests are limited to 60 per signed-in user per hour per app instance.
+- Transcription requests are limited to 20 per signed-in user per hour through shared database-backed usage buckets.
+- Speech playback requests are limited to 60 per signed-in user per hour through shared database-backed usage buckets.
 - High-severity safety responses skip audio playback by design.
