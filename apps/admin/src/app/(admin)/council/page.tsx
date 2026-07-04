@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { resolveFounderCalibrationUserFilter } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { batchReviewPilotSessionsAction, reviewPilotSessionFromCouncilAction } from "./actions"
+import { reviewCalibrationSessionAction } from "../calibration/actions"
 
 const QUALITY_LABELS = [
   { value: "grounded", label: "Grounded" },
@@ -8,6 +10,16 @@ const QUALITY_LABELS = [
   { value: "too_intense", label: "Too intense" },
   { value: "unsupported", label: "Unsupported" },
   { value: "safety_concern", label: "Safety concern" },
+]
+
+const FOUNDER_LABELS = [
+  { value: "ready", label: "Ready / golden" },
+  { value: "voice_wrong", label: "Voice wrong" },
+  { value: "source_unsupported", label: "Source unsupported" },
+  { value: "too_generic", label: "Too generic" },
+  { value: "too_intense", label: "Too intense" },
+  { value: "embodiment_weak", label: "Embodiment weak" },
+  { value: "prompt_regression", label: "Prompt regression" },
 ]
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
@@ -18,6 +30,8 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
   const sourceMode = firstParam(params.sourceMode)
   const reviewStatus = firstParam(params.reviewStatus)
   const feedbackType = firstParam(params.feedbackType)
+  const founderFilter = await resolveFounderCalibrationUserFilter()
+  const founderEmails = new Set(founderFilter.where.email.in ?? [])
   const where = {
     ...(sessionId ? { id: sessionId } : {}),
     ...(sourceMode && sourceMode !== "all" ? { sourceMode } : {}),
@@ -233,6 +247,33 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                       </button>
                     </form>
                   </div>
+                  {founderEmails.has(session.user.email.toLowerCase()) && (
+                    <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 rounded-md border bg-muted/30 p-3 md:grid-cols-[auto_auto_1fr_auto]">
+                      <input type="hidden" name="councilSessionId" value={session.id} />
+                      <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-1 text-xs">
+                        {FOUNDER_LABELS.map((label) => (
+                          <option key={label.value} value={label.value}>{label.label}</option>
+                        ))}
+                      </select>
+                      <select name="severity" defaultValue="normal" className="rounded-md border bg-background px-2 py-1 text-xs">
+                        <option value="normal">normal</option>
+                        <option value="pilot_blocker">pilot blocker</option>
+                      </select>
+                      <input
+                        name="reason"
+                        placeholder="Founder calibration reason required"
+                        required
+                        minLength={10}
+                        className="rounded-md border bg-background px-2 py-1 text-xs"
+                      />
+                      <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
+                        Save founder review
+                      </button>
+                      <p className="text-xs text-muted-foreground md:col-span-4">
+                        Use this for Carl/Maria calibration outcomes and golden examples. Raw journal text stays hidden.
+                      </p>
+                    </form>
+                  )}
                   <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                     {session.generationTraces.length === 0 ? (
                       <p>No trace records found for this session.</p>
