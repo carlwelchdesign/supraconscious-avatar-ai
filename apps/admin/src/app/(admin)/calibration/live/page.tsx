@@ -214,14 +214,22 @@ function readWebAppBaseUrl() {
 
 function resolveFounderHref(href: string, webAppBaseUrl: string, email?: string | null) {
   if (href.startsWith("http://") || href.startsWith("https://")) return href
-  if (FOUNDER_WEB_PATHS.has(href)) {
-    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
+  if (isFounderWebPath(href)) {
+    if (email && isProtectedFounderWebPath(href)) {
       return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
     }
     const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
     return `${webAppBaseUrl}${href}${suffix}`
   }
   return href
+}
+
+function isFounderWebPath(href: string) {
+  return FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
+}
+
+function isProtectedFounderWebPath(href: string) {
+  return PROTECTED_FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
 }
 
 function InlineSafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl: string; email?: string | null }) {

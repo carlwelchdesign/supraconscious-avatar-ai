@@ -266,8 +266,8 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
   if (!href) return null
   if (href.startsWith("http://") || href.startsWith("https://")) return href
   if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) return `${adminAppBaseUrl}${href}`
-  if (FOUNDER_WEB_PATHS.has(href)) {
-    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
+  if (isFounderWebPath(href)) {
+    if (email && isProtectedFounderWebPath(href)) {
       return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
     }
     const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
@@ -277,17 +277,18 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
 }
 
 function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null, adminAppBaseUrl?: string) {
-  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal|calibration\/live|calibration\/setup)\b/g, (_match, prefix: string, path: string) => {
+  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal(?:\/[A-Za-z0-9_-]+)?|calibration\/live|calibration\/setup)(?=$|[\s.,)])/g, (_match, prefix: string, path: string) => {
     const href = `/${path}`
-    if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) {
-      return `${prefix}${adminAppBaseUrl}${href}`
-    }
-    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
-      return `${prefix}${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
-    }
-    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
-    return `${prefix}${webAppBaseUrl}/${path}${suffix}`
+    return `${prefix}${resolveHandoffHref(href, webAppBaseUrl, email, adminAppBaseUrl) ?? href}`
   })
+}
+
+function isFounderWebPath(href: string) {
+  return FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
+}
+
+function isProtectedFounderWebPath(href: string) {
+  return PROTECTED_FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
 }
 
 function SafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl?: string; email?: string | null }) {
