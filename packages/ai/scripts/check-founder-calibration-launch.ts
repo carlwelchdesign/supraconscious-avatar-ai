@@ -4,9 +4,11 @@ import {
 } from "../src/founder-calibration-setup-report.js"
 
 const report = await runFounderCalibrationSetupReport()
+const webAppBaseUrl = readArg("--web-url") ?? process.env.FOUNDER_HANDOFF_WEB_URL ?? "http://localhost:3000"
+const adminAppBaseUrl = readArg("--admin-url") ?? process.env.FOUNDER_HANDOFF_ADMIN_URL ?? "http://localhost:3001"
 const handoff = buildFounderCalibrationHandoffReport(report, {
-  webAppBaseUrl: readArg("--web-url") ?? process.env.FOUNDER_HANDOFF_WEB_URL ?? "http://localhost:3000",
-  adminAppBaseUrl: readArg("--admin-url") ?? process.env.FOUNDER_HANDOFF_ADMIN_URL ?? "http://localhost:3001",
+  webAppBaseUrl,
+  adminAppBaseUrl,
 })
 
 if (report.readiness.ready) {
@@ -25,6 +27,9 @@ printHandoff()
 process.exitCode = 1
 
 function printHandoff() {
+  console.log("Before sending links, verify local routes:")
+  console.log(`  yarn smoke:founder-local --web-url ${webAppBaseUrl} --admin-url ${adminAppBaseUrl} --passes 3`)
+  console.log("")
   console.log("Next founder actions:")
   for (const item of handoff.items) {
     console.log(`- ${item.role}: ${item.nextAction}`)
