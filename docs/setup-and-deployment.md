@@ -16,6 +16,7 @@ DATABASE_URL="postgres://..."
 OPENAI_API_KEY="sk-..."
 OPENAI_MODEL="gpt-5-mini"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+INNER_AVATAR_WEB_URL="http://localhost:3000"
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 STRIPE_STARTER_PRICE_ID="price_..."
@@ -43,6 +44,8 @@ yarn dev:admin
 ```
 
 The web app runs on port `3000`. The admin app runs on port `3001`.
+
+If a local port is already occupied and Next.js starts the web app on another port, update `INNER_AVATAR_WEB_URL` to the actual web URL. The admin founder-calibration setup page uses this value for copyable Carl/Maria handoff links.
 
 ## Database Setup
 

@@ -244,7 +244,7 @@ function Metric({ title, value }: { title: string; value: string | number }) {
 const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
 
 function readWebAppBaseUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
+  return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
 function resolveHandoffHref(href: string | null, webAppBaseUrl: string) {
