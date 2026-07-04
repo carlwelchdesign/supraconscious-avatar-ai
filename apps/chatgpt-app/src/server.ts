@@ -138,7 +138,7 @@ app.post('/mcp/tools/:toolName',
     const { toolName } = req.params
     const input = req.body
 
-    let result: any
+    let result: unknown
 
     switch (toolName) {
       case 'create_journal_entry':
@@ -176,6 +176,8 @@ app.use('/widget', express.static(path.join(__dirname, 'widget')))
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  void req
+  void next
   console.error('Server error:', err)
   res.status(500).json({ error: 'Internal server error' })
 })

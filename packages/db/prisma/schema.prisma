@@ -40,11 +40,26 @@ model User {
   avatarResponses  AvatarResponse[]
   generatedPrompts GeneratedPrompt[]
   patternMemories  PatternMemory[]
+  patternMemoryFeedback PatternMemoryFeedback[]
   safetyEvents     SafetyEvent[]
   subscriptions    Subscription[]
   sessions         Session[]
   auditLogs        AuditLog[]
   promptTemplates  PromptTemplate[]
+  councilSessions  CouncilSession[]
+  embodimentGateResponses EmbodimentGateResponse[]
+  sourceDocuments  SourceDocument[]
+  sourceImportBatches SourceImportBatch[]
+  generationTraces GenerationTrace[]
+  pilotCohortsCreated PilotCohort[] @relation("PilotCohortCreatedBy")
+  pilotEnrollments PilotEnrollment[]
+  pilotEvents PilotEvent[]
+  consentEvents ConsentEvent[]
+  qualityReviews QualityReview[]
+  councilSessionFeedback CouncilSessionFeedback[]
+  founderCalibrationParticipants FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantUser")
+  founderCalibrationParticipantsAdded FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantAddedBy")
+  reviewedSafetyEvents SafetyEvent[] @relation("SafetyEventReviewer")
 }
 
 // Session - first-party login session stored as a hashed token
@@ -104,6 +119,28 @@ model PromptTemplate {
   @@index([createdById])
 }
 
+// Founder calibration participant - explicit Carl/Maria setup for real calibration sessions
+model FounderCalibrationParticipant {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  userId          String?
+  participantRole String   @default("other_founder") // carl, maria, reviewer, other_founder
+  status          String   @default("active") // active, paused
+  addedById       String?
+  reason          String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user    User? @relation("FounderCalibrationParticipantUser", fields: [userId], references: [id], onDelete: SetNull)
+  addedBy User? @relation("FounderCalibrationParticipantAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([userId])
+  @@index([participantRole])
+  @@index([status])
+  @@index([addedById])
+}
+
 // Feature flag - admin-managed product gates
 model FeatureFlag {
   id          String   @id @default(cuid())
@@ -148,6 +185,9 @@ model JournalEntry {
   generatedPrompts GeneratedPrompt[]
   patternMemories  PatternMemory[]
   safetyEvents     SafetyEvent[]
+  councilSession   CouncilSession?
+  embodimentGateResponses EmbodimentGateResponse[]
+  pilotEvents      PilotEvent[]
 
   @@index([userId])
   @@index([createdAt])
@@ -252,10 +292,425 @@ model PatternMemory {
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  feedback     PatternMemoryFeedback[]
 
   @@index([userId])
   @@index([patternType])
   @@index([lastSeenAt])
+}
+
+// Pattern memory feedback - user/admin correction or suppression signal
+model PatternMemoryFeedback {
+  id              String   @id @default(cuid())
+  userId          String
+  patternMemoryId String
+  feedbackType    String // helpful, not_accurate, too_intense, suppress, restore
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patternMemory PatternMemory @relation(fields: [patternMemoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([patternMemoryId])
+  @@index([feedbackType])
+}
+
+// Council session - one structured Inner Council reflection run
+model CouncilSession {
+  id             String   @id @default(cuid())
+  userId         String
+  journalEntryId String   @unique
+  status         String   @default("completed") // pending, completed, grounded, failed
+  observerSignal Json
+  safetySnapshot Json
+  sourceMode     String   @default("none") // none, curriculum, rag
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry  JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  messages      CouncilMessage[]
+  synthesis     CouncilSynthesis?
+  embodimentGateResponses EmbodimentGateResponse[]
+  generationTraces GenerationTrace[]
+  pilotEvents PilotEvent[]
+  qualityReviews QualityReview[]
+  feedback CouncilSessionFeedback[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Council message - bounded role output from an inner archetype
+model CouncilMessage {
+  id               String   @id @default(cuid())
+  councilSessionId String
+  role             String // protector, conditioned_self, visionary, truth_self
+  displayName      String
+  lens             String
+  content          String   @db.Text
+  evidence         Json?
+  confidence       Float    @default(0)
+  riskLevel        String   @default("low")
+  abstained        Boolean  @default(false)
+  abstainReason    String?  @db.Text
+  sourceChunkIds   Json?
+  createdAt        DateTime @default(now())
+
+  councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+
+  @@index([councilSessionId])
+  @@index([role])
+}
+
+// Council synthesis - final Head of Council output
+model CouncilSynthesis {
+  id                 String   @id @default(cuid())
+  councilSessionId   String   @unique
+  guideName          String   @default("Supraconscious Guide")
+  openingLine        String?  @db.Text
+  coreTension        String?  @db.Text
+  integratorQuestion String   @db.Text
+  integrationStep    String   @db.Text
+  closingLine        String?  @db.Text
+  sourceChunkIds     Json?
+  createdAt          DateTime @default(now())
+
+  councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+}
+
+// Embodiment Gate response - user-owned micro-shift after integration
+model EmbodimentGateResponse {
+  id               String   @id @default(cuid())
+  userId           String
+  journalEntryId   String?
+  councilSessionId String?
+  text             String   @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry   JournalEntry?   @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([journalEntryId])
+  @@index([councilSessionId])
+}
+
+// Pilot cohort - bounded pilot group for readiness and operations
+model PilotCohort {
+  id          String    @id @default(cuid())
+  name        String
+  status      String    @default("draft") // draft, active, paused, completed
+  description String?   @db.Text
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdById String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy User? @relation("PilotCohortCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  enrollments PilotEnrollment[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+// Pilot enrollment - user membership and first-session status for pilot cohorts
+model PilotEnrollment {
+  id                      String    @id @default(cuid())
+  userId                  String
+  pilotCohortId           String
+  status                  String    @default("invited") // invited, active, completed, removed
+  invitedAt               DateTime  @default(now())
+  startedAt               DateTime?
+  completedFirstSessionAt DateTime?
+  removedAt               DateTime?
+  metadata                Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pilotCohort PilotCohort @relation(fields: [pilotCohortId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pilotCohortId])
+  @@index([userId])
+  @@index([pilotCohortId])
+  @@index([status])
+}
+
+// Pilot event - privacy-safe lifecycle analytics for pilot readiness
+model PilotEvent {
+  id               String   @id @default(cuid())
+  userId           String?
+  journalEntryId   String?
+  councilSessionId String?
+  eventName        String
+  eventVersion     Int      @default(1)
+  occurredAt       DateTime @default(now())
+  properties       Json?
+  inputHash        String?
+  sourceMode       String?
+  safetySeverity   String?
+  featureFlags     Json?
+  requestId        String?
+  createdAt        DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([journalEntryId])
+  @@index([councilSessionId])
+  @@index([eventName])
+  @@index([occurredAt])
+}
+
+// Consent event - immutable acceptance or revocation record for privacy/pilot terms
+model ConsentEvent {
+  id             String   @id @default(cuid())
+  userId         String
+  consentType    String // privacy_terms, ai_processing, voice_processing, pattern_memory, pilot_participation, safety_limits
+  consentVersion String
+  granted        Boolean  @default(true)
+  reason         String?  @db.Text
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([consentType])
+  @@index([createdAt])
+}
+
+// Human quality review - separate from machine validation status
+model QualityReview {
+  id               String   @id @default(cuid())
+  reviewerId       String
+  councilSessionId String?
+  generationTraceId String?
+  targetType       String   @default("CouncilSession")
+  label            String // grounded, too_vague, too_intense, unsupported, safety_concern
+  severity         String   @default("normal") // normal, pilot_blocker
+  reason           String   @db.Text
+  metadata         Json?
+  reviewedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  reviewer User @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+  generationTrace GenerationTrace? @relation(fields: [generationTraceId], references: [id], onDelete: SetNull)
+
+  @@index([reviewerId])
+  @@index([councilSessionId])
+  @@index([generationTraceId])
+  @@index([label])
+  @@index([severity])
+}
+
+// Council session feedback - direct user feedback on one council session
+model CouncilSessionFeedback {
+  id               String   @id @default(cuid())
+  userId           String
+  councilSessionId String
+  feedbackType     String // helpful, not_accurate, too_intense, unclear, unsupported_source
+  note             String?  @db.Text
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([councilSessionId])
+  @@index([feedbackType])
+}
+
+// Source document - canonical source file/version registry
+model SourceDocument {
+  id           String   @id @default(cuid())
+  importedById String?
+  importBatchId String?
+  title        String
+  author       String?
+  work         String?
+  sourceType   String // manuscript, curriculum, product_doctrine, image, external
+  filePath     String?  @db.Text
+  checksum     String?  @unique
+  language     String   @default("en")
+  rightsStatus String   @default("needs_review")
+  reviewState  String   @default("imported")
+  metadata     Json?
+  importedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  importedBy User? @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  importBatch SourceImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sections   SourceSection[]
+  chunks     SourceChunk[]
+  curriculumDays CurriculumDay[]
+  rightsGrants SourceRightsGrant[]
+
+  @@index([sourceType])
+  @@index([reviewState])
+  @@index([rightsStatus])
+  @@index([importBatchId])
+}
+
+// Source import batch - deterministic corpus import run metadata
+model SourceImportBatch {
+  id             String   @id @default(cuid())
+  initiatedById  String?
+  sourceRoot     String   @db.Text
+  parserVersion  String
+  status         String   @default("completed") // completed, partial, failed
+  importedCount  Int      @default(0)
+  skippedCount   Int      @default(0)
+  failedCount    Int      @default(0)
+  errorLog       Json?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  initiatedBy     User? @relation(fields: [initiatedById], references: [id], onDelete: SetNull)
+  sourceDocuments SourceDocument[]
+
+  @@index([status])
+  @@index([initiatedById])
+  @@index([createdAt])
+}
+
+// Source rights grant - reviewable permission and allowed-use record
+model SourceRightsGrant {
+  id                  String    @id @default(cuid())
+  sourceDocumentId    String
+  ownerName           String
+  grantType           String    @default("provided_by_owner")
+  allowedUses         Json
+  quoteAllowed        Boolean   @default(false)
+  attributionRequired Boolean   @default(false)
+  attributionText     String?   @db.Text
+  status              String    @default("needs_review") // needs_review, approved, revoked, expired, blocked
+  reviewerId          String?
+  reviewedAt          DateTime?
+  expiresAt           DateTime?
+  revokedAt           DateTime?
+  reason              String    @db.Text
+  metadata            Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+
+  @@index([sourceDocumentId])
+  @@index([status])
+  @@index([reviewerId])
+}
+
+// Source section - structural unit from books, docs, or product doctrine
+model SourceSection {
+  id               String   @id @default(cuid())
+  sourceDocumentId String
+  headingPath      Json?
+  sectionType      String   @default("section")
+  pageStart        Int?
+  pageEnd          Int?
+  paragraphStart   Int?
+  paragraphEnd     Int?
+  canonicalText    String   @db.Text
+  reviewState      String   @default("parsed")
+  createdAt        DateTime @default(now())
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  chunks         SourceChunk[]
+
+  @@index([sourceDocumentId])
+  @@index([sectionType])
+  @@index([reviewState])
+}
+
+// Source chunk - retrieval unit with provenance
+model SourceChunk {
+  id               String   @id @default(cuid())
+  sourceDocumentId String
+  sourceSectionId  String?
+  chunkText        String   @db.Text
+  quoteSafeExcerpt String?  @db.Text
+  tokenCount       Int      @default(0)
+  chunkKind        String   @default("semantic")
+  sourcePriority   Int      @default(0)
+  conceptTags      Json?
+  councilRoleTags  Json?
+  safetyIntensity  String   @default("normal")
+  quotePermission  String   @default("paraphrase_only")
+  reviewState      String   @default("parsed")
+  embedding        Json?
+  createdAt        DateTime @default(now())
+
+  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  sourceSection  SourceSection? @relation(fields: [sourceSectionId], references: [id], onDelete: SetNull)
+  traces         GenerationTrace[]
+
+  @@index([sourceDocumentId])
+  @@index([sourceSectionId])
+  @@index([reviewState])
+  @@index([chunkKind])
+}
+
+// Curriculum day - structured monthly quote/frame/question content
+model CurriculumDay {
+  id               String   @id @default(cuid())
+  sourceDocumentId String?
+  month            Int
+  day              Int
+  theme            String
+  title            String?
+  quote            String?  @db.Text
+  frameOfThought   String   @db.Text
+  socraticQuestion String   @db.Text
+  publishState     String   @default("needs_review")
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@unique([month, day])
+  @@index([publishState])
+  @@index([theme])
+}
+
+// Generation trace - source and model provenance for AI outputs
+model GenerationTrace {
+  id               String   @id @default(cuid())
+  userId           String?
+  councilSessionId String?
+  sourceChunkId    String?
+  traceType        String // retrieval, council, synthesis, prompt, safety
+  model            String?
+  promptVersion    String?
+  inputHash        String?
+  outputJson       Json?
+  validationStatus String   @default("unreviewed")
+  latencyMs        Int?
+  tokenUsage       Json?
+  fallbackReason   String?  @db.Text
+  createdAt        DateTime @default(now())
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+  sourceChunk    SourceChunk?    @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  qualityReviews QualityReview[]
+
+  @@index([userId])
+  @@index([councilSessionId])
+  @@index([traceType])
+  @@index([validationStatus])
 }
 
 // Safety event - logged safety concerns
@@ -268,15 +723,22 @@ model SafetyEvent {
   flags             Json // Array of detected flags
   recommendedAction String?
   resolved          Boolean @default(false)
+  reviewStatus      String  @default("unreviewed") // unreviewed, reviewing, resolved, escalated
+  reviewerId        String?
+  reviewReason      String? @db.Text
+  resolvedAt        DateTime?
 
   createdAt DateTime @default(now())
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  reviewer     User?         @relation("SafetyEventReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([severity])
+  @@index([reviewStatus])
+  @@index([reviewerId])
   @@index([createdAt])
 }
 

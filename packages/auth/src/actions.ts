@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
+import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
+import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
 
@@ -10,11 +12,13 @@ const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
+  next: z.string().optional(),
 })
 
 const LoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(1, "Password is required"),
+  next: z.string().optional(),
 })
 
 export type AuthActionState = {
@@ -45,13 +49,14 @@ export async function registerAction(_state: AuthActionState, formData: FormData
         role: roleForEmail(parsed.data.email),
       },
     })
+    await linkFounderParticipantIfConfigured(user.id, user.email)
 
     await createSession(user.id, "web")
   } catch (error) {
     return { error: authDatabaseErrorMessage(error) }
   }
 
-  redirect("/dashboard")
+  redirect(choosePostRegistrationRedirect(parsed.data.next))
 }
 
 export async function loginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -59,6 +64,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
   }
+  let redirectTo = "/dashboard"
 
   try {
     const user = await prisma.user.findUnique({
@@ -75,11 +81,12 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       : user
 
     await createSession(effectiveUser.id, "web")
+    redirectTo = choosePostAuthRedirect(await readPostLoginRedirect(effectiveUser), parsed.data.next)
   } catch (error) {
     return { error: authDatabaseErrorMessage(error) }
   }
 
-  redirect("/dashboard")
+  redirect(redirectTo)
 }
 
 export async function logoutAction() {

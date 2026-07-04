@@ -21,8 +21,10 @@ yarn install
 yarn db:generate
 yarn dev:web
 yarn dev:admin
+yarn dev:founder-calibration
 yarn typecheck
 yarn lint
+yarn verify:founder-calibration-code
 yarn build:web
 yarn build:admin
 ```

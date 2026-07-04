@@ -1,5 +1,6 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { clearPatternMemoryAction, revokeSessionsAction, updateReflectionPreferences } from "./actions"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
@@ -87,7 +88,7 @@ export default async function SettingsPage() {
             Private by default
           </p>
           <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your entries are never used to train models, shared with third parties, or stored beyond your account. You own everything you write.
+            Your entries are used only to generate your reflections, safety checks, voice transcription, and speech playback. AI providers may process the text or audio needed for those features; raw journal text stays protected in this app.
           </p>
         </div>
       </div>
@@ -108,7 +109,7 @@ export default async function SettingsPage() {
             Reflection preferences
           </p>
         </div>
-        <div className="px-6">
+        <form action={updateReflectionPreferences} className="px-6">
           <SettingRow
             label="Avatar tone"
             description="How your Avatar speaks to you during reflections."
@@ -128,16 +129,42 @@ export default async function SettingsPage() {
             }
           />
           <SettingRow
-            label="Pattern memory"
-            description="Allows your Avatar to notice recurring themes across entries."
-            value={<StatusPill on={user.patternMemoryEnabled ?? true} />}
+            label="Remember recurring signals"
+            description="Stores recurring signals and short evidence excerpts unless you turn it off."
+            value={
+              <input
+                name="patternMemoryEnabled"
+                type="checkbox"
+                defaultChecked={user.patternMemoryEnabled ?? true}
+                className="h-5 w-5 accent-[var(--clay)]"
+                aria-label="Enable pattern memory"
+              />
+            }
           />
+          <div className="pb-5">
+            <button
+              type="submit"
+              formAction={clearPatternMemoryAction}
+              className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]"
+              style={{ borderColor: "rgba(43,27,53,0.08)" }}
+            >
+              Clear remembered signals
+            </button>
+          </div>
           <SettingRow
             label="Safety mode"
-            description="High-intensity or crisis entries receive grounded support instead of symbolic prompts."
-            value={<StatusPill on={user.safetyModeEnabled ?? true} />}
+            description="Crisis and high-risk entries always receive grounded support. This cannot be disabled."
+            value={<StatusPill on />}
           />
-        </div>
+          <div className="py-5">
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
+            >
+              Save reflection preferences
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* ── Billing ───────────────────────────────────────────── */}
@@ -243,8 +270,45 @@ export default async function SettingsPage() {
         }}
       />
 
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          background: "var(--pearl)",
+          borderColor: "rgba(43,27,53,0.07)",
+        }}
+      >
+        <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+          <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
+            Pilot data controls
+          </p>
+        </div>
+        <div className="px-6">
+          <SettingRow
+            label="Export your data"
+            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and pilot event metadata."
+            value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Download JSON</a>}
+          />
+          <SettingRow
+            label="Delete individual entries"
+            description="Open any saved journal entry to delete that entry and its attached reflection records."
+            value={<a href="/dashboard" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Past entries</a>}
+          />
+          <SettingRow
+            label="Revoke active sessions"
+            description="Signs out this account across current app sessions."
+            value={
+              <form action={revokeSessionsAction}>
+                <button type="submit" className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)]">
+                  Revoke
+                </button>
+              </form>
+            }
+          />
+        </div>
+      </div>
+
       <p className="text-[12px] font-light text-[var(--plum-soft)]/50 leading-relaxed">
-        Data export and account deletion controls will appear here as the product expands.
+        Full account deletion and billing-customer deletion hardening are deferred to the full privacy lifecycle phase.
       </p>
     </div>
   )

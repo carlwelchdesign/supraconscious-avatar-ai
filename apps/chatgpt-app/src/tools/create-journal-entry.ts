@@ -7,7 +7,7 @@ const CreateJournalEntrySchema = z.object({
   save: z.boolean().default(false)
 })
 
-export async function createJournalEntry(input: any, deps: { prisma?: typeof prisma } = {}) {
+export async function createJournalEntry(input: unknown, deps: { prisma?: typeof prisma } = {}) {
   const { prisma: prismaClient = prisma } = deps
 
   try {

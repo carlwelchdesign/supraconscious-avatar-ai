@@ -5,20 +5,46 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./founder-calibration-scenarios": "./src/founder-calibration-scenarios.ts",
+    "./founder-feedback-notes": "./src/founder-feedback-notes.ts",
     "./openai": "./src/openai.ts",
     "./schemas": "./src/schemas.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
+    "import:sources": "tsx scripts/import-sources.ts",
     "lint": "eslint .",
+    "seed:pilot": "tsx scripts/seed-internal-pilot.ts",
+    "setup:founder-calibration": "tsx scripts/setup-founder-calibration.ts",
+    "activate:rag": "tsx scripts/activate-internal-rag.ts",
+    "test": "tsx test/index.test.ts",
+    "test:launch": "tsx scripts/run-pilot-launch-readiness.ts",
+    "report:pilot": "tsx scripts/run-pilot-iteration-report.ts",
+    "report:pilot-learning": "tsx scripts/run-pilot-learning-report.ts",
+    "report:pilot-expansion": "tsx scripts/run-pilot-expansion-readiness.ts",
+    "report:pilot-review-coverage": "tsx scripts/run-pilot-review-coverage-report.ts",
+    "report:founder-calibration": "tsx scripts/run-founder-calibration-report.ts",
+    "report:founder-calibration-comparison": "tsx scripts/run-founder-calibration-comparison.ts",
+    "report:founder-calibration-setup": "tsx scripts/run-founder-calibration-setup-report.ts",
+    "handoff:founder-calibration": "tsx scripts/run-founder-handoff.ts",
+    "packet:founder-calibration": "tsx scripts/run-founder-launch-packet.ts",
+    "smoke:founder-local": "tsx scripts/run-founder-local-smoke.ts",
+    "check:founder-calibration-launch": "tsx scripts/check-founder-calibration-launch.ts",
+    "smoke:rag": "tsx scripts/run-internal-rag-smoke.ts",
+    "test:rag": "tsx scripts/run-rag-evals.ts",
+    "test:pilot": "tsx scripts/run-pilot-evals.ts",
+    "test:founder-calibration": "tsx scripts/run-founder-calibration-fixtures.ts",
+    "test:founder-calibration-regression": "tsx scripts/run-founder-calibration-regression.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@inner-avatar/db": "workspace:*",
+    "@inner-avatar/types": "workspace:*",
     "openai": "^6.35.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@inner-avatar/config": "workspace:*"
+    "@inner-avatar/config": "workspace:*",
+    "tsx": "^4.21.0"
   }
 }

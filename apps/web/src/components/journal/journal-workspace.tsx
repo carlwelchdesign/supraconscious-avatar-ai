@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -9,8 +11,39 @@ import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
+const CALIBRATION_PROMPTS = [
+  {
+    label: "Voice test",
+    scenario: "voice_test",
+    text: "I want to test whether this reflection sounds grounded in Maria's work without pretending to be Maria. Reflect on a decision where I feel split between protection and truth.",
+  },
+  {
+    label: "Source-grounding test",
+    scenario: "source_grounding_test",
+    text: "Use the Inner Council idea as background if there is approved source material for it. I want to see whether the guidance names the source clearly without overclaiming.",
+  },
+  {
+    label: "Embodiment test",
+    scenario: "embodiment_test",
+    text: "I understand the insight, but I need one small embodied shift I can actually live today. Help me find the next grounded action.",
+  },
+  {
+    label: "No-source fallback test",
+    scenario: "no_source_fallback_test",
+    text: "This is a practical situation with no obvious Maria doctrine match. Show me whether the guide can be useful without pretending source material was used.",
+  },
+  {
+    label: "Too-intense boundary test",
+    scenario: "intensity_boundary_test",
+    text: "I feel tender and exposed. I want a reflection that stays gentle, does not confront too hard, and still helps me notice one true thing.",
+  },
+] as const
+const CALIBRATION_PROMPT_TEXTS = new Set<string>(CALIBRATION_PROMPTS.map((prompt) => prompt.text))
 
 type AnalysisResult = {
+  journalEntry?: {
+    id: string
+  }
   safety: { severity: string; flags: string[] }
   analysis: { summary: string } | null
   avatarResponse: {
@@ -37,6 +70,45 @@ type AnalysisResult = {
     previousLevel: number
     previousStage: number
   }
+  councilSession?: {
+    id: string
+    observerSignal: {
+      coreTension?: string
+      emotionalTone?: string
+      patternLanguage?: string[]
+      contradiction?: string
+      userEvidence?: string[]
+    }
+    messages: Array<{
+      id: string
+      role: string
+      displayName: string
+      lens: string
+      content: string
+      confidence: number
+      abstained: boolean
+    }>
+    synthesis: {
+      integratorQuestion: string
+      integrationStep: string
+      coreTension: string | null
+    } | null
+  }
+  sourceProvenance?: {
+    sourceMode: string
+    message: string
+    pilotScope?: string
+    sources: Array<{
+      id: string
+      title: string
+      rank: number
+      score?: number
+      matchedTerms?: string[]
+      matchedFields?: string[]
+      allowedUse: string
+      displayExcerpt: string | null
+    }>
+  }
 }
 
 type VoicePrefs = {
@@ -47,15 +119,43 @@ type VoicePrefs = {
   voiceSpeed: number
 }
 
+type ThresholdPrompt = {
+  id: string
+  month: number
+  day: number
+  theme: string
+  quote: string | null
+  frameOfThought: string
+  socraticQuestion: string
+} | null
+
 type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
   voicePrefs?: VoicePrefs
+  thresholdPrompt?: ThresholdPrompt
+  founderCalibrationMode?: boolean
+  suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
+  needsFounderFirstSessionGuide?: boolean
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
-  const [text, setText] = useState("")
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
+  const suggestedPrompt = suggestedCalibrationScenario
+    ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
+    : null
+  const initialText = founderCalibrationMode && needsFounderFirstSessionGuide && suggestedPrompt
+    ? suggestedPrompt.text
+    : ""
+
+  const [text, setText] = useState(initialText)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingShift, setIsSavingShift] = useState(false)
+  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
   const [error, setError] = useState("")
+  const [embodimentText, setEmbodimentText] = useState("")
+  const [embodimentSaved, setEmbodimentSaved] = useState(false)
+  const [feedbackSaved, setFeedbackSaved] = useState("")
+  const [feedbackNote, setFeedbackNote] = useState("")
+  const [calibrationScenario, setCalibrationScenario] = useState<(typeof CALIBRATION_PROMPTS)[number]["scenario"] | "freeform">(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -69,13 +169,17 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
   async function handleSubmit() {
     setError("")
     setResult(null)
+    setEmbodimentText("")
+    setEmbodimentSaved(false)
+    setFeedbackSaved("")
+    setFeedbackNote("")
     setIsSubmitting(true)
 
     try {
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, calibrationScenario }),
       })
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.error ?? "Reflection failed.")
@@ -91,11 +195,85 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
     setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
   }
 
-  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+  const applyCalibrationPrompt = (prompt: (typeof CALIBRATION_PROMPTS)[number]) => {
+    setCalibrationScenario(prompt.scenario)
+    const promptText = prompt.text
+    setText((prev) => {
+      const trimmed = prev.trim()
+      if (!trimmed || CALIBRATION_PROMPT_TEXTS.has(trimmed)) return promptText
+      return `${prev}\n\n${promptText}`
+    })
+  }
+  const founderFeedbackNoteRequired = founderCalibrationMode && result?.councilSession && !isFounderCalibrationFeedbackNoteUseful(feedbackNote)
+
+  const applyFeedbackTemplate = (template: string) => {
+    setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
+  }
+
+  async function handleSaveEmbodiment() {
+    if (!result?.councilSession || !embodimentText.trim()) return
+
+    setError("")
+    setIsSavingShift(true)
+    try {
+      const response = await fetch("/api/council/embodiment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          councilSessionId: result.councilSession.id,
+          journalEntryId: result.journalEntry?.id,
+          text: embodimentText,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? "Unable to save your shift.")
+      setEmbodimentSaved(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to save your shift.")
+    } finally {
+      setIsSavingShift(false)
+    }
+  }
+
+  async function handleSessionFeedback(feedbackType: string) {
+    if (!result?.councilSession) return
+    setError("")
+    setIsSavingFeedback(true)
+    try {
+      const response = await fetch("/api/council/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          councilSessionId: result.councilSession.id,
+          feedbackType,
+          note: feedbackNote.trim() || undefined,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? "Unable to save feedback.")
+      setFeedbackSaved(feedbackType)
+      setFeedbackNote("")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to save feedback.")
+    } finally {
+      setIsSavingFeedback(false)
+    }
+  }
+
+  const trimmedText = text.trim()
+  const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
+  const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
+  const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
+  const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
 
   const speakText = result
     ? buildSpeakText(result.avatarResponse)
     : ""
+  const signalLabel = (confidence: number) => {
+    if (confidence >= 0.75) return "Strong recurring signal"
+    if (confidence >= 0.55) return "Based on your entry"
+    return "Light signal"
+  }
 
   return (
     <div className="space-y-6">
@@ -109,9 +287,91 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
           What is present today?
         </h1>
         <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-          Write plainly. The reflection will stay short, structured, and non-clinical.
+          Inspired by Maria Olon Tsaroucha&apos;s teachings. This guide is not Maria, not therapy, and not a spiritual authority.
         </p>
       </div>
+
+      {founderCalibrationMode && (
+        <section
+          className="rounded-3xl border px-6 py-5"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(184,137,90,0.18)",
+            boxShadow: "0 4px 24px rgba(184,137,90,0.07)",
+          }}
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+                Founder calibration
+              </p>
+              <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                Use these sessions to tune the guide with Carl and Maria. After each reflection, leave a note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
+              </p>
+              {suggestedPrompt && (
+                <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
+                  Suggested first run: {suggestedPrompt.label}
+                </p>
+              )}
+              {needsFounderFirstSessionGuide && (
+                <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave a specific note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
+              {CALIBRATION_PROMPTS.map((prompt) => {
+                const selected = calibrationScenario === prompt.scenario
+                return (
+                <button
+                  key={prompt.label}
+                  type="button"
+                  onClick={() => applyCalibrationPrompt(prompt)}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)]"
+                  style={{
+                    borderColor: selected ? "rgba(184,137,90,0.42)" : "rgba(43,27,53,0.08)",
+                    background: selected ? "rgba(184,137,90,0.1)" : "transparent",
+                    color: selected ? "var(--primary)" : "var(--plum-soft)",
+                  }}
+                >
+                  {selected ? "Selected: " : ""}
+                  {prompt.label}
+                </button>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {thresholdPrompt && (
+        <section
+          className="rounded-3xl border px-6 py-5"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+            boxShadow: "0 4px 24px rgba(43,27,53,0.05)",
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+              Threshold · Month {thresholdPrompt.month}, Day {thresholdPrompt.day}
+            </p>
+            <p className="text-[11px] font-light text-[var(--plum-soft)]">{thresholdPrompt.theme}</p>
+          </div>
+          {thresholdPrompt.quote && (
+            <p className="mt-3 font-display text-[18px] font-light italic leading-relaxed text-[var(--primary)]">
+              {thresholdPrompt.quote}
+            </p>
+          )}
+          <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {thresholdPrompt.frameOfThought}
+          </p>
+          <p className="mt-4 font-display text-[17px] font-medium italic leading-relaxed text-[var(--primary)]">
+            {thresholdPrompt.socraticQuestion}
+          </p>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
@@ -168,7 +428,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
               </div>
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || text.trim().length < 20}
+                disabled={isSubmitting || !canSubmit}
                 className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-2.5 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isSubmitting ? (
@@ -179,6 +439,16 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
                 {isSubmitting ? "Reflecting…" : "Reflect"}
               </button>
             </div>
+            {text.trim().length > 0 && text.trim().length < 20 && (
+              <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
+                Add a little more context so the council can reflect without guessing.
+              </p>
+            )}
+            {founderOnlyHasPromptText && (
+              <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
+                Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.
+              </p>
+            )}
           </div>
 
           {error && (
@@ -305,6 +575,208 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
             )}
           </div>
 
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Inner Council
+              </p>
+              <h2 className="font-display text-[22px] font-light text-[var(--primary)] leading-snug">
+                {result.councilSession.observerSignal.coreTension ?? "The Council has gathered around the pattern."}
+              </h2>
+              {result.councilSession.observerSignal.contradiction && (
+                <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {result.councilSession.observerSignal.contradiction}
+                </p>
+              )}
+
+              <div className="mt-5 space-y-3">
+                {result.councilSession.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="rounded-2xl border px-4 py-3"
+                    style={{
+                      background: "rgba(43,27,53,0.025)",
+                      borderColor: "rgba(43,27,53,0.06)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
+                        {message.displayName}
+                      </p>
+                      <span className="text-[10px] font-light text-[var(--plum-soft)]">
+                        {message.abstained ? "Grounding" : signalLabel(message.confidence)}
+                      </span>
+                    </div>
+                    <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                      {message.abstained ? "This voice is quiet while grounding comes first." : message.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {result.councilSession.synthesis && (
+                <div
+                  className="mt-5 rounded-2xl px-5 py-4"
+                  style={{
+                    background: "rgba(184,137,90,0.08)",
+                    border: "1px solid rgba(184,137,90,0.18)",
+                  }}
+                >
+                  <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                    Supraconscious Guide
+                  </p>
+                  <p className="font-display italic text-[17px] font-medium leading-[1.55] text-[var(--primary)]">
+                    {result.councilSession.synthesis.integratorQuestion}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Session feedback
+              </p>
+              <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                Help tune the founder calibration loop. Your feedback note is reviewed for Carl/Maria calibration; it does not automatically retrain the guide or act as a diagnosis.
+              </p>
+              {founderCalibrationMode && (
+                <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
+                  A specific note is required for Carl/Maria calibration evidence.
+                </p>
+              )}
+              <textarea
+                value={feedbackNote}
+                onChange={(event) => setFeedbackNote(event.target.value)}
+                maxLength={500}
+                placeholder={founderCalibrationMode ? "Required note: what felt right, what felt wrong, what Maria would say differently, or which source felt unsupported." : "Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."}
+                className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
+                style={{ borderColor: "rgba(43,27,53,0.08)" }}
+              />
+              {founderCalibrationMode && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {FOUNDER_FEEDBACK_NOTE_TEMPLATES.map((template) => (
+                    <button
+                      key={template}
+                      type="button"
+                      onClick={() => applyFeedbackTemplate(template)}
+                      className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                      style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                    >
+                      {template.replace(": ", "")}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[
+                  ["helpful", "Helpful"],
+                  ["not_accurate", "Not accurate"],
+                  ["too_intense", "Too intense"],
+                  ["unclear", "Unclear"],
+                  ["unsupported_source", "Report source issue"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    disabled={isSavingFeedback || Boolean(founderFeedbackNoteRequired)}
+                    onClick={() => handleSessionFeedback(value)}
+                    className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
+                    style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                  >
+                    {feedbackSaved === value ? "Saved" : label}
+                  </button>
+                ))}
+              </div>
+              {founderFeedbackNoteRequired && (
+                <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
+                  Add a specific note with a few words beyond the template before choosing a feedback type.
+                </p>
+              )}
+              {feedbackSaved && (
+                <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
+                  <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
+                    Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide.
+                  </p>
+                  {founderCalibrationMode && result.journalEntry?.id && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/journal/${result.journalEntry.id}`}
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        Review saved session
+                      </Link>
+                      <Link
+                        href="/dashboard"
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                      >
+                        Return to dashboard
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {result?.sourceProvenance && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--pearl)",
+                borderColor: "rgba(43,27,53,0.07)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
+                Source grounding
+              </p>
+              <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                {result.sourceProvenance.message}
+              </p>
+              {result.sourceProvenance.pilotScope && (
+                <p className="mt-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
+                  {result.sourceProvenance.pilotScope}
+                </p>
+              )}
+              {result.sourceProvenance.sources.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {result.sourceProvenance.sources.map((source) => (
+                    <div key={source.id} className="rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                      <p className="text-[12px] font-medium text-[var(--primary)]">
+                        {source.rank}. {source.title}
+                      </p>
+                      {source.matchedTerms && source.matchedTerms.length > 0 && (
+                        <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
+                          Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                        </p>
+                      )}
+                      {source.displayExcerpt && (
+                        <p className="mt-2 text-[12px] font-light italic leading-relaxed text-[var(--plum-soft)]">
+                          {source.displayExcerpt}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Progression moment */}
           {result?.progression.stageChanged && (
             <div
@@ -390,6 +862,45 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs }: Props) {
                   A grounded prompt will be generated from your reflection.
                 </p>
               )}
+            </div>
+          )}
+
+          {result?.councilSession && (
+            <div
+              className="rounded-3xl border p-6"
+              style={{
+                background: "var(--primary)",
+                borderColor: "var(--primary)",
+              }}
+            >
+              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
+                Embodiment Gate
+              </p>
+              <h3 className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
+                What is one small shift you can carry today?
+              </h3>
+              <p className="mt-2 text-[13px] font-light text-[var(--cream)]/60">
+                Save this as today&apos;s small shift.
+              </p>
+              <textarea
+                value={embodimentText}
+                onChange={(event) => {
+                  setEmbodimentText(event.target.value)
+                  setEmbodimentSaved(false)
+                }}
+                placeholder="One small shift..."
+                className="mt-4 w-full min-h-[110px] resize-none rounded-2xl border bg-[rgba(244,237,228,0.06)] px-4 py-3 text-[14px] font-light leading-relaxed text-[var(--cream)] outline-none placeholder:text-[var(--cream)]/35"
+                style={{ borderColor: "rgba(244,237,228,0.14)" }}
+              />
+              <button
+                type="button"
+                onClick={handleSaveEmbodiment}
+                disabled={isSavingShift || embodimentText.trim().length < 3 || embodimentSaved}
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--cream)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary)] disabled:opacity-45"
+              >
+                {isSavingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                {embodimentSaved ? "Gate crossed" : "Cross the Gate"}
+              </button>
             </div>
           )}
         </aside>

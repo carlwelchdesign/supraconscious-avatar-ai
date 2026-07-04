@@ -2,17 +2,56 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { buildSpeakText } from "@/lib/voice/voice-config"
+import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 
-export default async function JournalEntryPage({ params }: { params: Promise<{ entryId: string }> }) {
+export default async function JournalEntryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ entryId: string }>
+  searchParams: Promise<{ feedbackError?: string }>
+}) {
   const user = await requireAppUser()
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
+  const query = await searchParams
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
-    include: { analysis: true, avatarResponse: true, generatedPrompts: true },
+    include: {
+      analysis: true,
+      avatarResponse: true,
+      generatedPrompts: true,
+      councilSession: {
+        include: {
+          messages: { orderBy: { createdAt: "asc" } },
+          synthesis: true,
+          feedback: true,
+          embodimentGateResponses: true,
+          qualityReviews: {
+            orderBy: { reviewedAt: "desc" },
+            take: 1,
+            select: { label: true, severity: true, metadata: true, reviewedAt: true },
+          },
+          generationTraces: {
+            where: { traceType: "retrieval" },
+            orderBy: { createdAt: "asc" },
+            include: {
+              sourceChunk: {
+                select: {
+                  id: true,
+                  sourceDocument: { select: { title: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
 
   if (!entry) notFound()
@@ -31,6 +70,33 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
     style: user.voiceStyle ?? "warm",
     speed: user.voiceSpeed ?? 1.0,
   }
+  const retrievalTraces = entry.councilSession?.generationTraces ?? []
+  const selectedSources = retrievalTraces
+    .filter((trace) => trace.validationStatus === "selected")
+    .map((trace) => {
+      const output = trace.outputJson as {
+        title?: string
+        rank?: number
+        displayExcerpt?: string | null
+        matchedTerms?: string[]
+      } | null
+      return {
+        id: trace.sourceChunkId ?? trace.id,
+        title: output?.title ?? trace.sourceChunk?.sourceDocument.title ?? "Approved source",
+        rank: output?.rank ?? 0,
+        displayExcerpt: output?.displayExcerpt ?? null,
+        matchedTerms: output?.matchedTerms ?? [],
+      }
+    })
+  const sourceMode = entry.councilSession?.sourceMode ?? "none"
+  const sourceMessage = sourceMode === "rag"
+    ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
+    : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
+  const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
+  const calibrationStatus = latestCalibrationReview
+    ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
+    : "Not reviewed for calibration"
+  const feedbackErrorMessage = readFeedbackErrorMessage(query.feedbackError)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -53,6 +119,13 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           {dateLabel}
         </h1>
       </div>
+
+      <form action={deleteJournalEntryAction}>
+        <input type="hidden" name="journalEntryId" value={entry.id} />
+        <button className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+          Delete this entry
+        </button>
+      </form>
 
       {/* Entry text */}
       <div
@@ -182,6 +255,163 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           </p>
         </div>
       )}
+
+      {entry.councilSession && (
+        <div
+          className="rounded-2xl border p-7"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-3">
+            Inner Council
+          </p>
+          {entry.councilSession.synthesis && (
+            <div
+              className="rounded-xl px-5 py-4"
+              style={{
+                background: "rgba(184,137,90,0.07)",
+                border: "1px solid rgba(184,137,90,0.15)",
+              }}
+            >
+              <p className="font-display italic text-[17px] font-medium leading-[1.65] text-[var(--primary)]">
+                {entry.councilSession.synthesis.integratorQuestion}
+              </p>
+              <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
+                {entry.councilSession.synthesis.integrationStep}
+              </p>
+            </div>
+          )}
+          <div className="mt-5 space-y-3">
+            {entry.councilSession.messages.map((message) => (
+              <div key={message.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
+                  {message.displayName}
+                </p>
+                <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {message.abstained ? "This voice was quiet while grounding came first." : message.content}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+            <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+              Pilot status
+            </p>
+            <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+              {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
+            </p>
+            <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+              Calibration: {calibrationStatus}
+            </p>
+            <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
+              Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide.
+            </p>
+            {founderCalibrationMode && (
+              <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
+                A specific note is required for Carl/Maria calibration evidence.
+              </p>
+            )}
+            {feedbackErrorMessage && (
+              <p className="mt-3 rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--destructive)]" style={{ borderColor: "rgba(191,64,64,0.2)", background: "rgba(191,64,64,0.06)" }}>
+                {feedbackErrorMessage}
+              </p>
+            )}
+            {entry.councilSession.feedback.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {entry.councilSession.feedback.map((feedback) => (
+                  <p key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                    <span className="font-medium text-[var(--primary)]">{feedback.feedbackType}</span>
+                    {feedback.note ? `: ${feedback.note}` : " · no note"}
+                  </p>
+                ))}
+              </div>
+            )}
+            <form action={submitSavedSessionFeedbackAction} className="mt-3 space-y-3">
+              <input type="hidden" name="councilSessionId" value={entry.councilSession.id} />
+              <select name="feedbackType" defaultValue="helpful" className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                <option value="helpful">Helpful</option>
+                <option value="not_accurate">Not accurate</option>
+                <option value="too_intense">Too intense</option>
+                <option value="unclear">Unclear</option>
+                <option value="unsupported_source">Report source issue</option>
+              </select>
+              <textarea
+                name="note"
+                maxLength={500}
+                required={founderCalibrationMode}
+                placeholder={founderCalibrationMode ? "Required note: what felt right, what felt wrong, what Maria would say differently, or which source felt unsupported." : "Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."}
+                className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
+                style={{ borderColor: "rgba(43,27,53,0.08)" }}
+              />
+              {founderCalibrationMode && (
+                <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
+                  Include a few specific words about what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
+                </p>
+              )}
+              <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                Save feedback
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {entry.councilSession && (
+        <div
+          className="rounded-2xl border p-7"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-2">
+            Source grounding
+          </p>
+          <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {sourceMessage}
+          </p>
+          {selectedSources.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {selectedSources.map((source) => (
+                <div key={source.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                  <p className="text-[12px] font-medium text-[var(--primary)]">
+                    {source.rank ? `${source.rank}. ` : ""}{source.title}
+                  </p>
+                  {source.matchedTerms.length > 0 && (
+                    <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
+                      Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                    </p>
+                  )}
+                  {source.displayExcerpt && (
+                    <p className="mt-2 text-[12px] font-light italic leading-relaxed text-[var(--plum-soft)]">
+                      {source.displayExcerpt}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
+}
+
+function describeCalibrationStatus(label: string, severity: string) {
+  if (severity === "pilot_blocker") return "Blocked for calibration"
+  if (label === "ready") return "Ready"
+  if (label === "voice_good" || label === "source_good") return "Good enough"
+  if (label === "voice_wrong") return "Voice issue"
+  if (label === "source_unsupported") return "Source issue"
+  if (label === "too_generic" || label === "too_intense") return "Prompt issue"
+  return label.replaceAll("_", " ")
+}
+
+function readFeedbackErrorMessage(value: string | undefined) {
+  if (value === "founder_note_required") {
+    return "Founder calibration feedback needs a specific note with a few words beyond the template."
+  }
+  return null
 }

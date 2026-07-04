@@ -1,12 +1,41 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { analyzeJournalEntry } from '../src/tools/analyze-journal-entry'
+import type { EntryAnalysis, SafetyCheck } from '@inner-avatar/ai'
+
+const clearSafety: SafetyCheck = {
+  severity: 'none',
+  flags: [],
+  recommendedAction: 'reflect',
+  userMessage: 'Safe to reflect.',
+  allowReflectiveFlow: true
+}
+
+const mappedAnalysis: EntryAnalysis = {
+  emotionalSignals: { primary: ['anxiety'], secondary: [], intensity: 4 },
+  languageMarkers: {
+    repeatedWords: ['very'],
+    absolutes: [],
+    passiveVoiceExamples: [],
+    ownershipLanguageExamples: []
+  },
+  behavioralPatterns: [
+    { label: 'avoidance', evidence: ['postponing'], confidence: 0.8 }
+  ],
+  contradictionSignals: [
+    { statedDesire: 'clarity', conflictingBehavior: 'staying stuck', confidence: 0.7 }
+  ],
+  avoidanceSignals: [],
+  suggestedLevel: 2,
+  safetyFlags: { severity: 'none', flags: [] },
+  summary: 'A pattern of uncertainty with avoidance signals.'
+}
 
 test('analyzeJournalEntry throws invalid input when no entryId or text provided', async () => {
   await assert.rejects(
     async () => analyzeJournalEntry({}, {
-      classifyJournalSafety: async () => ({ severity: 'none' }),
-      analyzeEntry: async () => ({}) as any
+      classifyJournalSafety: async () => clearSafety,
+      analyzeEntry: async () => mappedAnalysis
     }),
     { message: /Invalid input/ }
   )
@@ -18,20 +47,9 @@ test('analyzeJournalEntry returns mapped results for valid text input', async ()
     {
       classifyJournalSafety: async (text: string) => {
         assert.strictEqual(text, 'I am feeling very uncertain about my next step.')
-        return { severity: 'none' }
+        return clearSafety
       },
-      analyzeEntry: async () => ({
-        emotionalSignals: { primary: ['anxiety'] },
-        languageMarkers: { repeatedWords: ['very'] },
-        behavioralPatterns: [
-          { label: 'avoidance', evidence: ['postponing'], confidence: 0.8 }
-        ],
-        contradictionSignals: [
-          { statedDesire: 'clarity', conflictingBehavior: 'staying stuck' }
-        ],
-        suggestedLevel: 2,
-        summary: 'A pattern of uncertainty with avoidance signals.'
-      }) as any
+      analyzeEntry: async () => mappedAnalysis
     }
   )
 
@@ -46,6 +64,7 @@ test('analyzeJournalEntry returns mapped results for valid text input', async ()
       { statedDesire: 'clarity', conflictingBehavior: 'staying stuck' }
     ],
     suggestedLevel: 2,
-    summary: 'A pattern of uncertainty with avoidance signals.'
+    summary: 'A pattern of uncertainty with avoidance signals.',
+    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.'
   })
 })

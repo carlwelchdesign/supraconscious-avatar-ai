@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server"
-import { analyzeEntry } from "@inner-avatar/ai"
-import { generateAvatarResponse } from "@inner-avatar/ai"
-import { generateSymbolicPrompt } from "@inner-avatar/ai"
-import { updatePatternMemory } from "@inner-avatar/ai"
-import { checkAndAdvanceProgression } from "@inner-avatar/ai"
-import { classifyJournalSafety } from "@inner-avatar/ai"
-import { JournalAnalyzeRequestSchema } from "@inner-avatar/ai"
+import { JournalAnalyzeRequestSchema, runCouncilReflection } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -13,132 +7,39 @@ export async function POST(request: Request) {
   try {
     const user = await requireAppUser()
     const body = JournalAnalyzeRequestSchema.parse(await request.json())
-
-    const journalEntry = await prisma.journalEntry.create({
-      data: {
-        userId: user.id,
-        rawText: body.text,
-        inputMode: body.inputMode,
-      },
-    })
-
-    const safety = await classifyJournalSafety(body.text)
-
-    if (safety.severity !== "none") {
-      await prisma.safetyEvent.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          severity: safety.severity,
-          flags: safety.flags,
-          recommendedAction: safety.recommendedAction,
-        },
-      })
-    }
-
-    if (!safety.allowReflectiveFlow || safety.severity === "high") {
-      const avatarResponse = await prisma.avatarResponse.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          openingLine: "Pause here.",
-          mirror: safety.userMessage,
-          patternName: "Grounding",
-          socraticQuestion: "Can you name one place of support available to you right now?",
-          integrationStep: "Name five things you can see. Write one sentence about where you are right now.",
-          closingLine: "Do not solve everything in this moment.",
-        },
-      })
-
-      const prompt = await prisma.generatedPrompt.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          level: 1,
-          title: "Return to the Room",
-          context: "When the entry feels urgent or unsafe, the first reflection is orientation.",
-          materials: "A visible object, a steady surface, and one sentence.",
-          execution: "Look around and name five things you can see. Place one hand on a surface and write where you are.",
-          integration: "What is one next step that keeps you connected to real support?",
-          targetPattern: "grounding",
-        },
-      })
-
-      return NextResponse.json({ journalEntry, safety, analysis: null, avatarResponse, prompt })
-    }
-
-    const analysis = await analyzeEntry(body.text, safety)
-    const [storedAnalysis, avatar, prompt] = await Promise.all([
-      prisma.entryAnalysis.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          emotionalSignals: analysis.emotionalSignals,
-          languageMarkers: analysis.languageMarkers,
-          behavioralPatterns: analysis.behavioralPatterns,
-          contradictionSignals: analysis.contradictionSignals,
-          avoidanceSignals: analysis.avoidanceSignals,
-          intensityScore: analysis.emotionalSignals.intensity,
-          suggestedLevel: analysis.suggestedLevel,
-          safetyFlags: analysis.safetyFlags,
-          summary: analysis.summary,
-        },
-      }),
-      generateAvatarResponse(body.text, analysis, safety, {
-        tone: user.avatarTone,
-        intensity: user.intensityLevel,
-        currentLevel: user.currentLevel,
-        avatarStage: user.avatarStage,
-      }),
-      generateSymbolicPrompt(analysis, safety),
+    const [councilModeEnabled, ragEnabled] = await Promise.all([
+      isFeatureEnabled("council_mode", true),
+      isFeatureEnabled("rag_enabled", false),
     ])
 
-    const [avatarResponse, generatedPrompt] = await Promise.all([
-      prisma.avatarResponse.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          openingLine: avatar.openingLine,
-          mirror: avatar.mirror,
-          patternName: avatar.patternName,
-          contradiction: avatar.contradiction,
-          socraticQuestion: avatar.socraticQuestion,
-          integrationStep: avatar.integrationStep,
-          closingLine: avatar.closingLine,
-        },
-      }),
-      prisma.generatedPrompt.create({
-        data: {
-          userId: user.id,
-          journalEntryId: journalEntry.id,
-          level: prompt.level,
-          title: prompt.title,
-          context: prompt.context,
-          materials: prompt.materialsAndPreparation,
-          execution: prompt.execution,
-          integration: prompt.integration,
-          targetPattern: prompt.targetPattern,
-        },
-      }),
-      updatePatternMemory(user.id, journalEntry.id, analysis),
-    ])
-
-    const progression = await checkAndAdvanceProgression(
-      user.id,
-      user.currentLevel,
-      user.avatarStage,
-    )
-
-    return NextResponse.json({
-      journalEntry,
-      safety,
-      analysis: storedAnalysis,
-      avatarResponse,
-      prompt: generatedPrompt,
-      progression,
+    const result = await runCouncilReflection({
+      id: user.id,
+      avatarTone: user.avatarTone,
+      intensityLevel: user.intensityLevel,
+      currentLevel: user.currentLevel,
+      avatarStage: user.avatarStage,
+      patternMemoryEnabled: user.patternMemoryEnabled,
+    }, {
+      text: body.text,
+      inputMode: body.inputMode,
+      calibrationScenario: body.calibrationScenario,
+      councilModeEnabled,
+      ragEnabled,
+      requestId: request.headers.get("x-request-id") ?? undefined,
     })
+
+    return NextResponse.json(result)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to analyze journal entry."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
+}
+
+async function isFeatureEnabled(key: string, defaultValue: boolean) {
+  const flag = await prisma.featureFlag.findUnique({
+    where: { key },
+    select: { enabled: true },
+  })
+
+  return flag?.enabled ?? defaultValue
 }

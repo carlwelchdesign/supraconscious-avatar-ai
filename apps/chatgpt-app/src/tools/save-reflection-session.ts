@@ -37,7 +37,7 @@ const SaveReflectionSessionSchema = z.object({
   })
 })
 
-export async function saveReflectionSession(input: any, userId?: string, deps: { prisma?: typeof prisma } = {}) {
+export async function saveReflectionSession(input: unknown, userId?: string, deps: { prisma?: typeof prisma } = {}) {
   const { prisma: prismaClient = prisma } = deps
 
   try {
@@ -59,7 +59,7 @@ export async function saveReflectionSession(input: any, userId?: string, deps: {
     })
 
     // Save analysis
-    const analysis = await prismaClient.entryAnalysis.create({
+    await prismaClient.entryAnalysis.create({
       data: {
         userId,
         journalEntryId: journalEntry.id,
@@ -96,7 +96,7 @@ export async function saveReflectionSession(input: any, userId?: string, deps: {
     })
 
     // Save avatar response
-    const avatarResponse = await prismaClient.avatarResponse.create({
+    await prismaClient.avatarResponse.create({
       data: {
         userId,
         journalEntryId: journalEntry.id,
@@ -111,7 +111,7 @@ export async function saveReflectionSession(input: any, userId?: string, deps: {
     })
 
     // Save generated prompt
-    const generatedPrompt = await prismaClient.generatedPrompt.create({
+    await prismaClient.generatedPrompt.create({
       data: {
         userId,
         journalEntryId: journalEntry.id,

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BarChart3, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Shield, Users } from "lucide-react"
+import { BarChart3, BookOpen, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Shield, Sparkles, Users } from "lucide-react"
 import { adminLogoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 
@@ -9,7 +9,12 @@ const nav = [
   { href: "/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/safety", label: "Safety", icon: FileWarning },
   { href: "/health", label: "System Health", icon: HeartPulse },
+  { href: "/pilot", label: "Pilot Readiness", icon: BarChart3 },
+  { href: "/calibration", label: "Founder Calibration", icon: Sparkles },
   { href: "/prompts", label: "Prompts", icon: MessageSquareText },
+  { href: "/sources", label: "Sources", icon: BookOpen },
+  { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },
+  { href: "/council", label: "Council Review", icon: Sparkles },
   { href: "/avatar-stages", label: "Avatar Stages", icon: BarChart3 },
   { href: "/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/ai-quality", label: "AI Quality", icon: MessageSquareText },

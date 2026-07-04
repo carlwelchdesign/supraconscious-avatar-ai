@@ -9,11 +9,14 @@ import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 type AuthFormProps = {
   mode: "login" | "register"
   action: (state: AuthActionState, formData: FormData) => Promise<AuthActionState>
+  defaultEmail?: string
+  nextPath?: string
 }
 
-export function AuthForm({ mode, action }: AuthFormProps) {
+export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: AuthFormProps) {
   const [state, formAction, isPending] = useActionState(action, {})
   const isRegister = mode === "register"
+  const alternateHref = buildAlternateHref(isRegister ? "/login" : "/register", defaultEmail, nextPath)
 
   return (
     <div className="w-full max-w-sm space-y-8">
@@ -45,6 +48,7 @@ export function AuthForm({ mode, action }: AuthFormProps) {
           boxShadow: "0 8px 40px rgba(43,27,53,0.07)",
         }}
       >
+        {nextPath && <input type="hidden" name="next" value={nextPath} />}
         {isRegister && (
           <label className="block space-y-1.5">
             <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
@@ -69,6 +73,7 @@ export function AuthForm({ mode, action }: AuthFormProps) {
             name="email"
             type="email"
             autoComplete="email"
+            defaultValue={defaultEmail}
             required
             className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
             style={{ borderColor: "rgba(43,27,53,0.1)" }}
@@ -122,7 +127,7 @@ export function AuthForm({ mode, action }: AuthFormProps) {
       <p className="text-center text-[13px] font-light text-[var(--plum-soft)]">
         {isRegister ? "Already have an account?" : "Need an account?"}{" "}
         <Link
-          href={isRegister ? "/login" : "/register"}
+          href={alternateHref}
           className="font-medium text-[var(--primary)] underline-offset-4 hover:underline"
         >
           {isRegister ? "Sign in" : "Register"}
@@ -130,4 +135,12 @@ export function AuthForm({ mode, action }: AuthFormProps) {
       </p>
     </div>
   )
+}
+
+function buildAlternateHref(path: "/login" | "/register", email: string, nextPath: string) {
+  const params = new URLSearchParams()
+  if (email) params.set("email", email)
+  if (nextPath) params.set("next", nextPath)
+  const query = params.toString()
+  return query ? `${path}?${query}` : path
 }

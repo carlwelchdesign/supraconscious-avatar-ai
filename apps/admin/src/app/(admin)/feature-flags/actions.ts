@@ -18,17 +18,22 @@ export async function upsertFeatureFlagAction(formData: FormData) {
     description: formData.get("description"),
     enabled: formData.get("enabled"),
   })
+  const requestedEnabled = parsed.enabled === "on"
+
+  if (parsed.key === "rag_enabled" && requestedEnabled) {
+    throw new Error("RAG can only be enabled through the RAG readiness activation gate.")
+  }
 
   const flag = await prisma.featureFlag.upsert({
     where: { key: parsed.key },
     create: {
       key: parsed.key,
       description: parsed.description,
-      enabled: parsed.enabled === "on",
+      enabled: requestedEnabled,
     },
     update: {
       description: parsed.description,
-      enabled: parsed.enabled === "on",
+      enabled: requestedEnabled,
     },
   })
 

@@ -11,7 +11,7 @@ const GeneratePersonalizedPromptSchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function generatePersonalizedPrompt(input: any, deps: {
+export async function generatePersonalizedPrompt(input: unknown, deps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   analyzeEntry?: typeof analyzeEntry,

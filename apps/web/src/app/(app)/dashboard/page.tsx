@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
+import { isFounderCalibrationUser, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
@@ -10,18 +11,53 @@ const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "R
 export default async function DashboardPage() {
   const user = await requireAppUser()
 
-  const [entryCount, patternCount, recentEntries] = await Promise.all([
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
+  const [entryCount, patternCount, recentEntries, latestCouncilSession, setupReport] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 6,
-      include: { avatarResponse: true },
+      include: {
+        avatarResponse: true,
+        councilSession: {
+          select: {
+            sourceMode: true,
+            safetySnapshot: true,
+            feedback: { select: { id: true, feedbackType: true } },
+            embodimentGateResponses: { select: { id: true } },
+            qualityReviews: {
+              orderBy: { reviewedAt: "desc" },
+              take: 1,
+              select: { label: true, severity: true, metadata: true },
+            },
+          },
+        },
+      },
     }),
+    founderCalibrationMode
+      ? prisma.councilSession.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        select: { journalEntryId: true },
+      })
+      : Promise.resolve(null),
+    founderCalibrationMode ? runFounderCalibrationSetupReport() : Promise.resolve(null),
   ])
 
   const latestEntry = recentEntries[0] ?? null
+  const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
+  const founderSessionCount = founderParticipant?.sessionCount ?? 0
+  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
+  const founderNeedsSession = founderSessionCount === 0
+  const founderNeedsFeedbackNote = founderSessionCount > 0 && founderFeedbackNoteCount === 0
+  const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilSession ? `/journal/${latestCouncilSession.journalEntryId}` : "/journal"
+  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && (founderNeedsSession || founderNeedsFeedbackNote)
+  const founderNeedsReview = founderCalibrationMode && Boolean(founderParticipant) && (founderParticipant?.sessionCount ?? 0) > 0 && (founderParticipant?.reviewedSessionCount ?? 0) === 0
+  const adminReviewHref = user.role === "admin" || user.role === "super_admin"
+    ? `${readAdminBaseUrl()}/calibration/live`
+    : null
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -55,6 +91,63 @@ export default async function DashboardPage() {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+
+      {founderNeedsFirstSession && (
+        <div
+          className="rounded-2xl border p-6"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(184,137,90,0.18)",
+            boxShadow: "0 4px 24px rgba(184,137,90,0.06)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+            Founder calibration next step
+          </p>
+          <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
+            {founderNeedsFeedbackNote ? "Add a specific feedback note." : "Run one guided calibration session."}
+          </h2>
+          <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {founderNeedsFeedbackNote
+              ? "Your first calibration session was captured. Add a feedback type and a specific note so the admin review can decide whether it is ready, a golden example, or a prompt/source/embodiment issue."
+              : "Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a specific note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide."}
+          </p>
+          <Link
+            href={founderFirstSessionHref}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
+          >
+            {founderNeedsFeedbackNote ? "Open saved session" : "Open guided journal"}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
+
+      {founderNeedsReview && (
+        <div
+          className="rounded-2xl border p-6"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(43,27,53,0.07)",
+          }}
+        >
+          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+            Founder calibration status
+          </p>
+          <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
+            Your first calibration evidence has been captured. The admin review step is next: mark it ready/golden or route it to a voice, source, prompt, intensity, or embodiment fix.
+          </p>
+          {adminReviewHref && (
+            <Link
+              href={adminReviewHref}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
+              style={{ borderColor: "rgba(43,27,53,0.08)" }}
+            >
+              Open admin review
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* ── Avatar hero ──────────────────────────────────────── */}
       <div
@@ -189,6 +282,21 @@ export default async function DashboardPage() {
                 : entry.rawText
               const reflection = entry.avatarResponse?.mirror
               const pattern = entry.avatarResponse?.patternName
+              const safety = entry.councilSession?.safetySnapshot as { severity?: string } | undefined
+              const feedbackTypes = entry.councilSession?.feedback.map((item) => item.feedbackType) ?? []
+              const review = entry.councilSession?.qualityReviews[0]
+              const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
+              const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
+              const statuses = [
+                entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
+                entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
+                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under pilot review" : null,
+                review?.severity === "pilot_blocker" ? "Pilot blocker" : null,
+                reviewMetadata?.feedbackDisposition === "cleared" ? "Review cleared" : null,
+                reviewMetadata?.feedbackDisposition === "blocked" ? "Review blocked" : null,
+                entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
+                safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
+              ].filter(Boolean)
 
               return (
                 <Link
@@ -242,6 +350,18 @@ export default async function DashboardPage() {
                         &ldquo;{reflection}&rdquo;
                       </p>
                     )}
+                    {statuses.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-[11px] font-light text-[var(--plum-soft)]/70">
+                          {statuses.join(" · ")}
+                        </p>
+                        {entry.councilSession?.feedback.length ? (
+                          <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
+                            Calibration note: feedback helps reviewers improve guidance; it does not automatically retrain the guide.
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
 
                   {/* Arrow */}
@@ -254,4 +374,8 @@ export default async function DashboardPage() {
       )}
     </div>
   )
+}
+
+function readAdminBaseUrl() {
+  return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001").replace(/\/+$/, "")
 }
