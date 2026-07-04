@@ -2,6 +2,13 @@
 
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import {
+  requestEmailVerificationByEmail,
+  requestEmailVerificationForUser,
+  requestPasswordResetByEmail,
+  resetPasswordWithToken,
+  verifyEmailWithToken,
+} from "./account-email"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
 import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
@@ -24,8 +31,34 @@ const LoginSchema = z.object({
   website: z.string().optional(),
 })
 
+const RequestEmailSchema = z.object({
+  email: z.string().trim().email("Enter a valid email").toLowerCase(),
+  website: z.string().optional(),
+})
+
+const VerifyEmailSchema = z.object({
+  token: z.string().trim().min(20, "Verification token is required."),
+  website: z.string().optional(),
+})
+
+const RequestPasswordResetSchema = z.object({
+  email: z.string().trim().email("Enter a valid email").toLowerCase(),
+  website: z.string().optional(),
+})
+
+const ResetPasswordSchema = z.object({
+  token: z.string().trim().min(20, "Password reset token is required."),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128),
+  confirmPassword: z.string().min(8, "Confirm your new password."),
+  website: z.string().optional(),
+}).refine((value) => value.password === value.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+})
+
 export type AuthActionState = {
   error?: string
+  success?: string
 }
 
 export async function registerAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -62,6 +95,11 @@ export async function registerAction(_state: AuthActionState, formData: FormData
       },
     })
     await linkFounderParticipantIfConfigured(user.id, user.email)
+    try {
+      await requestEmailVerificationForUser(user)
+    } catch {
+      // Email delivery should not prevent account creation.
+    }
 
     await createSession(user.id, "web")
   } catch (error) {
@@ -163,6 +201,82 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
 export async function adminLogoutAction() {
   await destroySession("admin")
   redirect("/login")
+}
+
+export async function requestEmailVerificationAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const parsed = RequestEmailSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    await recordAuthFailure("email_verification")
+    return { error: parsed.error.issues[0]?.message ?? "Could not request verification." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    await recordAuthFailure("email_verification", parsed.data.email)
+    return { error: "Could not request verification." }
+  }
+  if (await isAuthRateLimited("email_verification", parsed.data.email)) {
+    return { error: "Too many verification requests. Please wait a few minutes and try again." }
+  }
+
+  try {
+    await requestEmailVerificationByEmail(parsed.data.email)
+  } catch {
+    await recordAuthFailure("email_verification", parsed.data.email)
+  }
+
+  return { success: "If this account needs verification, a verification link has been sent." }
+}
+
+export async function verifyEmailAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const parsed = VerifyEmailSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Could not verify email." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    return { error: "Could not verify email." }
+  }
+
+  const result = await verifyEmailWithToken(parsed.data.token)
+  if (!result.verified) return { error: result.error ?? "Could not verify email." }
+
+  return { success: "Your email is verified. You can continue using Inner Avatar." }
+}
+
+export async function requestPasswordResetAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const parsed = RequestPasswordResetSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    await recordAuthFailure("password_reset")
+    return { error: parsed.error.issues[0]?.message ?? "Could not request password reset." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    await recordAuthFailure("password_reset", parsed.data.email)
+    return { error: "Could not request password reset." }
+  }
+  if (await isAuthRateLimited("password_reset", parsed.data.email)) {
+    return { error: "Too many password reset requests. Please wait a few minutes and try again." }
+  }
+
+  try {
+    await requestPasswordResetByEmail(parsed.data.email)
+  } catch {
+    await recordAuthFailure("password_reset", parsed.data.email)
+  }
+
+  return { success: "If an account exists for this email, a password reset link has been sent." }
+}
+
+export async function resetPasswordAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const parsed = ResetPasswordSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Could not reset password." }
+  }
+  if (isBotSubmission(parsed.data.website)) {
+    return { error: "Could not reset password." }
+  }
+
+  const result = await resetPasswordWithToken(parsed.data.token, parsed.data.password)
+  if (!result.reset) return { error: result.error ?? "Could not reset password." }
+
+  return { success: "Your password has been reset. Please sign in again." }
 }
 
 function authDatabaseErrorMessage(error: unknown) {

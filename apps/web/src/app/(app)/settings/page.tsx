@@ -263,8 +263,27 @@ export default async function SettingsPage({
         <div className="px-6">
           <SettingRow
             label="Email"
-            description="Your account email address."
-            value={user.email}
+            description="Your account email address and verification state."
+            value={
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                <span>{user.email}</span>
+                <span
+                  className="rounded-full px-2.5 py-1 text-[11px] font-medium"
+                  style={
+                    user.emailVerified
+                      ? { background: "rgba(155,175,155,0.12)", color: "var(--sage)" }
+                      : { background: "rgba(166,95,74,0.10)", color: "var(--clay)" }
+                  }
+                >
+                  {user.emailVerified ? "verified" : "unverified"}
+                </span>
+                {!user.emailVerified ? (
+                  <a href={`/verify-email?email=${encodeURIComponent(user.email)}`} className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">
+                    Send link
+                  </a>
+                ) : null}
+              </span>
+            }
           />
           <SettingRow
             label="Name"

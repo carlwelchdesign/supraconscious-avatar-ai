@@ -139,11 +139,21 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
           {isRegister ? "Sign in" : "Register"}
         </Link>
       </p>
+      {!isRegister && (
+        <div className="flex items-center justify-center gap-4 text-[12px] font-light text-[var(--plum-soft)]">
+          <Link href={buildAlternateHref("/forgot-password", defaultEmail, "")} className="underline-offset-4 hover:underline">
+            Forgot password
+          </Link>
+          <Link href={buildAlternateHref("/verify-email", defaultEmail, "")} className="underline-offset-4 hover:underline">
+            Verify email
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
 
-function buildAlternateHref(path: "/login" | "/register", email: string, nextPath: string) {
+function buildAlternateHref(path: "/login" | "/register" | "/forgot-password" | "/verify-email", email: string, nextPath: string) {
   const params = new URLSearchParams()
   if (email) params.set("email", email)
   if (nextPath) params.set("next", nextPath)

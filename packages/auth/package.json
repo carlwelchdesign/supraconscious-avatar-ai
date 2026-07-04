@@ -5,8 +5,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./account-email": "./src/account-email.ts",
     "./actions": "./src/actions.ts",
     "./consent": "./src/consent.ts",
+    "./email": "./src/email.ts",
     "./redirects": "./src/redirects.ts",
     "./safe-redirect": "./src/safe-redirect.ts",
     "./session": "./src/session.ts",

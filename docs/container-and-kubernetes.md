@@ -56,6 +56,7 @@ Expected runtime values:
 - `NEXT_PUBLIC_APP_URL`
 - `INNER_AVATAR_WEB_URL`
 - `NEXT_PUBLIC_ADMIN_URL`
+- `RESEND_API_KEY` and `AUTH_EMAIL_FROM` for email verification and password reset delivery
 
 Stripe variables are optional unless billing flows are being tested.
 

@@ -2,7 +2,7 @@ import "server-only"
 
 import { headers } from "next/headers"
 
-export type AuthRateLimitScope = "web_login" | "admin_login" | "register"
+export type AuthRateLimitScope = "web_login" | "admin_login" | "register" | "email_verification" | "password_reset"
 
 type RateLimitBucket = {
   attempts: number[]
@@ -17,6 +17,8 @@ const RATE_LIMITS: Record<AuthRateLimitScope, RateLimitConfig> = {
   web_login: { maxAttempts: 8, windowMs: 15 * 60 * 1000 },
   admin_login: { maxAttempts: 5, windowMs: 15 * 60 * 1000 },
   register: { maxAttempts: 6, windowMs: 15 * 60 * 1000 },
+  email_verification: { maxAttempts: 6, windowMs: 15 * 60 * 1000 },
+  password_reset: { maxAttempts: 6, windowMs: 15 * 60 * 1000 },
 }
 
 const AUTH_RATE_LIMITS_KEY = "__innerAvatarAuthRateLimits"

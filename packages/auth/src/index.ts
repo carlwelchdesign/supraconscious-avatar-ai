@@ -1,3 +1,5 @@
 export * from "./actions"
+export * from "./account-email"
+export * from "./email"
 export * from "./session"
 export * from "./user"

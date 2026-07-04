@@ -7,6 +7,8 @@ The monorepo uses first-party email/password authentication. Clerk has been remo
 Auth code lives in `packages/auth`:
 
 - `actions.ts`: web register/login/logout and admin login/logout server actions.
+- `account-email.ts`: one-time email verification and password reset token lifecycle.
+- `email.ts`: transactional email delivery through Resend when configured.
 - `session.ts`: password hashing, scoped session cookie management, session lookup, and auth guards.
 - `user.ts`: compatibility exports for user guards.
 
@@ -29,7 +31,9 @@ The server action validates input, normalizes email, rejects duplicates, hashes 
 
 If the email appears in `SUPER_ADMIN_EMAILS`, the user is assigned `super_admin`. Otherwise new users default to `user`.
 
-New accounts start with `emailVerified = false`. A `super_admin` can manually mark a known account verified or unverified from admin `/users`; this is audited and does not send email.
+New accounts start with `emailVerified = false`. Registration creates a one-time email verification token and sends a verification link when `RESEND_API_KEY` and `AUTH_EMAIL_FROM` are configured. If transactional email is not configured or delivery fails, account creation still succeeds and a `super_admin` can manually mark a known account verified or unverified from admin `/users`; both paths are audited.
+
+Users can request a fresh verification link from `/verify-email`. Verification links expire after 24 hours and only token hashes are stored.
 
 ## Web Login
 
@@ -57,17 +61,19 @@ Signed-in web users can change their own password from `/settings` by entering t
 
 If a user is locked out, a `super_admin` can issue a temporary password from admin `/users`. That reset requires a reason, revokes the user's existing sessions, and writes audit logs without storing the temporary password.
 
-There is no email-delivered "forgot password" flow yet.
+Users can request an email-delivered password reset from `/forgot-password`. Reset links expire after 60 minutes, store only token hashes, revoke existing sessions after a successful reset, and write audit logs without storing password values. Requests use generic success copy so the app does not reveal whether an email is registered.
 
 ## Auth Throttling
 
-Registration, web login, and admin login use server-side attempt throttling keyed by client IP and submitted email when available.
+Registration, web login, admin login, email verification requests, and password reset requests use server-side attempt throttling keyed by client IP and submitted email when available.
 
 Current limits:
 
 - web login: 8 failed attempts per 15 minutes
 - admin login: 5 failed attempts per 15 minutes
 - registration: 6 failed attempts per 15 minutes
+- email verification request: 6 failed attempts per 15 minutes
+- password reset request: 6 failed attempts per 15 minutes
 
 This is an application-level guard for the current deployment shape. A future high-traffic deployment should move throttling to shared infrastructure such as an edge/WAF layer or a shared store so limits apply consistently across many app replicas.
 
@@ -126,6 +132,4 @@ Server-side authorization must still be called inside pages, server actions, and
 
 ## Known Gaps
 
-- No email-delivered password reset flow yet.
-- No email-delivered verification flow yet.
 - No CAPTCHA or managed bot-protection challenge yet.

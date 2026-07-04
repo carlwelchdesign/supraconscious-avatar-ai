@@ -44,6 +44,8 @@ model User {
   safetyEvents     SafetyEvent[]
   subscriptions    Subscription[]
   sessions         Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
   auditLogs        AuditLog[]
   promptTemplates  PromptTemplate[]
   councilSessions  CouncilSession[]
@@ -77,6 +79,39 @@ model Session {
   @@index([userId])
   @@index([scope])
   @@index([expiresAt])
+}
+
+// Email verification token - one-time token stored as a hash only
+model EmailVerificationToken {
+  id          String    @id @default(cuid())
+  userId      String
+  tokenHash   String    @unique
+  sentToEmail String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+// Password reset token - one-time token stored as a hash only
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
 }
 
 // Audit log - immutable record of sensitive admin actions
