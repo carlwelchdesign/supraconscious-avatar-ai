@@ -430,13 +430,13 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
   const primaryPath = primaryHandoffHref ?? "/journal"
   if (!participant.accountExists) {
-    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note about what felt right or wrong. Start here: ${primaryPath}`
+    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note about what felt right or wrong. Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || participant.consentCount === 0) {
-    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note. Continue here: ${primaryPath}`
+    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note. Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
-    return `Please open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
+    return `Please open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
     return `Please open the latest calibration session and add feedback with a short note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`
@@ -444,7 +444,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   if (participant.goldenExampleCount === 0) {
     return `Your first calibration evidence is captured. The admin review step is next: mark the session ready/golden or assign a voice, source, prompt, intensity, or embodiment issue. Review here: ${primaryPath}`
   }
-  return `Founder calibration is ready for another guided session. Open /journal, choose the next useful scenario, and leave a feedback note after the reflection. Continue here: ${primaryPath}`
+  return `Founder calibration is ready for another guided session. Open /journal, use the next useful guided scenario, and leave a feedback note after the reflection. Continue here: ${primaryPath}`
 }
 
 function buildParticipantMissingActions(input: {
