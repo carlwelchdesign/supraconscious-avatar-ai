@@ -58,6 +58,24 @@ export type FounderCalibrationSetupReadiness = {
   ready: boolean
 }
 
+export type FounderCalibrationRequiredRole = "carl" | "maria"
+
+export type FounderCalibrationRequiredRoleReadiness = {
+  role: FounderCalibrationRequiredRole
+  participantId: string | null
+  email: string | null
+  configured: boolean
+  active: boolean
+  accountExists: boolean
+  onboardingComplete: boolean
+  consentPresent: boolean
+  sessionPresent: boolean
+  feedbackNotePresent: boolean
+  goldenExamplePresent: boolean
+  nextAction: string
+  nextActionHref: string | null
+}
+
 export type FounderCalibrationSetupScenarioCoverage = {
   scenario: FounderCalibrationScenario
   totalSessions: number
@@ -68,6 +86,8 @@ export type FounderCalibrationSetupReport = {
   filterMode: FounderCalibrationFilterMode
   participants: FounderCalibrationSetupParticipant[]
   readiness: FounderCalibrationSetupReadiness
+  requiredRoles: Record<FounderCalibrationRequiredRole, FounderCalibrationRequiredRoleReadiness>
+  missingRequiredRoles: FounderCalibrationRequiredRole[]
   missingActions: FounderCalibrationMissingAction[]
   scenarioCoverage: FounderCalibrationSetupScenarioCoverage[]
   blockers: string[]
@@ -231,14 +251,12 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   })
 
   const activeParticipants = participants.filter((participant) => participant.status === "active")
-  const missingActions = participants.flatMap((participant) => participant.missingActions)
-  if (participants.length === 0) {
-    missingActions.push({
-      code: "no_founder_participants",
-      message: "Add Carl and Maria as founder calibration participants.",
-      href: "/calibration/setup",
-    })
-  }
+  const requiredRoles = buildRequiredRoleReadiness(participants)
+  const missingRequiredRoles = (["carl", "maria"] as const).filter((role) => !requiredRoles[role].active)
+  const missingActions = [
+    ...buildRequiredRoleMissingActions(requiredRoles),
+    ...participants.flatMap((participant) => participant.missingActions),
+  ]
 
   const readiness = {
     configuredParticipants: participants.length,
@@ -249,7 +267,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     participantsWithSessions: activeParticipants.filter((participant) => participant.sessionCount > 0).length,
     participantsWithFeedbackNotes: activeParticipants.filter((participant) => participant.feedbackNoteCount > 0).length,
     participantsWithGoldenExamples: activeParticipants.filter((participant) => participant.goldenExampleCount > 0).length,
-    ready: participants.length > 0 && missingActions.length === 0,
+    ready: missingRequiredRoles.length === 0 && missingActions.length === 0,
   }
 
   const warnings = [...snapshot.filterWarnings]
@@ -260,6 +278,8 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     filterMode: snapshot.filterMode,
     participants,
     readiness,
+    requiredRoles,
+    missingRequiredRoles,
     missingActions,
     scenarioCoverage: Array.from(scenarioCounts.entries())
       .map(([scenario, totalSessions]) => ({ scenario, totalSessions }))
@@ -267,6 +287,90 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     blockers: missingActions.map((action) => action.message),
     warnings,
   }
+}
+
+function buildRequiredRoleReadiness(participants: FounderCalibrationSetupParticipant[]) {
+  return {
+    carl: buildRequiredRoleStatus("carl", participants),
+    maria: buildRequiredRoleStatus("maria", participants),
+  } satisfies Record<FounderCalibrationRequiredRole, FounderCalibrationRequiredRoleReadiness>
+}
+
+function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participants: FounderCalibrationSetupParticipant[]): FounderCalibrationRequiredRoleReadiness {
+  const roleParticipants = participants.filter((participant) => participant.participantRole === role)
+  const activeParticipant = roleParticipants.find((participant) => participant.status === "active")
+  const participant = activeParticipant ?? roleParticipants[0] ?? null
+  if (!participant) {
+    return {
+      role,
+      participantId: null,
+      email: null,
+      configured: false,
+      active: false,
+      accountExists: false,
+      onboardingComplete: false,
+      consentPresent: false,
+      sessionPresent: false,
+      feedbackNotePresent: false,
+      goldenExamplePresent: false,
+      nextAction: `Add ${role} as a founder calibration participant.`,
+      nextActionHref: "/calibration/setup",
+    }
+  }
+  if (participant.status !== "active") {
+    return {
+      role,
+      participantId: participant.id,
+      email: participant.email,
+      configured: true,
+      active: false,
+      accountExists: participant.accountExists,
+      onboardingComplete: participant.onboardingComplete,
+      consentPresent: participant.consentCount > 0,
+      sessionPresent: participant.sessionCount > 0,
+      feedbackNotePresent: participant.feedbackNoteCount > 0,
+      goldenExamplePresent: participant.goldenExampleCount > 0,
+      nextAction: `Activate ${participant.email} for ${role} calibration.`,
+      nextActionHref: "/calibration/setup",
+    }
+  }
+  return {
+    role,
+    participantId: participant.id,
+    email: participant.email,
+    configured: true,
+    active: true,
+    accountExists: participant.accountExists,
+    onboardingComplete: participant.onboardingComplete,
+    consentPresent: participant.consentCount > 0,
+    sessionPresent: participant.sessionCount > 0,
+    feedbackNotePresent: participant.feedbackNoteCount > 0,
+    goldenExamplePresent: participant.goldenExampleCount > 0,
+    nextAction: participant.nextAction,
+    nextActionHref: participant.nextActionHref,
+  }
+}
+
+function buildRequiredRoleMissingActions(requiredRoles: Record<FounderCalibrationRequiredRole, FounderCalibrationRequiredRoleReadiness>) {
+  const actions: FounderCalibrationMissingAction[] = []
+  for (const role of ["carl", "maria"] as const) {
+    const readiness = requiredRoles[role]
+    if (!readiness.configured) {
+      actions.push({
+        code: `${role}_participant_missing`,
+        message: `Add ${role} as a founder calibration participant.`,
+        href: "/calibration/setup",
+      })
+    } else if (!readiness.active) {
+      actions.push({
+        code: `${role}_participant_paused`,
+        email: readiness.email ?? undefined,
+        message: `Activate ${readiness.email ?? role} for ${role} calibration.`,
+        href: "/calibration/setup",
+      })
+    }
+  }
+  return actions
 }
 
 function buildScenarioStatus(sessions: FounderCalibrationSetupSnapshot["participants"][number]["sessions"]) {

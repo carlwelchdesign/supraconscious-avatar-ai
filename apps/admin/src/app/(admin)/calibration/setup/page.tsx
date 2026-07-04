@@ -5,6 +5,7 @@ import {
   activateFounderCalibrationParticipantAction,
   addFounderCalibrationParticipantAction,
   pauseFounderCalibrationParticipantAction,
+  setupFounderCalibrationPairAction,
   syncFounderCalibrationParticipantAction,
 } from "../actions"
 
@@ -29,7 +30,72 @@ export default async function FounderCalibrationSetupPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Add Founder Participant</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Carl/Maria Setup</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <form action={setupFounderCalibrationPairAction} className="grid gap-3 md:grid-cols-2">
+            <input
+              name="carlEmail"
+              type="email"
+              placeholder="Carl email"
+              defaultValue={report.requiredRoles.carl.email ?? ""}
+              required
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <input
+              name="mariaEmail"
+              type="email"
+              placeholder="Maria email"
+              defaultValue={report.requiredRoles.maria.email ?? ""}
+              required
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <input
+              name="reviewerEmails"
+              placeholder="Optional reviewer emails, comma-separated"
+              className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
+            />
+            <input
+              name="reason"
+              placeholder="Reason required; no raw journal text"
+              required
+              className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
+            />
+            <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted md:col-span-2">
+              Configure Carl and Maria
+            </button>
+          </form>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <RequiredRoleStatus role="Carl" status={report.requiredRoles.carl} />
+            <RequiredRoleStatus role="Maria" status={report.requiredRoles.maria} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Next Step</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {report.missingActions.length === 0 ? (
+            <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">
+              Carl and Maria setup is ready for live calibration. Continue in the live cockpit.
+            </p>
+          ) : report.missingActions.slice(0, 4).map((action) => (
+            <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
+              {action.href ? <Link href={action.href} className="underline">{action.message}</Link> : action.message}
+            </p>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            <SafeLink href="/register" label="Register" />
+            <SafeLink href="/login" label="Login" />
+            <SafeLink href="/onboarding" label="Onboarding" />
+            <SafeLink href="/journal" label="Journal" />
+            <SafeLink href="/calibration/live" label="Live review" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Advanced Participant Setup</CardTitle></CardHeader>
         <CardContent>
           <form action={addFounderCalibrationParticipantAction} className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto]">
             <input name="email" type="email" placeholder="founder email" required className="rounded-md border bg-background px-3 py-2 text-sm" />
@@ -171,6 +237,59 @@ function SafeLink({ href, label }: { href: string; label: string }) {
     <Link href={href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
       {label}
     </Link>
+  )
+}
+
+function RequiredRoleStatus({
+  role,
+  status,
+}: {
+  role: string
+  status: {
+    email: string | null
+    configured: boolean
+    active: boolean
+    accountExists: boolean
+    onboardingComplete: boolean
+    consentPresent: boolean
+    sessionPresent: boolean
+    feedbackNotePresent: boolean
+    goldenExamplePresent: boolean
+    nextAction: string
+    nextActionHref: string | null
+  }
+}) {
+  return (
+    <div className="rounded-md border p-4 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-medium">{role}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Not configured"}</p>
+        </div>
+        {status.nextActionHref ? <SafeLink href={status.nextActionHref} label="Next action" /> : null}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
+      <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
+        <RoleCheck label="configured" passed={status.configured} />
+        <RoleCheck label="active" passed={status.active} />
+        <RoleCheck label="account linked" passed={status.accountExists} />
+        <RoleCheck label="onboarding complete" passed={status.onboardingComplete} />
+        <RoleCheck label="consent present" passed={status.consentPresent} />
+        <RoleCheck label="session present" passed={status.sessionPresent} />
+        <RoleCheck label="feedback note present" passed={status.feedbackNotePresent} />
+        <RoleCheck label="ready/golden review" passed={status.goldenExamplePresent} />
+      </div>
+    </div>
+  )
+}
+
+function RoleCheck({ label, passed }: { label: string; passed: boolean }) {
+  return (
+    <p>
+      <span className={passed ? "text-emerald-600" : "text-muted-foreground"}>{passed ? "ready" : "needed"}</span>
+      {" · "}
+      {label}
+    </p>
   )
 }
 

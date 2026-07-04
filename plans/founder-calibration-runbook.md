@@ -1,16 +1,19 @@
 # Founder Calibration Runbook
 
 ## Setup
-- Configure the launch env values before running the setup command:
+- In admin, open `/calibration/setup`.
+- Use the Carl/Maria Setup panel to enter Carl's email, Maria's email, optional reviewer emails, and a setup reason.
+- Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
+- Have each founder register through the normal web app and complete onboarding consent.
+- Use `Sync user` on the setup page if a participant was added before the account existed.
+
+## CLI Fallback
+- For local/dev automation only, configure the launch env values before running the setup command:
   - `FOUNDER_CALIBRATION_CARL_EMAIL`
   - `FOUNDER_CALIBRATION_MARIA_EMAIL`
   - `FOUNDER_CALIBRATION_REVIEWER_EMAILS` when reviewers should also be tracked
   - `FOUNDER_CALIBRATION_SETUP_ACTOR_EMAIL` when audit logging should attach to an existing admin user
 - Run `pnpm --filter @inner-avatar/ai setup:founder-calibration` to upsert founder participants and link any existing user accounts by email.
-- In admin, open `/calibration/setup`.
-- Confirm Carl and Maria appear as founder calibration participants with role `carl` and `maria`.
-- Have each founder register through the normal web app and complete onboarding consent.
-- Use `Sync user` on the setup page if a participant was added before the account existed.
 
 ## Session Cadence
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.

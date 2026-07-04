@@ -915,6 +915,11 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(report.readiness.configuredParticipants, 3)
   assert.equal(report.readiness.activeParticipants, 2)
   assert.equal(report.readiness.participantsWithGoldenExamples, 1)
+  assert.deepEqual(report.missingRequiredRoles, [])
+  assert.equal(report.requiredRoles.carl.active, true)
+  assert.equal(report.requiredRoles.carl.goldenExamplePresent, true)
+  assert.equal(report.requiredRoles.maria.configured, true)
+  assert.equal(report.requiredRoles.maria.accountExists, false)
   assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.email === "maria@example.com"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
@@ -928,6 +933,47 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(maria?.scenarioStatus.some((item) => item.scenario === "freeform"), false)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder calibration setup report requires active Carl and Maria roles", () => {
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "paused",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: true,
+        consentCount: 1,
+        sessions: [],
+      },
+      {
+        id: "participant_reviewer",
+        email: "reviewer@example.com",
+        participantRole: "reviewer",
+        status: "active",
+        userId: "user_reviewer",
+        userName: "Reviewer",
+        onboardingComplete: true,
+        consentCount: 1,
+        sessions: [],
+      },
+    ],
+  })
+
+  assert.equal(report.readiness.ready, false)
+  assert.deepEqual(report.missingRequiredRoles, ["carl", "maria"])
+  assert.equal(report.requiredRoles.carl.configured, true)
+  assert.equal(report.requiredRoles.carl.active, false)
+  assert.equal(report.requiredRoles.carl.nextAction, "Activate carl@example.com for carl calibration.")
+  assert.equal(report.requiredRoles.maria.configured, false)
+  assert.ok(report.missingActions.some((action) => action.code === "carl_participant_paused"))
+  assert.ok(report.missingActions.some((action) => action.code === "maria_participant_missing"))
 })
 
 test("founder calibration setup input parses env without creating account state", () => {

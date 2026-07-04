@@ -8,6 +8,7 @@ import { prisma } from "@inner-avatar/db"
 import {
   FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
   normalizeFounderCalibrationEmail,
+  setupFounderCalibrationParticipants,
 } from "@inner-avatar/ai"
 
 const CalibrationReviewSchema = z.object({
@@ -29,6 +30,13 @@ const FounderParticipantSchema = z.object({
 const FounderParticipantStatusSchema = z.object({
   id: z.string().min(1),
   reason: z.string().trim().min(10, "A founder participant reason is required."),
+})
+
+const FounderPairSetupSchema = z.object({
+  carlEmail: z.string().trim().email().transform(normalizeFounderCalibrationEmail),
+  mariaEmail: z.string().trim().email().transform(normalizeFounderCalibrationEmail),
+  reviewerEmails: z.string().trim().optional(),
+  reason: z.string().trim().min(10, "A founder setup reason is required."),
 })
 
 export async function reviewCalibrationSessionAction(formData: FormData) {
@@ -118,6 +126,19 @@ export async function addFounderCalibrationParticipantAction(formData: FormData)
   revalidateFounderCalibrationPaths()
 }
 
+export async function setupFounderCalibrationPairAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = FounderPairSetupSchema.parse(Object.fromEntries(formData))
+  await setupFounderCalibrationParticipants({
+    carlEmail: parsed.carlEmail,
+    mariaEmail: parsed.mariaEmail,
+    reviewerEmails: parseReviewerEmails(parsed.reviewerEmails),
+    actorEmail: actor.email,
+    reason: parsed.reason,
+  })
+  revalidateFounderCalibrationPaths()
+}
+
 export async function pauseFounderCalibrationParticipantAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = FounderParticipantStatusSchema.parse(Object.fromEntries(formData))
@@ -203,4 +224,11 @@ function revalidateFounderCalibrationPaths() {
   revalidatePath("/calibration/live")
   revalidatePath("/calibration/setup")
   revalidatePath("/users")
+}
+
+function parseReviewerEmails(value: string | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean)
 }
