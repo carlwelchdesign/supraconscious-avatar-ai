@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import {
   Box,
   Chip,
+  Button,
   Paper,
   Stack,
   Table,
@@ -15,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { resetUserPasswordAction } from "./actions"
 
 type UserRow = {
   id: string
@@ -78,6 +80,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
               <TableCell align="right">Entries</TableCell>
               <TableCell align="right">Sessions</TableCell>
               <TableCell>Created</TableCell>
+              <TableCell>Super-admin action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -100,11 +103,37 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                 <TableCell align="right">{user.journalEntryCount}</TableCell>
                 <TableCell align="right">{user.sessionCount}</TableCell>
                 <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Box component="form" action={resetUserPasswordAction} sx={{ display: "grid", gap: 1, minWidth: 240 }}>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <TextField
+                      name="temporaryPassword"
+                      type="password"
+                      size="small"
+                      label="Temporary password"
+                      autoComplete="new-password"
+                      slotProps={{ htmlInput: { minLength: 8 } }}
+                    />
+                    <TextField
+                      name="reason"
+                      size="small"
+                      label="Reason"
+                      placeholder="Founder login setup"
+                      slotProps={{ htmlInput: { minLength: 10 } }}
+                    />
+                    <Button type="submit" variant="outlined" size="small">
+                      Reset password
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">
+                      Existing sessions are revoked. The password is not stored in audit logs.
+                    </Typography>
+                  </Box>
+                </TableCell>
               </TableRow>
             ))}
             {!filteredUsers.length ? (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
                     No users match that search.
                   </Typography>
