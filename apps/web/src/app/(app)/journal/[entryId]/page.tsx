@@ -302,7 +302,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                A short note is required for Carl/Maria calibration evidence.
+                A short specific note is required for Carl/Maria calibration evidence.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -332,6 +332,11 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
                 className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
+              {founderCalibrationMode && (
+                <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
+                  Include a few specific words about what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
+                </p>
+              )}
               <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
                 Save feedback
               </button>

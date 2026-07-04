@@ -5,6 +5,7 @@ import { Loader2, ArrowRight } from "lucide-react"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@/lib/founder-feedback"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
@@ -35,14 +36,6 @@ const CALIBRATION_PROMPTS = [
     scenario: "intensity_boundary_test",
     text: "I feel tender and exposed. I want a reflection that stays gentle, does not confront too hard, and still helps me notice one true thing.",
   },
-] as const
-const FEEDBACK_NOTE_TEMPLATES = [
-  "Voice mismatch: ",
-  "Source unsupported: ",
-  "Too generic: ",
-  "Too intense: ",
-  "Good enough: ",
-  "Maria would phrase it this way: ",
 ] as const
 const CALIBRATION_PROMPT_TEXTS = new Set<string>(CALIBRATION_PROMPTS.map((prompt) => prompt.text))
 
@@ -210,7 +203,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       return `${prev}\n\n${promptText}`
     })
   }
-  const founderFeedbackNoteRequired = founderCalibrationMode && result?.councilSession && feedbackNote.trim().length === 0
+  const founderFeedbackNoteRequired = founderCalibrationMode && result?.councilSession && !isFounderCalibrationFeedbackNoteUseful(feedbackNote)
 
   const applyFeedbackTemplate = (template: string) => {
     setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
@@ -674,7 +667,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               />
               {founderCalibrationMode && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {FEEDBACK_NOTE_TEMPLATES.map((template) => (
+                  {FOUNDER_FEEDBACK_NOTE_TEMPLATES.map((template) => (
                     <button
                       key={template}
                       type="button"
@@ -709,7 +702,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               {founderFeedbackNoteRequired && (
                 <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Add a short note before choosing a feedback type.
+                  Add a short note with a few specific words beyond the template before choosing a feedback type.
                 </p>
               )}
               {feedbackSaved && (
