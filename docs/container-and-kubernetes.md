@@ -56,10 +56,13 @@ Expected runtime values:
 - `NEXT_PUBLIC_APP_URL`
 - `INNER_AVATAR_WEB_URL`
 - `NEXT_PUBLIC_ADMIN_URL`
+- `SUPER_ADMIN_EMAILS` before first admin login
 - `RESEND_API_KEY` and `AUTH_EMAIL_FROM` for email verification and password reset delivery
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` for managed auth bot protection
 
-Stripe variables are optional unless billing flows are being tested.
+Stripe variables are optional only while billing is intentionally disabled. Before testing or enabling paid plans, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_STARTER_PRICE_ID`, `STRIPE_PRO_PRICE_ID`, and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` for the web app. Admin needs `STRIPE_SECRET_KEY` to inspect or clean up subscription/customer state.
+
+Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUBLIC_ADMIN_URL`; set both to real public origins in staging or production so copied launch packets do not point at localhost.
 
 Migrations are not run automatically when web, admin, or ChatGPT containers boot. Local Compose uses the explicit `db-push` setup service. Production schema changes should remain a controlled release step.
 

@@ -32,8 +32,14 @@ Admin app (`apps/admin/.env.example`):
 
 ```bash
 DATABASE_URL="postgres://..."
+AUTH_SECRET="replace-with-a-long-random-secret"
 SUPER_ADMIN_EMAILS="you@example.com"
 NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
+INNER_AVATAR_WEB_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+OPENAI_API_KEY="sk-..."
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+TURNSTILE_SECRET_KEY=""
 STRIPE_SECRET_KEY="sk_test_..."
 ```
 
@@ -42,6 +48,30 @@ STRIPE_SECRET_KEY="sk_test_..."
 `RESEND_API_KEY` and `AUTH_EMAIL_FROM` enable email-delivered account verification and password reset links. Leave them blank for local development if you want to rely on manual super-admin verification and temporary password resets.
 
 `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` enable Cloudflare Turnstile on registration, login, email verification, and password reset forms. Leave them blank for local development.
+
+Production environment checklist:
+
+| Variable | Web | Admin | ChatGPT/MCP | Notes |
+| --- | --- | --- | --- | --- |
+| `DATABASE_URL` | Required | Required | Required | Use the production Postgres URL; run schema changes as a controlled release step. |
+| `AUTH_SECRET` | Required | Required | Required | Use the same long random value anywhere session/auth helpers run. |
+| `SUPER_ADMIN_EMAILS` | Required | Required | Optional | Required before the first admin login. |
+| `OPENAI_API_KEY` | Required | Recommended | Recommended | Missing keys fall back locally, but production AI/voice needs this. |
+| `OPENAI_MODEL` | Optional | Optional | Optional | Defaults to `gpt-5-mini`. |
+| `NEXT_PUBLIC_APP_URL` | Required | Required | Required | Public web origin. |
+| `INNER_AVATAR_WEB_URL` | Required | Required | Required | Used for safe founder handoff links back to the web app. |
+| `NEXT_PUBLIC_ADMIN_URL` | Required | Required | Required | Used for admin review links. |
+| `RESEND_API_KEY` | Required for production auth email | Optional | No | Enables verification and password reset delivery. |
+| `AUTH_EMAIL_FROM` | Required with Resend | Optional | No | Must be an approved sender domain/address. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Recommended | No | Enables visible Turnstile widgets. |
+| `TURNSTILE_SECRET_KEY` | Recommended | Recommended | No | Enforces Turnstile server-side when configured. |
+| `STRIPE_SECRET_KEY` | Required for billing | Required for subscription admin | Optional | Billing can stay disabled during founder calibration. |
+| `STRIPE_WEBHOOK_SECRET` | Required for billing | No | No | Set to the webhook secret for the web deployment. |
+| `STRIPE_STARTER_PRICE_ID` / `STRIPE_PRO_PRICE_ID` | Required for billing | No | No | Needed before enabling paid plans. |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Required for billing UI | No | No | Public Stripe key for the web app. |
+| `CHATGPT_APP_PORT` | No | No | Optional | Defaults to `3002`. |
+
+For local/dev scripts, the root `.env.example` includes additional helper variables for founder setup, pilot seeding, RAG smoke tests, and handoff packet generation.
 
 ## Install and Run
 
