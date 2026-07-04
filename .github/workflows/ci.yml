@@ -63,11 +63,17 @@ jobs:
       - name: Lint
         run: node .yarn/releases/yarn-4.cjs lint
 
+      - name: Run auth tests
+        run: node .yarn/releases/yarn-4.cjs test:auth
+
       - name: Run AI tests
         run: node .yarn/releases/yarn-4.cjs test:ai
 
       - name: Run RAG evals
         run: node .yarn/releases/yarn-4.cjs test:rag
+
+      - name: Run internal RAG smoke
+        run: node .yarn/releases/yarn-4.cjs smoke:rag
 
       - name: Run pilot evals
         run: node .yarn/releases/yarn-4.cjs test:pilot
