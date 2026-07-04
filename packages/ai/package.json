@@ -18,6 +18,7 @@
     "test:launch": "tsx scripts/run-pilot-launch-readiness.ts",
     "report:pilot": "tsx scripts/run-pilot-iteration-report.ts",
     "report:pilot-learning": "tsx scripts/run-pilot-learning-report.ts",
+    "report:pilot-expansion": "tsx scripts/run-pilot-expansion-readiness.ts",
     "smoke:rag": "tsx scripts/run-internal-rag-smoke.ts",
     "test:rag": "tsx scripts/run-rag-evals.ts",
     "test:pilot": "tsx scripts/run-pilot-evals.ts",

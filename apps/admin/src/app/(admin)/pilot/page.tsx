@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { readRagActivationMetadata, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport } from "@inner-avatar/ai"
-import { createPilotCohortAction, enrollPilotUserAction, reviewPilotSessionAction } from "./actions"
+import { readRagActivationMetadata, runPilotExpansionReadiness, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport } from "@inner-avatar/ai"
+import { createPilotCohortAction, enrollPilotUserAction, expandPilotCohortAction, reviewPilotSessionAction } from "./actions"
 
 const QUALITY_LABELS = [
   ["reviewed", "Reviewed"],
@@ -14,10 +14,11 @@ const QUALITY_LABELS = [
 ] as const
 
 export default async function PilotReadinessPage() {
-  const [readiness, iteration, learning] = await Promise.all([
+  const [readiness, iteration, learning, expansion] = await Promise.all([
     runPilotLaunchReadiness(),
     runPilotIterationReport(),
     runPilotLearningReport(),
+    runPilotExpansionReadiness(),
   ])
   const schemaReady = !readiness.blockers.some((blocker) => blocker.code === "database_schema_not_ready")
   const [cohorts, feedback, ragFlag, recentRetrievalTitles] = schemaReady ? await Promise.all([
@@ -126,6 +127,73 @@ export default async function PilotReadinessPage() {
         <Metric title="Review coverage" value={`${learning.reviewCoverage.coverageRate}%`} />
         <Metric title="Unreviewed source" value={learning.reviewCoverage.unreviewedSourceSessions} />
       </div>
+
+      <Card className={expansion.passed ? "border-emerald-500/30" : "border-destructive/30"}>
+        <CardHeader><CardTitle>{expansion.passed ? "Expansion gate passed" : "Expansion blocked"}</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-4">
+            <SmallMetric title="Recommended batch" value={`${expansion.recommendedBatchSize.min}-${expansion.recommendedBatchSize.max}`} />
+            <SmallMetric title="Current pilot users" value={expansion.metrics.currentEnrolledUsers} />
+            <SmallMetric title="Completed first sessions" value={expansion.metrics.completedFirstSessions} />
+            <SmallMetric title="Review coverage" value={`${expansion.metrics.reviewCoverageRate}%`} />
+          </div>
+          {expansion.blockers.length > 0 ? (
+            <div className="grid gap-2">
+              {expansion.blockers.map((blocker) => (
+                <div key={blocker.code} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                  <div>
+                    <p className="font-medium text-destructive">{blocker.message}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {blocker.code}{typeof blocker.count === "number" ? ` · ${blocker.count}` : ""}
+                    </p>
+                  </div>
+                  {blocker.href && (
+                    <Link href={blocker.href} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Review</Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-md border bg-emerald-500/5 p-3 text-sm text-muted-foreground">
+              Expansion is eligible for a 3-5 user internal batch. Keep this internal and review the next batch before inviting more users.
+            </p>
+          )}
+          {expansion.warnings.length > 0 && (
+            <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+              {expansion.warnings.map((warning) => <p key={warning}>{warning}</p>)}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Gated Pilot Expansion</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Enroll 3-5 existing registered internal users only after the expansion gate passes. This writes audit logs and stores metadata only.
+          </p>
+          <form action={expandPilotCohortAction} className="grid gap-3 md:grid-cols-[1fr_2fr]">
+            <select name="pilotCohortId" className="rounded-md border bg-background px-3 py-2 text-sm">
+              {cohorts.map((cohort) => (
+                <option key={cohort.id} value={cohort.id}>{cohort.name}</option>
+              ))}
+            </select>
+            <textarea
+              name="emails"
+              placeholder="3-5 registered user emails, one per line or comma separated"
+              className="min-h-24 rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <input
+              name="reason"
+              placeholder="Expansion reason required"
+              className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
+            />
+            <button disabled={!expansion.passed || cohorts.length === 0} className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
+              Expand internal pilot
+            </button>
+          </form>
+        </CardContent>
+      </Card>
 
       {iteration.recommendations.length > 0 && (
         <Card>
@@ -368,6 +436,7 @@ export default async function PilotReadinessPage() {
               <form action={enrollPilotUserAction} className="mt-3 flex flex-wrap gap-2">
                 <input type="hidden" name="pilotCohortId" value={cohort.id} />
                 <input name="email" placeholder="User email" className="rounded-md border bg-background px-3 py-2 text-sm" />
+                <input name="reason" placeholder="Setup reason" className="rounded-md border bg-background px-3 py-2 text-sm" />
                 <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Enroll user</button>
               </form>
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
@@ -389,5 +458,14 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
+  )
+}
+
+function SmallMetric({ title, value }: { title: string; value: string | number }) {
+  return (
+    <div className="rounded-md border bg-muted/30 p-3">
+      <p className="text-xs text-muted-foreground">{title}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
+    </div>
   )
 }

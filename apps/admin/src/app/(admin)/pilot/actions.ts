@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { requireAdminUser } from "@inner-avatar/auth/session"
+import { expandPilotCohort } from "@inner-avatar/ai"
+import { requireAdminUser, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
 const CohortSchema = z.object({
@@ -13,6 +14,13 @@ const CohortSchema = z.object({
 const EnrollmentSchema = z.object({
   pilotCohortId: z.string().min(1),
   email: z.string().trim().email().toLowerCase(),
+  reason: z.string().trim().min(10, "A setup enrollment reason is required."),
+})
+
+const ExpansionSchema = z.object({
+  pilotCohortId: z.string().min(1),
+  emails: z.string().trim().min(1),
+  reason: z.string().trim().min(20, "Explain why this pilot expansion is ready."),
 })
 
 const PilotSessionReviewSchema = z.object({
@@ -49,7 +57,7 @@ export async function createPilotCohortAction(formData: FormData) {
 }
 
 export async function enrollPilotUserAction(formData: FormData) {
-  const actor = await requireAdminUser()
+  const actor = await requireSuperAdminUser()
   const parsed = EnrollmentSchema.parse(Object.fromEntries(formData))
   const user = await prisma.user.findUnique({
     where: { email: parsed.email },
@@ -81,8 +89,27 @@ export async function enrollPilotUserAction(formData: FormData) {
       action: "pilot_enrollment.upsert",
       targetType: "PilotEnrollment",
       targetId: enrollment.id,
-      metadata: { userEmail: user.email, pilotCohortId: parsed.pilotCohortId },
+      reason: parsed.reason,
+      metadata: { userEmail: user.email, pilotCohortId: parsed.pilotCohortId, mode: "setup_one_off" },
     },
+  })
+
+  revalidatePath("/pilot")
+}
+
+export async function expandPilotCohortAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = ExpansionSchema.parse(Object.fromEntries(formData))
+  const emails = parsed.emails
+    .split(/[\n,]/)
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean)
+
+  await expandPilotCohort({
+    actorId: actor.id,
+    pilotCohortId: parsed.pilotCohortId,
+    emails,
+    reason: parsed.reason,
   })
 
   revalidatePath("/pilot")

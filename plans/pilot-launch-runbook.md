@@ -43,9 +43,16 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Do not expose raw journal text during ordinary learning review. Use existing audited reveal flows only when necessary for safety or quality investigation.
 - Invite more internal users only when readiness passes, learning report has no blockers, source review coverage is at least 80%, unsupported-source reports are reviewed, and no new unresolved safety items remain.
 
+## Internal Pilot Expansion
+- Default to batches of 3-5 existing registered internal users.
+- Use the expansion gate in `/admin/pilot`; do not bypass it with manual enrollment unless this is a super-admin setup correction with a reason.
+- Before inviting a batch, confirm launch readiness passes, RAG activation metadata is present, source/no-source review coverage is at least 80%, no new unresolved safety items exist, no pilot blockers are open, and unsupported-source or negative feedback has a reviewer disposition.
+- After each batch, wait for first-session completion and daily learning review before inviting another batch.
+- Store only expansion metadata in audit logs: cohort, user emails, batch size, readiness summary, reason, and enrollment result.
+
 ## Rollback Criteria
 - Disable `rag_enabled` immediately if source citation validation fails, quote leakage appears, unsupported-source reports cluster, no-source fallback copy becomes misleading, or high/medium safety retrieval exclusions regress.
-- Pause the cohort if unresolved safety reviews accumulate, if pilot-blocker quality reviews remain open, or if feedback trends toward too intense/unclear.
+- Pause expansion if unresolved safety reviews accumulate, if pilot-blocker quality reviews remain open, if review coverage falls below 80%, or if feedback trends toward too intense/unclear.
 - Keep the legacy ChatGPT app analysis-only during this pilot unless a separate parity pass is approved.
 
 ## Support Limits

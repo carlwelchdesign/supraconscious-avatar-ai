@@ -6,6 +6,7 @@ import {
   classifySourcePath,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
+  evaluatePilotExpansionReadinessSnapshot,
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
   INNER_COUNCIL_FEATURE_FLAGS,
@@ -414,4 +415,131 @@ test("pilot learning feedback disposition derives review state", () => {
   assert.equal(readFeedbackDisposition(undefined, ["helpful"]), "reviewed")
   assert.equal(readFeedbackDisposition(undefined, ["unsupported_source"]), "needs_review")
   assert.equal(readFeedbackDisposition({ feedbackDisposition: "cleared" }, ["unsupported_source"]), "cleared")
+})
+
+test("pilot expansion readiness blocks low review coverage and unresolved source feedback", () => {
+  const report = evaluatePilotExpansionReadinessSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    launch: {
+      passed: true,
+      blockers: [],
+      metrics: {
+        activeCohorts: 1,
+        enrolledUsers: 1,
+        orientationCompleteUsers: 1,
+        firstSessionsCompleted: 1,
+        embodimentGateSaves: 1,
+        unresolvedSafetyReviews: 0,
+        qualityBlockers: 0,
+        feedbackTotal: 2,
+        sourceModeCounts: { rag: 2 },
+      },
+      latestEvalMetadata: {
+        rag: { passed: true, total: 11, failed: 0 },
+        pilot: { passed: true, total: 11, failed: 0 },
+        ragActivationEvalPassed: true,
+        ragEnabled: true,
+        councilModeEnabled: true,
+      },
+    },
+    learning: {
+      reviewCoverage: {
+        sourceSessions: 2,
+        reviewedSourceSessions: 1,
+        unreviewedSourceSessions: 1,
+        coverageRate: 50,
+        pilotBlockers: 0,
+      },
+      ragLearningQueue: [{
+        councilSessionId: "session_1",
+        userEmail: "pilot@example.com",
+        createdAt: "2026-07-03T12:00:00.000Z",
+        sourceMode: "rag",
+        feedbackTypes: ["unsupported_source"],
+        latestReviewLabel: null,
+        latestReviewSeverity: null,
+        disposition: "needs_review",
+        selectedSourceTitles: [],
+        selectedChunkIds: [],
+        matchReasons: [],
+        fallbackReason: null,
+        validationStatus: "validated",
+        validationWarnings: [],
+        validationFailedRules: [],
+        citationCoverage: 1,
+        evidenceCoverage: 1,
+        displayExcerptSuppressed: true,
+      }],
+      feedbackMetrics: { total: 2, helpful: 1, notAccurate: 0, tooIntense: 0, unclear: 0, unsupportedSource: 1 },
+      sourceModeMetrics: { rag: 2 },
+      sourceGroundingMetrics: {
+        retrievalTraceCount: 2,
+        selectedTraceCount: 2,
+        noEligibleSourceTraceCount: 0,
+        paraphraseOnlySelections: 2,
+        displayExcerptCount: 0,
+        uniqueSelectedSourceTitles: ["The Inner Council_"],
+      },
+    },
+  })
+
+  assert.equal(report.passed, false)
+  assert.deepEqual(report.blockers.map((blocker) => blocker.code), [
+    "review_coverage_low",
+    "unreviewed_source_sessions",
+    "unreviewed_negative_feedback",
+    "unsupported_source_unreviewed",
+  ])
+})
+
+test("pilot expansion readiness passes with conservative gates satisfied", () => {
+  const report = evaluatePilotExpansionReadinessSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    launch: {
+      passed: true,
+      blockers: [],
+      metrics: {
+        activeCohorts: 1,
+        enrolledUsers: 3,
+        orientationCompleteUsers: 3,
+        firstSessionsCompleted: 3,
+        embodimentGateSaves: 2,
+        unresolvedSafetyReviews: 0,
+        qualityBlockers: 0,
+        feedbackTotal: 3,
+        sourceModeCounts: { rag: 3 },
+      },
+      latestEvalMetadata: {
+        rag: { passed: true, total: 11, failed: 0 },
+        pilot: { passed: true, total: 11, failed: 0 },
+        ragActivationEvalPassed: true,
+        ragEnabled: true,
+        councilModeEnabled: true,
+      },
+    },
+    learning: {
+      reviewCoverage: {
+        sourceSessions: 5,
+        reviewedSourceSessions: 4,
+        unreviewedSourceSessions: 0,
+        coverageRate: 80,
+        pilotBlockers: 0,
+      },
+      ragLearningQueue: [],
+      feedbackMetrics: { total: 3, helpful: 3, notAccurate: 0, tooIntense: 0, unclear: 0, unsupportedSource: 0 },
+      sourceModeMetrics: { rag: 3 },
+      sourceGroundingMetrics: {
+        retrievalTraceCount: 3,
+        selectedTraceCount: 3,
+        noEligibleSourceTraceCount: 0,
+        paraphraseOnlySelections: 3,
+        displayExcerptCount: 0,
+        uniqueSelectedSourceTitles: ["The Inner Council_"],
+      },
+    },
+  })
+
+  assert.equal(report.passed, true)
+  assert.deepEqual(report.recommendedBatchSize, { min: 3, max: 5 })
+  assert.equal(report.metrics.reviewCoverageRate, 80)
 })
