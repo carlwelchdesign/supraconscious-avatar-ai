@@ -114,6 +114,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const [embodimentText, setEmbodimentText] = useState("")
   const [embodimentSaved, setEmbodimentSaved] = useState(false)
   const [feedbackSaved, setFeedbackSaved] = useState("")
+  const [feedbackNote, setFeedbackNote] = useState("")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -130,6 +131,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
     setEmbodimentText("")
     setEmbodimentSaved(false)
     setFeedbackSaved("")
+    setFeedbackNote("")
     setIsSubmitting(true)
 
     try {
@@ -188,11 +190,13 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
         body: JSON.stringify({
           councilSessionId: result.councilSession.id,
           feedbackType,
+          note: feedbackNote.trim() || undefined,
         }),
       })
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.error ?? "Unable to save feedback.")
       setFeedbackSaved(feedbackType)
+      setFeedbackNote("")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to save feedback.")
     } finally {
@@ -531,6 +535,14 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 Help tune the pilot. Your feedback is reviewed by the pilot team; it does not automatically retrain the guide or act as a diagnosis.
               </p>
+              <textarea
+                value={feedbackNote}
+                onChange={(event) => setFeedbackNote(event.target.value)}
+                maxLength={500}
+                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
+                style={{ borderColor: "rgba(43,27,53,0.08)" }}
+              />
               <div className="mt-4 flex flex-wrap gap-2">
                 {[
                   ["helpful", "Helpful"],

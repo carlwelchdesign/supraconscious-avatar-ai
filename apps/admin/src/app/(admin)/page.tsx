@@ -33,6 +33,7 @@ export default async function AdminHomePage() {
       <div className="flex flex-wrap gap-3 text-sm">
         <Link href="/safety" className="underline">Review safety events</Link>
         <Link href="/prompts" className="underline">Manage prompt templates</Link>
+        <Link href="/calibration" className="underline">Founder calibration</Link>
         <Link href="/feature-flags" className="underline">Manage feature flags</Link>
       </div>
     </div>

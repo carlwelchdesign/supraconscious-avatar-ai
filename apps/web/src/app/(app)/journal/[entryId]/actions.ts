@@ -10,6 +10,7 @@ import { prisma } from "@inner-avatar/db"
 const FeedbackSchema = z.object({
   councilSessionId: z.string().min(1),
   feedbackType: z.enum(["helpful", "not_accurate", "too_intense", "unclear", "unsupported_source"]),
+  note: z.string().trim().max(500).optional(),
 })
 
 export async function submitSavedSessionFeedbackAction(formData: FormData) {
@@ -26,6 +27,7 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
       userId: user.id,
       councilSessionId: session.id,
       feedbackType: parsed.feedbackType,
+      note: parsed.note || null,
     },
   })
   const safety = session.safetySnapshot as { severity?: string }
@@ -36,7 +38,7 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
     councilSessionId: session.id,
     sourceMode: session.sourceMode,
     safetySeverity: safety.severity ?? "unknown",
-    properties: { feedbackType: parsed.feedbackType, savedEntry: true },
+    properties: { feedbackType: parsed.feedbackType, savedEntry: true, hasNote: Boolean(parsed.note) },
   })
 
   revalidatePath(`/journal/${session.journalEntryId}`)

@@ -4,6 +4,7 @@ import {
   buildApprovedSourceWhere,
   buildPilotLearningReportFromSnapshot,
   buildPilotReviewCoverageReportFromSnapshot,
+  buildFounderCalibrationReportFromSnapshot,
   classifySourcePath,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
@@ -640,5 +641,73 @@ test("pilot review coverage report prioritizes validation and source feedback wi
   ])
   assert.equal(report.prioritizedQueue[0]?.reviewHref, "/council?sessionId=session_validation")
   assert.equal(report.prioritizedQueue.every((item) => item.rawJournalTextHidden), true)
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+})
+
+test("founder calibration report groups feedback and review issues without raw journal text", () => {
+  const report = buildFounderCalibrationReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    sessions: [
+      {
+        id: "session_carl",
+        userId: "user_carl",
+        userEmail: "carl@example.com",
+        userName: "Carl",
+        sourceMode: "rag",
+        feedback: [
+          { feedbackType: "unsupported_source", note: "The source felt off." },
+          { feedbackType: "not_accurate", note: null },
+        ],
+        qualityReviews: [
+          {
+            label: "source_unsupported",
+            severity: "normal",
+            reason: "Selected source did not support the claim.",
+            metadata: { calibrationIssueType: "source_issue" },
+          },
+          {
+            label: "voice_wrong",
+            severity: "normal",
+            reason: "Voice was too generic.",
+            metadata: { calibrationIssueType: "voice_mismatch" },
+          },
+        ],
+        generationTraces: [
+          {
+            traceType: "retrieval",
+            validationStatus: "selected",
+            sourceChunkId: "chunk_1",
+            sourceTitle: "The Inner Council_",
+            outputJson: { title: "The Inner Council_" },
+          },
+        ],
+      },
+      {
+        id: "session_maria",
+        userId: "user_maria",
+        userEmail: "maria@example.com",
+        userName: "Maria",
+        sourceMode: "no_eligible_source",
+        feedback: [],
+        qualityReviews: [
+          {
+            label: "ready",
+            severity: "normal",
+            reason: "Good calibration example.",
+            metadata: { calibrationIssueType: null },
+          },
+        ],
+        generationTraces: [],
+      },
+    ],
+  })
+
+  assert.equal(report.users.length, 2)
+  assert.equal(report.sessionMetrics.totalSessions, 2)
+  assert.equal(report.sessionMetrics.feedbackNotes, 1)
+  assert.equal(report.sessionMetrics.readySessions, 1)
+  assert.equal(report.sourceGroundingIssues.length, 1)
+  assert.equal(report.promptIssues.length, 2)
+  assert.ok(report.feedbackThemes.some((theme) => theme.theme === "note_provided"))
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
 })

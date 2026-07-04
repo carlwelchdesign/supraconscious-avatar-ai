@@ -286,23 +286,26 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               Feedback is reviewed by the pilot team; it does not automatically retrain the guide.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {[
-                ["helpful", "Helpful"],
-                ["not_accurate", "Not accurate"],
-                ["too_intense", "Too intense"],
-                ["unclear", "Unclear"],
-                ["unsupported_source", "Report source issue"],
-              ].map(([value, label]) => (
-                <form key={value} action={submitSavedSessionFeedbackAction}>
-                  <input type="hidden" name="councilSessionId" value={entry.councilSession!.id} />
-                  <input type="hidden" name="feedbackType" value={value} />
-                  <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-                    {label}
-                  </button>
-                </form>
-              ))}
-            </div>
+            <form action={submitSavedSessionFeedbackAction} className="mt-3 space-y-3">
+              <input type="hidden" name="councilSessionId" value={entry.councilSession.id} />
+              <select name="feedbackType" defaultValue="helpful" className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                <option value="helpful">Helpful</option>
+                <option value="not_accurate">Not accurate</option>
+                <option value="too_intense">Too intense</option>
+                <option value="unclear">Unclear</option>
+                <option value="unsupported_source">Report source issue</option>
+              </select>
+              <textarea
+                name="note"
+                maxLength={500}
+                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
+                style={{ borderColor: "rgba(43,27,53,0.08)" }}
+              />
+              <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                Save feedback
+              </button>
+            </form>
           </div>
         </div>
       )}

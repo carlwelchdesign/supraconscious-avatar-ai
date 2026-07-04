@@ -10,6 +10,7 @@ const nav = [
   { href: "/safety", label: "Safety", icon: FileWarning },
   { href: "/health", label: "System Health", icon: HeartPulse },
   { href: "/pilot", label: "Pilot Readiness", icon: BarChart3 },
+  { href: "/calibration", label: "Founder Calibration", icon: Sparkles },
   { href: "/prompts", label: "Prompts", icon: MessageSquareText },
   { href: "/sources", label: "Sources", icon: BookOpen },
   { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },
