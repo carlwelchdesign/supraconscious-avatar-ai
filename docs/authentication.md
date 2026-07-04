@@ -57,6 +57,18 @@ If a user is locked out, a `super_admin` can issue a temporary password from adm
 
 There is no email-delivered "forgot password" flow yet.
 
+## Auth Throttling
+
+Registration, web login, and admin login use server-side attempt throttling keyed by client IP and submitted email when available.
+
+Current limits:
+
+- web login: 8 failed attempts per 15 minutes
+- admin login: 5 failed attempts per 15 minutes
+- registration: 6 failed attempts per 15 minutes
+
+This is an application-level guard for the current deployment shape. A future high-traffic deployment should move throttling to shared infrastructure such as an edge/WAF layer or a shared store so limits apply consistently across many app replicas.
+
 ## Sessions
 
 `createSession()` generates a random token, hashes it with SHA-256, stores the hash in `Session.tokenHash`, and sends the raw token in a scoped cookie.
@@ -104,5 +116,5 @@ Server-side authorization must still be called inside pages, server actions, and
 
 - No email-delivered password reset flow yet.
 - No email verification flow yet.
-- No rate limiting or bot protection yet.
+- No CAPTCHA or bot-protection challenge yet.
 - No per-session management UI yet.

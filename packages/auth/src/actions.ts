@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
+import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
 import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
@@ -28,7 +29,11 @@ export type AuthActionState = {
 export async function registerAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = RegisterSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
+    await recordAuthFailure("register")
     return { error: parsed.error.issues[0]?.message ?? "Could not create account." }
+  }
+  if (await isAuthRateLimited("register", parsed.data.email)) {
+    return { error: rateLimitMessage("register") }
   }
 
   try {
@@ -38,6 +43,7 @@ export async function registerAction(_state: AuthActionState, formData: FormData
     })
 
     if (existing) {
+      await recordAuthFailure("register", parsed.data.email)
       return { error: "An account already exists for this email." }
     }
 
@@ -53,6 +59,7 @@ export async function registerAction(_state: AuthActionState, formData: FormData
 
     await createSession(user.id, "web")
   } catch (error) {
+    await recordAuthFailure("register", parsed.data.email)
     return { error: authDatabaseErrorMessage(error) }
   }
 
@@ -62,7 +69,11 @@ export async function registerAction(_state: AuthActionState, formData: FormData
 export async function loginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = LoginSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
+    await recordAuthFailure("web_login")
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
+  }
+  if (await isAuthRateLimited("web_login", parsed.data.email)) {
+    return { error: rateLimitMessage("web_login") }
   }
   let redirectTo = "/dashboard"
 
@@ -72,6 +83,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     })
 
     if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+      await recordAuthFailure("web_login", parsed.data.email)
       return { error: "Email or password is incorrect." }
     }
 
@@ -83,6 +95,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     await createSession(effectiveUser.id, "web")
     redirectTo = choosePostAuthRedirect(await readPostLoginRedirect(effectiveUser), parsed.data.next)
   } catch (error) {
+    await recordAuthFailure("web_login", parsed.data.email)
     return { error: authDatabaseErrorMessage(error) }
   }
 
@@ -97,7 +110,11 @@ export async function logoutAction() {
 export async function adminLoginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = LoginSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
+    await recordAuthFailure("admin_login")
     return { error: parsed.error.issues[0]?.message ?? "Could not sign in." }
+  }
+  if (await isAuthRateLimited("admin_login", parsed.data.email)) {
+    return { error: rateLimitMessage("admin_login") }
   }
 
   try {
@@ -106,6 +123,7 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
     })
 
     if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+      await recordAuthFailure("admin_login", parsed.data.email)
       return { error: "Email or password is incorrect." }
     }
 
@@ -115,11 +133,13 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
       : user
 
     if (effectiveUser.role !== "admin" && effectiveUser.role !== "super_admin") {
+      await recordAuthFailure("admin_login", parsed.data.email)
       return { error: "Admin access is required." }
     }
 
     await createSession(effectiveUser.id, "admin")
   } catch (error) {
+    await recordAuthFailure("admin_login", parsed.data.email)
     return { error: authDatabaseErrorMessage(error) }
   }
 
@@ -137,6 +157,11 @@ function authDatabaseErrorMessage(error: unknown) {
   }
 
   return "We could not process that account request. Please try again."
+}
+
+function rateLimitMessage(scope: "web_login" | "admin_login" | "register") {
+  if (scope === "register") return "Too many account creation attempts. Please wait a few minutes and try again."
+  return "Too many sign-in attempts. Please wait a few minutes and try again."
 }
 
 function roleForEmail(email: string): UserRole {
