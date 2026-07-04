@@ -3,6 +3,7 @@ type SmokeCase = {
   url: string
   expectedStatus: number | number[]
   expectedRedirectPath?: string
+  expectedBodyIncludes?: string[]
 }
 
 type SmokeResult = {
@@ -18,6 +19,7 @@ const webAppBaseUrl = normalizeBaseUrl(readArg("--web-url") ?? process.env.FOUND
 const adminAppBaseUrl = normalizeBaseUrl(readArg("--admin-url") ?? process.env.FOUNDER_HANDOFF_ADMIN_URL ?? "http://localhost:3001")
 const passes = Number(readArg("--passes") ?? "1")
 const timeoutMs = Number(readArg("--timeout-ms") ?? "5000")
+const smokeEmail = "founder-smoke@example.com"
 
 const cases: SmokeCase[] = [
   {
@@ -26,9 +28,21 @@ const cases: SmokeCase[] = [
     expectedStatus: 200,
   },
   {
+    name: "web founder login handoff preserves email and onboarding next step",
+    url: `${webAppBaseUrl}/login?email=${encodeURIComponent(smokeEmail)}&next=${encodeURIComponent("/onboarding")}`,
+    expectedStatus: 200,
+    expectedBodyIncludes: [`value="${smokeEmail}"`, `name="next"`, `value="/onboarding"`],
+  },
+  {
     name: "web register",
     url: `${webAppBaseUrl}/register`,
     expectedStatus: 200,
+  },
+  {
+    name: "web founder register handoff preserves email and onboarding next step",
+    url: `${webAppBaseUrl}/register?email=${encodeURIComponent(smokeEmail)}&next=${encodeURIComponent("/onboarding")}`,
+    expectedStatus: 200,
+    expectedBodyIncludes: [`value="${smokeEmail}"`, `name="next"`, `value="/onboarding"`],
   },
   {
     name: "web onboarding protects anonymous users",
@@ -97,13 +111,18 @@ async function runSmokeCase(testCase: SmokeCase, timeout: number): Promise<Smoke
     const passedRedirect = testCase.expectedRedirectPath
       ? redirectLocationMatches(redirectLocation, testCase.expectedRedirectPath)
       : true
+    const body = testCase.expectedBodyIncludes ? await response.text() : ""
+    const passedBody = testCase.expectedBodyIncludes
+      ? testCase.expectedBodyIncludes.every((expected) => body.includes(expected))
+      : true
 
     return {
       name: testCase.name,
       url: testCase.url,
-      passed: passedStatus && passedRedirect,
+      passed: passedStatus && passedRedirect && passedBody,
       status: response.status,
       redirectLocation,
+      error: passedBody ? undefined : "Response body did not include expected founder handoff form values.",
     }
   } catch (error) {
     return {
