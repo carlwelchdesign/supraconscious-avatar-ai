@@ -29,6 +29,7 @@ Use this sequence:
 ```bash
 yarn verify:founder-calibration-code
 yarn dev:founder-calibration
+yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3
 yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 yarn check:founder-calibration-launch
 ```

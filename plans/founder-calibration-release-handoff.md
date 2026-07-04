@@ -24,6 +24,7 @@ The repo-side code path is verified. The live launch gate is expected to remain 
 ## Primary Commands
 ```bash
 yarn dev:founder-calibration
+yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3
 yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 yarn check:founder-calibration-launch
 yarn verify:founder-calibration-code
@@ -49,6 +50,7 @@ yarn verify:founder-calibration-code
 
 Additional recent checks:
 - `yarn check:founder-calibration-launch` correctly exits blocked with Carl/Maria onboarding, consent, and session blockers.
+- `yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3` checks local web/admin handoff routes and protected-route login redirects before founder use.
 - `yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` prints the local app command, admin setup/review links, founder handoff text, blockers, and after-session review commands.
 
 ## Current Live Blockers
