@@ -19,6 +19,8 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Review quality blockers before considering any source or cohort expansion.
 - Watch no-source/RAG rates, feedback mix, first-session completion, Embodiment Gate saves, and unsupported-source reports.
 - Run the pilot iteration report after each active pilot day and review the feedback queue before inviting additional users.
+- Run the pilot learning report after each active pilot day while RAG is enabled.
+- Review at least 80% of source-grounded or no-source sessions before inviting additional internal users.
 - Treat `not_accurate`, `too_intense`, `unclear`, and `unsupported_source` feedback as review-required until an admin records a disposition.
 - Go/no-go defaults: continue only when launch readiness passes, safety queue is clear or consciously escalated, no pilot blockers remain, and negative feedback has a reviewer disposition.
 
@@ -34,8 +36,15 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Smoke passes only when matching entries produce `sourceMode=rag` with selected retrieval traces and unrelated entries produce `sourceMode=no_eligible_source`.
 - Monitor RAG/no-source rates, selected source titles, unsupported-source reports, and citation validation during each daily review.
 
+## Pilot Learning Loop
+- Use the RAG learning queue to review source-grounded sessions, no-source fallbacks, unsupported-source reports, validation warnings, and unreviewed RAG sessions.
+- Reviewer labels should be `grounded`, `unsupported`, `too_vague`, `too_intense`, or `safety_concern`; use `pilot_blocker` only when expansion should stop.
+- Unsupported-source reports require a reviewer reason and one of three outcomes: clear the session, mark the source claim unsupported, or rollback RAG if similar reports cluster.
+- Do not expose raw journal text during ordinary learning review. Use existing audited reveal flows only when necessary for safety or quality investigation.
+- Invite more internal users only when readiness passes, learning report has no blockers, source review coverage is at least 80%, unsupported-source reports are reviewed, and no new unresolved safety items remain.
+
 ## Rollback Criteria
-- Disable `rag_enabled` immediately if source citation validation fails, quote leakage appears, or unsupported-source reports cluster.
+- Disable `rag_enabled` immediately if source citation validation fails, quote leakage appears, unsupported-source reports cluster, no-source fallback copy becomes misleading, or high/medium safety retrieval exclusions regress.
 - Pause the cohort if unresolved safety reviews accumulate, if pilot-blocker quality reviews remain open, or if feedback trends toward too intense/unclear.
 - Keep the legacy ChatGPT app analysis-only during this pilot unless a separate parity pass is approved.
 

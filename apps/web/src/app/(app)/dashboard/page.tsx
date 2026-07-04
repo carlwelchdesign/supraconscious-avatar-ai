@@ -215,6 +215,7 @@ export default async function DashboardPage() {
                 reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under pilot review" : null,
                 review?.severity === "pilot_blocker" ? "Pilot blocker" : null,
                 reviewMetadata?.feedbackDisposition === "cleared" ? "Review cleared" : null,
+                reviewMetadata?.feedbackDisposition === "blocked" ? "Review blocked" : null,
                 entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
                 safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
               ].filter(Boolean)

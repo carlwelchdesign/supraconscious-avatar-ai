@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { readRagActivationMetadata, runPilotIterationReport, runPilotLaunchReadiness } from "@inner-avatar/ai"
+import { readRagActivationMetadata, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport } from "@inner-avatar/ai"
 import { createPilotCohortAction, enrollPilotUserAction, reviewPilotSessionAction } from "./actions"
 
 const QUALITY_LABELS = [
@@ -14,9 +14,10 @@ const QUALITY_LABELS = [
 ] as const
 
 export default async function PilotReadinessPage() {
-  const [readiness, iteration] = await Promise.all([
+  const [readiness, iteration, learning] = await Promise.all([
     runPilotLaunchReadiness(),
     runPilotIterationReport(),
+    runPilotLearningReport(),
   ])
   const schemaReady = !readiness.blockers.some((blocker) => blocker.code === "database_schema_not_ready")
   const [cohorts, feedback, ragFlag, recentRetrievalTitles] = schemaReady ? await Promise.all([
@@ -119,6 +120,13 @@ export default async function PilotReadinessPage() {
         <Metric title="Source reports" value={iteration.feedbackMetrics.unsupportedSource} />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-4">
+        <Metric title="RAG sessions" value={learning.sourceModeMetrics.rag ?? 0} />
+        <Metric title="No-source sessions" value={learning.sourceModeMetrics.no_eligible_source ?? 0} />
+        <Metric title="Review coverage" value={`${learning.reviewCoverage.coverageRate}%`} />
+        <Metric title="Unreviewed source" value={learning.reviewCoverage.unreviewedSourceSessions} />
+      </div>
+
       {iteration.recommendations.length > 0 && (
         <Card>
           <CardHeader><CardTitle>Daily Recommendations</CardTitle></CardHeader>
@@ -183,6 +191,7 @@ export default async function PilotReadinessPage() {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>Retrieval traces: {readiness.metrics.sourceModeCounts.rag ?? 0} source-grounded sessions · {readiness.metrics.sourceModeCounts.no_eligible_source ?? 0} no-source sessions.</p>
           <p>Unsupported-source reports: {iteration.feedbackMetrics.unsupportedSource}</p>
+          <p>Selected retrieval traces: {learning.sourceGroundingMetrics.selectedTraceCount} · paraphrase-only selections: {learning.sourceGroundingMetrics.paraphraseOnlySelections} · quote excerpts shown: {learning.sourceGroundingMetrics.displayExcerptCount}</p>
           <p>Activation: {ragFlag?.enabled ? "enabled" : "disabled"}{ragActivation.activatedAt ? ` · ${new Date(ragActivation.activatedAt).toLocaleString()}` : ""}</p>
           <div>
             <p className="font-medium text-foreground">Recent selected source titles</p>
@@ -199,6 +208,64 @@ export default async function PilotReadinessPage() {
           <Link href="/sources/readiness" className="inline-flex rounded-md border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted">
             Open RAG readiness and rollback
           </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>RAG Learning Queue</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {learning.ragLearningQueue.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No source-grounding review items are open.</p>
+          ) : learning.ragLearningQueue.map((item) => (
+            <div key={item.councilSessionId} className="rounded-md border p-3 text-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="font-medium">{item.userEmail} · {new Date(item.createdAt).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    source: {item.sourceMode} · disposition: {item.disposition} · validation: {item.validationStatus ?? "unknown"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    feedback: {item.feedbackTypes.length ? item.feedbackTypes.join(", ") : "none"} · review: {item.latestReviewLabel ?? "unreviewed"}{item.latestReviewSeverity === "pilot_blocker" ? " · pilot blocker" : ""}
+                  </p>
+                </div>
+                <Link href="/council" className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
+                  Council review
+                </Link>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <div className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+                  <p className="font-medium text-foreground">Sources</p>
+                  {item.selectedSourceTitles.length ? item.selectedSourceTitles.map((title) => <p key={title}>{title}</p>) : <p>No selected source.</p>}
+                  {item.selectedChunkIds.length > 0 && <p className="mt-1">chunks: {item.selectedChunkIds.join(", ")}</p>}
+                  {item.displayExcerptSuppressed && <p className="mt-1">Display excerpts suppressed by paraphrase-only rights.</p>}
+                </div>
+                <div className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+                  <p className="font-medium text-foreground">Grounding</p>
+                  {item.matchReasons.length ? item.matchReasons.map((reason) => <p key={reason}>{reason}</p>) : <p>{item.fallbackReason ?? "No match reason recorded."}</p>}
+                  <p className="mt-1">citation coverage: {item.citationCoverage ?? "unknown"} · evidence coverage: {item.evidenceCoverage ?? "unknown"}</p>
+                  {item.validationWarnings.length > 0 && <p className="mt-1">warnings: {item.validationWarnings.join(", ")}</p>}
+                  {item.validationFailedRules.length > 0 && <p className="mt-1">failed rules: {item.validationFailedRules.join(", ")}</p>}
+                </div>
+              </div>
+              <form action={reviewPilotSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_auto_1fr_auto]">
+                <input type="hidden" name="councilSessionId" value={item.councilSessionId} />
+                <select name="label" defaultValue={item.latestReviewLabel ?? "grounded"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  {QUALITY_LABELS.filter(([value]) => value !== "reviewed").map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <select name="disposition" defaultValue={item.disposition === "needs_review" ? "reviewed" : item.disposition} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  <option value="reviewed">reviewed</option>
+                  <option value="cleared">cleared</option>
+                  <option value="blocked">blocked</option>
+                </select>
+                <select name="severity" defaultValue={item.latestReviewSeverity ?? "normal"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                  <option value="normal">normal</option>
+                  <option value="pilot_blocker">pilot blocker</option>
+                </select>
+                <input name="reason" placeholder="Reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+              </form>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

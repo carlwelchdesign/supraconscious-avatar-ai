@@ -529,7 +529,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Session feedback
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Help tune the pilot. Your feedback is tied to this session, not used as a diagnosis.
+                Help tune the pilot. Your feedback is reviewed by the pilot team; it does not automatically retrain the guide or act as a diagnosis.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {[
@@ -553,7 +553,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               {feedbackSaved && (
                 <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Feedback saved for this pilot session.
+                  Feedback saved. The pilot team can review this session, but this does not automatically retrain the guide.
                 </p>
               )}
             </div>

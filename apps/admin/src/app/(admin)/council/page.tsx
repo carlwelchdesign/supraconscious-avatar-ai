@@ -153,27 +153,60 @@ export default async function CouncilReviewPage() {
                       <p>No trace records found for this session.</p>
                     ) : session.generationTraces.map((trace) => {
                       const output = trace.outputJson as {
+                        chunkId?: string
                         title?: string
                         rank?: number
                         matchReason?: string
                         matchedTerms?: string[]
                         matchedFields?: string[]
+                        allowedUse?: string
+                        displayExcerpt?: string | null
                         sourcePolicyVersion?: string
+                        pilotValidation?: {
+                          warnings?: string[]
+                          failedRules?: string[]
+                          citationCoverage?: number
+                          evidenceCoverage?: number
+                        }
                       } | null
+                      const displayExcerptSuppressed = trace.traceType === "retrieval" &&
+                        output?.allowedUse === "paraphrase_generation" &&
+                        !output.displayExcerpt
                       return (
                         <div key={trace.id} className="rounded-md bg-muted/40 p-2">
                           <p>
                             {trace.traceType} · {output?.title ?? trace.sourceChunk?.sourceDocument.title ?? trace.model ?? "local"} · {trace.promptVersion ?? "no prompt version"} · {trace.validationStatus}
                           </p>
                           {trace.traceType === "retrieval" && (
-                            <p className="mt-1">
-                              rank {output?.rank ?? "none"} · {output?.matchReason ?? trace.fallbackReason ?? "no match reason"} · policy {output?.sourcePolicyVersion ?? "unknown"}
-                            </p>
+                            <div className="mt-1 space-y-1">
+                              <p>
+                                rank {output?.rank ?? "none"} · chunk {output?.chunkId ?? trace.sourceChunkId ?? "none"} · {output?.matchReason ?? trace.fallbackReason ?? "no match reason"}
+                              </p>
+                              <p>
+                                allowed use: {output?.allowedUse ?? "unknown"} · policy {output?.sourcePolicyVersion ?? "unknown"}
+                              </p>
+                              {displayExcerptSuppressed && (
+                                <p>Display excerpt suppressed by paraphrase-only rights.</p>
+                              )}
+                            </div>
                           )}
                           {output?.matchedTerms && output.matchedTerms.length > 0 && (
                             <p className="mt-1">
                               terms: {output.matchedTerms.join(", ")} · fields: {(output.matchedFields ?? []).join(", ") || "none"}
                             </p>
+                          )}
+                          {output?.pilotValidation && (
+                            <div className="mt-1 space-y-1">
+                              <p>
+                                citation coverage: {output.pilotValidation.citationCoverage ?? "unknown"} · evidence coverage: {output.pilotValidation.evidenceCoverage ?? "unknown"}
+                              </p>
+                              {output.pilotValidation.warnings && output.pilotValidation.warnings.length > 0 && (
+                                <p>warnings: {output.pilotValidation.warnings.join(", ")}</p>
+                              )}
+                              {output.pilotValidation.failedRules && output.pilotValidation.failedRules.length > 0 && (
+                                <p>failed rules: {output.pilotValidation.failedRules.join(", ")}</p>
+                              )}
+                            </div>
                           )}
                         </div>
                       )

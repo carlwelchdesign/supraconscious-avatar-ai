@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   buildApprovedSourceWhere,
+  buildPilotLearningReportFromSnapshot,
   classifySourcePath,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
@@ -14,6 +15,7 @@ import {
   runKeywordRagEvals,
   runPilotCouncilEvals,
   readDisposition,
+  readFeedbackDisposition,
   sanitizeProperties,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
@@ -322,4 +324,94 @@ test("pilot iteration feedback disposition stays privacy-safe and reviewable", (
   assert.equal(readDisposition(undefined, "too_intense"), "needs_review")
   assert.equal(readDisposition({ feedbackDisposition: "blocked" }, "helpful"), "blocked")
   assert.equal(readDisposition({ feedbackDisposition: "cleared" }, "unsupported_source"), "cleared")
+})
+
+test("pilot learning report queues RAG and source feedback without raw journal text", () => {
+  const report = buildPilotLearningReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    sourceModeRows: [
+      { sourceMode: "rag", count: 1 },
+      { sourceMode: "no_eligible_source", count: 1 },
+    ],
+    feedbackRows: [
+      { feedbackType: "helpful", count: 1 },
+      { feedbackType: "unsupported_source", count: 1 },
+    ],
+    safetyRows: [],
+    blockers: [],
+    sessions: [
+      {
+        id: "session_1",
+        userEmail: "pilot@example.com",
+        createdAt: new Date("2026-07-03T12:01:00.000Z"),
+        sourceMode: "rag",
+        feedbackTypes: ["unsupported_source"],
+        qualityReviews: [],
+        generationTraces: [
+          {
+            traceType: "retrieval",
+            validationStatus: "selected",
+            fallbackReason: null,
+            sourceChunkId: "chunk_1",
+            sourceTitle: "The Inner Council_",
+            outputJson: {
+              title: "The Inner Council_",
+              matchReason: "Matched terms: council",
+              allowedUse: "paraphrase_generation",
+              displayExcerpt: null,
+            },
+          },
+          {
+            traceType: "council",
+            validationStatus: "validated",
+            fallbackReason: null,
+            sourceChunkId: null,
+            sourceTitle: null,
+            outputJson: {
+              pilotValidation: {
+                warnings: ["rag_context_used_without_citations"],
+                failedRules: [],
+                citationCoverage: 1,
+                evidenceCoverage: 1,
+              },
+            },
+          },
+        ],
+      },
+      {
+        id: "session_2",
+        userEmail: "pilot@example.com",
+        createdAt: new Date("2026-07-03T12:02:00.000Z"),
+        sourceMode: "no_eligible_source",
+        feedbackTypes: [],
+        qualityReviews: [{ label: "grounded", severity: "normal", metadata: { feedbackDisposition: "reviewed" } }],
+        generationTraces: [
+          {
+            traceType: "retrieval",
+            validationStatus: "no_eligible_source",
+            fallbackReason: "No approved source matched.",
+            sourceChunkId: null,
+            sourceTitle: null,
+            outputJson: { selected: [] },
+          },
+        ],
+      },
+    ],
+  })
+
+  assert.equal(report.sourceModeMetrics.rag, 1)
+  assert.equal(report.sourceModeMetrics.no_eligible_source, 1)
+  assert.equal(report.feedbackMetrics.unsupportedSource, 1)
+  assert.equal(report.reviewCoverage.sourceSessions, 2)
+  assert.equal(report.reviewCoverage.reviewedSourceSessions, 1)
+  assert.equal(report.sourceGroundingMetrics.paraphraseOnlySelections, 1)
+  assert.equal(report.sourceGroundingMetrics.displayExcerptCount, 0)
+  assert.equal(report.ragLearningQueue[0]?.disposition, "needs_review")
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+})
+
+test("pilot learning feedback disposition derives review state", () => {
+  assert.equal(readFeedbackDisposition(undefined, ["helpful"]), "reviewed")
+  assert.equal(readFeedbackDisposition(undefined, ["unsupported_source"]), "needs_review")
+  assert.equal(readFeedbackDisposition({ feedbackDisposition: "cleared" }, ["unsupported_source"]), "cleared")
 })

@@ -283,6 +283,9 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
               {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
             </p>
+            <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
+              Feedback is reviewed by the pilot team; it does not automatically retrain the guide.
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
                 ["helpful", "Helpful"],
