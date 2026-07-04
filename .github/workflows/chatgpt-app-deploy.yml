@@ -11,6 +11,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      DATABASE_URL: postgresql://inner_avatar:inner_avatar_dev@localhost:5432/inner_avatar?sslmode=disable
+      AUTH_SECRET: chatgpt-ci-auth-secret
+      OPENAI_API_KEY: ""
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      INNER_AVATAR_WEB_URL: http://localhost:3000
+      NEXT_PUBLIC_ADMIN_URL: http://localhost:3001
       GHCR_PAT: ${{ secrets.GHCR_PAT }}
 
     steps:
