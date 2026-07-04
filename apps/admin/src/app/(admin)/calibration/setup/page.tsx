@@ -72,6 +72,13 @@ export default async function FounderCalibrationSetupPage() {
             <RequiredRoleStatus role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} />
             <RequiredRoleStatus role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} />
           </div>
+          <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+            If a linked founder account cannot sign in, use the audited password reset in{" "}
+            <Link href="/users" className="font-medium text-foreground underline underline-offset-4">
+              Users
+            </Link>
+            . Do not create a duplicate account, create a session, impersonate the founder, or bypass onboarding/consent.
+          </div>
         </CardContent>
       </Card>
 
