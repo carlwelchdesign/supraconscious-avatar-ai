@@ -265,7 +265,7 @@ export default async function Home() {
             </em>
           </h2>
           <p className="text-[16px] font-light text-[var(--cream)]/65 leading-[1.75] mb-10 max-w-md mx-auto">
-            Begin with a single entry. No account setup ceremony, no onboarding quiz. Just write.
+            Begin with a short consent step, then write one honest entry and let the council reflect it back.
           </p>
           <Link
             href={user ? "/journal" : "/register"}
