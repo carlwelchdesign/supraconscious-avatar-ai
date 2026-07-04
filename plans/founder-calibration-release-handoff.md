@@ -1,16 +1,15 @@
 # Founder Calibration Release Handoff
 
 ## Branch State
-- Local branch: `codex/inner-council-stabilization`
-- Base branch: `main`
-- Current local branch position: run `git log -1 --oneline`
-- Ahead of `main`: run `git rev-list --left-right --count main...HEAD`
-- Remote branch: not pushed yet
+- Branch: `main`
+- Current checked commit: run `git log -1 --oneline`
+- Remote: pushed to `git@github.com:carlwelchdesign/supraconscious-avatar-ai.git`
+- Deployment: Vercel remains the production path; Docker/Compose are available for portable runtime testing.
 
 ## Summary
 This branch implements the Maria-grounded Inner Council, policy-first RAG governance/activation gates, internal pilot governance, founder calibration setup, guided founder sessions, admin calibration review, prompt calibration safety checks, and the Carl/Maria first-session launch path.
 
-The repo-side code path is verified. The live launch gate is expected to remain blocked until Carl and Maria complete real onboarding, consent, first guided sessions, feedback notes, and admin review.
+The repo-side code path is verified and deployed-oriented hardening has been added. The live launch gate is expected to remain blocked until Carl and Maria complete real onboarding, consent, first guided sessions, feedback notes, and admin review.
 
 ## Key Product Surfaces
 - Web first-session flow: `/onboarding`, `/journal`, `/journal/[entryId]`, `/dashboard`
@@ -20,6 +19,8 @@ The repo-side code path is verified. The live launch gate is expected to remain 
 - Admin source readiness/review: `/sources`, `/sources/readiness`
 - Admin pilot operations: `/pilot`
 - Admin prompt tuning: `/prompts`
+- Admin runtime health: `/health`
+- Web/admin readiness probes: `/api/health`
 
 ## Primary Commands
 ```bash
@@ -49,47 +50,31 @@ yarn verify:founder-calibration-code
 - ChatGPT app tests
 
 Additional recent checks:
-- `yarn check:founder-calibration-launch` correctly exits blocked with Carl/Maria onboarding, consent, and session blockers.
+- `yarn check:founder-calibration-launch` correctly exits blocked with the current Carl/Maria evidence blockers.
 - `yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3` checks local web/admin handoff routes and protected-route login redirects before founder use.
 - `yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` prints the local app command, admin setup/review links, founder handoff text, blockers, and after-session review commands.
+- Admin `/health` now exposes runtime configuration, founder launch gate status, auth abuse pressure, and voice usage pressure.
+- Web/admin `/api/health` check Postgres and return `503` when database readiness fails.
+- Docker Compose defines healthchecks for web, admin, and ChatGPT/MCP.
+- Docker build context excludes `.env*`, key files, `.DS_Store`, and local `sources/` corpus files.
 
 ## Current Live Blockers
-- `carlwelchdesign@gmail.com` needs onboarding.
-- `carlwelchdesign@gmail.com` needs current required pilot consent records.
-- `carlwelchdesign@gmail.com` needs one guided calibration session.
+- `carlwelchdesign@gmail.com` is configured, linked, onboarded, consented, and has one `voice_test` session.
+- `carlwelchdesign@gmail.com` needs one specific calibration feedback note.
+- `carlwelchdesign@gmail.com` needs one ready/golden review or a specific issue review.
+- `meliatsaroucha@gmail.com` is configured and linked.
 - `meliatsaroucha@gmail.com` needs onboarding.
 - `meliatsaroucha@gmail.com` needs current required pilot consent records.
 - `meliatsaroucha@gmail.com` needs one guided calibration session.
 
 These blockers should not be bypassed with admin impersonation, password creation, direct session creation, or manual consent/session inserts.
 
-## Push And PR Steps
-The local shell cannot push because GitHub HTTPS credentials are not configured and `gh` is not installed. From an authenticated terminal, run:
-
-```bash
-cd "/Users/carl.welch/Documents/Github Projects/inner-avatar-ai"
-git push -u origin codex/inner-council-stabilization
-```
-
-Then open a PR:
-- Base: `main`
-- Compare: `codex/inner-council-stabilization`
-- Suggested title: `Launch founder calibration Inner Council flow`
-
-## Suggested PR Body
-```markdown
-## Summary
-- Adds the Maria-grounded Inner Council flow, council persistence, safety boundaries, prompt/version checks, and policy-first RAG governance.
-- Adds founder calibration setup, guided Carl/Maria first-session flow, feedback notes, admin live review, launch packet, and code verifier.
-- Keeps live launch gated until Carl and Maria complete onboarding, consent, first guided sessions, feedback notes, and admin review.
-
-## Verification
-- yarn verify:founder-calibration-code
-- yarn check:founder-calibration-launch
-- yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
-
-## Live Launch Notes
-- Do not impersonate founders or bypass onboarding/consent.
-- Start local apps with `yarn dev:founder-calibration`.
-- Use `/calibration/setup` for handoff and `/calibration/live` for review.
-```
+## Current Operator Steps
+- Confirm Vercel env vars from `docs/setup-and-deployment.md`.
+- Confirm admin `/health` shows expected runtime configuration.
+- Open admin `/calibration/setup` and copy the Full Launch Packet.
+- Send Carl the latest-session feedback-note link from the launch packet.
+- Send Maria the onboarding/consent link from the launch packet.
+- Review sessions in `/calibration/live` without raw journal text by default.
+- Mark strong sessions `ready`/golden or assign a voice/source/prompt/intensity/embodiment issue.
+- Re-run `yarn check:founder-calibration-launch` after Carl and Maria complete the real actions.
