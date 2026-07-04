@@ -27,6 +27,9 @@ yarn lint
 yarn verify:founder-calibration-code
 yarn build:web
 yarn build:admin
+yarn docker:build:web
+yarn docker:build:admin
+yarn docker:build:chatgpt
 ```
 
 ## Deployment
@@ -37,6 +40,8 @@ Deploy two Vercel projects:
 - Admin project root directory: `apps/admin`
 
 Each app has its own `.env.example`. Shared packages are imported through workspaces and are not deployed as standalone services.
+
+CI validates Prisma, typecheck, lint, AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
 
 ## Documentation
 

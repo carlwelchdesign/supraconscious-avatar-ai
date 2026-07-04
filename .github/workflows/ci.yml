@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/**
+  workflow_dispatch:
+
+env:
+  DATABASE_URL: postgresql://inner_avatar:inner_avatar_dev@localhost:5432/inner_avatar?sslmode=disable
+  AUTH_SECRET: ci-auth-secret
+  OPENAI_API_KEY: ""
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  INNER_AVATAR_WEB_URL: http://localhost:3000
+  NEXT_PUBLIC_ADMIN_URL: http://localhost:3001
+
+jobs:
+  verify:
+    name: Verify app builds and tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: inner_avatar
+          POSTGRES_USER: inner_avatar
+          POSTGRES_PASSWORD: inner_avatar_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inner_avatar -d inner_avatar"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Verify pinned Yarn
+        run: node .yarn/releases/yarn-4.cjs --version
+
+      - name: Install dependencies
+        run: node .yarn/releases/yarn-4.cjs install --immutable
+
+      - name: Validate Prisma schema
+        run: node .yarn/releases/yarn-4.cjs prisma validate
+
+      - name: Prepare database schema
+        run: node .yarn/releases/yarn-4.cjs db:push
+
+      - name: Typecheck
+        run: node .yarn/releases/yarn-4.cjs typecheck
+
+      - name: Lint
+        run: node .yarn/releases/yarn-4.cjs lint
+
+      - name: Run AI tests
+        run: node .yarn/releases/yarn-4.cjs test:ai
+
+      - name: Run RAG evals
+        run: node .yarn/releases/yarn-4.cjs test:rag
+
+      - name: Run pilot evals
+        run: node .yarn/releases/yarn-4.cjs test:pilot
+
+      - name: Run founder calibration checks
+        run: |
+          node .yarn/releases/yarn-4.cjs test:founder-calibration
+          node .yarn/releases/yarn-4.cjs test:founder-calibration-regression
+          node .yarn/releases/yarn-4.cjs report:founder-calibration-setup
+          node .yarn/releases/yarn-4.cjs report:founder-calibration
+          node .yarn/releases/yarn-4.cjs report:founder-calibration-comparison
+
+      - name: Run ChatGPT app tests
+        run: node .yarn/releases/yarn-4.cjs test:chatgpt
+
+      - name: Build web
+        run: node .yarn/releases/yarn-4.cjs build:web
+
+      - name: Build admin
+        run: node .yarn/releases/yarn-4.cjs build:admin
+
+      - name: Build ChatGPT app
+        run: node .yarn/releases/yarn-4.cjs build:chatgpt
+
+  docker:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: verify
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build web image
+        run: docker build -f apps/web/Dockerfile -t inner-avatar-web:${{ github.sha }} .
+
+      - name: Build admin image
+        run: docker build -f apps/admin/Dockerfile -t inner-avatar-admin:${{ github.sha }} .
+
+      - name: Build ChatGPT app image
+        run: docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:${{ github.sha }} .

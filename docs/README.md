@@ -14,6 +14,10 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Wiki Home](wiki/Home.md): GitHub-wiki-style navigation page that can be copied into an actual GitHub Wiki.
 - [ChatGPT MCP App](chatgpt-mcp-app.md): ChatGPT MCP server package, MCP tools, static widget, test harness, and deployment.
 
+## Release Checks
+
+Pull requests run CI for Prisma validation, typecheck, lint, AI/RAG/pilot/founder checks, web/admin/ChatGPT builds, and Docker image builds. Vercel remains the current production deployment path.
+
 ## Current Product
 
 Inner Avatar is a private guided journaling SaaS. A registered user writes or dictates an entry, the backend runs a safety check, analyzes the entry into structured data, generates a short Avatar reflection, creates a symbolic prompt, updates pattern memory, and may advance the user's level or Avatar stage.
