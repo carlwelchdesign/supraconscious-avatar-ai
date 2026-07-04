@@ -115,7 +115,7 @@ Create two Vercel projects:
 - Web project root directory: `apps/web`.
 - Admin project root directory: `apps/admin`.
 
-Use the same repository but separate project settings, domains, and environment variables. Shared packages are resolved through Yarn workspaces during each app build.
+Use the same repository but separate project settings, domains, and environment variables. Each app root has its own `vercel.json` that runs the repository-pinned Yarn 4 launcher from the monorepo root, so workspace packages resolve correctly.
 
 Recommended build commands:
 
@@ -143,6 +143,7 @@ CI notes:
 Vercel notes:
 
 - The root `vercel.json` is configured for the web app project. It installs with the bundled Yarn 4 launcher, builds `apps/web`, and tells Vercel to read the Next.js output from `apps/web/.next`.
+- `apps/web/vercel.json` and `apps/admin/vercel.json` support Vercel projects whose root directory is set to the app folder. They `cd` back to the monorepo root for install/build and use `.next` as the app-relative output directory.
 - Vercel's build machines may default to Yarn v1 which cannot resolve `workspace:*` protocol. To ensure builds succeed you can either:
   - Set the Vercel Project "Install Command" to `yarn vercel:install` and the "Build Command" to `node .yarn/releases/yarn-4.cjs --cwd apps/web build` (adjust per project), or
   - Use the repository helper script by setting Vercel's Build Command to: `bash ./scripts/vercel-build.sh`.

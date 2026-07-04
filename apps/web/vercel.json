@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && node .yarn/releases/yarn-4.cjs install --immutable",
+  "buildCommand": "cd ../.. && node .yarn/releases/yarn-4.cjs --cwd apps/web build",
+  "outputDirectory": ".next"
+}

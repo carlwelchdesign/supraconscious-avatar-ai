@@ -39,7 +39,7 @@ Deploy two Vercel projects:
 - Web project root directory: `apps/web`
 - Admin project root directory: `apps/admin`
 
-Each app has its own `.env.example`. Shared packages are imported through workspaces and are not deployed as standalone services.
+Each app has its own `.env.example` and app-level `vercel.json`. Shared packages are imported through workspaces and are not deployed as standalone services.
 
 CI validates Prisma, typecheck, lint, AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
 
