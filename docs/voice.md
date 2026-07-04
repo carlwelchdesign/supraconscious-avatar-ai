@@ -38,7 +38,7 @@ Backend:
 - calls `transcribeAudio()`
 - uses OpenAI `whisper-1`
 - returns `{ text }`
-- limits each signed-in user to 20 transcription requests per hour per app instance
+- limits each signed-in user to 20 transcription requests per hour through shared database-backed usage buckets
 
 The current implementation does not store uploaded audio.
 
@@ -72,7 +72,7 @@ Backend:
 - calls `synthesizeSpeech()`
 - uses OpenAI `tts-1`
 - returns `audio/mpeg`
-- limits each signed-in user to 60 speech requests per hour per app instance
+- limits each signed-in user to 60 speech requests per hour through shared database-backed usage buckets
 - rejects speech text over 4,096 characters
 
 The journal UI builds speakable response text with `buildSpeakText()` and skips audio playback for high-severity safety responses.
@@ -91,6 +91,6 @@ If speech generation or playback fails, the audio control shows the provider/app
 - male neutral/deep: `onyx`
 - male soft: `echo`
 
-## Known Gaps
+## Usage Metering
 
-- Usage limits are in-process per app instance. A higher-scale deployment should move voice metering to a shared store or provider/edge-level quota.
+Voice limits are stored in `VoiceUsageBucket` rows keyed by user, voice scope, and hourly window. This keeps metering consistent across Vercel/serverless instances and future horizontally scaled containers. A very high-volume deployment may still add provider-side budget alerts or edge-level quotas, but app-level metering no longer depends on a single process.

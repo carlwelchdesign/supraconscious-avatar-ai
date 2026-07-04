@@ -1,10 +1,8 @@
 import "server-only"
 
-export type VoiceRateLimitScope = "voice_transcribe" | "voice_speak"
+import { prisma } from "@inner-avatar/db"
 
-type RateLimitBucket = {
-  attempts: number[]
-}
+export type VoiceRateLimitScope = "voice_transcribe" | "voice_speak"
 
 type RateLimitConfig = {
   maxAttempts: number
@@ -16,30 +14,24 @@ const VOICE_RATE_LIMITS: Record<VoiceRateLimitScope, RateLimitConfig> = {
   voice_speak: { maxAttempts: 60, windowMs: 60 * 60 * 1000 },
 }
 
-const VOICE_RATE_LIMITS_KEY = "__innerAvatarVoiceRateLimits"
-
-type GlobalWithVoiceRateLimits = typeof globalThis & {
-  [VOICE_RATE_LIMITS_KEY]?: Map<string, RateLimitBucket>
-}
-
-function getStore() {
-  const globalValue = globalThis as GlobalWithVoiceRateLimits
-  globalValue[VOICE_RATE_LIMITS_KEY] ??= new Map()
-  return globalValue[VOICE_RATE_LIMITS_KEY]
-}
-
-export function isVoiceRateLimited(scope: VoiceRateLimitScope, userId: string) {
+export async function reserveVoiceUsage(scope: VoiceRateLimitScope, userId: string) {
   const config = VOICE_RATE_LIMITS[scope]
-  const now = Date.now()
-  const bucket = getCleanBucket(`${scope}:user:${userId}`, config, now)
-  return bucket.attempts.length >= config.maxAttempts
-}
+  const windowStart = getWindowStart(new Date(), config.windowMs)
+  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    INSERT INTO "VoiceUsageBucket" ("id", "userId", "scope", "windowStart", "count", "updatedAt")
+    VALUES (md5(random()::text || clock_timestamp()::text), ${userId}, ${scope}, ${windowStart}, 1, NOW())
+    ON CONFLICT ("userId", "scope", "windowStart")
+    DO UPDATE SET "count" = "VoiceUsageBucket"."count" + 1, "updatedAt" = NOW()
+    RETURNING "count"
+  `
+  const count = rows[0]?.count ?? config.maxAttempts + 1
 
-export function recordVoiceUsage(scope: VoiceRateLimitScope, userId: string) {
-  const config = VOICE_RATE_LIMITS[scope]
-  const now = Date.now()
-  const bucket = getCleanBucket(`${scope}:user:${userId}`, config, now)
-  bucket.attempts.push(now)
+  return {
+    allowed: count <= config.maxAttempts,
+    count,
+    maxAttempts: config.maxAttempts,
+    windowStart,
+  }
 }
 
 export function voiceRateLimitMessage(scope: VoiceRateLimitScope) {
@@ -50,10 +42,6 @@ export function voiceRateLimitMessage(scope: VoiceRateLimitScope) {
   return "Voice playback limit reached. Please wait before generating more audio."
 }
 
-function getCleanBucket(key: string, config: RateLimitConfig, now: number) {
-  const store = getStore()
-  const bucket = store.get(key) ?? { attempts: [] }
-  bucket.attempts = bucket.attempts.filter((timestamp) => now - timestamp < config.windowMs)
-  store.set(key, bucket)
-  return bucket
+function getWindowStart(now: Date, windowMs: number) {
+  return new Date(Math.floor(now.getTime() / windowMs) * windowMs)
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAppUser } from "@inner-avatar/auth/session"
-import { isVoiceRateLimited, recordVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
+import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { transcribeAudio } from "@/lib/voice/transcribe"
 
 export async function POST(request: Request) {
@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     if (audio.size > 25 * 1024 * 1024) {
       return NextResponse.json({ error: "Audio too large (max 25 MB)." }, { status: 400 })
     }
-    if (isVoiceRateLimited("voice_transcribe", user.id)) {
+    const usage = await reserveVoiceUsage("voice_transcribe", user.id)
+    if (!usage.allowed) {
       return NextResponse.json({ error: voiceRateLimitMessage("voice_transcribe") }, { status: 429 })
     }
 
-    recordVoiceUsage("voice_transcribe", user.id)
     const text = await transcribeAudio(audio)
     if (!text.trim()) {
       return NextResponse.json({ error: "No speech detected." }, { status: 422 })

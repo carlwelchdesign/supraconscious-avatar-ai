@@ -46,6 +46,7 @@ model User {
   sessions         Session[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  voiceUsageBuckets VoiceUsageBucket[]
   auditLogs        AuditLog[]
   promptTemplates  PromptTemplate[]
   councilSessions  CouncilSession[]
@@ -79,6 +80,23 @@ model Session {
   @@index([userId])
   @@index([scope])
   @@index([expiresAt])
+}
+
+// Voice usage bucket - shared hourly metering across app instances
+model VoiceUsageBucket {
+  id          String   @id @default(cuid())
+  userId      String
+  scope       String   // voice_transcribe, voice_speak
+  windowStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, windowStart])
+  @@index([scope, windowStart])
+  @@index([userId])
 }
 
 // Email verification token - one-time token stored as a hash only
