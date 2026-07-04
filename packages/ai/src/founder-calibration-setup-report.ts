@@ -1,5 +1,9 @@
 import { prisma } from "@inner-avatar/db"
-import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import {
+  FOUNDER_CALIBRATION_SCENARIOS,
+  readFounderCalibrationScenario,
+  type FounderCalibrationScenario,
+} from "./founder-calibration-scenarios.js"
 import {
   resolveFounderCalibrationUserFilter,
   type FounderCalibrationFilterMode,
@@ -29,7 +33,17 @@ export type FounderCalibrationSetupParticipant = {
   feedbackNoteCount: number
   reviewedSessionCount: number
   goldenExampleCount: number
+  nextAction: string
+  nextActionHref: string | null
+  scenarioStatus: FounderCalibrationParticipantScenarioStatus[]
   missingActions: FounderCalibrationMissingAction[]
+}
+
+export type FounderCalibrationParticipantScenarioStatus = {
+  scenario: FounderCalibrationScenario
+  completed: boolean
+  sessionCount: number
+  hasReadyExample: boolean
 }
 
 export type FounderCalibrationSetupReadiness = {
@@ -180,6 +194,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       const scenario = readSessionScenario(session)
       scenarioCounts.set(scenario, (scenarioCounts.get(scenario) ?? 0) + 1)
     }
+    const scenarioStatus = buildScenarioStatus(sessions)
 
     const missingActions = buildParticipantMissingActions({
       email: participant.email,
@@ -191,6 +206,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       feedbackNoteCount,
       goldenExampleCount,
     })
+    const nextAction = chooseParticipantNextAction(missingActions, scenarioStatus)
 
     return {
       id: participant.id,
@@ -207,6 +223,9 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       feedbackNoteCount,
       reviewedSessionCount,
       goldenExampleCount,
+      nextAction: nextAction.message,
+      nextActionHref: nextAction.href,
+      scenarioStatus,
       missingActions,
     }
   })
@@ -248,6 +267,39 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     blockers: missingActions.map((action) => action.message),
     warnings,
   }
+}
+
+function buildScenarioStatus(sessions: FounderCalibrationSetupSnapshot["participants"][number]["sessions"]) {
+  return FOUNDER_CALIBRATION_SCENARIOS.filter((scenario) => scenario !== "freeform").map((scenario) => {
+    const matchingSessions = sessions.filter((session) => readSessionScenario(session) === scenario)
+    return {
+      scenario,
+      completed: matchingSessions.length > 0,
+      sessionCount: matchingSessions.length,
+      hasReadyExample: matchingSessions.some((session) => session.qualityReviews.some((review) => READY_LABELS.has(review.label))),
+    }
+  })
+}
+
+function chooseParticipantNextAction(
+  missingActions: FounderCalibrationMissingAction[],
+  scenarioStatus: FounderCalibrationParticipantScenarioStatus[],
+) {
+  const primaryMissingAction = missingActions[0]
+  if (primaryMissingAction) return { message: primaryMissingAction.message, href: readFounderLaunchHref(primaryMissingAction.code) }
+  const nextScenario = scenarioStatus.find((item) => !item.completed)
+  if (nextScenario) return { message: `Run the ${nextScenario.scenario} guided scenario.`, href: "/journal" }
+  const scenarioWithoutReadyExample = scenarioStatus.find((item) => item.completed && !item.hasReadyExample)
+  if (scenarioWithoutReadyExample) return { message: `Review ${scenarioWithoutReadyExample.scenario} and mark ready or assign an issue.`, href: "/calibration/live" }
+  return { message: "Founder calibration launch loop is ready; continue with the next real session.", href: "/calibration/live" }
+}
+
+function readFounderLaunchHref(code: string) {
+  if (code === "account_missing") return "/register"
+  if (code === "onboarding_incomplete" || code === "consent_missing") return "/onboarding"
+  if (code === "session_missing" || code === "feedback_note_missing") return "/journal"
+  if (code === "golden_example_missing") return "/calibration/live"
+  return null
 }
 
 function buildParticipantMissingActions(input: {

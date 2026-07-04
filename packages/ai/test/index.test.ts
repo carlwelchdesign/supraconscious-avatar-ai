@@ -7,6 +7,8 @@ import {
   buildFounderCalibrationReportFromSnapshot,
   buildFounderCalibrationComparisonFromSnapshot,
   buildFounderCalibrationSetupReportFromSnapshot,
+  buildFounderCalibrationSetupInputFromEnv,
+  buildParticipantRequests,
   buildCouncilPromptVersion,
   classifySourcePath,
   DEFAULT_COUNCIL_PROMPT_KEY,
@@ -916,6 +918,31 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.email === "maria@example.com"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
+  const carl = report.participants.find((participant) => participant.email === "carl@example.com")
+  assert.equal(carl?.nextAction, "Run the source_grounding_test guided scenario.")
+  assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.completed, true)
+  assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.hasReadyExample, true)
+  const maria = report.participants.find((participant) => participant.email === "maria@example.com")
+  assert.equal(maria?.nextAction, "maria@example.com needs to register.")
+  assert.equal(maria?.nextActionHref, "/register")
+  assert.equal(maria?.scenarioStatus.some((item) => item.scenario === "freeform"), false)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder calibration setup input parses env without creating account state", () => {
+  const input = buildFounderCalibrationSetupInputFromEnv({
+    FOUNDER_CALIBRATION_CARL_EMAIL: "Carl@Example.com",
+    FOUNDER_CALIBRATION_MARIA_EMAIL: "maria@example.com",
+    FOUNDER_CALIBRATION_REVIEWER_EMAILS: "reviewer@example.com, carl@example.com",
+    FOUNDER_CALIBRATION_SETUP_ACTOR_EMAIL: "admin@example.com",
+  } as NodeJS.ProcessEnv)
+  const requests = buildParticipantRequests(input)
+
+  assert.equal(input.actorEmail, "admin@example.com")
+  assert.deepEqual(requests, [
+    { email: "carl@example.com", participantRole: "carl" },
+    { email: "maria@example.com", participantRole: "maria" },
+    { email: "reviewer@example.com", participantRole: "reviewer" },
+  ])
 })

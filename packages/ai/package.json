@@ -13,6 +13,7 @@
     "import:sources": "tsx scripts/import-sources.ts",
     "lint": "eslint .",
     "seed:pilot": "tsx scripts/seed-internal-pilot.ts",
+    "setup:founder-calibration": "tsx scripts/setup-founder-calibration.ts",
     "activate:rag": "tsx scripts/activate-internal-rag.ts",
     "test": "tsx test/index.test.ts",
     "test:launch": "tsx scripts/run-pilot-launch-readiness.ts",

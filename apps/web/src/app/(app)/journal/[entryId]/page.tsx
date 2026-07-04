@@ -296,7 +296,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
               Calibration: {calibrationStatus}
             </p>
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
-              Feedback is reviewed by the pilot team; it does not automatically retrain the guide.
+              Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide.
             </p>
             {entry.councilSession.feedback.length > 0 && (
               <div className="mt-3 space-y-2">

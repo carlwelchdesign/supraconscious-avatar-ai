@@ -139,9 +139,10 @@ type Props = {
   voicePrefs?: VoicePrefs
   thresholdPrompt?: ThresholdPrompt
   founderCalibrationMode?: boolean
+  suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false }: Props) {
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario }: Props) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingShift, setIsSavingShift] = useState(false)
@@ -196,6 +197,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
     const promptText = prompt.text
     setText((prev) => (prev.trim() ? `${prev}\n\n${promptText}` : promptText))
   }
+  const suggestedPrompt = suggestedCalibrationScenario
+    ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
+    : null
 
   const applyFeedbackTemplate = (template: string) => {
     setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
@@ -295,6 +299,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 Use these sessions to tune the guide with Carl and Maria. After each reflection, leave a note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
               </p>
+              {suggestedPrompt && (
+                <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
+                  Suggested first run: {suggestedPrompt.label}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
                   {CALIBRATION_PROMPTS.map((prompt) => (
@@ -615,7 +624,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Session feedback
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Help tune the pilot. Your feedback is reviewed by the pilot team; it does not automatically retrain the guide or act as a diagnosis.
+                Help tune the founder calibration loop. Your feedback note is reviewed for Carl/Maria calibration; it does not automatically retrain the guide or act as a diagnosis.
               </p>
               <textarea
                 value={feedbackNote}
@@ -662,7 +671,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               {feedbackSaved && (
                 <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Feedback saved. The pilot team can review this session, but this does not automatically retrain the guide.
+                  Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide.
                 </p>
               )}
             </div>

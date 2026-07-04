@@ -63,6 +63,41 @@ export default async function FounderCalibrationSetupPage() {
       </Card>
 
       <Card>
+        <CardHeader><CardTitle>First Session Launch</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {report.participants.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Add Carl and Maria above, then this panel will show the next launch action for each founder.</p>
+          ) : report.participants.map((participant) => (
+            <div key={`${participant.id}-launch`} className="rounded-md border p-4 text-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium">{participant.email}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Next: {participant.nextAction}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <SafeLink href="/register" label="Register" />
+                  <SafeLink href="/login" label="Login" />
+                  <SafeLink href="/onboarding" label="Onboarding" />
+                  <SafeLink href="/journal" label="Journal" />
+                  {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" /> : null}
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                {participant.scenarioStatus.map((item) => (
+                  <div key={item.scenario} className="rounded-md bg-muted/40 px-3 py-2 text-xs">
+                    <p className="font-medium">{item.scenario}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {item.completed ? `${item.sessionCount} run` : "not run"} · {item.hasReadyExample ? "ready example" : "no ready example"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Participants</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {report.participants.length === 0 ? (
@@ -128,6 +163,14 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
+  )
+}
+
+function SafeLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
+      {label}
+    </Link>
   )
 }
 

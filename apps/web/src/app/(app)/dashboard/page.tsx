@@ -279,7 +279,7 @@ export default async function DashboardPage() {
                         </p>
                         {entry.councilSession?.feedback.length ? (
                           <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
-                            Pilot note: feedback helps reviewers improve guidance; it does not automatically retrain the model.
+                            Calibration note: feedback helps reviewers improve guidance; it does not automatically retrain the guide.
                           </p>
                         ) : null}
                       </div>
