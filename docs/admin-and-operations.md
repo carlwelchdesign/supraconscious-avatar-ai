@@ -17,6 +17,33 @@ Current admin routes:
 - `/avatar-stages`: editable Avatar stage metadata.
 - `/feature-flags`: feature flag create/list/update.
 - `/ai-quality`: metadata-only AI output review.
+- `/calibration/setup`: Carl/Maria founder participant setup, readiness checklist, safe handoff links, and scenario coverage.
+- `/calibration/live`: Carl/Maria live calibration review cockpit with raw journal text hidden by default.
+
+## Founder Calibration Operations
+
+Founder calibration is for Carl and Maria only until the live launch gate passes. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent.
+
+Use this sequence:
+
+```bash
+yarn verify:founder-calibration-code
+yarn dev:founder-calibration
+yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+yarn check:founder-calibration-launch
+```
+
+Then:
+
+- open admin `/calibration/setup`
+- confirm active `carl` and `maria` participants are linked to the right accounts
+- send the copyable handoff text manually
+- have each founder complete onboarding/consent through the normal web app
+- have each founder run one guided journal scenario and leave a specific feedback note
+- review sessions in `/calibration/live`
+- mark strong sessions `ready`/golden or route issues to voice, source, prompt, intensity, or embodiment review
+
+The launch gate is expected to fail until those live founder actions exist in the database.
 
 ## Access Control
 
