@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { isVoiceRateLimited, recordVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { transcribeAudio } from "@/lib/voice/transcribe"
 
 export async function POST(request: Request) {
   try {
-    await requireAppUser()
+    const user = await requireAppUser()
     const formData = await request.formData()
     const audio = formData.get("audio") as Blob | null
 
@@ -14,7 +15,11 @@ export async function POST(request: Request) {
     if (audio.size > 25 * 1024 * 1024) {
       return NextResponse.json({ error: "Audio too large (max 25 MB)." }, { status: 400 })
     }
+    if (isVoiceRateLimited("voice_transcribe", user.id)) {
+      return NextResponse.json({ error: voiceRateLimitMessage("voice_transcribe") }, { status: 429 })
+    }
 
+    recordVoiceUsage("voice_transcribe", user.id)
     const text = await transcribeAudio(audio)
     if (!text.trim()) {
       return NextResponse.json({ error: "No speech detected." }, { status: 422 })

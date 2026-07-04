@@ -38,6 +38,7 @@ Backend:
 - calls `transcribeAudio()`
 - uses OpenAI `whisper-1`
 - returns `{ text }`
+- limits each signed-in user to 20 transcription requests per hour per app instance
 
 The current implementation does not store uploaded audio.
 
@@ -68,6 +69,8 @@ Backend:
 - calls `synthesizeSpeech()`
 - uses OpenAI `tts-1`
 - returns `audio/mpeg`
+- limits each signed-in user to 60 speech requests per hour per app instance
+- rejects speech text over 4,096 characters
 
 The journal UI builds speakable response text with `buildSpeakText()` and skips audio playback for high-severity safety responses.
 
@@ -85,6 +88,6 @@ The journal UI builds speakable response text with `buildSpeakText()` and skips 
 
 ## Known Gaps
 
-- No usage limits or cost controls yet.
+- Usage limits are in-process per app instance. A higher-scale deployment should move voice metering to a shared store or provider/edge-level quota.
 - No retry UI for failed transcription/speech.
-- No browser compatibility documentation for microphone permissions yet.
+- No detailed browser-by-browser troubleshooting page for microphone permissions yet.

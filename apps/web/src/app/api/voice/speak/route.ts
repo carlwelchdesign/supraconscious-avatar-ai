@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { isVoiceRateLimited, recordVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { synthesizeSpeech } from "@/lib/voice/speak"
 
 const SpeakSchema = z.object({
@@ -12,8 +13,14 @@ const SpeakSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    await requireAppUser()
+    const user = await requireAppUser()
     const body = SpeakSchema.parse(await request.json())
+
+    if (isVoiceRateLimited("voice_speak", user.id)) {
+      return NextResponse.json({ error: voiceRateLimitMessage("voice_speak") }, { status: 429 })
+    }
+
+    recordVoiceUsage("voice_speak", user.id)
     const audio = await synthesizeSpeech(body.text, body.gender, body.style, body.speed)
 
     return new Response(new Uint8Array(audio), {
