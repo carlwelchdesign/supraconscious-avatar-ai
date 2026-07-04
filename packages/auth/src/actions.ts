@@ -37,13 +37,22 @@ export async function registerAction(_state: AuthActionState, formData: FormData
       return { error: "An account already exists for this email." }
     }
 
-    const user = await prisma.user.create({
-      data: {
-        name: parsed.data.name,
-        email: parsed.data.email,
-        passwordHash: await hashPassword(parsed.data.password),
-        role: roleForEmail(parsed.data.email),
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name: parsed.data.name,
+          email: parsed.data.email,
+          passwordHash: await hashPassword(parsed.data.password),
+          role: roleForEmail(parsed.data.email),
+        },
+      })
+
+      await tx.founderCalibrationParticipant.updateMany({
+        where: { email: parsed.data.email, userId: null },
+        data: { userId: createdUser.id },
+      })
+
+      return createdUser
     })
 
     await createSession(user.id, "web")
