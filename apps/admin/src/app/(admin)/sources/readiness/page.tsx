@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { activateRagAction, getRagReadinessCounts } from "./actions"
+import { readRagActivationMetadata } from "@inner-avatar/ai"
+import { activateRagAction, getRagReadinessCounts, rollbackRagAction } from "./actions"
 
 export default async function RagReadinessPage() {
   const [flag, readiness, recentTraces] = await Promise.all([
@@ -19,11 +20,12 @@ export default async function RagReadinessPage() {
         validationStatus: true,
         fallbackReason: true,
         outputJson: true,
+        sourceChunk: { select: { sourceDocument: { select: { title: true } } } },
         createdAt: true,
       },
     }),
   ])
-  const latestEval = readEvalReport(flag?.metadata)
+  const activation = readRagActivationMetadata(flag?.metadata)
   const blockers = [
     readiness.approvedDocuments === 0 ? "No approved product doctrine documents." : null,
     readiness.eligibleChunks === 0 ? "No eligible product doctrine chunks." : null,
@@ -69,7 +71,10 @@ export default async function RagReadinessPage() {
             </p>
           )}
           <p className="text-sm text-muted-foreground">
-            Latest activation eval: {latestEval ?? "No activation eval recorded."}
+            Latest activation: {activation.evalPassed ? `passed at ${activation.activatedAt ?? "unknown time"}` : "No activation eval recorded."}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Rollback criteria: {activation.rollbackCriteria ?? "Not recorded yet."}
           </p>
           <form action={activateRagAction} className="grid gap-3 md:grid-cols-2">
             <input
@@ -84,6 +89,16 @@ export default async function RagReadinessPage() {
             />
             <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
               Activate RAG
+            </button>
+          </form>
+          <form action={rollbackRagAction} className="grid gap-3 border-t pt-4 md:grid-cols-[1fr_auto]">
+            <input
+              name="reason"
+              placeholder="Super-admin rollback reason"
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+              Disable RAG
             </button>
           </form>
         </CardContent>
@@ -103,7 +118,7 @@ export default async function RagReadinessPage() {
                   <p className="text-xs text-muted-foreground">{new Date(trace.createdAt).toLocaleString()}</p>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {output?.title ?? trace.fallbackReason ?? "Retrieval trace"}
+                  {output?.title ?? trace.sourceChunk?.sourceDocument.title ?? trace.fallbackReason ?? "Retrieval trace"}
                 </p>
                 {output?.matchReason && (
                   <p className="mt-1 text-xs text-muted-foreground">{output.matchReason}</p>
@@ -124,14 +139,4 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
   )
-}
-
-function readEvalReport(metadata: unknown) {
-  if (!metadata || typeof metadata !== "object" || !("evalReport" in metadata)) return null
-  const value = (metadata as { evalReport?: unknown }).evalReport
-  if (typeof value === "string") return value
-  if (value && typeof value === "object" && "passed" in value) {
-    return `passed=${String((value as { passed?: unknown }).passed)}`
-  }
-  return null
 }

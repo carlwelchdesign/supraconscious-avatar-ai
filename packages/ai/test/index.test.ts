@@ -8,7 +8,9 @@ import {
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
   INNER_COUNCIL_FEATURE_FLAGS,
+  parseRagActivationEvalReport,
   parseCurriculumDaysFromParagraphs,
+  readRagActivationMetadata,
   runKeywordRagEvals,
   runPilotCouncilEvals,
   readDisposition,
@@ -179,6 +181,31 @@ test("keyword RAG eval runner passes activation gate fixtures", () => {
   const report = runKeywordRagEvals()
   assert.equal(report.passed, true, JSON.stringify(report.cases.filter((item) => !item.passed)))
   assert.equal(report.failed, 0)
+})
+
+test("RAG activation eval report requires rollback criteria", () => {
+  const report = parseRagActivationEvalReport(JSON.stringify({
+    passed: true,
+    rollbackCriteria: "disable if source grounding regresses",
+  }))
+
+  assert.equal(report.passed, true)
+  assert.equal(report.rollbackCriteria, "disable if source grounding regresses")
+})
+
+test("RAG activation metadata is readable for admin monitoring", () => {
+  const metadata = readRagActivationMetadata({
+    activatedAt: "2026-07-03T12:00:00.000Z",
+    activatedBy: "user_1",
+    evalReport: {
+      passed: true,
+      rollbackCriteria: "disable if citation validation fails",
+    },
+  })
+
+  assert.equal(metadata.evalPassed, true)
+  assert.equal(metadata.activatedBy, "user_1")
+  assert.equal(metadata.rollbackCriteria, "disable if citation validation fails")
 })
 
 test("pilot council validator rejects prohibited source impersonation language", () => {

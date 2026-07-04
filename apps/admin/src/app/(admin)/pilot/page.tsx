@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { runPilotIterationReport, runPilotLaunchReadiness } from "@inner-avatar/ai"
+import { readRagActivationMetadata, runPilotIterationReport, runPilotLaunchReadiness } from "@inner-avatar/ai"
 import { createPilotCohortAction, enrollPilotUserAction, reviewPilotSessionAction } from "./actions"
 
 const QUALITY_LABELS = [
@@ -19,7 +19,7 @@ export default async function PilotReadinessPage() {
     runPilotIterationReport(),
   ])
   const schemaReady = !readiness.blockers.some((blocker) => blocker.code === "database_schema_not_ready")
-  const [cohorts, feedback] = schemaReady ? await Promise.all([
+  const [cohorts, feedback, ragFlag, recentRetrievalTitles] = schemaReady ? await Promise.all([
     prisma.pilotCohort.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -34,7 +34,24 @@ export default async function PilotReadinessPage() {
       by: ["feedbackType"],
       _count: { feedbackType: true },
     }),
-  ]) : [[], []]
+    prisma.featureFlag.findUnique({
+      where: { key: "rag_enabled" },
+      select: { enabled: true, metadata: true },
+    }),
+    prisma.generationTrace.findMany({
+      where: { traceType: "retrieval", sourceChunkId: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: {
+        sourceChunk: {
+          select: {
+            sourceDocument: { select: { title: true } },
+          },
+        },
+      },
+    }),
+  ]) : [[], [], null, []]
+  const ragActivation = readRagActivationMetadata(ragFlag?.metadata)
   const orientationRate = readiness.metrics.enrolledUsers
     ? Math.round((readiness.metrics.orientationCompleteUsers / readiness.metrics.enrolledUsers) * 100)
     : 0
@@ -134,6 +151,7 @@ export default async function PilotReadinessPage() {
           <CardContent className="space-y-1 text-sm text-muted-foreground">
             <p>Council mode: {readiness.latestEvalMetadata.councilModeEnabled ? "enabled" : "disabled"}</p>
             <p>RAG: {readiness.latestEvalMetadata.ragEnabled ? "enabled" : "disabled"}</p>
+            <p>RAG activation eval: {ragActivation.evalPassed ? "passed" : "not approved"}</p>
             <p>ChatGPT app: legacy analysis-only for this pilot.</p>
           </CardContent>
         </Card>
@@ -155,9 +173,34 @@ export default async function PilotReadinessPage() {
             <p>RAG eval: {readiness.latestEvalMetadata.rag.passed ? "passed" : "failed"} ({readiness.latestEvalMetadata.rag.failed}/{readiness.latestEvalMetadata.rag.total} failed)</p>
             <p>Pilot eval: {readiness.latestEvalMetadata.pilot.passed ? "passed" : "failed"} ({readiness.latestEvalMetadata.pilot.failed}/{readiness.latestEvalMetadata.pilot.total} failed)</p>
             <p>RAG activation metadata: {readiness.latestEvalMetadata.ragActivationEvalPassed ? "present" : "not approved"}</p>
+            <p>Rollback criteria: {ragActivation.rollbackCriteria ?? "not recorded"}</p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle>Internal RAG Monitoring</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>Retrieval traces: {readiness.metrics.sourceModeCounts.rag ?? 0} source-grounded sessions · {readiness.metrics.sourceModeCounts.no_eligible_source ?? 0} no-source sessions.</p>
+          <p>Unsupported-source reports: {iteration.feedbackMetrics.unsupportedSource}</p>
+          <p>Activation: {ragFlag?.enabled ? "enabled" : "disabled"}{ragActivation.activatedAt ? ` · ${new Date(ragActivation.activatedAt).toLocaleString()}` : ""}</p>
+          <div>
+            <p className="font-medium text-foreground">Recent selected source titles</p>
+            {recentRetrievalTitles.length ? (
+              <div className="mt-1 space-y-1">
+                {Array.from(new Set(recentRetrievalTitles.map((item) => item.sourceChunk?.sourceDocument.title).filter(Boolean))).map((title) => (
+                  <p key={title}>{title}</p>
+                ))}
+              </div>
+            ) : (
+              <p>No selected retrieval sources yet.</p>
+            )}
+          </div>
+          <Link href="/sources/readiness" className="inline-flex rounded-md border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted">
+            Open RAG readiness and rollback
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>Feedback Mix</CardTitle></CardHeader>

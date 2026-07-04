@@ -22,6 +22,18 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Treat `not_accurate`, `too_intense`, `unclear`, and `unsupported_source` feedback as review-required until an admin records a disposition.
 - Go/no-go defaults: continue only when launch readiness passes, safety queue is clear or consciously escalated, no pilot blockers remain, and negative feedback has a reviewer disposition.
 
+## Internal RAG Activation
+- Keep RAG product-doctrine-only for the internal pilot. July curriculum remains Threshold content; manuscripts and external manuscript PDFs remain unretrievable.
+- Before activation, run the keyword RAG evals and pilot council evals, confirm the RAG readiness page has approved product-doctrine documents, eligible chunks, and no rights blockers.
+- Activate only through the RAG readiness gate or the shared internal activation script; generic feature-flag editing must not enable `rag_enabled`.
+- After activation, run the internal RAG smoke set:
+  - Inner Council doctrine match.
+  - Embodiment Gate doctrine match.
+  - Architecture-of-self doctrine match.
+  - No-source fallback with unrelated terms.
+- Smoke passes only when matching entries produce `sourceMode=rag` with selected retrieval traces and unrelated entries produce `sourceMode=no_eligible_source`.
+- Monitor RAG/no-source rates, selected source titles, unsupported-source reports, and citation validation during each daily review.
+
 ## Rollback Criteria
 - Disable `rag_enabled` immediately if source citation validation fails, quote leakage appears, or unsupported-source reports cluster.
 - Pause the cohort if unresolved safety reviews accumulate, if pilot-blocker quality reviews remain open, or if feedback trends toward too intense/unclear.
