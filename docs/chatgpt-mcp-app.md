@@ -16,7 +16,7 @@ This document describes the ChatGPT MCP server added in Phase 5 and finalized in
 - `apps/chatgpt-app/src/middleware/*` — `auth` and `safety` middleware helpers.
 - `apps/chatgpt-app/src/widget/*` — static widget assets (HTML/CSS/JS) served as static files.
 - `apps/chatgpt-app/Dockerfile` — multi-stage Docker build for the MCP app.
-- `.github/workflows/chatgpt-app-deploy.yml` — CI workflow to build, test, and push Docker images to GHCR.
+- `.github/workflows/chatgpt-app-deploy.yml` — CI workflow to install dependencies, build, test, and validate the Docker image build.
 
 ## Local dev and build
 
@@ -55,21 +55,18 @@ docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
 ```
 
 Notes:
-- The Dockerfile installs workspace dependencies then builds `apps/chatgpt-app` in the `builder` stage and copies `dist` to the runtime image.
-- During build, Yarn 4 workspace resolutions must match the repository lockfile; CI runs this workflow and publishes to GHCR when `GHCR_PAT` is configured.
+- The Dockerfile installs workspace dependencies with the pinned Yarn 4 launcher, builds `apps/chatgpt-app` in the `builder` stage, and copies the runtime artifact plus workspace package sources required by Node resolution.
+- During build, Yarn 4 workspace resolutions must match the repository lockfile.
 
 ## CI / GitHub Actions
 
 The workflow is at `.github/workflows/chatgpt-app-deploy.yml` and does:
 
 - Checkout code
-- Setup Node 20 and Corepack/Yarn
+- Setup Node 20
 - Install dependencies, build, run tests
 - Build Docker image
-- Optionally push to GitHub Container Registry when `GHCR_PAT` is set in repo secrets
- - Install dependencies, build, run tests
- - Build Docker image
- - Optionally push to GitHub Container Registry when `GHCR_PAT` is set in repo secrets
+- The broader `.github/workflows/ci.yml` workflow also builds the web, admin, and ChatGPT Docker images.
 
 If your CI host does not support Corepack, use the repository Yarn launcher:
 
@@ -92,5 +89,5 @@ The server expects runtime access to dependent workspace packages (`@inner-avata
 
 ## Next steps
 
-- Optionally configure a hosted container registry (GHCR) and deployment pipeline.
+- Optionally configure a hosted container registry and deployment pipeline when a non-Vercel runtime is needed.
 - Add runtime monitoring and liveness/readiness probes as needed.

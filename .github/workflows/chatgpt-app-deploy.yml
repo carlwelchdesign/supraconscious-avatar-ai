@@ -7,10 +7,6 @@ on:
       - release/**
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,15 +42,3 @@ jobs:
 
       - name: Build Docker image
         run: docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:${{ github.sha }} .
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v5
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Push Docker image to GHCR
-        run: |
-          docker tag inner-avatar-chatgpt-app:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/inner-avatar-chatgpt-app:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/inner-avatar-chatgpt-app:${{ github.sha }}
