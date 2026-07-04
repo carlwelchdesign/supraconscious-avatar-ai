@@ -68,7 +68,7 @@ export default async function LiveCalibrationPage() {
         <CardContent className="space-y-2 text-sm">
           {setup.missingActions.length === 0 ? (
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">Founder setup is ready for live calibration.</p>
-          ) : setup.missingActions.slice(0, 5).map((action) => (
+          ) : setup.missingActions.map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
               {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
             </p>

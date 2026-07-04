@@ -81,7 +81,7 @@ export default async function FounderCalibrationSetupPage() {
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">
               Carl and Maria setup is ready for live calibration. Continue in the live cockpit.
             </p>
-          ) : report.missingActions.slice(0, 4).map((action) => (
+          ) : report.missingActions.map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
               {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} email={action.email} /> : action.message}
             </p>
