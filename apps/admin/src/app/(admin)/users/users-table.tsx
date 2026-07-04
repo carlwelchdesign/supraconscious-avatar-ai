@@ -16,13 +16,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import { resetUserPasswordAction } from "./actions"
+import { resetUserPasswordAction, updateEmailVerificationAction } from "./actions"
 
 type UserRow = {
   id: string
   email: string
   name: string | null
   role: string
+  emailVerified: boolean
   createdAt: string
   journalEntryCount: number
   sessionCount: number
@@ -77,6 +78,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
             <TableRow>
               <TableCell>User</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Email</TableCell>
               <TableCell align="right">Entries</TableCell>
               <TableCell align="right">Sessions</TableCell>
               <TableCell>Created</TableCell>
@@ -98,6 +100,14 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                     color={user.role === "super_admin" ? "secondary" : user.role === "admin" ? "primary" : "default"}
                     size="small"
                     variant={user.role === "user" ? "outlined" : "filled"}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={user.emailVerified ? "verified" : "unverified"}
+                    color={user.emailVerified ? "success" : "default"}
+                    size="small"
+                    variant={user.emailVerified ? "filled" : "outlined"}
                   />
                 </TableCell>
                 <TableCell align="right">{user.journalEntryCount}</TableCell>
@@ -128,12 +138,29 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                       Existing sessions are revoked. The password is not stored in audit logs.
                     </Typography>
                   </Box>
+                  <Box component="form" action={updateEmailVerificationAction} sx={{ display: "grid", gap: 1, minWidth: 240, mt: 2 }}>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <input type="hidden" name="emailVerified" value={user.emailVerified ? "false" : "true"} />
+                    <TextField
+                      name="reason"
+                      size="small"
+                      label="Verification reason"
+                      placeholder="Founder email confirmed"
+                      slotProps={{ htmlInput: { minLength: 10 } }}
+                    />
+                    <Button type="submit" variant="outlined" size="small" color={user.emailVerified ? "warning" : "success"}>
+                      {user.emailVerified ? "Mark unverified" : "Mark verified"}
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">
+                      Manual verification is audited. No verification email is sent.
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
             {!filteredUsers.length ? (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={7}>
                   <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
                     No users match that search.
                   </Typography>

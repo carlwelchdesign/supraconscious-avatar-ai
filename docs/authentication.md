@@ -29,6 +29,8 @@ The server action validates input, normalizes email, rejects duplicates, hashes 
 
 If the email appears in `SUPER_ADMIN_EMAILS`, the user is assigned `super_admin`. Otherwise new users default to `user`.
 
+New accounts start with `emailVerified = false`. A `super_admin` can manually mark a known account verified or unverified from admin `/users`; this is audited and does not send email.
+
 ## Web Login
 
 Web `/login` creates an `ia_web_session` cookie with `Session.scope = "web"`.
@@ -125,5 +127,5 @@ Server-side authorization must still be called inside pages, server actions, and
 ## Known Gaps
 
 - No email-delivered password reset flow yet.
-- No email verification flow yet.
+- No email-delivered verification flow yet.
 - No CAPTCHA or managed bot-protection challenge yet.

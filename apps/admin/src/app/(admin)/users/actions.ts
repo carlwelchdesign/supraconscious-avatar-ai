@@ -11,6 +11,12 @@ const ResetUserPasswordSchema = z.object({
   reason: z.string().trim().min(10, "A password reset reason is required."),
 })
 
+const UpdateEmailVerificationSchema = z.object({
+  userId: z.string().min(1),
+  emailVerified: z.enum(["true", "false"]),
+  reason: z.string().trim().min(10, "An email verification reason is required."),
+})
+
 export async function resetUserPasswordAction(formData: FormData) {
   const actor = await requireSuperAdminUser()
   const parsed = ResetUserPasswordSchema.parse(Object.fromEntries(formData))
@@ -62,6 +68,43 @@ export async function resetUserPasswordAction(formData: FormData) {
       },
     })
   }
+
+  revalidatePath("/users")
+  revalidatePath("/calibration/setup")
+}
+
+export async function updateEmailVerificationAction(formData: FormData) {
+  const actor = await requireSuperAdminUser()
+  const parsed = UpdateEmailVerificationSchema.parse(Object.fromEntries(formData))
+  const verified = parsed.emailVerified === "true"
+  const targetUser = await prisma.user.findUnique({
+    where: { id: parsed.userId },
+    select: { id: true, email: true, role: true, emailVerified: true },
+  })
+  if (!targetUser) throw new Error("User not found.")
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: targetUser.id },
+      data: { emailVerified: verified },
+      select: { id: true },
+    }),
+    prisma.auditLog.create({
+      data: {
+        actorId: actor.id,
+        action: verified ? "user.email.mark_verified" : "user.email.mark_unverified",
+        targetType: "User",
+        targetId: targetUser.id,
+        reason: parsed.reason,
+        metadata: {
+          email: targetUser.email,
+          role: targetUser.role,
+          previousEmailVerified: targetUser.emailVerified,
+          emailVerified: verified,
+        },
+      },
+    }),
+  ])
 
   revalidatePath("/users")
   revalidatePath("/calibration/setup")
