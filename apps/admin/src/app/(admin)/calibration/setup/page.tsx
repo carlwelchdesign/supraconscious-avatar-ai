@@ -13,6 +13,7 @@ import { CopyHandoffButton } from "./copy-handoff-button"
 export default async function FounderCalibrationSetupPage() {
   const report = await runFounderCalibrationSetupReport()
   const webAppBaseUrl = readWebAppBaseUrl()
+  const adminAppBaseUrl = readAdminAppBaseUrl()
 
   return (
     <div className="space-y-6">
@@ -99,8 +100,8 @@ export default async function FounderCalibrationSetupPage() {
       <Card>
         <CardHeader><CardTitle>Founder Handoff</CardTitle></CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <FounderHandoff role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} />
-          <FounderHandoff role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} />
+          <FounderHandoff role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
+          <FounderHandoff role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
         </CardContent>
       </Card>
 
@@ -244,14 +245,20 @@ function Metric({ title, value }: { title: string; value: string | number }) {
 
 const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
 const PROTECTED_FOUNDER_WEB_PATHS = new Set(["/onboarding", "/journal"])
+const FOUNDER_ADMIN_PATHS = new Set(["/calibration/live", "/calibration/setup"])
 
 function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
-function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: string | null) {
+function readAdminAppBaseUrl() {
+  return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001").replace(/\/+$/, "")
+}
+
+function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: string | null, adminAppBaseUrl?: string) {
   if (!href) return null
   if (href.startsWith("http://") || href.startsWith("https://")) return href
+  if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) return `${adminAppBaseUrl}${href}`
   if (FOUNDER_WEB_PATHS.has(href)) {
     if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
       return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
@@ -262,9 +269,12 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
   return href
 }
 
-function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null) {
-  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal)\b/g, (_match, prefix: string, path: string) => {
+function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null, adminAppBaseUrl?: string) {
+  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal|calibration\/live|calibration\/setup)\b/g, (_match, prefix: string, path: string) => {
     const href = `/${path}`
+    if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) {
+      return `${prefix}${adminAppBaseUrl}${href}`
+    }
     if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
       return `${prefix}${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
     }
@@ -338,6 +348,7 @@ function FounderHandoff({
   role,
   status,
   webAppBaseUrl,
+  adminAppBaseUrl,
 }: {
   role: string
   status: {
@@ -347,9 +358,10 @@ function FounderHandoff({
     nextAction: string
   }
   webAppBaseUrl: string
+  adminAppBaseUrl: string
 }) {
-  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl, status.email)
-  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl, status.email)
+  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl, status.email, adminAppBaseUrl)
+  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl, status.email, adminAppBaseUrl)
 
   return (
     <div className="rounded-md border p-4 text-sm">
