@@ -11,6 +11,7 @@ import {
   resetPasswordAction,
   verifyEmailAction,
 } from "@inner-avatar/auth/actions"
+import { TurnstileWidget } from "./turnstile-widget"
 
 type EmailRequestFormProps = {
   mode: "verify" | "reset"
@@ -48,6 +49,7 @@ export function EmailRequestForm({ mode, defaultEmail = "" }: EmailRequestFormPr
             placeholder="you@example.com"
           />
         </label>
+        <TurnstileWidget />
         <SubmitButton pending={isPending}>{isVerify ? "Send verification link" : "Send reset link"}</SubmitButton>
       </form>
     </AccountPanel>
@@ -74,6 +76,7 @@ export function TokenForm({ mode, token }: TokenFormProps) {
             <PasswordInput name="confirmPassword" label="Confirm password" />
           </>
         )}
+        <TurnstileWidget />
         <SubmitButton pending={isPending}>{isVerify ? "Verify email" : "Reset password"}</SubmitButton>
       </form>
     </AccountPanel>

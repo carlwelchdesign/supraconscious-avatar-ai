@@ -5,6 +5,7 @@ import { useActionState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
 import type { AuthActionState } from "@inner-avatar/auth/actions"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
+import { TurnstileWidget } from "./turnstile-widget"
 
 type AuthFormProps = {
   mode: "login" | "register"
@@ -115,6 +116,8 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
             {state.error}
           </div>
         )}
+
+        <TurnstileWidget />
 
         <button
           type="submit"

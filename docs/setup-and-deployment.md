@@ -20,6 +20,8 @@ INNER_AVATAR_WEB_URL="http://localhost:3000"
 NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
 RESEND_API_KEY=""
 AUTH_EMAIL_FROM="Inner Avatar <no-reply@example.com>"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+TURNSTILE_SECRET_KEY=""
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 STRIPE_STARTER_PRICE_ID="price_..."
@@ -38,6 +40,8 @@ STRIPE_SECRET_KEY="sk_test_..."
 `SUPER_ADMIN_EMAILS` is a comma-separated allowlist. Matching emails are promoted to `super_admin` during registration or login.
 
 `RESEND_API_KEY` and `AUTH_EMAIL_FROM` enable email-delivered account verification and password reset links. Leave them blank for local development if you want to rely on manual super-admin verification and temporary password resets.
+
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` enable Cloudflare Turnstile on registration, login, email verification, and password reset forms. Leave them blank for local development.
 
 ## Install and Run
 
@@ -181,4 +185,4 @@ Subscribe to these events:
 - Session tokens are stored hashed in the database.
 - Passwords are hashed with bcrypt.
 - Admin access is denied by default unless the user has `admin` or `super_admin`.
-- The app has basic server-side auth throttling and honeypot protection for registration, login, email verification, and password reset requests. Super-admins can manually mark known user emails verified from admin `/users`; the app does not yet implement CAPTCHA or managed bot-protection challenges.
+- The app has server-side auth throttling, honeypot protection, and optional Cloudflare Turnstile protection for registration, login, email verification, and password reset requests. Super-admins can manually mark known user emails verified from admin `/users`.

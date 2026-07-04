@@ -57,6 +57,7 @@ Expected runtime values:
 - `INNER_AVATAR_WEB_URL`
 - `NEXT_PUBLIC_ADMIN_URL`
 - `RESEND_API_KEY` and `AUTH_EMAIL_FROM` for email verification and password reset delivery
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` for managed auth bot protection
 
 Stripe variables are optional unless billing flows are being tested.
 

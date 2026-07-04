@@ -77,7 +77,9 @@ Current limits:
 
 This is an application-level guard for the current deployment shape. A future high-traffic deployment should move throttling to shared infrastructure such as an edge/WAF layer or a shared store so limits apply consistently across many app replicas.
 
-The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts. This is a basic bot trap, not a substitute for managed abuse protection.
+The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts.
+
+When `TURNSTILE_SECRET_KEY` is configured, auth actions require a valid Cloudflare Turnstile token from the form. Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the matching web/admin environment so the widget renders. Leave both values blank for local development.
 
 ## Sessions
 
@@ -132,4 +134,4 @@ Server-side authorization must still be called inside pages, server actions, and
 
 ## Known Gaps
 
-- No CAPTCHA or managed bot-protection challenge yet.
+- Auth rate limits are in-process per app instance. A high-traffic multi-replica deployment should move rate limiting to shared infrastructure.

@@ -1,0 +1,57 @@
+import "server-only"
+
+import { headers } from "next/headers"
+
+export type BotChallengeResult = {
+  ok: boolean
+  reason?: string
+}
+
+export function isBotChallengeConfigured() {
+  return Boolean(process.env.TURNSTILE_SECRET_KEY)
+}
+
+export async function verifyBotChallenge(token: string | undefined | null): Promise<BotChallengeResult> {
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) return { ok: true }
+
+  const trimmedToken = token?.trim()
+  if (!trimmedToken) return { ok: false, reason: "missing_turnstile_token" }
+
+  const body = new URLSearchParams()
+  body.set("secret", secret)
+  body.set("response", trimmedToken)
+  const ip = await readClientIp()
+  if (ip) body.set("remoteip", ip)
+
+  let response: Response
+  try {
+    response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body,
+    })
+  } catch {
+    return { ok: false, reason: "turnstile_network_error" }
+  }
+
+  if (!response.ok) {
+    return { ok: false, reason: `turnstile_${response.status}` }
+  }
+
+  const payload = await response.json().catch(() => null) as { success?: boolean; "error-codes"?: string[] } | null
+  if (!payload?.success) {
+    return { ok: false, reason: payload?.["error-codes"]?.join(",") || "turnstile_failed" }
+  }
+
+  return { ok: true }
+}
+
+async function readClientIp() {
+  try {
+    const headerStore = await headers()
+    const forwardedFor = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim()
+    return forwardedFor || headerStore.get("x-real-ip") || headerStore.get("cf-connecting-ip") || null
+  } catch {
+    return null
+  }
+}

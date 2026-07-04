@@ -9,6 +9,7 @@ import {
   resetPasswordWithToken,
   verifyEmailWithToken,
 } from "./account-email"
+import { verifyBotChallenge } from "./bot-challenge"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
 import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
@@ -22,6 +23,7 @@ const RegisterSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
   next: z.string().optional(),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 })
 
 const LoginSchema = z.object({
@@ -29,21 +31,25 @@ const LoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
   next: z.string().optional(),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 })
 
 const RequestEmailSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 })
 
 const VerifyEmailSchema = z.object({
   token: z.string().trim().min(20, "Verification token is required."),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 })
 
 const RequestPasswordResetSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 })
 
 const ResetPasswordSchema = z.object({
@@ -51,6 +57,7 @@ const ResetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
   confirmPassword: z.string().min(8, "Confirm your new password."),
   website: z.string().optional(),
+  "cf-turnstile-response": z.string().optional(),
 }).refine((value) => value.password === value.confirmPassword, {
   message: "Passwords do not match.",
   path: ["confirmPassword"],
@@ -70,6 +77,10 @@ export async function registerAction(_state: AuthActionState, formData: FormData
   if (isBotSubmission(parsed.data.website)) {
     await recordAuthFailure("register", parsed.data.email)
     return { error: "Could not create account." }
+  }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    await recordAuthFailure("register", parsed.data.email)
+    return { error: botChallengeMessage() }
   }
   if (await isAuthRateLimited("register", parsed.data.email)) {
     return { error: rateLimitMessage("register") }
@@ -120,6 +131,10 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     await recordAuthFailure("web_login", parsed.data.email)
     return { error: "Email or password is incorrect." }
   }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    await recordAuthFailure("web_login", parsed.data.email)
+    return { error: botChallengeMessage() }
+  }
   if (await isAuthRateLimited("web_login", parsed.data.email)) {
     return { error: rateLimitMessage("web_login") }
   }
@@ -164,6 +179,10 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
   if (isBotSubmission(parsed.data.website)) {
     await recordAuthFailure("admin_login", parsed.data.email)
     return { error: "Email or password is incorrect." }
+  }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    await recordAuthFailure("admin_login", parsed.data.email)
+    return { error: botChallengeMessage() }
   }
   if (await isAuthRateLimited("admin_login", parsed.data.email)) {
     return { error: rateLimitMessage("admin_login") }
@@ -213,6 +232,10 @@ export async function requestEmailVerificationAction(_state: AuthActionState, fo
     await recordAuthFailure("email_verification", parsed.data.email)
     return { error: "Could not request verification." }
   }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    await recordAuthFailure("email_verification", parsed.data.email)
+    return { error: botChallengeMessage() }
+  }
   if (await isAuthRateLimited("email_verification", parsed.data.email)) {
     return { error: "Too many verification requests. Please wait a few minutes and try again." }
   }
@@ -234,6 +257,9 @@ export async function verifyEmailAction(_state: AuthActionState, formData: FormD
   if (isBotSubmission(parsed.data.website)) {
     return { error: "Could not verify email." }
   }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    return { error: botChallengeMessage() }
+  }
 
   const result = await verifyEmailWithToken(parsed.data.token)
   if (!result.verified) return { error: result.error ?? "Could not verify email." }
@@ -250,6 +276,10 @@ export async function requestPasswordResetAction(_state: AuthActionState, formDa
   if (isBotSubmission(parsed.data.website)) {
     await recordAuthFailure("password_reset", parsed.data.email)
     return { error: "Could not request password reset." }
+  }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    await recordAuthFailure("password_reset", parsed.data.email)
+    return { error: botChallengeMessage() }
   }
   if (await isAuthRateLimited("password_reset", parsed.data.email)) {
     return { error: "Too many password reset requests. Please wait a few minutes and try again." }
@@ -272,6 +302,9 @@ export async function resetPasswordAction(_state: AuthActionState, formData: For
   if (isBotSubmission(parsed.data.website)) {
     return { error: "Could not reset password." }
   }
+  if (!(await passesBotChallenge(parsed.data["cf-turnstile-response"]))) {
+    return { error: botChallengeMessage() }
+  }
 
   const result = await resetPasswordWithToken(parsed.data.token, parsed.data.password)
   if (!result.reset) return { error: result.error ?? "Could not reset password." }
@@ -290,6 +323,15 @@ function authDatabaseErrorMessage(error: unknown) {
 function rateLimitMessage(scope: "web_login" | "admin_login" | "register") {
   if (scope === "register") return "Too many account creation attempts. Please wait a few minutes and try again."
   return "Too many sign-in attempts. Please wait a few minutes and try again."
+}
+
+async function passesBotChallenge(token: string | undefined) {
+  const challenge = await verifyBotChallenge(token)
+  return challenge.ok
+}
+
+function botChallengeMessage() {
+  return "Please complete the security check and try again."
 }
 
 function isBotSubmission(value: string | undefined) {

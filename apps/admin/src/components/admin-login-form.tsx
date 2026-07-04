@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material"
 import { adminLoginAction, type AuthActionState } from "@inner-avatar/auth/actions"
+import { TurnstileWidget } from "./turnstile-widget"
 
 export function AdminLoginForm() {
   const [state, formAction, isPending] = useActionState<AuthActionState, FormData>(
@@ -67,6 +68,8 @@ export function AdminLoginForm() {
             />
 
             {state.error ? <Alert severity="error">{state.error}</Alert> : null}
+
+            <TurnstileWidget />
 
             <Button
               type="submit"
