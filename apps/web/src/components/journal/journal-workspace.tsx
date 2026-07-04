@@ -44,6 +44,7 @@ const FEEDBACK_NOTE_TEMPLATES = [
   "Good enough: ",
   "Maria would phrase it this way: ",
 ] as const
+const CALIBRATION_PROMPT_TEXTS = new Set<string>(CALIBRATION_PROMPTS.map((prompt) => prompt.text))
 
 type AnalysisResult = {
   journalEntry?: {
@@ -153,7 +154,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const [embodimentSaved, setEmbodimentSaved] = useState(false)
   const [feedbackSaved, setFeedbackSaved] = useState("")
   const [feedbackNote, setFeedbackNote] = useState("")
-  const [calibrationScenario, setCalibrationScenario] = useState<(typeof CALIBRATION_PROMPTS)[number]["scenario"] | "freeform">("freeform")
+  const [calibrationScenario, setCalibrationScenario] = useState<(typeof CALIBRATION_PROMPTS)[number]["scenario"] | "freeform">(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -196,7 +197,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const applyCalibrationPrompt = (prompt: (typeof CALIBRATION_PROMPTS)[number]) => {
     setCalibrationScenario(prompt.scenario)
     const promptText = prompt.text
-    setText((prev) => (prev.trim() ? `${prev}\n\n${promptText}` : promptText))
+    setText((prev) => {
+      const trimmed = prev.trim()
+      if (!trimmed || CALIBRATION_PROMPT_TEXTS.has(trimmed)) return promptText
+      return `${prev}\n\n${promptText}`
+    })
   }
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
@@ -312,17 +317,25 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
-                  {CALIBRATION_PROMPTS.map((prompt) => (
+              {CALIBRATION_PROMPTS.map((prompt) => {
+                const selected = calibrationScenario === prompt.scenario
+                return (
                 <button
                   key={prompt.label}
                   type="button"
                   onClick={() => applyCalibrationPrompt(prompt)}
-                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
-                  style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)]"
+                  style={{
+                    borderColor: selected ? "rgba(184,137,90,0.42)" : "rgba(43,27,53,0.08)",
+                    background: selected ? "rgba(184,137,90,0.1)" : "transparent",
+                    color: selected ? "var(--primary)" : "var(--plum-soft)",
+                  }}
                 >
+                  {selected ? "Selected: " : ""}
                   {prompt.label}
                 </button>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
