@@ -3,8 +3,8 @@
 ## Branch State
 - Local branch: `codex/inner-council-stabilization`
 - Base branch: `main`
-- Current local branch position: `1bbf934 Document founder calibration launch operations`
-- Ahead of `main`: 80 commits
+- Current local branch position: `46f2e20 Add founder calibration release handoff`
+- Ahead of `main`: 81 commits
 - Remote branch: not pushed yet
 
 ## Summary
