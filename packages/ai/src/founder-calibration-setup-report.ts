@@ -132,6 +132,7 @@ export type FounderCalibrationSetupSnapshot = {
     consentRecords?: PilotConsentRecord[]
     sessions: Array<{
       id: string
+      journalEntryId: string
       createdAt: Date
       feedback: Array<{ hasNote: boolean }>
       qualityReviews: Array<{ label: string; severity: string }>
@@ -208,6 +209,7 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
       consentRecords: participant.user?.consentEvents ?? [],
       sessions: (participant.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
+        journalEntryId: session.journalEntryId,
         createdAt: session.createdAt,
         feedback: session.feedback.map((feedback) => ({ hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
@@ -236,6 +238,7 @@ async function readSetupParticipantsSafely() {
               take: 50,
               select: {
                 id: true,
+                journalEntryId: true,
                 createdAt: true,
                 feedback: { select: { note: true } },
                 qualityReviews: {
@@ -277,6 +280,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     const feedbackNoteCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasNote).length, 0)
     const reviewedSessionCount = sessions.filter((session) => session.qualityReviews.length > 0).length
     const goldenExampleCount = sessions.filter((session) => session.qualityReviews.some((review) => READY_LABELS.has(review.label))).length
+    const latestSessionHref = sessions[0]?.journalEntryId ? `/journal/${sessions[0].journalEntryId}` : "/journal"
 
     for (const session of sessions) {
       const scenario = readSessionScenario(session)
@@ -294,6 +298,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       sessionCount: sessions.length,
       feedbackNoteCount,
       goldenExampleCount,
+      latestSessionHref,
     })
     const nextAction = chooseParticipantNextAction(missingActions, scenarioStatus)
 
@@ -469,7 +474,7 @@ function chooseParticipantNextAction(
   scenarioStatus: FounderCalibrationParticipantScenarioStatus[],
 ) {
   const primaryMissingAction = missingActions[0]
-  if (primaryMissingAction) return { message: primaryMissingAction.message, href: readFounderLaunchHref(primaryMissingAction.code) }
+  if (primaryMissingAction) return { message: primaryMissingAction.message, href: primaryMissingAction.href ?? readFounderLaunchHref(primaryMissingAction.code) }
   const nextScenario = scenarioStatus.find((item) => !item.completed)
   if (nextScenario) return { message: `Run the ${formatFounderCalibrationScenario(nextScenario.scenario)} guided scenario.`, href: "/journal" }
   const scenarioWithoutReadyExample = scenarioStatus.find((item) => item.completed && !item.hasReadyExample)
@@ -488,7 +493,8 @@ function readFounderLaunchHref(code: string) {
 function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant) {
   if (!participant.accountExists) return "/register"
   if (!participant.onboardingComplete || !participant.consentPresent) return "/onboarding"
-  if (participant.sessionCount === 0 || participant.feedbackNoteCount === 0) return "/journal"
+  if (participant.sessionCount === 0) return "/journal"
+  if (participant.feedbackNoteCount === 0) return participant.nextActionHref ?? "/journal"
   if (participant.goldenExampleCount === 0) return "/calibration/live"
   return "/journal"
 }
@@ -526,6 +532,7 @@ function buildParticipantMissingActions(input: {
   sessionCount: number
   feedbackNoteCount: number
   goldenExampleCount: number
+  latestSessionHref?: string
 }) {
   if (input.status !== "active") return []
   const actions: FounderCalibrationMissingAction[] = []
@@ -533,7 +540,7 @@ function buildParticipantMissingActions(input: {
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/onboarding" })
   if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/onboarding" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/journal" })
-  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: "/journal" })
+  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: input.latestSessionHref ?? "/journal" })
   if (input.sessionCount > 0 && input.goldenExampleCount === 0) actions.push({ code: "golden_example_missing", email: input.email, message: `${input.email} needs at least one ready/golden example review.`, href: "/calibration/live" })
   return actions
 }
@@ -568,7 +575,7 @@ function resolveFounderHandoffHref(
   if (!href) return null
   if (href.startsWith("http://") || href.startsWith("https://")) return href
   if (href === "/calibration/live" || href === "/calibration/setup") return `${adminAppBaseUrl}${href}`
-  if ((href === "/onboarding" || href === "/journal") && email) {
+  if ((href === "/onboarding" || href.startsWith("/journal")) && email) {
     return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
   }
   if ((href === "/register" || href === "/login") && email) {
@@ -584,7 +591,7 @@ function resolveFounderHandoffText(
   webAppBaseUrl: string,
   adminAppBaseUrl: string,
 ) {
-  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal|calibration\/live|calibration\/setup)\b/g, (_match, prefix: string, path: string) => {
+  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal(?:\/[^\s]+)?|calibration\/live|calibration\/setup)\b/g, (_match, prefix: string, path: string) => {
     const href = `/${path}`
     return `${prefix}${resolveFounderHandoffHref(href, email, webAppBaseUrl, adminAppBaseUrl) ?? href}`
   })

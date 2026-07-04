@@ -973,6 +973,7 @@ test("founder calibration setup report lists missing actions without raw notes",
         consentCount: 5,
         sessions: [{
           id: "session_carl",
+          journalEntryId: "entry_carl",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
           feedback: [{ hasNote: true }],
           qualityReviews: [{ label: "ready", severity: "normal" }],
@@ -1001,6 +1002,7 @@ test("founder calibration setup report lists missing actions without raw notes",
         consentCount: 0,
         sessions: [{
           id: "paused_session",
+          journalEntryId: "entry_paused",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
           feedback: [{ hasNote: false }],
           qualityReviews: [],
@@ -1064,6 +1066,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
         consentCount: 1,
         sessions: [{
           id: "session_maria",
+          journalEntryId: "entry_maria",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
           feedback: [{ hasNote: false }],
           qualityReviews: [],
@@ -1078,7 +1081,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.href === "/onboarding"))
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
   assert.match(report.requiredRoles.carl.handoffText, /preselected Voice test guided calibration prompt/)
-  assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
+  assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal/entry_maria")
   assert.match(report.requiredRoles.maria.handoffText, /add feedback with a specific note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
@@ -1118,8 +1121,9 @@ test("founder handoff report resolves copyable web and admin links", () => {
         ],
         sessions: [{
           id: "session_maria",
+          journalEntryId: "entry_maria",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
-          feedback: [{ hasNote: true }],
+          feedback: [{ hasNote: false }],
           qualityReviews: [],
           generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
         }],
@@ -1136,8 +1140,8 @@ test("founder handoff report resolves copyable web and admin links", () => {
   assert.equal(carl?.primaryHref, "https://web.example/login?email=carl%40example.com&next=%2Fonboarding")
   assert.match(carl?.handoffText ?? "", /https:\/\/web\.example\/login\?email=carl%40example\.com&next=%2Fonboarding/)
   assert.equal(carl?.readyForFirstSession, false)
-  assert.equal(maria?.primaryHref, "https://admin.example/calibration/live")
-  assert.match(maria?.handoffText ?? "", /https:\/\/admin\.example\/calibration\/live/)
+  assert.equal(maria?.primaryHref, "https://web.example/login?email=maria%40example.com&next=%2Fjournal%2Fentry_maria")
+  assert.match(maria?.handoffText ?? "", /https:\/\/web\.example\/login\?email=maria%40example\.com&next=%2Fjournal%2Fentry_maria/)
   assert.equal(maria?.readyForFirstSession, true)
   assert.equal(JSON.stringify(handoff).includes("private journal text"), false)
   assert.equal(JSON.stringify(handoff).includes("raw note"), false)
