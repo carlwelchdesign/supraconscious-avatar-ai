@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { acceptPilotOrientationAction } from "./actions"
 
@@ -19,6 +20,7 @@ export default async function OnboardingPage({
   const user = await requireAppUser()
   if (user.onboardingComplete) redirect("/journal")
   const params = await searchParams
+  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const latestConsents = await prisma.consentEvent.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
@@ -42,6 +44,17 @@ export default async function OnboardingPage({
       {params.error === "consent_required" && (
         <div className="rounded-2xl border px-5 py-4 text-[13px] text-[var(--destructive)]" style={{ borderColor: "rgba(191,64,64,0.2)", background: "rgba(191,64,64,0.06)" }}>
           Please accept each required pilot consent item before beginning.
+        </div>
+      )}
+
+      {founderCalibrationMode && (
+        <div className="rounded-3xl border px-5 py-4" style={{ background: "var(--pearl)", borderColor: "rgba(184,137,90,0.18)" }}>
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--clay)]">
+            Founder calibration
+          </p>
+          <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            After this step, the journal will open with a suggested guided calibration scenario. Please run one reflection, choose a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently.
+          </p>
         </div>
       )}
 

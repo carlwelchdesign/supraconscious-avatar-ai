@@ -6,6 +6,7 @@
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
 - Copy the founder handoff text for each person and send it manually; the app does not send email invites or create magic links.
 - Have each founder register through the normal web app and complete onboarding consent.
+- Active founder participants will see a founder calibration note on onboarding; after consent, the app redirects them to `/journal`.
 - Use `Sync user` on the setup page if a participant was added before the account existed.
 
 ## CLI Fallback
@@ -19,6 +20,7 @@
 ## Session Cadence
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.
 - Complete onboarding if the setup page shows it as pending.
+- On onboarding, confirm the founder understands the next step is one guided calibration reflection plus a required feedback note.
 - Open `/journal` as the founder account.
 - Use the preselected suggested scenario first, then run one guided calibration scenario at a time: voice, source grounding, embodiment, no-source fallback, and intensity boundary.
 - Leave a short feedback note for every founder calibration feedback submission. The app requires a note for active founder participants so the calibration report has usable evidence.
