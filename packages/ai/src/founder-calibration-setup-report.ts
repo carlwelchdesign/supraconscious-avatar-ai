@@ -116,6 +116,12 @@ export type FounderCalibrationHandoffReport = {
   warnings: string[]
 }
 
+export type FounderCalibrationLaunchPacketOptions = {
+  webAppBaseUrl?: string
+  adminAppBaseUrl?: string
+  includeLocalCommands?: boolean
+}
+
 export type FounderCalibrationSetupSnapshot = {
   checkedAt: Date
   filterMode: FounderCalibrationFilterMode
@@ -179,6 +185,71 @@ export function buildFounderCalibrationHandoffReport(
     blockers: setupReport.blockers,
     warnings: setupReport.warnings,
   }
+}
+
+export function buildFounderCalibrationLaunchPacket(
+  report: FounderCalibrationHandoffReport,
+  options: FounderCalibrationLaunchPacketOptions = {},
+) {
+  const adminAppBaseUrl = normalizeBaseUrl(options.adminAppBaseUrl ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001")
+  const lines = [
+    "# Founder Calibration Launch Packet",
+    "",
+    `Checked at: ${report.checkedAt}`,
+    "",
+  ]
+
+  if (options.includeLocalCommands ?? true) {
+    lines.push(
+      "## Start Local Apps",
+      "Run: yarn dev:founder-calibration",
+      "Smoke check: yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3",
+      `Admin setup: ${adminAppBaseUrl}/calibration/setup`,
+      `Admin live review: ${adminAppBaseUrl}/calibration/live`,
+      "",
+    )
+  } else {
+    lines.push(
+      "## Admin Links",
+      `Admin setup: ${adminAppBaseUrl}/calibration/setup`,
+      `Admin live review: ${adminAppBaseUrl}/calibration/live`,
+      "",
+    )
+  }
+
+  lines.push("## Founder Handoff")
+  for (const item of report.items) {
+    lines.push(
+      `### ${item.role.toUpperCase()}`,
+      `Email: ${item.email ?? "not configured"}`,
+      `Next action: ${item.nextAction}`,
+    )
+    if (item.primaryHref) lines.push(`Primary link: ${item.primaryHref}`)
+    lines.push("", item.handoffText, "")
+  }
+
+  if (report.blockers.length > 0) {
+    lines.push("## Current Blockers")
+    for (const blocker of report.blockers) lines.push(`- ${blocker}`)
+    lines.push("")
+  }
+
+  if (report.warnings.length > 0) {
+    lines.push("## Warnings")
+    for (const warning of report.warnings) lines.push(`- ${warning}`)
+    lines.push("")
+  }
+
+  lines.push(
+    "## After First Sessions",
+    "- Review sessions in admin live review.",
+    "- Mark strong sessions ready/golden or assign a voice, source, prompt, intensity, or embodiment issue.",
+    "- Run: yarn report:founder-calibration",
+    "- Run: yarn report:founder-calibration-comparison",
+    "- Run: yarn check:founder-calibration-launch",
+  )
+
+  return lines.join("\n")
 }
 
 export async function runFounderCalibrationSetupReport(now = new Date()): Promise<FounderCalibrationSetupReport> {

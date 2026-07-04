@@ -8,6 +8,7 @@ import {
   buildFounderCalibrationReportFromSnapshot,
   buildFounderCalibrationComparisonFromSnapshot,
   buildFounderCalibrationHandoffReport,
+  buildFounderCalibrationLaunchPacket,
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -1153,6 +1154,19 @@ test("founder handoff report resolves copyable web and admin links", () => {
   assert.equal(maria?.readyForFirstSession, true)
   assert.equal(JSON.stringify(handoff).includes("private journal text"), false)
   assert.equal(JSON.stringify(handoff).includes("raw note"), false)
+
+  const packet = buildFounderCalibrationLaunchPacket(handoff, {
+    webAppBaseUrl: "https://web.example/",
+    adminAppBaseUrl: "https://admin.example/",
+  })
+  assert.match(packet, /# Founder Calibration Launch Packet/)
+  assert.match(packet, /Admin setup: https:\/\/admin\.example\/calibration\/setup/)
+  assert.match(packet, /### CARL/)
+  assert.match(packet, /### MARIA/)
+  assert.match(packet, /https:\/\/web\.example\/login\?email=maria%40example\.com&next=%2Fjournal%2Fentry_maria/)
+  assert.match(packet, /## After First Sessions/)
+  assert.equal(packet.includes("private journal text"), false)
+  assert.equal(packet.includes("raw note"), false)
 })
 
 test("founder calibration setup report requires all current required consent records", () => {

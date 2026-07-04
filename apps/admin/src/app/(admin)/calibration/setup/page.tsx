@@ -1,5 +1,11 @@
 import Link from "next/link"
-import { formatFounderCalibrationScenario, runFounderCalibrationSetupReport, FOUNDER_CALIBRATION_PARTICIPANT_ROLES } from "@inner-avatar/ai"
+import {
+  buildFounderCalibrationHandoffReport,
+  buildFounderCalibrationLaunchPacket,
+  formatFounderCalibrationScenario,
+  runFounderCalibrationSetupReport,
+  FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
+} from "@inner-avatar/ai"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import {
   activateFounderCalibrationParticipantAction,
@@ -14,6 +20,8 @@ export default async function FounderCalibrationSetupPage() {
   const report = await runFounderCalibrationSetupReport()
   const webAppBaseUrl = readWebAppBaseUrl()
   const adminAppBaseUrl = readAdminAppBaseUrl()
+  const handoffReport = buildFounderCalibrationHandoffReport(report, { webAppBaseUrl, adminAppBaseUrl })
+  const launchPacket = buildFounderCalibrationLaunchPacket(handoffReport, { webAppBaseUrl, adminAppBaseUrl })
 
   return (
     <div className="space-y-6">
@@ -109,6 +117,23 @@ export default async function FounderCalibrationSetupPage() {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <FounderHandoff role="Carl" status={report.requiredRoles.carl} webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
           <FounderHandoff role="Maria" status={report.requiredRoles.maria} webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Full Launch Packet</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              Copy this when you want one operational handoff with Carl, Maria, admin review links, blockers, and after-session checks.
+            </p>
+            <CopyHandoffButton text={launchPacket} label="Copy packet" />
+          </div>
+          <textarea
+            readOnly
+            value={launchPacket}
+            className="min-h-72 w-full rounded-md border bg-muted/30 p-3 font-mono text-xs text-muted-foreground"
+          />
         </CardContent>
       </Card>
 

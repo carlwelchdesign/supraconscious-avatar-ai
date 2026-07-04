@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-export function CopyHandoffButton({ text }: { text: string }) {
+export function CopyHandoffButton({ text, label = "Copy handoff" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -24,7 +24,7 @@ export function CopyHandoffButton({ text }: { text: string }) {
         onClick={handleCopy}
         className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted"
       >
-        {copied ? "Copied" : "Copy handoff"}
+        {copied ? "Copied" : label}
       </button>
       {failed ? (
         <span className="text-xs text-muted-foreground">
