@@ -142,11 +142,14 @@ export default async function SettingsPage() {
             }
           />
           <div className="pb-5">
-            <form action={clearPatternMemoryAction}>
-              <button type="submit" className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-                Clear remembered signals
-              </button>
-            </form>
+            <button
+              type="submit"
+              formAction={clearPatternMemoryAction}
+              className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]"
+              style={{ borderColor: "rgba(43,27,53,0.08)" }}
+            >
+              Clear remembered signals
+            </button>
           </div>
           <SettingRow
             label="Safety mode"
