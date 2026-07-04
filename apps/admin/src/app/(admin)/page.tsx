@@ -1,13 +1,15 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 
 export default async function AdminHomePage() {
-  const [users, entries, subscriptions, safetyEvents] = await Promise.all([
+  const [users, entries, subscriptions, safetyEvents, founderSetup] = await Promise.all([
     prisma.user.count(),
     prisma.journalEntry.count(),
     prisma.subscription.count(),
     prisma.safetyEvent.count(),
+    runFounderCalibrationSetupReport(),
   ])
 
   return (
@@ -28,6 +30,38 @@ export default async function AdminHomePage() {
         </CardHeader>
         <CardContent className="text-sm leading-6 text-muted-foreground">
           Admin list views show metadata first. Raw journal text is only available through explicit reveal flows that require a reason and write an audit log.
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Founder Launch Status</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {founderSetup.readiness.ready ? (
+            <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">
+              Carl and Maria launch evidence is complete. Continue reviewing sessions before making prompt or source changes.
+            </p>
+          ) : (
+            <div className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
+              <p className="font-medium text-foreground">Founder calibration is blocked by {founderSetup.missingActions.length} action{founderSetup.missingActions.length === 1 ? "" : "s"}.</p>
+              <div className="mt-2 space-y-1">
+                {founderSetup.missingActions.slice(0, 4).map((action) => (
+                  <p key={`${action.code}-${action.email ?? "global"}`}>{action.message}</p>
+                ))}
+                {founderSetup.missingActions.length > 4 ? (
+                  <p>{founderSetup.missingActions.length - 4} more action{founderSetup.missingActions.length - 4 === 1 ? "" : "s"} in setup.</p>
+                ) : null}
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Link href="/calibration/setup" className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
+              Setup and launch packet
+            </Link>
+            <Link href="/calibration/live" className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
+              Live review
+            </Link>
+          </div>
         </CardContent>
       </Card>
       <div className="flex flex-wrap gap-3 text-sm">
