@@ -4,7 +4,7 @@ import { startChatGptApp } from '../src/server'
 
 let server: any
 
-test('server health endpoint responds with ok status', async (t) => {
+test('server health endpoint responds with ok status', async () => {
   server = startChatGptApp(0)
   const address = server.address()
   const port = typeof address === 'string' ? 0 : address.port

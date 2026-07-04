@@ -66,7 +66,7 @@ class InnerAvatarWidget {
             const prompt = await this.callTool('generate_personalized_prompt', { text });
 
             // Save the complete session
-            const result = await this.callTool('save_reflection_session', {
+            await this.callTool('save_reflection_session', {
                 entryText: text,
                 analysis,
                 avatarResponse: reflection,

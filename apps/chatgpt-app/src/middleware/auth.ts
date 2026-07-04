@@ -12,7 +12,7 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     // In production: validate token from Authorization header or session cookie
     req.userId = undefined // Would be set to actual user ID
     next()
-  } catch (error) {
+  } catch {
     res.status(401).json({ error: "Authentication failed" })
   }
 }
