@@ -44,6 +44,8 @@ Health endpoints:
 - Admin browser health page: `http://localhost:3001/health`
 - ChatGPT/MCP liveness: `http://localhost:3002/health`
 
+Compose also defines container healthchecks for web, admin, and ChatGPT/MCP using those endpoints. Web and admin only become healthy after their database readiness checks pass.
+
 ## Runtime Environment
 
 Containers read configuration from Compose environment variables or the deployment platform. `.env` files are ignored by Docker and are not copied into images.
