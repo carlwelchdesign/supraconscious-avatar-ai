@@ -4,11 +4,11 @@ import { prisma } from "@inner-avatar/db"
 import { acceptPilotOrientationAction } from "./actions"
 
 const CONSENT_ITEMS = [
-  ["privacy_terms", "I understand what is stored and processed."],
-  ["ai_processing", "I consent to AI processing for reflective responses."],
-  ["pattern_memory", "Remember recurring signals unless I turn this off later."],
-  ["pilot_participation", "I understand this is a pilot experience."],
-  ["safety_limits", "I understand this is not therapy, diagnosis, crisis care, or emergency monitoring."],
+  ["privacy_terms", "I understand what is stored and processed.", true],
+  ["ai_processing", "I consent to AI processing for reflective responses.", true],
+  ["pattern_memory", "Remember recurring signals unless I turn this on or off later.", false],
+  ["pilot_participation", "I understand this is a pilot experience.", true],
+  ["safety_limits", "I understand this is not therapy, diagnosis, crisis care, or emergency monitoring.", true],
 ] as const
 
 export default async function OnboardingPage({
@@ -41,16 +41,21 @@ export default async function OnboardingPage({
 
       {params.error === "consent_required" && (
         <div className="rounded-2xl border px-5 py-4 text-[13px] text-[var(--destructive)]" style={{ borderColor: "rgba(191,64,64,0.2)", background: "rgba(191,64,64,0.06)" }}>
-          Please accept each pilot consent item before beginning.
+          Please accept each required pilot consent item before beginning.
         </div>
       )}
 
       <form action={acceptPilotOrientationAction} className="rounded-3xl border p-6" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
         <div className="space-y-4">
-          {CONSENT_ITEMS.map(([name, label]) => (
+          {CONSENT_ITEMS.map(([name, label, required]) => (
             <label key={name} className="flex items-start gap-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
               <input name={name} type="checkbox" className="mt-1 h-4 w-4 accent-[var(--clay)]" />
-              <span>{label}</span>
+              <span>
+                {label}{" "}
+                <span className="text-[12px] text-[var(--plum-soft)]/60">
+                  {required ? "Required" : "Optional"}
+                </span>
+              </span>
             </label>
           ))}
         </div>
