@@ -7,7 +7,7 @@
 - In admin, open `/calibration/setup`.
 - Use the Carl/Maria Setup panel to enter Carl's email, Maria's email, optional reviewer emails, and a setup reason.
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
-- Copy the founder handoff text for each person and send it manually. Protected links route through login with the founder email prefilled and the intended next step preserved.
+- Copy the Full Launch Packet from `/calibration/setup`, or copy the individual founder handoff text for each person and send it manually. Protected links route through login with the founder email prefilled and the intended next step preserved.
 - The app does not send email invites, create magic links, create passwords, create sessions, or impersonate founders.
 - If a linked founder account cannot sign in, a super-admin may use the audited password reset in `/users`; do not create a duplicate account or bypass onboarding/consent.
 - Optional CLI launch packet: run `yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` to print the start command, admin review links, Carl/Maria handoff messages, blockers, and after-session review commands.

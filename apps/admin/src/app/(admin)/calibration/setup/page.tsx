@@ -21,7 +21,11 @@ export default async function FounderCalibrationSetupPage() {
   const webAppBaseUrl = readWebAppBaseUrl()
   const adminAppBaseUrl = readAdminAppBaseUrl()
   const handoffReport = buildFounderCalibrationHandoffReport(report, { webAppBaseUrl, adminAppBaseUrl })
-  const launchPacket = buildFounderCalibrationLaunchPacket(handoffReport, { webAppBaseUrl, adminAppBaseUrl })
+  const launchPacket = buildFounderCalibrationLaunchPacket(handoffReport, {
+    webAppBaseUrl,
+    adminAppBaseUrl,
+    includeLocalCommands: false,
+  })
 
   return (
     <div className="space-y-6">

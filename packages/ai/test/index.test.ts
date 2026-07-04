@@ -1167,6 +1167,14 @@ test("founder handoff report resolves copyable web and admin links", () => {
   assert.match(packet, /## After First Sessions/)
   assert.equal(packet.includes("private journal text"), false)
   assert.equal(packet.includes("raw note"), false)
+
+  const adminPacket = buildFounderCalibrationLaunchPacket(handoff, {
+    webAppBaseUrl: "https://web.example/",
+    adminAppBaseUrl: "https://admin.example/",
+    includeLocalCommands: false,
+  })
+  assert.match(adminPacket, /## Admin Links/)
+  assert.equal(adminPacket.includes("yarn dev:founder-calibration"), false)
 })
 
 test("founder calibration setup report requires all current required consent records", () => {
