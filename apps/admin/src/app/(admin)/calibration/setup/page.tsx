@@ -153,8 +153,8 @@ export default async function FounderCalibrationSetupPage() {
                 <div className="flex flex-wrap gap-2">
                   <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
                   <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
-                  <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
-                  <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
+                  <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
+                  <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
                   {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} email={participant.email} /> : null}
                 </div>
               </div>
@@ -370,8 +370,8 @@ function FounderHandoff({
       <div className="mt-3 flex flex-wrap gap-2">
         <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} email={status.email} />
         <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={status.email} />
-        <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
-        <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
+        <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} email={status.email} />
+        <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} email={status.email} />
         <SafeLink href="/calibration/live" label="Live review" />
       </div>
     </div>

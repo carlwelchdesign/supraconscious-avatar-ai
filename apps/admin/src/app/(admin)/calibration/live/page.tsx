@@ -70,7 +70,7 @@ export default async function LiveCalibrationPage() {
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">Founder setup is ready for live calibration.</p>
           ) : setup.missingActions.map((action) => (
             <p key={`${action.code}-${action.email ?? "global"}`} className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
-              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} /> : action.message}
+              {action.href ? <InlineSafeLink href={action.href} label={action.message} webAppBaseUrl={webAppBaseUrl} email={action.email} /> : action.message}
             </p>
           ))}
           {setup.warnings.map((warning) => (
@@ -206,17 +206,24 @@ function chooseNextAction(label: string | null, feedbackTypes: string[]) {
 }
 
 const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
+const PROTECTED_FOUNDER_WEB_PATHS = new Set(["/onboarding", "/journal"])
 
 function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
-function resolveFounderHref(href: string, webAppBaseUrl: string) {
+function resolveFounderHref(href: string, webAppBaseUrl: string, email?: string | null) {
   if (href.startsWith("http://") || href.startsWith("https://")) return href
-  if (FOUNDER_WEB_PATHS.has(href)) return `${webAppBaseUrl}${href}`
+  if (FOUNDER_WEB_PATHS.has(href)) {
+    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
+      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+    }
+    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
+    return `${webAppBaseUrl}${href}${suffix}`
+  }
   return href
 }
 
-function InlineSafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl: string }) {
-  return <Link href={resolveFounderHref(href, webAppBaseUrl)} className="underline">{label}</Link>
+function InlineSafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl: string; email?: string | null }) {
+  return <Link href={resolveFounderHref(href, webAppBaseUrl, email)} className="underline">{label}</Link>
 }
