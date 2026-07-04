@@ -1,16 +1,22 @@
 import { Request, Response, NextFunction } from "express"
 import { classifyJournalSafety } from "@inner-avatar/ai"
 
-type ClassifyJournalSafetyFn = (text: string) => Promise<any>
+type ClassifyJournalSafetyFn = (text: string) => Promise<unknown>
+
+type SafetyRequestBody = {
+  text?: unknown
+  entryId?: unknown
+  _safety?: unknown
+}
 
 export function createSafetyMiddleware(classifyFn: ClassifyJournalSafetyFn = classifyJournalSafety) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Extract text from request body for safety checking
-      const body = req.body
+      const body = req.body as SafetyRequestBody
       let textToCheck: string | undefined
 
-      if (body.text) {
+      if (typeof body.text === "string" && body.text.trim()) {
         textToCheck = body.text
       } else if (body.entryId) {
         // Would need to fetch text from database, but for middleware we'll skip for now

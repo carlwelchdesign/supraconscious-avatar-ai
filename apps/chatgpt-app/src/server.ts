@@ -138,7 +138,7 @@ app.post('/mcp/tools/:toolName',
     const { toolName } = req.params
     const input = req.body
 
-    let result: any
+    let result: unknown
 
     switch (toolName) {
       case 'create_journal_entry':

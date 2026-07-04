@@ -37,7 +37,7 @@ const SaveReflectionSessionSchema = z.object({
   })
 })
 
-export async function saveReflectionSession(input: any, userId?: string, deps: { prisma?: typeof prisma } = {}) {
+export async function saveReflectionSession(input: unknown, userId?: string, deps: { prisma?: typeof prisma } = {}) {
   const { prisma: prismaClient = prisma } = deps
 
   try {

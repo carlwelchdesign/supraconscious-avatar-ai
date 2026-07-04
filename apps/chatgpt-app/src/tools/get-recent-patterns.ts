@@ -5,7 +5,14 @@ const GetRecentPatternsSchema = z.object({
   limit: z.number().int().min(1).max(20).default(5)
 })
 
-export async function getRecentPatterns(input: any, userId?: string, deps: { prisma?: typeof prisma } = {}) {
+type PatternSummary = {
+  patternLabel: string
+  evidenceCount: number
+  lastSeenAt: Date
+  examples: unknown
+}
+
+export async function getRecentPatterns(input: unknown, userId?: string, deps: { prisma?: typeof prisma } = {}) {
   const { prisma: prismaClient = prisma } = deps
 
   try {
@@ -30,7 +37,7 @@ export async function getRecentPatterns(input: any, userId?: string, deps: { pri
     })
 
     return {
-      patterns: patterns.map((p: any) => ({
+      patterns: (patterns as PatternSummary[]).map((p) => ({
         label: p.patternLabel,
         evidenceCount: p.evidenceCount,
         lastSeenAt: p.lastSeenAt.toISOString(),
