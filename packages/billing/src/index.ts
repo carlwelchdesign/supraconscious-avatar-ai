@@ -158,6 +158,51 @@ export async function markStripeSubscriptionDeleted(subscription: Stripe.Subscri
   })
 }
 
+export async function archiveStripeCustomerForAccountDeletion({
+  stripeCustomerId,
+  stripeSubscriptionIds,
+}: {
+  stripeCustomerId: string | null | undefined
+  stripeSubscriptionIds: Array<string | null | undefined>
+}) {
+  if (!stripeCustomerId || !process.env.STRIPE_SECRET_KEY) {
+    return {
+      stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+      customerDeleted: false,
+      canceledSubscriptions: 0,
+    }
+  }
+
+  const stripe = getStripe()
+  let canceledSubscriptions = 0
+  const uniqueSubscriptionIds = [...new Set(stripeSubscriptionIds.filter((id): id is string => Boolean(id)))]
+
+  for (const subscriptionId of uniqueSubscriptionIds) {
+    try {
+      await stripe.subscriptions.cancel(subscriptionId)
+      canceledSubscriptions += 1
+    } catch (error) {
+      if (!isStripeMissingResourceError(error)) throw error
+    }
+  }
+
+  try {
+    await stripe.customers.del(stripeCustomerId)
+    return {
+      stripeConfigured: true,
+      customerDeleted: true,
+      canceledSubscriptions,
+    }
+  } catch (error) {
+    if (!isStripeMissingResourceError(error)) throw error
+    return {
+      stripeConfigured: true,
+      customerDeleted: false,
+      canceledSubscriptions,
+    }
+  }
+}
+
 function secondsToDate(value: number | null | undefined) {
   return typeof value === "number" ? new Date(value * 1000) : null
 }
@@ -167,4 +212,8 @@ function normalizeStripeStatus(status: Stripe.Subscription.Status) {
   if (status === "past_due" || status === "unpaid") return "past_due"
   if (status === "canceled") return "canceled"
   return "inactive"
+}
+
+function isStripeMissingResourceError(error: unknown) {
+  return error instanceof Stripe.errors.StripeInvalidRequestError && error.code === "resource_missing"
 }

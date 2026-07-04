@@ -95,7 +95,7 @@ Users can review active sessions from `/settings`, revoke a single session, revo
 
 Signed-in users can delete their own account from `/settings` by confirming their current password and typing `DELETE`.
 
-Deleting an account removes the user row and cascades private app-owned records such as sessions, journal entries, analyses, avatar responses, generated prompts, pattern memory, council sessions, council feedback, consent events, safety events, enrollments, and subscriptions stored in the app database. Operational records with nullable user references, such as audit logs, source import metadata, and generation traces, may remain detached for governance and debugging.
+Deleting an account first attempts Stripe cleanup when `STRIPE_SECRET_KEY` is configured: linked Stripe subscriptions are cancelled and the linked Stripe customer is deleted when present. It then removes the user row and cascades private app-owned records such as sessions, journal entries, analyses, avatar responses, generated prompts, pattern memory, council sessions, council feedback, consent events, safety events, enrollments, and subscriptions stored in the app database. Operational records with nullable user references, such as audit logs, source import metadata, and generation traces, may remain detached for governance and debugging.
 
 ## Route Protection
 

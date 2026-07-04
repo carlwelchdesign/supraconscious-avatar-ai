@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
+import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 
 export type VoiceActionState = { ok: boolean } | null
@@ -196,6 +197,18 @@ export async function deleteAccountAction(formData: FormData) {
     redirect("/settings?accountDelete=incorrect")
   }
 
+  const subscriptions = await prisma.subscription.findMany({
+    where: { userId: user.id },
+    select: {
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+    },
+  })
+  const stripeCleanup = await archiveStripeCustomerForAccountDeletion({
+    stripeCustomerId: subscriptions.find((subscription) => subscription.stripeCustomerId)?.stripeCustomerId,
+    stripeSubscriptionIds: subscriptions.map((subscription) => subscription.stripeSubscriptionId),
+  })
+
   await emitPilotEvent({
     eventName: "account_deletion_requested",
     userId: user.id,
@@ -213,6 +226,7 @@ export async function deleteAccountAction(formData: FormData) {
         metadata: {
           email: currentUser.email,
           selfService: true,
+          stripeCleanup,
         },
       },
     }),

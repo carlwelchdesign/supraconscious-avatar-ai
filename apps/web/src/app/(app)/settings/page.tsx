@@ -469,7 +469,7 @@ export default async function SettingsPage({
           <div>
             <p className="text-[14px] font-medium text-[var(--primary)]">Delete this account and its private app data</p>
             <p className="mt-0.5 max-w-2xl text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-              This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. Audit records may remain as detached operational records.
+              This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.
             </p>
           </div>
           {params.accountDelete === "incorrect" ? (
