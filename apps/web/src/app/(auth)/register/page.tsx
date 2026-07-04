@@ -1,11 +1,12 @@
 import { AuthForm } from "@/components/auth/auth-form"
 import { registerAction } from "@inner-avatar/auth/actions"
+import { readPostLoginRedirect } from "@inner-avatar/auth/redirects"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { redirect } from "next/navigation"
 
 export default async function RegisterPage() {
   const user = await getCurrentUser()
-  if (user) redirect(user.onboardingComplete ? "/dashboard" : "/onboarding")
+  if (user) redirect(await readPostLoginRedirect(user))
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 relative overflow-hidden" style={{ background: "var(--cream)" }}>
