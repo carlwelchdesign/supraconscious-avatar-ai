@@ -37,7 +37,12 @@ The Compose stack exposes:
 - ChatGPT/MCP app health: `http://localhost:3002/health`
 - Postgres: `localhost:5433`
 
-The web health endpoint is `http://localhost:3000/api/health`. The admin app keeps its existing `/health` page.
+Health endpoints:
+
+- Web: `http://localhost:3000/api/health`
+- Admin readiness: `http://localhost:3001/api/health`
+- Admin browser health page: `http://localhost:3001/health`
+- ChatGPT/MCP: `http://localhost:3002/health`
 
 ## Runtime Environment
 
@@ -72,7 +77,7 @@ Do not add Kubernetes manifests until there is real traffic or an explicit infra
 - Ingress routes for public web, admin, and ChatGPT/MCP hostnames.
 - Readiness and liveness probes:
   - Web: `/api/health`
-  - Admin: `/health`
+  - Admin: `/api/health`
   - ChatGPT/MCP: `/health`
 - HorizontalPodAutoscaler for `web` and `chatgpt-app` first.
 - Conservative admin scaling unless review traffic grows.

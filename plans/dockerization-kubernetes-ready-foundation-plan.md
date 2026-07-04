@@ -10,7 +10,7 @@ Containerize the app with Docker and Docker Compose while keeping Vercel as the 
 - Configure Next.js standalone output for web and admin.
 - Add root Docker scripts for image builds and Compose lifecycle.
 - Add `docker-compose.yml` with Postgres, web, admin, ChatGPT/MCP, and an explicit one-shot schema setup service.
-- Add a web health endpoint and reuse the existing admin and ChatGPT health surfaces.
+- Add web and admin JSON health endpoints and reuse the existing ChatGPT health surface.
 - Add container and Kubernetes readiness documentation.
 
 ## Constraints
