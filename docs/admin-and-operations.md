@@ -12,7 +12,7 @@ Current admin routes:
 - `/users`: users, roles, account dates, entry counts.
 - `/subscriptions`: subscription state and billing metadata.
 - `/safety`: safety events and flagged entry metadata.
-- `/health`: database and runtime configuration checks.
+- `/health`: database, runtime configuration, founder launch gate, auth abuse pressure, and voice usage checks.
 - `/prompts`: prompt template create/list/edit.
 - `/avatar-stages`: editable Avatar stage metadata.
 - `/feature-flags`: feature flag create/list/update.
@@ -108,6 +108,7 @@ After deploy:
 - visit admin `/login`
 - confirm normal `user` accounts cannot access admin routes
 - confirm `/safety` does not show raw journal content in list views
+- confirm `/health` shows database `ok`, expected runtime configuration, and the current founder launch gate state
 - reveal a flagged entry with a reason and confirm an `AuditLog` row is created
 
 ## Incident Notes

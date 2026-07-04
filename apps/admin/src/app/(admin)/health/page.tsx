@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 
 export default async function HealthPage() {
   let database = "ok"
@@ -9,10 +10,27 @@ export default async function HealthPage() {
     database = "error"
   }
 
+  const founderSetup = await runFounderCalibrationSetupReport()
+  const authEmailConfigured = Boolean(process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM)
+  const turnstileConfigured = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY)
+  const stripeConfigured = Boolean(
+    process.env.STRIPE_SECRET_KEY &&
+      process.env.STRIPE_WEBHOOK_SECRET &&
+      process.env.STRIPE_STARTER_PRICE_ID &&
+      process.env.STRIPE_PRO_PRICE_ID &&
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  )
+  const handoffUrlsConfigured = Boolean(process.env.INNER_AVATAR_WEB_URL && process.env.NEXT_PUBLIC_ADMIN_URL)
+
   const checks = [
     { label: "Database", value: database },
     { label: "OpenAI API key", value: process.env.OPENAI_API_KEY ? "configured" : "missing" },
     { label: "Super admin allowlist", value: process.env.SUPER_ADMIN_EMAILS ? "configured" : "missing" },
+    { label: "Auth email delivery", value: authEmailConfigured ? "configured" : "manual/admin fallback" },
+    { label: "Turnstile bot protection", value: turnstileConfigured ? "configured" : "disabled" },
+    { label: "Billing configuration", value: stripeConfigured ? "configured" : "disabled/incomplete" },
+    { label: "Founder handoff URLs", value: handoffUrlsConfigured ? "configured" : "using defaults" },
+    { label: "Founder launch gate", value: founderSetup.readiness.ready ? "ready" : `${founderSetup.missingActions.length} action${founderSetup.missingActions.length === 1 ? "" : "s"} remaining` },
     { label: "Environment", value: process.env.NODE_ENV ?? "unknown" },
   ]
 
@@ -29,8 +47,53 @@ export default async function HealthPage() {
           </Card>
         ))}
       </div>
+      <RuntimeConfigurationNotes
+        authEmailConfigured={authEmailConfigured}
+        turnstileConfigured={turnstileConfigured}
+        stripeConfigured={stripeConfigured}
+        handoffUrlsConfigured={handoffUrlsConfigured}
+        founderMissingActions={founderSetup.missingActions.map((action) => action.message)}
+      />
       <AbuseAndUsagePressure />
     </div>
+  )
+}
+
+function RuntimeConfigurationNotes({
+  authEmailConfigured,
+  turnstileConfigured,
+  stripeConfigured,
+  handoffUrlsConfigured,
+  founderMissingActions,
+}: {
+  authEmailConfigured: boolean
+  turnstileConfigured: boolean
+  stripeConfigured: boolean
+  handoffUrlsConfigured: boolean
+  founderMissingActions: string[]
+}) {
+  const notes = [
+    authEmailConfigured ? null : "Auth email delivery is not configured; verification and reset links require manual/admin fallback.",
+    turnstileConfigured ? null : "Turnstile is disabled; server-side auth rate limits still apply.",
+    stripeConfigured ? null : "Billing is disabled or incomplete; keep paid plans hidden until Stripe env vars are configured.",
+    handoffUrlsConfigured ? null : "Founder handoff links are using default local URLs; set production web/admin origins before sending launch packets.",
+    ...founderMissingActions.slice(0, 4),
+  ].filter(Boolean)
+
+  if (notes.length === 0) return null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Runtime Notes</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        {notes.map((note) => (
+          <p key={note}>{note}</p>
+        ))}
+        {founderMissingActions.length > 4 ? <p>{founderMissingActions.length - 4} more founder action{founderMissingActions.length - 4 === 1 ? "" : "s"} remain in calibration setup.</p> : null}
+      </CardContent>
+    </Card>
   )
 }
 
