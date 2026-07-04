@@ -37,6 +37,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@inner-avatar/config": "workspace:*"
+    "@inner-avatar/config": "workspace:*",
+    "tsx": "^4.21.0"
   }
 }
