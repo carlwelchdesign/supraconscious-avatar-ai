@@ -11,6 +11,7 @@ const LABELS = [
   ["source_unsupported", "Source unsupported"],
   ["too_generic", "Too generic"],
   ["too_intense", "Too intense"],
+  ["embodiment_weak", "Embodiment weak"],
   ["ready", "Ready"],
 ] as const
 
@@ -89,6 +90,13 @@ export default async function CalibrationPage() {
         <Metric title="Prompt issues" value={report.promptIssues.length} />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-4">
+        <Metric title="Notes coverage" value={`${Math.round(report.calibrationCoverage.noteCoverageRate * 100)}%`} />
+        <Metric title="Review coverage" value={`${Math.round(report.calibrationCoverage.reviewCoverageRate * 100)}%`} />
+        <Metric title="Golden examples" value={report.goldenExamples.length} />
+        <Metric title="With feedback" value={report.calibrationCoverage.sessionsWithFeedback} />
+      </div>
+
       <Card>
         <CardHeader><CardTitle>Calibration Status</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm">
@@ -103,6 +111,31 @@ export default async function CalibrationPage() {
           )}
           {report.recommendations.map((recommendation) => (
             <p key={recommendation} className="text-muted-foreground">{recommendation}</p>
+          ))}
+          <p className="rounded-md border bg-muted/40 p-3 font-medium">
+            Next action: {report.nextRecommendedAction}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Action Queues</CardTitle></CardHeader>
+        <CardContent className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-5">
+          {report.actionQueues.map((queue) => (
+            <div key={queue.key} className="rounded-md border p-3">
+              <p className="font-medium">{queue.label}</p>
+              <p className="mt-1 text-2xl font-semibold">{queue.count}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{queue.recommendedAction}</p>
+              {queue.sessionIds.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {queue.sessionIds.slice(0, 4).map((sessionId) => (
+                    <Link key={sessionId} href={`/council?sessionId=${sessionId}`} className="rounded border px-2 py-1 text-[10px] hover:bg-muted">
+                      {sessionId.slice(0, 6)}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </CardContent>
       </Card>
@@ -209,6 +242,17 @@ export default async function CalibrationPage() {
                   </select>
                   <input name="reason" placeholder="Calibration reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
                   <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+                </form>
+                <form action={reviewCalibrationSessionAction} className="mt-2 flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="councilSessionId" value={session.id} />
+                  <input type="hidden" name="label" value="ready" />
+                  <input type="hidden" name="calibrationIssueType" value="none" />
+                  <input type="hidden" name="severity" value="normal" />
+                  <input type="hidden" name="reason" value="Use as golden example for Carl and Maria calibration." />
+                  <button className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10">
+                    Use as golden example
+                  </button>
+                  <span className="text-xs text-muted-foreground">Creates a ready review with no raw journal text.</span>
                 </form>
               </div>
             )

@@ -9,6 +9,36 @@ import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
+const CALIBRATION_PROMPTS = [
+  {
+    label: "Voice test",
+    text: "I want to test whether this reflection sounds grounded in Maria's work without pretending to be Maria. Reflect on a decision where I feel split between protection and truth.",
+  },
+  {
+    label: "Source-grounding test",
+    text: "Use the Inner Council idea as background if there is approved source material for it. I want to see whether the guidance names the source clearly without overclaiming.",
+  },
+  {
+    label: "Embodiment test",
+    text: "I understand the insight, but I need one small embodied shift I can actually live today. Help me find the next grounded action.",
+  },
+  {
+    label: "No-source fallback test",
+    text: "This is a practical situation with no obvious Maria doctrine match. Show me whether the guide can be useful without pretending source material was used.",
+  },
+  {
+    label: "Too-intense boundary test",
+    text: "I feel tender and exposed. I want a reflection that stays gentle, does not confront too hard, and still helps me notice one true thing.",
+  },
+] as const
+const FEEDBACK_NOTE_TEMPLATES = [
+  "Voice mismatch: ",
+  "Source unsupported: ",
+  "Too generic: ",
+  "Too intense: ",
+  "Good enough: ",
+  "Maria would phrase it this way: ",
+] as const
 
 type AnalysisResult = {
   journalEntry?: {
@@ -103,9 +133,10 @@ type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
   voicePrefs?: VoicePrefs
   thresholdPrompt?: ThresholdPrompt
+  founderCalibrationMode?: boolean
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null }: Props) {
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false }: Props) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingShift, setIsSavingShift] = useState(false)
@@ -152,6 +183,14 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
 
   const handleTranscribe = (transcribed: string) => {
     setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
+  }
+
+  const applyCalibrationPrompt = (promptText: string) => {
+    setText((prev) => (prev.trim() ? `${prev}\n\n${promptText}` : promptText))
+  }
+
+  const applyFeedbackTemplate = (template: string) => {
+    setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
   }
 
   async function handleSaveEmbodiment() {
@@ -230,6 +269,41 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
           Inspired by Maria Olon Tsaroucha&apos;s teachings. This guide is not Maria, not therapy, and not a spiritual authority.
         </p>
       </div>
+
+      {founderCalibrationMode && (
+        <section
+          className="rounded-3xl border px-6 py-5"
+          style={{
+            background: "var(--pearl)",
+            borderColor: "rgba(184,137,90,0.18)",
+            boxShadow: "0 4px 24px rgba(184,137,90,0.07)",
+          }}
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
+                Founder calibration
+              </p>
+              <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                Use these sessions to tune the guide with Carl and Maria. After each reflection, leave a note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
+              {CALIBRATION_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt.label}
+                  type="button"
+                  onClick={() => applyCalibrationPrompt(prompt.text)}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                  style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                >
+                  {prompt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {thresholdPrompt && (
         <section
@@ -543,6 +617,21 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
+              {founderCalibrationMode && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {FEEDBACK_NOTE_TEMPLATES.map((template) => (
+                    <button
+                      key={template}
+                      type="button"
+                      onClick={() => applyFeedbackTemplate(template)}
+                      className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
+                      style={{ borderColor: "rgba(43,27,53,0.08)" }}
+                    >
+                      {template.replace(": ", "")}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="mt-4 flex flex-wrap gap-2">
                 {[
                   ["helpful", "Helpful"],

@@ -1,10 +1,37 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { generateAvatarReflection } from '../src/tools/generate-avatar-reflection'
+import type { AvatarResponse, SafetyCheck } from '@inner-avatar/ai'
+
+const clearSafety: SafetyCheck = {
+  severity: 'none',
+  flags: [],
+  recommendedAction: 'reflect',
+  userMessage: 'Safe to reflect.',
+  allowReflectiveFlow: true
+}
+
+const highSafety: SafetyCheck = {
+  severity: 'high',
+  flags: [],
+  recommendedAction: 'grounding',
+  userMessage: 'Pause here.',
+  allowReflectiveFlow: false
+}
+
+const safeAvatarResponse: AvatarResponse = {
+  openingLine: 'Hello there.',
+  mirror: 'You are seen.',
+  patternName: 'Hope Pattern',
+  contradiction: 'You want action but feel stuck.',
+  socraticQuestion: 'What small step feels possible?',
+  integrationStep: 'Breathe and choose one thing.',
+  closingLine: 'You are not alone.'
+}
 
 test('generateAvatarReflection rejects when missing entryId and text', async () => {
   await assert.rejects(
-    async () => generateAvatarReflection({}, { prisma: {} as any, classifyJournalSafety: async () => ({ severity: 'none' }) as any, generateAvatarResponse: async () => ({}) as any }),
+    async () => generateAvatarReflection({}, { classifyJournalSafety: async () => clearSafety, generateAvatarResponse: async () => safeAvatarResponse }),
     { message: /Invalid input/ }
   )
 })
@@ -15,18 +42,9 @@ test('generateAvatarReflection returns mapped response for safe input', async ()
     {
       classifyJournalSafety: async (text: string) => {
         assert.strictEqual(text, 'I feel hopeful today')
-        return { severity: 'none', flags: [] }
+        return clearSafety
       },
-      generateAvatarResponse: async () => ({
-        openingLine: 'Hello there.',
-        mirror: 'You are seen.',
-        patternName: 'Hope Pattern',
-        contradiction: 'You want action but feel stuck.',
-        socraticQuestion: 'What small step feels possible?',
-        integrationStep: 'Breathe and choose one thing.',
-        closingLine: 'You are not alone.'
-      }) as any,
-      prisma: {} as any
+      generateAvatarResponse: async () => safeAvatarResponse
     }
   )
 
@@ -37,7 +55,8 @@ test('generateAvatarReflection returns mapped response for safe input', async ()
     contradiction: 'You want action but feel stuck.',
     socraticQuestion: 'What small step feels possible?',
     integrationStep: 'Breathe and choose one thing.',
-    closingLine: 'You are not alone.'
+    closingLine: 'You are not alone.',
+    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.'
   })
 })
 
@@ -45,9 +64,8 @@ test('generateAvatarReflection returns grounding content for high-safety input',
   const result = await generateAvatarReflection(
     { text: 'I want to hurt myself', tone: 'direct' },
     {
-      classifyJournalSafety: async () => ({ severity: 'high', flags: [] }),
-      generateAvatarResponse: async () => ({}) as any,
-      prisma: {} as any
+      classifyJournalSafety: async () => highSafety,
+      generateAvatarResponse: async () => safeAvatarResponse
     }
   )
 

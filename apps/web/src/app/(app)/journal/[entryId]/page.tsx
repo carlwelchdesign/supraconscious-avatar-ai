@@ -23,6 +23,11 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
           synthesis: true,
           feedback: true,
           embodimentGateResponses: true,
+          qualityReviews: {
+            orderBy: { reviewedAt: "desc" },
+            take: 1,
+            select: { label: true, severity: true, metadata: true, reviewedAt: true },
+          },
           generationTraces: {
             where: { traceType: "retrieval" },
             orderBy: { createdAt: "asc" },
@@ -78,6 +83,10 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
   const sourceMessage = sourceMode === "rag"
     ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
     : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
+  const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
+  const calibrationStatus = latestCalibrationReview
+    ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
+    : "Not reviewed for calibration"
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -283,9 +292,22 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
               {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
             </p>
+            <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+              Calibration: {calibrationStatus}
+            </p>
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               Feedback is reviewed by the pilot team; it does not automatically retrain the guide.
             </p>
+            {entry.councilSession.feedback.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {entry.councilSession.feedback.map((feedback) => (
+                  <p key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                    <span className="font-medium text-[var(--primary)]">{feedback.feedbackType}</span>
+                    {feedback.note ? `: ${feedback.note}` : " · no note"}
+                  </p>
+                ))}
+              </div>
+            )}
             <form action={submitSavedSessionFeedbackAction} className="mt-3 space-y-3">
               <input type="hidden" name="councilSessionId" value={entry.councilSession.id} />
               <select name="feedbackType" defaultValue="helpful" className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
@@ -349,4 +371,14 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
       )}
     </div>
   )
+}
+
+function describeCalibrationStatus(label: string, severity: string) {
+  if (severity === "pilot_blocker") return "Blocked for calibration"
+  if (label === "ready") return "Ready"
+  if (label === "voice_good" || label === "source_good") return "Good enough"
+  if (label === "voice_wrong") return "Voice issue"
+  if (label === "source_unsupported") return "Source issue"
+  if (label === "too_generic" || label === "too_intense") return "Prompt issue"
+  return label.replaceAll("_", " ")
 }

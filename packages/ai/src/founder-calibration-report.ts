@@ -4,6 +4,8 @@ const DEFAULT_EXCLUDED_EMAILS = new Set(["demo@inner-avatar.ai"])
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
 const PROMPT_ISSUE_LABELS = new Set(["voice_wrong", "too_generic", "too_intense", "too_vague"])
 const READY_LABELS = new Set(["ready", "voice_good", "source_good", "grounded"])
+const VOICE_ISSUE_LABELS = new Set(["voice_wrong"])
+const EMBODIMENT_ISSUE_LABELS = new Set(["embodiment_weak"])
 
 export type FounderCalibrationUser = {
   id: string
@@ -50,6 +52,31 @@ export type FounderCalibrationPromptIssue = {
   issueType: string | null
 }
 
+export type FounderCalibrationActionQueueKey =
+  | "ready_examples"
+  | "voice_fixes"
+  | "source_fixes"
+  | "prompt_fixes"
+  | "embodiment_fixes"
+
+export type FounderCalibrationActionQueue = {
+  key: FounderCalibrationActionQueueKey
+  label: string
+  count: number
+  sessionIds: string[]
+  recommendedAction: string
+}
+
+export type FounderCalibrationCoverage = {
+  totalSessions: number
+  sessionsWithFeedback: number
+  sessionsWithNotes: number
+  reviewedSessions: number
+  readySessions: number
+  reviewCoverageRate: number
+  noteCoverageRate: number
+}
+
 export type FounderCalibrationReport = {
   checkedAt: string
   users: FounderCalibrationUser[]
@@ -58,6 +85,10 @@ export type FounderCalibrationReport = {
   sourceGroundingIssues: FounderCalibrationSourceIssue[]
   promptIssues: FounderCalibrationPromptIssue[]
   readySessions: string[]
+  goldenExamples: string[]
+  actionQueues: FounderCalibrationActionQueue[]
+  calibrationCoverage: FounderCalibrationCoverage
+  nextRecommendedAction: string
   blockers: string[]
   recommendations: string[]
 }
@@ -147,6 +178,15 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   const sourceGroundingIssues: FounderCalibrationSourceIssue[] = []
   const promptIssues: FounderCalibrationPromptIssue[] = []
   const readySessions = new Set<string>()
+  const sessionsWithFeedback = new Set<string>()
+  const sessionsWithNotes = new Set<string>()
+  const actionQueueSessionIds = new Map<FounderCalibrationActionQueueKey, Set<string>>([
+    ["ready_examples", new Set<string>()],
+    ["voice_fixes", new Set<string>()],
+    ["source_fixes", new Set<string>()],
+    ["prompt_fixes", new Set<string>()],
+    ["embodiment_fixes", new Set<string>()],
+  ])
   let feedbackNotes = 0
   let reviewedSessions = 0
   let pilotBlockers = 0
@@ -166,13 +206,22 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
     const latestReview = session.qualityReviews[0]
     if (session.qualityReviews.length > 0) reviewedSessions += 1
     if (session.qualityReviews.some((review) => review.severity === "pilot_blocker")) pilotBlockers += 1
-    if (latestReview && READY_LABELS.has(latestReview.label)) readySessions.add(session.id)
+    if (latestReview && READY_LABELS.has(latestReview.label)) {
+      readySessions.add(session.id)
+      addQueue(actionQueueSessionIds, "ready_examples", session.id)
+    }
+    if (session.feedback.length > 0) sessionsWithFeedback.add(session.id)
 
     for (const feedback of session.feedback) {
       addTheme(feedbackThemes, feedback.feedbackType, session.id)
       if (feedback.note?.trim()) {
         feedbackNotes += 1
+        sessionsWithNotes.add(session.id)
         addTheme(feedbackThemes, "note_provided", session.id)
+      }
+      if (feedback.feedbackType === "unsupported_source") addQueue(actionQueueSessionIds, "source_fixes", session.id)
+      if (feedback.feedbackType === "not_accurate" || feedback.feedbackType === "too_intense" || feedback.feedbackType === "unclear") {
+        addQueue(actionQueueSessionIds, "prompt_fixes", session.id)
       }
     }
 
@@ -181,6 +230,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
       if (issueType) addTheme(feedbackThemes, issueType, session.id)
       if (SOURCE_ISSUE_LABELS.has(review.label) || issueType === "source_issue") {
         sourceGroundingIssues.push(toSourceIssue(session, review))
+        addQueue(actionQueueSessionIds, "source_fixes", session.id)
       }
       if (PROMPT_ISSUE_LABELS.has(review.label) || issueType === "prompt_issue" || issueType === "voice_mismatch") {
         promptIssues.push({
@@ -190,6 +240,10 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
           reason: review.reason,
           issueType,
         })
+        addQueue(actionQueueSessionIds, issueType === "voice_mismatch" || VOICE_ISSUE_LABELS.has(review.label) ? "voice_fixes" : "prompt_fixes", session.id)
+      }
+      if (EMBODIMENT_ISSUE_LABELS.has(review.label) || issueType === "embodiment_weak") {
+        addQueue(actionQueueSessionIds, "embodiment_fixes", session.id)
       }
     }
 
@@ -209,6 +263,16 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
 
   const totalSessions = snapshot.sessions.length
   const unreviewedSessions = Math.max(totalSessions - reviewedSessions, 0)
+  const goldenExamples = Array.from(readySessions)
+  const actionQueues = buildActionQueues(actionQueueSessionIds)
+  const nextRecommendedAction = chooseNextRecommendedAction({
+    totalSessions,
+    sourceIssueCount: sourceGroundingIssues.length,
+    promptIssueCount: promptIssues.length,
+    goldenExampleCount: goldenExamples.length,
+    feedbackNotes,
+    unreviewedSessions,
+  })
   const blockers = [
     totalSessions === 0 ? "No Carl/Maria calibration sessions found." : null,
     sourceGroundingIssues.length > 0 ? `${sourceGroundingIssues.length} source-grounding issue${sourceGroundingIssues.length === 1 ? "" : "s"} need review.` : null,
@@ -245,6 +309,18 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
     sourceGroundingIssues: dedupeIssues(sourceGroundingIssues),
     promptIssues: dedupePromptIssues(promptIssues),
     readySessions: Array.from(readySessions),
+    goldenExamples,
+    actionQueues,
+    calibrationCoverage: {
+      totalSessions,
+      sessionsWithFeedback: sessionsWithFeedback.size,
+      sessionsWithNotes: sessionsWithNotes.size,
+      reviewedSessions,
+      readySessions: readySessions.size,
+      reviewCoverageRate: totalSessions ? Number((reviewedSessions / totalSessions).toFixed(3)) : 0,
+      noteCoverageRate: totalSessions ? Number((sessionsWithNotes.size / totalSessions).toFixed(3)) : 0,
+    },
+    nextRecommendedAction,
     blockers,
     recommendations,
   }
@@ -269,6 +345,70 @@ function addTheme(themes: Map<string, Set<string>>, theme: string, sessionId: st
   const current = themes.get(theme) ?? new Set<string>()
   current.add(sessionId)
   themes.set(theme, current)
+}
+
+function addQueue(queues: Map<FounderCalibrationActionQueueKey, Set<string>>, key: FounderCalibrationActionQueueKey, sessionId: string) {
+  queues.get(key)?.add(sessionId)
+}
+
+function buildActionQueues(queues: Map<FounderCalibrationActionQueueKey, Set<string>>): FounderCalibrationActionQueue[] {
+  const definitions: Array<{
+    key: FounderCalibrationActionQueueKey
+    label: string
+    recommendedAction: string
+  }> = [
+    {
+      key: "ready_examples",
+      label: "Ready examples",
+      recommendedAction: "Keep as golden examples and reuse them when checking future prompt changes.",
+    },
+    {
+      key: "voice_fixes",
+      label: "Voice fixes",
+      recommendedAction: "Edit the guide and council prompts only after comparing the notes across these sessions.",
+    },
+    {
+      key: "source_fixes",
+      label: "Source fixes",
+      recommendedAction: "Review selected chunks and mark unsupported source claims before widening retrieval.",
+    },
+    {
+      key: "prompt_fixes",
+      label: "Prompt fixes",
+      recommendedAction: "Group the failure pattern, then adjust prompt constraints or product copy.",
+    },
+    {
+      key: "embodiment_fixes",
+      label: "Embodiment fixes",
+      recommendedAction: "Retry with a revised input or tune the Gate prompt toward a smaller lived action.",
+    },
+  ]
+
+  return definitions.map((definition) => {
+    const sessionIds = Array.from(queues.get(definition.key) ?? [])
+    return {
+      ...definition,
+      count: sessionIds.length,
+      sessionIds,
+    }
+  })
+}
+
+function chooseNextRecommendedAction(input: {
+  totalSessions: number
+  sourceIssueCount: number
+  promptIssueCount: number
+  goldenExampleCount: number
+  feedbackNotes: number
+  unreviewedSessions: number
+}) {
+  if (input.totalSessions === 0) return "Run one real Carl/Maria calibration session using a guided prompt."
+  if (input.feedbackNotes === 0) return "Ask for short feedback notes on the next session so calibration evidence is specific."
+  if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
+  if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
+  if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."
+  if (input.unreviewedSessions > 0) return "Review the newest Carl/Maria sessions and mark ready, blocked, voice, source, prompt, or embodiment issues."
+  return "Run another Carl/Maria calibration session with a different prompt type."
 }
 
 function toSourceIssue(session: FounderCalibrationSessionSnapshot, review: FounderCalibrationSessionSnapshot["qualityReviews"][number] | null): FounderCalibrationSourceIssue {

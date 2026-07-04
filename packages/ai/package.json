@@ -24,6 +24,7 @@
     "smoke:rag": "tsx scripts/run-internal-rag-smoke.ts",
     "test:rag": "tsx scripts/run-rag-evals.ts",
     "test:pilot": "tsx scripts/run-pilot-evals.ts",
+    "test:founder-calibration": "tsx scripts/run-founder-calibration-fixtures.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

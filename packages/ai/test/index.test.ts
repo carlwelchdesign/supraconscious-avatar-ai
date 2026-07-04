@@ -15,6 +15,7 @@ import {
   parseRagActivationEvalReport,
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
+  runFounderCalibrationFixtures,
   runKeywordRagEvals,
   runPilotCouncilEvals,
   readDisposition,
@@ -708,6 +709,21 @@ test("founder calibration report groups feedback and review issues without raw j
   assert.equal(report.sessionMetrics.readySessions, 1)
   assert.equal(report.sourceGroundingIssues.length, 1)
   assert.equal(report.promptIssues.length, 2)
+  assert.deepEqual(report.goldenExamples, ["session_maria"])
+  assert.equal(report.calibrationCoverage.reviewCoverageRate, 1)
+  assert.equal(report.calibrationCoverage.noteCoverageRate, 0.5)
+  assert.equal(report.actionQueues.find((queue) => queue.key === "ready_examples")?.count, 1)
+  assert.equal(report.actionQueues.find((queue) => queue.key === "source_fixes")?.count, 1)
+  assert.equal(report.actionQueues.find((queue) => queue.key === "voice_fixes")?.count, 1)
+  assert.match(report.nextRecommendedAction, /source-grounding/)
   assert.ok(report.feedbackThemes.some((theme) => theme.theme === "note_provided"))
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
+})
+
+test("founder calibration fixtures pass without creating persisted smoke sessions", () => {
+  const report = runFounderCalibrationFixtures()
+  assert.equal(report.passed, true, JSON.stringify(report.failedCases))
+  assert.equal(report.cases.length, 6)
+  assert.ok(report.cases.some((item) => item.name === "high_risk_grounding"))
+  assert.equal(JSON.stringify(report).includes("journalEntryId"), false)
 })

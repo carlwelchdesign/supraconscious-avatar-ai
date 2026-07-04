@@ -43,6 +43,7 @@ export default async function JournalPage() {
     <JournalWorkspace
       avatarStage={(user.avatarStage ?? 1) as 1 | 2 | 3 | 4 | 5}
       thresholdPrompt={thresholdPrompt}
+      founderCalibrationMode={user.email !== "demo@inner-avatar.ai"}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,
