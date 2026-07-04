@@ -19,6 +19,7 @@
   - `FOUNDER_CALIBRATION_SETUP_ACTOR_EMAIL` when audit logging should attach to an existing admin user
 - Run `yarn setup:founder-calibration` to upsert founder participants and link any existing user accounts by email.
 - Verify setup with `yarn report:founder-calibration-setup`.
+- Run `yarn check:founder-calibration-launch` for a strict pass/fail check before asking Carl and Maria to start.
 
 ## Session Cadence
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.
@@ -36,6 +37,7 @@
 - Mark issues as voice, source, prompt, intensity, embodiment, or prompt regression.
 - Return to `/calibration/setup` after the first run to confirm the next action changed from registration/onboarding/session capture to review or golden-example marking.
 - Verify calibration evidence with `yarn report:founder-calibration` and `yarn report:founder-calibration-comparison`.
+- After review, rerun `yarn check:founder-calibration-launch`; it should pass only when the required setup/session/review evidence exists.
 
 ## Tuning Rules
 - Prompt/source changes remain manual.

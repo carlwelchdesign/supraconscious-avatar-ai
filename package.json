@@ -24,6 +24,7 @@
     "report:founder-calibration": "yarn --cwd packages/ai report:founder-calibration",
     "report:founder-calibration-comparison": "yarn --cwd packages/ai report:founder-calibration-comparison",
     "report:founder-calibration-setup": "yarn --cwd packages/ai report:founder-calibration-setup",
+    "check:founder-calibration-launch": "yarn --cwd packages/ai check:founder-calibration-launch",
     "test:founder-calibration": "yarn --cwd packages/ai test:founder-calibration",
     "test:founder-calibration-regression": "yarn --cwd packages/ai test:founder-calibration-regression",
     "db:generate": "prisma generate",
