@@ -20,8 +20,8 @@
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.
 - Complete onboarding if the setup page shows it as pending.
 - Open `/journal` as the founder account.
-- Run one guided calibration scenario at a time: voice, source grounding, embodiment, no-source fallback, and intensity boundary.
-- Leave a short feedback note when anything feels off, unsupported, too generic, too intense, or good enough.
+- Use the preselected suggested scenario first, then run one guided calibration scenario at a time: voice, source grounding, embodiment, no-source fallback, and intensity boundary.
+- Leave a short feedback note for every founder calibration feedback submission. The app requires a note for active founder participants so the calibration report has usable evidence.
 - After each founder completes one session with a feedback note, review the session in `/calibration/live`.
 
 ## Review
