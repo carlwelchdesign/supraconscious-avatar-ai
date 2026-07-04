@@ -126,6 +126,11 @@ export default async function CalibrationPage() {
               <p className="font-medium">{queue.label}</p>
               <p className="mt-1 text-2xl font-semibold">{queue.count}</p>
               <p className="mt-2 text-xs text-muted-foreground">{queue.recommendedAction}</p>
+              {(queue.key === "voice_fixes" || queue.key === "prompt_fixes") && (
+                <Link href="/prompts" className="mt-3 inline-flex rounded border px-2 py-1 text-[10px] font-medium hover:bg-muted">
+                  Tune council prompt
+                </Link>
+              )}
               {queue.sessionIds.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {queue.sessionIds.slice(0, 4).map((sessionId) => (

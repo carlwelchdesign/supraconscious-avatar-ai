@@ -25,6 +25,7 @@
     "test:rag": "tsx scripts/run-rag-evals.ts",
     "test:pilot": "tsx scripts/run-pilot-evals.ts",
     "test:founder-calibration": "tsx scripts/run-founder-calibration-fixtures.ts",
+    "test:founder-calibration-regression": "tsx scripts/run-founder-calibration-regression.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

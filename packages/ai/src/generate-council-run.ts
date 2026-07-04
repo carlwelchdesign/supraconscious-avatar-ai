@@ -20,6 +20,11 @@ export type CouncilOptions = {
   intensity: number
   currentLevel: number
   avatarStage: number
+  promptTemplate?: {
+    key: string
+    version: number
+    content: string
+  }
   sourceContext?: Array<{
     id: string
     title: string
@@ -33,6 +38,25 @@ export type CouncilOptions = {
     displayExcerpt?: string | null
   }>
 }
+
+export const DEFAULT_COUNCIL_PROMPT_KEY = "council.system"
+export const DEFAULT_COUNCIL_PROMPT_VERSION = 1
+export const DEFAULT_COUNCIL_SYSTEM_PROMPT = `${AVATAR_SYSTEM_PROMPT}
+
+You are orchestrating the Inner Council, a bounded spiritual reflection ritual inspired by Maria Olon Tsaroucha's teachings.
+You are not Maria. You do not speak for Maria. You do not channel. You are not a therapist, doctor, guru, oracle, or authority.
+You reveal reflective possibilities from the user's language.
+
+Council rules:
+- Use exactly these four council roles: ${COUNCIL_ROLES.map((role) => role.displayName).join(", ")}.
+- Each council role must return no more than two short sentences.
+- Every council role must stay inside its lens.
+- The Supraconscious Guide synthesizes with exactly one integrator question.
+- Do not diagnose, prescribe treatment, predict fate, claim certainty, say "Maria says", or use channeling language.
+- If source context is insufficient, do not invent doctrine.
+- If safety is medium, soften Shadow/Truth-style confrontation and favor grounding.
+
+Return only the structured CouncilRun object.`
 
 export async function generateCouncilRun(
   text: string,
@@ -53,22 +77,7 @@ export async function generateCouncilRun(
     input: [
       {
         role: "system",
-        content: `${AVATAR_SYSTEM_PROMPT}
-
-You are orchestrating the Inner Council, a bounded spiritual reflection ritual inspired by Maria Olon Tsaroucha's teachings.
-You are not Maria. You do not speak for Maria. You do not channel. You are not a therapist, doctor, guru, oracle, or authority.
-You reveal reflective possibilities from the user's language.
-
-Council rules:
-- Use exactly these four council roles: ${COUNCIL_ROLES.map((role) => role.displayName).join(", ")}.
-- Each council role must return no more than two short sentences.
-- Every council role must stay inside its lens.
-- The Supraconscious Guide synthesizes with exactly one integrator question.
-- Do not diagnose, prescribe treatment, predict fate, claim certainty, say "Maria says", or use channeling language.
-- If source context is insufficient, do not invent doctrine.
-- If safety is medium, soften Shadow/Truth-style confrontation and favor grounding.
-
-Return only the structured CouncilRun object.`,
+        content: options.promptTemplate?.content ?? DEFAULT_COUNCIL_SYSTEM_PROMPT,
       },
       {
         role: "user",

@@ -9,6 +9,7 @@ import { shouldWritePatternMemory, updatePatternMemory } from "./pattern-memory.
 import { checkAndAdvanceProgression } from "./progression.js"
 import { classifyJournalSafety } from "./safety-classifier.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
+import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { emitPilotEvent, hashPilotInput } from "./pilot-events.js"
 import { prisma } from "@inner-avatar/db"
 
@@ -243,6 +244,8 @@ async function runCouncilMode(
     requestId: input.requestId,
   })
 
+  const councilPromptTemplate = await resolveCouncilPromptTemplate()
+  const councilPromptVersion = buildCouncilPromptVersion(councilPromptTemplate)
   const councilStart = Date.now()
   const councilRun = await generateCouncilRun(input.text, analysis, safety, {
     tone: user.avatarTone,
@@ -250,6 +253,7 @@ async function runCouncilMode(
     currentLevel: user.currentLevel,
     avatarStage: user.avatarStage,
     sourceContext,
+    promptTemplate: councilPromptTemplate,
   })
   const councilLatencyMs = Date.now() - councilStart
   const validation = validateCouncilRunForPilot(councilRun, { sourceContext, safety, sourceMode })
@@ -314,13 +318,13 @@ async function runCouncilMode(
             userId: user.id,
             traceType: "council",
             model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
-            promptVersion: "inner-council-v1",
+            promptVersion: councilPromptVersion,
             inputHash: hashPilotInput(input.text),
-            outputJson: { councilRun, pilotValidation: validation },
+            outputJson: { councilRun, pilotValidation: validation, promptTemplate: { key: councilPromptTemplate.key, version: councilPromptTemplate.version, source: councilPromptTemplate.source } },
             validationStatus: validation.passed ? "validated" : "pilot_validation_failed",
             latencyMs: councilLatencyMs,
           },
-          ...retrievalTraceCreates,
+          ...retrievalTraceCreates.map((trace) => ({ ...trace, promptVersion: councilPromptVersion })),
         ],
       },
     },
@@ -453,7 +457,6 @@ function buildRetrievalTraceCreates(userId: string, text: string, sourceContext:
       userId,
       sourceChunkId: chunk.id,
       traceType: "retrieval",
-      promptVersion: "inner-council-v1",
       inputHash: hashPilotInput(text),
       outputJson: {
         chunkId: chunk.id,
@@ -474,10 +477,9 @@ function buildRetrievalTraceCreates(userId: string, text: string, sourceContext:
     }))
     : ragEnabled
       ? [{
-        userId,
-        traceType: "retrieval",
-        promptVersion: "inner-council-v1",
-        inputHash: hashPilotInput(text),
+      userId,
+      traceType: "retrieval",
+      inputHash: hashPilotInput(text),
         outputJson: { sourcePolicyVersion: "source-policy-v1", selected: [] },
         validationStatus: "no_eligible_source",
         fallbackReason: "No approved rights-compatible source chunks matched the entry.",

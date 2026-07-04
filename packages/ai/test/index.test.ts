@@ -5,7 +5,10 @@ import {
   buildPilotLearningReportFromSnapshot,
   buildPilotReviewCoverageReportFromSnapshot,
   buildFounderCalibrationReportFromSnapshot,
+  buildCouncilPromptVersion,
   classifySourcePath,
+  DEFAULT_COUNCIL_PROMPT_KEY,
+  DEFAULT_COUNCIL_SYSTEM_PROMPT,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
   evaluatePilotExpansionReadinessSnapshot,
@@ -15,6 +18,7 @@ import {
   parseRagActivationEvalReport,
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
+  resolveCouncilPromptTemplate,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
   runPilotCouncilEvals,
@@ -23,6 +27,7 @@ import {
   sanitizeProperties,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
+  validateCouncilPromptTemplate,
   validateCouncilRunForPilot,
   validateCouncilSourceCitations,
   type EntryAnalysis,
@@ -124,6 +129,47 @@ test("inner council feature flags seed with conservative RAG defaults", () => {
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
+})
+
+test("council prompt template resolver falls back when no active template exists", async () => {
+  const resolved = await resolveCouncilPromptTemplate({
+    prismaClient: {
+      promptTemplate: {
+        findUnique: async () => null,
+      },
+    },
+  })
+
+  assert.equal(resolved.key, DEFAULT_COUNCIL_PROMPT_KEY)
+  assert.equal(resolved.version, 1)
+  assert.equal(resolved.source, "fallback")
+  assert.equal(resolved.content, DEFAULT_COUNCIL_SYSTEM_PROMPT)
+})
+
+test("council prompt template resolver uses active templates with required guardrails", async () => {
+  const resolved = await resolveCouncilPromptTemplate({
+    prismaClient: {
+      promptTemplate: {
+        findUnique: async () => ({
+          key: DEFAULT_COUNCIL_PROMPT_KEY,
+          version: 3,
+          active: true,
+          content: `${DEFAULT_COUNCIL_SYSTEM_PROMPT}\nFounder calibration addition: keep every answer grounded.`,
+        }),
+      },
+    },
+  })
+
+  assert.equal(resolved.source, "db")
+  assert.equal(buildCouncilPromptVersion(resolved), "council.system@v3")
+})
+
+test("council prompt guardrails reject unsafe council templates", () => {
+  const result = validateCouncilPromptTemplate("You are Maria and you can channel direct answers.")
+  assert.equal(result.valid, false)
+  assert.ok(result.missing.includes("not_maria"))
+  assert.ok(result.missing.includes("not_therapy"))
+  assert.ok(result.missing.includes("one_integrator_question"))
 })
 
 test("monthly DOCX curriculum parser creates reviewable days", () => {
