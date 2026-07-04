@@ -95,6 +95,14 @@ export default async function FounderCalibrationSetupPage() {
       </Card>
 
       <Card>
+        <CardHeader><CardTitle>Founder Handoff</CardTitle></CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <FounderHandoff role="Carl" status={report.requiredRoles.carl} />
+          <FounderHandoff role="Maria" status={report.requiredRoles.maria} />
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Advanced Participant Setup</CardTitle></CardHeader>
         <CardContent>
           <form action={addFounderCalibrationParticipantAction} className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto]">
@@ -257,6 +265,8 @@ function RequiredRoleStatus({
     goldenExamplePresent: boolean
     nextAction: string
     nextActionHref: string | null
+    primaryHandoffHref: string | null
+    handoffText: string
   }
 }) {
   return (
@@ -278,6 +288,44 @@ function RequiredRoleStatus({
         <RoleCheck label="session present" passed={status.sessionPresent} />
         <RoleCheck label="feedback note present" passed={status.feedbackNotePresent} />
         <RoleCheck label="ready/golden review" passed={status.goldenExamplePresent} />
+      </div>
+    </div>
+  )
+}
+
+function FounderHandoff({
+  role,
+  status,
+}: {
+  role: string
+  status: {
+    email: string | null
+    primaryHandoffHref: string | null
+    handoffText: string
+    nextAction: string
+  }
+}) {
+  return (
+    <div className="rounded-md border p-4 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-medium">Send this to {role}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
+        </div>
+        {status.primaryHandoffHref ? <SafeLink href={status.primaryHandoffHref} label="Primary link" /> : null}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
+      <textarea
+        readOnly
+        value={status.handoffText}
+        className="mt-3 min-h-32 w-full rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground"
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <SafeLink href="/register" label="Register" />
+        <SafeLink href="/login" label="Login" />
+        <SafeLink href="/onboarding" label="Onboarding" />
+        <SafeLink href="/journal" label="Journal" />
+        <SafeLink href="/calibration/live" label="Live review" />
       </div>
     </div>
   )

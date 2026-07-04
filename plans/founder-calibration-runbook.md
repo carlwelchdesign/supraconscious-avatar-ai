@@ -4,6 +4,7 @@
 - In admin, open `/calibration/setup`.
 - Use the Carl/Maria Setup panel to enter Carl's email, Maria's email, optional reviewer emails, and a setup reason.
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
+- Copy the founder handoff text for each person and send it manually; the app does not send email invites or create magic links.
 - Have each founder register through the normal web app and complete onboarding consent.
 - Use `Sync user` on the setup page if a participant was added before the account existed.
 
@@ -21,6 +22,7 @@
 - Open `/journal` as the founder account.
 - Run one guided calibration scenario at a time: voice, source grounding, embodiment, no-source fallback, and intensity boundary.
 - Leave a short feedback note when anything feels off, unsupported, too generic, too intense, or good enough.
+- After each founder completes one session with a feedback note, review the session in `/calibration/live`.
 
 ## Review
 - Open `/calibration/live`.

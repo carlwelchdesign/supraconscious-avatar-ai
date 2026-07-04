@@ -140,9 +140,10 @@ type Props = {
   thresholdPrompt?: ThresholdPrompt
   founderCalibrationMode?: boolean
   suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
+  needsFounderFirstSessionGuide?: boolean
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario }: Props) {
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
   const [text, setText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingShift, setIsSavingShift] = useState(false)
@@ -302,6 +303,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   Suggested first run: {suggestedPrompt.label}
+                </p>
+              )}
+              {needsFounderFirstSessionGuide && (
+                <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
+                  First calibration session: use {suggestedPrompt?.label ?? "one guided prompt"}, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
                 </p>
               )}
             </div>

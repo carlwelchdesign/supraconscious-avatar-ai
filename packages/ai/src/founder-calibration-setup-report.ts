@@ -74,6 +74,8 @@ export type FounderCalibrationRequiredRoleReadiness = {
   goldenExamplePresent: boolean
   nextAction: string
   nextActionHref: string | null
+  primaryHandoffHref: string | null
+  handoffText: string
 }
 
 export type FounderCalibrationSetupScenarioCoverage = {
@@ -301,6 +303,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
   const activeParticipant = roleParticipants.find((participant) => participant.status === "active")
   const participant = activeParticipant ?? roleParticipants[0] ?? null
   if (!participant) {
+    const nextAction = `Add ${role} as a founder calibration participant.`
     return {
       role,
       participantId: null,
@@ -313,11 +316,14 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       sessionPresent: false,
       feedbackNotePresent: false,
       goldenExamplePresent: false,
-      nextAction: `Add ${role} as a founder calibration participant.`,
+      nextAction,
       nextActionHref: "/calibration/setup",
+      primaryHandoffHref: null,
+      handoffText: `Founder calibration setup is not ready yet. Ask the admin to add the ${role} participant before sending first-session instructions.`,
     }
   }
   if (participant.status !== "active") {
+    const nextAction = `Activate ${participant.email} for ${role} calibration.`
     return {
       role,
       participantId: participant.id,
@@ -330,10 +336,13 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       sessionPresent: participant.sessionCount > 0,
       feedbackNotePresent: participant.feedbackNoteCount > 0,
       goldenExamplePresent: participant.goldenExampleCount > 0,
-      nextAction: `Activate ${participant.email} for ${role} calibration.`,
+      nextAction,
       nextActionHref: "/calibration/setup",
+      primaryHandoffHref: null,
+      handoffText: `Founder calibration setup is paused for ${participant.email}. Ask the admin to activate this participant before sending first-session instructions.`,
     }
   }
+  const primaryHandoffHref = readFounderHandoffHref(participant)
   return {
     role,
     participantId: participant.id,
@@ -348,6 +357,8 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
     goldenExamplePresent: participant.goldenExampleCount > 0,
     nextAction: participant.nextAction,
     nextActionHref: participant.nextActionHref,
+    primaryHandoffHref,
+    handoffText: buildFounderHandoffText(participant, primaryHandoffHref),
   }
 }
 
@@ -404,6 +415,36 @@ function readFounderLaunchHref(code: string) {
   if (code === "session_missing" || code === "feedback_note_missing") return "/journal"
   if (code === "golden_example_missing") return "/calibration/live"
   return null
+}
+
+function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant) {
+  if (!participant.accountExists) return "/register"
+  if (!participant.onboardingComplete || participant.consentCount === 0) return "/onboarding"
+  if (participant.sessionCount === 0 || participant.feedbackNoteCount === 0) return "/journal"
+  if (participant.goldenExampleCount === 0) return "/calibration/live"
+  return "/journal"
+}
+
+function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant, primaryHandoffHref: string | null) {
+  const firstIncompleteScenario = participant.scenarioStatus.find((item) => !item.completed)
+  const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
+  const primaryPath = primaryHandoffHref ?? "/journal"
+  if (!participant.accountExists) {
+    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note about what felt right or wrong. Start here: ${primaryPath}`
+  }
+  if (!participant.onboardingComplete || participant.consentCount === 0) {
+    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note. Continue here: ${primaryPath}`
+  }
+  if (participant.sessionCount === 0) {
+    return `Please open /journal, choose the ${suggestedScenario} guided calibration prompt, submit one reflection, select a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
+  }
+  if (participant.feedbackNoteCount === 0) {
+    return `Please open the latest calibration session and add feedback with a short note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`
+  }
+  if (participant.goldenExampleCount === 0) {
+    return `Your first calibration evidence is captured. The admin review step is next: mark the session ready/golden or assign a voice, source, prompt, intensity, or embodiment issue. Review here: ${primaryPath}`
+  }
+  return `Founder calibration is ready for another guided session. Open /journal, choose the next useful scenario, and leave a feedback note after the reflection. Continue here: ${primaryPath}`
 }
 
 function buildParticipantMissingActions(input: {

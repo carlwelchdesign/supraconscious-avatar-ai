@@ -920,6 +920,8 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(report.requiredRoles.carl.goldenExamplePresent, true)
   assert.equal(report.requiredRoles.maria.configured, true)
   assert.equal(report.requiredRoles.maria.accountExists, false)
+  assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/register")
+  assert.match(report.requiredRoles.maria.handoffText, /Please register/)
   assert.ok(report.missingActions.some((action) => action.code === "account_missing" && action.email === "maria@example.com"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
@@ -931,6 +933,51 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(maria?.nextAction, "maria@example.com needs to register.")
   assert.equal(maria?.nextActionHref, "/register")
   assert.equal(maria?.scenarioStatus.some((item) => item.scenario === "freeform"), false)
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder calibration setup report gives role-specific handoff links", () => {
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: false,
+        consentCount: 0,
+        sessions: [],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: "user_maria",
+        userName: "Maria",
+        onboardingComplete: true,
+        consentCount: 1,
+        sessions: [{
+          id: "session_maria",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: false }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
+        }],
+      },
+    ],
+  })
+
+  assert.equal(report.requiredRoles.carl.primaryHandoffHref, "/onboarding")
+  assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
+  assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
+  assert.match(report.requiredRoles.maria.handoffText, /add feedback with a short note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
 })

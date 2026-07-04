@@ -44,6 +44,7 @@ export default async function JournalPage() {
   const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
   const suggestedScenario = founderParticipant?.scenarioStatus.find((item) => !item.completed)?.scenario
   const suggestedCalibrationScenario = suggestedScenario === "freeform" ? undefined : suggestedScenario
+  const needsFounderFirstSessionGuide = founderCalibrationMode && Boolean(founderParticipant) && ((founderParticipant?.sessionCount ?? 0) === 0 || (founderParticipant?.feedbackNoteCount ?? 0) === 0)
 
   return (
     <JournalWorkspace
@@ -51,6 +52,7 @@ export default async function JournalPage() {
       thresholdPrompt={thresholdPrompt}
       founderCalibrationMode={founderCalibrationMode}
       suggestedCalibrationScenario={suggestedCalibrationScenario}
+      needsFounderFirstSessionGuide={needsFounderFirstSessionGuide}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,
