@@ -6,9 +6,12 @@ ENV DATABASE_URL=postgresql://inner_avatar:inner_avatar_dev@localhost:5432/inner
 COPY package.json yarn.lock .yarnrc .yarnrc.yml ./
 COPY .yarn ./.yarn
 COPY prisma.config.ts ./prisma.config.ts
+COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/chatgpt-app/package.json ./apps/chatgpt-app/package.json
+COPY apps/web/package.json ./apps/web/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/auth/package.json ./packages/auth/package.json
+COPY packages/billing/package.json ./packages/billing/package.json
 COPY packages/db/package.json ./packages/db/package.json
 COPY packages/db/prisma ./packages/db/prisma
 COPY packages/types/package.json ./packages/types/package.json
