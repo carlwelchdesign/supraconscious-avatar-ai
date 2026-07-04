@@ -93,7 +93,7 @@ export default async function DashboardPage() {
             Run one guided calibration session.
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a short note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide.
+            Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a specific note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide.
           </p>
           <Link
             href="/journal"

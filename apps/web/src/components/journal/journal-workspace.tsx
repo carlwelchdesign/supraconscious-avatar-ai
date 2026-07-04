@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
-import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@/lib/founder-feedback"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
@@ -314,7 +314,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave a short note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave a specific note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
                 </p>
               )}
             </div>
@@ -654,7 +654,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  A short note is required for Carl/Maria calibration evidence.
+                  A specific note is required for Carl/Maria calibration evidence.
                 </p>
               )}
               <textarea
@@ -702,7 +702,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               {founderFeedbackNoteRequired && (
                 <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Add a short note with a few specific words beyond the template before choosing a feedback type.
+                  Add a specific note with a few words beyond the template before choosing a feedback type.
                 </p>
               )}
               {feedbackSaved && (

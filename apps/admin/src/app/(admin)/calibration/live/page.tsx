@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
+import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { reviewCalibrationSessionAction } from "../actions"
@@ -111,7 +111,7 @@ export default async function LiveCalibrationPage() {
             const promptVersion = trace?.promptVersion ?? "missing"
             const latestReview = session.qualityReviews[0]
             const feedbackTypes = session.feedback.map((feedback) => feedback.feedbackType)
-            const hasFeedbackNote = session.feedback.some((feedback) => Boolean(feedback.note?.trim()))
+            const hasFeedbackNote = session.feedback.some((feedback) => isFounderCalibrationFeedbackNoteUseful(feedback.note))
             const nextAction = chooseNextAction(latestReview?.label ?? null, feedbackTypes)
             const observer = session.observerSignal as { coreTension?: string } | null
 
@@ -151,6 +151,9 @@ export default async function LiveCalibrationPage() {
                     <p key={`${feedback.feedbackType}-${feedback.createdAt.toISOString()}`} className="mt-1 text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">{feedback.feedbackType}:</span>{" "}
                       {feedback.note?.trim() || "No note provided."}
+                      {feedback.note?.trim() && !isFounderCalibrationFeedbackNoteUseful(feedback.note) ? (
+                        <span className="ml-2 text-destructive">Needs more detail</span>
+                      ) : null}
                     </p>
                   ))}
                 </div>

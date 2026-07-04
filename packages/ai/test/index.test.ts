@@ -26,6 +26,7 @@ import {
   readFounderCalibrationScenario,
   resolveFounderCalibrationFilterFromInputs,
   resolveCouncilPromptTemplate,
+  isFounderCalibrationFeedbackNoteUseful,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
   runPilotCouncilEvals,
@@ -834,6 +835,13 @@ test("founder calibration report groups feedback and review issues without raw j
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
 })
 
+test("founder calibration feedback notes require detail beyond templates", () => {
+  assert.equal(isFounderCalibrationFeedbackNoteUseful("Voice mismatch: "), false)
+  assert.equal(isFounderCalibrationFeedbackNoteUseful("Too generic:"), false)
+  assert.equal(isFounderCalibrationFeedbackNoteUseful("Good enough: felt clear and grounded"), true)
+  assert.equal(isFounderCalibrationFeedbackNoteUseful("This felt like Maria's voice."), true)
+})
+
 test("founder calibration report includes configured users before first sessions", () => {
   const report = buildFounderCalibrationReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
@@ -1060,7 +1068,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
   assert.match(report.requiredRoles.carl.handoffText, /preselected voice_test guided calibration prompt/)
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
-  assert.match(report.requiredRoles.maria.handoffText, /add feedback with a short note/)
+  assert.match(report.requiredRoles.maria.handoffText, /add feedback with a specific note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
 })

@@ -302,7 +302,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                A short specific note is required for Carl/Maria calibration evidence.
+                A specific note is required for Carl/Maria calibration evidence.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (

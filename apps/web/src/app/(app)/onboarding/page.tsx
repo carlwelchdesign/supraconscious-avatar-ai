@@ -56,7 +56,7 @@ export default async function OnboardingPage({
             Founder calibration
           </p>
           <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-            After this step, the journal will open with a suggested guided calibration scenario. Please run one reflection, choose a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently.
+            After this step, the journal will open with a suggested guided calibration scenario. Please run one reflection, choose a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently.
           </p>
         </div>
       )}

@@ -11,6 +11,7 @@ import {
   type FounderCalibrationParticipantRole,
   type FounderCalibrationParticipantStatus,
 } from "./founder-calibration-participants.js"
+import { isFounderCalibrationFeedbackNoteUseful } from "./founder-feedback-notes.js"
 
 export type FounderCalibrationMissingAction = {
   code: string
@@ -153,7 +154,7 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
       sessions: (participant.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
         createdAt: session.createdAt,
-        feedback: session.feedback.map((feedback) => ({ hasNote: Boolean(feedback.note?.trim()) })),
+        feedback: session.feedback.map((feedback) => ({ hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
         generationTraces: session.generationTraces,
       })),
@@ -442,16 +443,16 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
   const primaryPath = primaryHandoffHref ?? "/journal"
   if (!participant.accountExists) {
-    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note about what felt right or wrong. Start here: ${primaryPath}`
+    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about what felt right or wrong. Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || !participant.consentPresent) {
-    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note. Continue here: ${primaryPath}`
+    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note. Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
-    return `Please open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
+    return `Please open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
-    return `Please open the latest calibration session and add feedback with a short note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`
+    return `Please open the latest calibration session and add feedback with a specific note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`
   }
   if (participant.goldenExampleCount === 0) {
     return `Your first calibration evidence is captured. The admin review step is next: mark the session ready/golden or assign a voice, source, prompt, intensity, or embodiment issue. Review here: ${primaryPath}`
@@ -476,7 +477,7 @@ function buildParticipantMissingActions(input: {
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/users" })
   if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/users" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/calibration/live" })
-  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one calibration feedback note.`, href: "/calibration/live" })
+  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: "/calibration/live" })
   if (input.sessionCount > 0 && input.goldenExampleCount === 0) actions.push({ code: "golden_example_missing", email: input.email, message: `${input.email} needs at least one ready/golden example review.`, href: "/calibration/live" })
   return actions
 }

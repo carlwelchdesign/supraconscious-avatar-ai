@@ -1,6 +1,7 @@
 import { prisma } from "@inner-avatar/db"
 import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import { isFounderCalibrationFeedbackNoteUseful } from "./founder-feedback-notes.js"
 
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
 const PROMPT_ISSUE_LABELS = new Set(["voice_wrong", "too_generic", "too_intense", "too_vague"])
@@ -254,7 +255,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
 
     for (const feedback of session.feedback) {
       addTheme(feedbackThemes, feedback.feedbackType, session.id)
-      if (feedback.note?.trim()) {
+      if (isFounderCalibrationFeedbackNoteUseful(feedback.note)) {
         feedbackNotes += 1
         sessionsWithNotes.add(session.id)
         addTheme(feedbackThemes, "note_provided", session.id)
@@ -326,7 +327,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   ].filter((item): item is string => Boolean(item))
 
   const recommendations = [
-    feedbackNotes === 0 ? "Have Carl and Maria leave short notes when feedback is not helpful, too intense, unclear, or source-related." : null,
+    feedbackNotes === 0 ? "Have Carl and Maria leave specific notes when feedback is not helpful, too intense, unclear, or source-related." : null,
     unreviewedSessions > 0 ? "Review recent Carl/Maria sessions before changing prompts or inviting more users." : null,
     sourceGroundingIssues.length > 0 ? "Resolve source-grounding issues before expanding retrieval scope." : null,
     promptIssues.length > 0 ? "Group prompt/voice issues before editing prompt templates." : null,
@@ -461,7 +462,7 @@ function chooseNextRecommendedAction(input: {
   unreviewedSessions: number
 }) {
   if (input.totalSessions === 0) return "Run one real Carl/Maria calibration session using a guided prompt."
-  if (input.feedbackNotes === 0) return "Ask for short feedback notes on the next session so calibration evidence is specific."
+  if (input.feedbackNotes === 0) return "Ask for specific feedback notes on the next session so calibration evidence is useful."
   if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
   if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
   if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."
