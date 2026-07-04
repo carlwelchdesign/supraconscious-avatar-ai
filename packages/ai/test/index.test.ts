@@ -600,6 +600,58 @@ test("pilot expansion readiness passes with conservative gates satisfied", () =>
   assert.equal(report.metrics.reviewCoverageRate, 80)
 })
 
+test("pilot expansion readiness does not block review coverage when no source sessions exist", () => {
+  const report = evaluatePilotExpansionReadinessSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    launch: {
+      passed: true,
+      blockers: [],
+      metrics: {
+        activeCohorts: 1,
+        enrolledUsers: 1,
+        orientationCompleteUsers: 1,
+        firstSessionsCompleted: 1,
+        embodimentGateSaves: 1,
+        unresolvedSafetyReviews: 0,
+        qualityBlockers: 0,
+        feedbackTotal: 1,
+        sourceModeCounts: { none: 1 },
+      },
+      latestEvalMetadata: {
+        rag: { passed: true, total: 11, failed: 0 },
+        pilot: { passed: true, total: 11, failed: 0 },
+        ragActivationEvalPassed: true,
+        ragEnabled: true,
+        councilModeEnabled: true,
+      },
+    },
+    learning: {
+      reviewCoverage: {
+        sourceSessions: 0,
+        reviewedSourceSessions: 0,
+        unreviewedSourceSessions: 0,
+        coverageRate: 0,
+        pilotBlockers: 0,
+      },
+      ragLearningQueue: [],
+      feedbackMetrics: { total: 1, helpful: 1, notAccurate: 0, tooIntense: 0, unclear: 0, unsupportedSource: 0 },
+      sourceModeMetrics: { none: 1 },
+      sourceGroundingMetrics: {
+        retrievalTraceCount: 0,
+        selectedTraceCount: 0,
+        noEligibleSourceTraceCount: 0,
+        paraphraseOnlySelections: 0,
+        displayExcerptCount: 0,
+        uniqueSelectedSourceTitles: [],
+      },
+    },
+  })
+
+  assert.equal(report.passed, true)
+  assert.equal(report.blockers.some((blocker) => blocker.code === "review_coverage_low"), false)
+  assert.ok(report.warnings.some((warning) => warning.includes("No source-grounded or no-source RAG sessions")))
+})
+
 test("pilot review coverage report prioritizes validation and source feedback without raw journal text", () => {
   const report = buildPilotReviewCoverageReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),

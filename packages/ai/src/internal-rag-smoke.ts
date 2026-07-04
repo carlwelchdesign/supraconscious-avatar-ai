@@ -21,6 +21,10 @@ export type InternalRagSmokeReport = {
   selectedSources: string[]
   noSourceCases: string[]
   failedCases: InternalRagSmokeCase[]
+  cleanedArtifacts: {
+    previousRuns: number
+    currentRun: number
+  }
 }
 
 const SMOKE_CASES: Array<{ name: string; text: string; expectedSourceMode: "rag" | "no_eligible_source" }> = [
@@ -46,10 +50,12 @@ const SMOKE_CASES: Array<{ name: string; text: string; expectedSourceMode: "rag"
   },
 ]
 
-export async function runInternalRagSmoke(options: { userEmail?: string; requestPrefix?: string } = {}): Promise<InternalRagSmokeReport> {
+export async function runInternalRagSmoke(options: { userEmail?: string; requestPrefix?: string; cleanup?: boolean } = {}): Promise<InternalRagSmokeReport> {
   const checkedAt = new Date().toISOString()
   const userEmail = options.userEmail ?? process.env.INTERNAL_RAG_SMOKE_USER_EMAIL ?? "demo@inner-avatar.ai"
   const requestPrefix = options.requestPrefix ?? `internal-rag-smoke-${Date.now()}`
+  const cleanup = options.cleanup ?? true
+  const previousCleanup = cleanup ? await cleanupInternalRagSmokeArtifacts("internal-rag-smoke-") : 0
   const [ragFlag, councilFlag, user] = await Promise.all([
     prisma.featureFlag.findUnique({ where: { key: "rag_enabled" }, select: { enabled: true } }),
     prisma.featureFlag.findUnique({ where: { key: "council_mode" }, select: { enabled: true } }),
@@ -86,17 +92,21 @@ export async function runInternalRagSmoke(options: { userEmail?: string; request
       selectedSources: [],
       noSourceCases: [],
       failedCases: [failedCase],
+      cleanedArtifacts: { previousRuns: previousCleanup, currentRun: 0 },
     }
   }
 
   const cases: InternalRagSmokeCase[] = []
+  const currentRunRequestIds: string[] = []
   for (const [index, smokeCase] of SMOKE_CASES.entries()) {
     const preflightContext = await retrieveCouncilContext(smokeCase.text, { safetySeverity: "low" })
-    const result = await runCouncilReflection(user, {
+    const requestId = `${requestPrefix}-${index + 1}-${smokeCase.name}`
+    currentRunRequestIds.push(requestId)
+    const result = await runCouncilReflection({ ...user, patternMemoryEnabled: false }, {
       text: smokeCase.text,
       councilModeEnabled: councilFlag?.enabled ?? true,
       ragEnabled,
-      requestId: `${requestPrefix}-${index + 1}-${smokeCase.name}`,
+      requestId,
     })
     const session = "councilSession" in result ? result.councilSession : null
     const retrievalTraces = session
@@ -127,6 +137,7 @@ export async function runInternalRagSmoke(options: { userEmail?: string; request
   }
 
   const failedCases = cases.filter((item) => !item.passed)
+  const currentCleanup = cleanup ? await cleanupInternalRagSmokeArtifacts(currentRunRequestIds) : 0
   return {
     passed: ragEnabled && failedCases.length === 0,
     checkedAt,
@@ -135,5 +146,29 @@ export async function runInternalRagSmoke(options: { userEmail?: string; request
     selectedSources: Array.from(new Set(cases.flatMap((item) => item.selectedSourceTitles))),
     noSourceCases: cases.filter((item) => item.sourceMode === "no_eligible_source").map((item) => item.name),
     failedCases,
+    cleanedArtifacts: { previousRuns: previousCleanup, currentRun: currentCleanup },
   }
+}
+
+async function cleanupInternalRagSmokeArtifacts(requestIdsOrPrefix: string[] | string) {
+  const where = Array.isArray(requestIdsOrPrefix)
+    ? { requestId: { in: requestIdsOrPrefix } }
+    : { requestId: { startsWith: requestIdsOrPrefix } }
+  const events = await prisma.pilotEvent.findMany({
+    where,
+    select: { id: true, journalEntryId: true, councilSessionId: true },
+  })
+  const eventIds = events.map((event) => event.id)
+  const journalEntryIds = Array.from(new Set(events.map((event) => event.journalEntryId).filter((id): id is string => Boolean(id))))
+  const councilSessionIds = Array.from(new Set(events.map((event) => event.councilSessionId).filter((id): id is string => Boolean(id))))
+
+  if (eventIds.length === 0 && journalEntryIds.length === 0 && councilSessionIds.length === 0) return 0
+
+  await prisma.$transaction([
+    prisma.generationTrace.deleteMany({ where: { councilSessionId: { in: councilSessionIds } } }),
+    prisma.pilotEvent.deleteMany({ where: { id: { in: eventIds } } }),
+    prisma.journalEntry.deleteMany({ where: { id: { in: journalEntryIds } } }),
+  ])
+
+  return eventIds.length
 }

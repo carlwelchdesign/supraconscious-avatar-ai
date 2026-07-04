@@ -99,7 +99,8 @@ export function evaluatePilotExpansionReadinessSnapshot(snapshot: PilotExpansion
     message: "Product-doctrine RAG must be active through the activation gate before expansion.",
     href: "/sources/readiness",
   })
-  addBlocker(blockers, snapshot.learning.reviewCoverage.coverageRate < 80, {
+  const hasSourceSessions = snapshot.learning.reviewCoverage.sourceSessions > 0
+  addBlocker(blockers, hasSourceSessions && snapshot.learning.reviewCoverage.coverageRate < 80, {
     code: "review_coverage_low",
     message: "Review at least 80% of source-grounded and no-source sessions before inviting more users.",
     count: snapshot.learning.reviewCoverage.coverageRate,
@@ -141,6 +142,9 @@ export function evaluatePilotExpansionReadinessSnapshot(snapshot: PilotExpansion
   }
   if (snapshot.launch.metrics.firstSessionsCompleted === 0) {
     warnings.push("No first sessions are complete yet; expansion should usually wait for at least one completed session.")
+  }
+  if (!hasSourceSessions) {
+    warnings.push("No source-grounded or no-source RAG sessions are available for review coverage yet.")
   }
 
   return {
