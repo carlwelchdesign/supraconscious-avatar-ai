@@ -104,6 +104,7 @@ export type FounderCalibrationReport = {
 
 export type FounderCalibrationSnapshot = {
   checkedAt: Date
+  users?: FounderCalibrationUser[]
   sessions: FounderCalibrationSessionSnapshot[]
 }
 
@@ -129,7 +130,7 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
   const filter = await resolveFounderCalibrationUserFilter()
   const users = await prisma.user.findMany({
     where: filter.where,
-    select: { id: true },
+    select: { id: true, email: true, name: true },
   })
   const userIds = users.map((user) => user.id)
   const sessions = userIds.length === 0 ? [] : await prisma.councilSession.findMany({
@@ -165,6 +166,13 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
 
   const report = buildFounderCalibrationReportFromSnapshot({
     checkedAt: now,
+    users: users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      sessionCount: 0,
+      feedbackCount: 0,
+    })),
     sessions: sessions.map((session) => ({
       id: session.id,
       userId: session.userId,
@@ -192,7 +200,16 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
 }
 
 export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalibrationSnapshot): FounderCalibrationReport {
-  const usersById = new Map<string, FounderCalibrationUser>()
+  const usersById = new Map<string, FounderCalibrationUser>(
+    (snapshot.users ?? []).map((user) => [
+      user.id,
+      {
+        ...user,
+        sessionCount: user.sessionCount ?? 0,
+        feedbackCount: user.feedbackCount ?? 0,
+      },
+    ]),
+  )
   const feedbackThemes = new Map<string, Set<string>>()
   const sourceGroundingIssues: FounderCalibrationSourceIssue[] = []
   const promptIssues: FounderCalibrationPromptIssue[] = []

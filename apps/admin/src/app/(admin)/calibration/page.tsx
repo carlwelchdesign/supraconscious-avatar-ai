@@ -93,6 +93,23 @@ export default async function CalibrationPage() {
         <Metric title="Ready" value={report.sessionMetrics.readySessions} />
       </div>
 
+      <Card>
+        <CardHeader><CardTitle>Founder Participants</CardTitle></CardHeader>
+        <CardContent className="grid gap-3 text-sm md:grid-cols-2">
+          {report.users.length === 0 ? (
+            <p className="text-muted-foreground">No linked Carl/Maria founder accounts are configured yet.</p>
+          ) : report.users.map((user) => (
+            <div key={user.id} className="rounded-md border p-3">
+              <p className="font-medium">{user.name ?? user.email}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{user.email}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {user.sessionCount} session{user.sessionCount === 1 ? "" : "s"} · {user.feedbackCount} feedback item{user.feedbackCount === 1 ? "" : "s"}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-3">
         <Metric title="RAG" value={report.sessionMetrics.ragSessions} />
         <Metric title="No source" value={report.sessionMetrics.noSourceSessions} />

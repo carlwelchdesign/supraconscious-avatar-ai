@@ -833,6 +833,35 @@ test("founder calibration report groups feedback and review issues without raw j
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
 })
 
+test("founder calibration report includes configured users before first sessions", () => {
+  const report = buildFounderCalibrationReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    users: [
+      {
+        id: "user_carl",
+        email: "carl@example.com",
+        name: "Carl",
+        sessionCount: 0,
+        feedbackCount: 0,
+      },
+      {
+        id: "user_maria",
+        email: "maria@example.com",
+        name: "Maria",
+        sessionCount: 0,
+        feedbackCount: 0,
+      },
+    ],
+    sessions: [],
+  })
+
+  assert.deepEqual(report.users.map((user) => user.email), ["carl@example.com", "maria@example.com"])
+  assert.equal(report.sessionMetrics.totalSessions, 0)
+  assert.equal(report.users.every((user) => user.sessionCount === 0 && user.feedbackCount === 0), true)
+  assert.ok(report.blockers.includes("No Carl/Maria calibration sessions found."))
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+})
+
 test("founder calibration fixtures pass without creating persisted smoke sessions", () => {
   const report = runFounderCalibrationFixtures()
   assert.equal(report.passed, true, JSON.stringify(report.failedCases))
