@@ -19,34 +19,81 @@ const RATE_LIMITS: Record<AuthRateLimitScope, RateLimitConfig> = {
 }
 
 export async function isAuthRateLimited(scope: AuthRateLimitScope, email?: string | null) {
+  const authRateLimitBucket = getAuthRateLimitBucketDelegate()
+  if (!authRateLimitBucket) {
+    warnAuthRateLimitUnavailable("read")
+    return false
+  }
+
   const keys = await getRateLimitKeys(scope, email)
   const config = RATE_LIMITS[scope]
   const windowStart = getWindowStart(new Date(), config.windowMs)
-  const buckets = await prisma.authRateLimitBucket.findMany({
-    where: {
-      scope,
-      bucketKey: { in: keys },
-      windowStart,
-    },
-    select: { count: true },
-  })
+  try {
+    const buckets = await authRateLimitBucket.findMany({
+      where: {
+        scope,
+        bucketKey: { in: keys },
+        windowStart,
+      },
+      select: { count: true },
+    })
 
-  return buckets.some((bucket) => bucket.count >= config.maxAttempts)
+    return buckets.some((bucket) => bucket.count >= config.maxAttempts)
+  } catch (error) {
+    warnAuthRateLimitUnavailable("read", error)
+    return false
+  }
 }
 
 export async function recordAuthFailure(scope: AuthRateLimitScope, email?: string | null) {
+  if (!getAuthRateLimitBucketDelegate()) {
+    warnAuthRateLimitUnavailable("write")
+    return
+  }
+
   const keys = await getRateLimitKeys(scope, email)
   const config = RATE_LIMITS[scope]
   const windowStart = getWindowStart(new Date(), config.windowMs)
 
   for (const key of keys) {
-    await prisma.$executeRaw`
-      INSERT INTO "AuthRateLimitBucket" ("id", "scope", "bucketKey", "windowStart", "count", "updatedAt")
-      VALUES (md5(random()::text || clock_timestamp()::text), ${scope}, ${key}, ${windowStart}, 1, NOW())
-      ON CONFLICT ("scope", "bucketKey", "windowStart")
-      DO UPDATE SET "count" = "AuthRateLimitBucket"."count" + 1, "updatedAt" = NOW()
-    `
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO "AuthRateLimitBucket" ("id", "scope", "bucketKey", "windowStart", "count", "updatedAt")
+        VALUES (md5(random()::text || clock_timestamp()::text), ${scope}, ${key}, ${windowStart}, 1, NOW())
+        ON CONFLICT ("scope", "bucketKey", "windowStart")
+        DO UPDATE SET "count" = "AuthRateLimitBucket"."count" + 1, "updatedAt" = NOW()
+      `
+    } catch (error) {
+      warnAuthRateLimitUnavailable("write", error)
+      return
+    }
   }
+}
+
+type AuthRateLimitBucketDelegate = {
+  findMany(args: {
+    where: {
+      scope: string
+      bucketKey: { in: string[] }
+      windowStart: Date
+    }
+    select: { count: true }
+  }): Promise<Array<{ count: number }>>
+}
+
+function getAuthRateLimitBucketDelegate() {
+  return (prisma as unknown as { authRateLimitBucket?: AuthRateLimitBucketDelegate }).authRateLimitBucket
+}
+
+let warnedAuthRateLimitUnavailable = false
+
+function warnAuthRateLimitUnavailable(operation: "read" | "write", error?: unknown) {
+  if (warnedAuthRateLimitUnavailable) return
+  warnedAuthRateLimitUnavailable = true
+  console.warn(
+    `Auth rate limiting ${operation} skipped because AuthRateLimitBucket is unavailable. Run prisma generate/migrate and restart the app.`,
+    error,
+  )
 }
 
 async function getRateLimitKeys(scope: AuthRateLimitScope, email?: string | null) {

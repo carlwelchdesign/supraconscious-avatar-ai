@@ -101,29 +101,9 @@ async function AbuseAndUsagePressure() {
   const now = new Date()
   const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000)
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-  const [authBuckets, topAuthBuckets, voiceBuckets, topVoiceBuckets] = await Promise.all([
-    prisma.authRateLimitBucket.aggregate({
-      where: { windowStart: { gte: fifteenMinutesAgo } },
-      _sum: { count: true },
-      _count: { _all: true },
-    }),
-    prisma.authRateLimitBucket.findMany({
-      where: { windowStart: { gte: fifteenMinutesAgo } },
-      orderBy: { count: "desc" },
-      take: 8,
-      select: { scope: true, bucketKey: true, count: true, windowStart: true },
-    }),
-    prisma.voiceUsageBucket.aggregate({
-      where: { windowStart: { gte: oneHourAgo } },
-      _sum: { count: true },
-      _count: { _all: true },
-    }),
-    prisma.voiceUsageBucket.findMany({
-      where: { windowStart: { gte: oneHourAgo } },
-      orderBy: { count: "desc" },
-      take: 8,
-      select: { scope: true, count: true, windowStart: true, user: { select: { email: true } } },
-    }),
+  const [authPressure, voicePressure] = await Promise.all([
+    readAuthPressure(fifteenMinutesAgo),
+    readVoicePressure(oneHourAgo),
   ])
 
   return (
@@ -133,22 +113,28 @@ async function AbuseAndUsagePressure() {
           <CardTitle>Auth Abuse Pressure</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Metric label="Attempts in 15 min" value={authBuckets._sum.count ?? 0} />
-            <Metric label="Active buckets" value={authBuckets._count._all} />
-          </div>
-          {topAuthBuckets.length ? (
-            <div className="space-y-2">
-              {topAuthBuckets.map((bucket) => (
-                <div key={`${bucket.scope}:${bucket.bucketKey}:${bucket.windowStart.toISOString()}`} className="rounded-md border p-3">
-                  <p className="font-medium text-foreground">{bucket.scope} · {bucket.count}</p>
-                  <p className="mt-1 break-all text-xs">{redactAuthBucketKey(bucket.bucketKey)}</p>
-                  <p className="mt-1 text-xs">Window {formatDate(bucket.windowStart)}</p>
-                </div>
-              ))}
-            </div>
+          {authPressure.status === "unavailable" ? (
+            <p>Auth throttle data is unavailable. Run Prisma generate/migrate and restart the app if this is unexpected.</p>
           ) : (
-            <p>No recent auth throttle activity.</p>
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Metric label="Attempts in 15 min" value={authPressure.buckets._sum.count ?? 0} />
+                <Metric label="Active buckets" value={authPressure.buckets._count._all} />
+              </div>
+              {authPressure.topBuckets.length ? (
+                <div className="space-y-2">
+                  {authPressure.topBuckets.map((bucket) => (
+                    <div key={`${bucket.scope}:${bucket.bucketKey}:${bucket.windowStart.toISOString()}`} className="rounded-md border p-3">
+                      <p className="font-medium text-foreground">{bucket.scope} · {bucket.count}</p>
+                      <p className="mt-1 break-all text-xs">{redactAuthBucketKey(bucket.bucketKey)}</p>
+                      <p className="mt-1 text-xs">Window {formatDate(bucket.windowStart)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>No recent auth throttle activity.</p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -157,27 +143,77 @@ async function AbuseAndUsagePressure() {
           <CardTitle>Voice Usage Pressure</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Metric label="Requests in 1 hour" value={voiceBuckets._sum.count ?? 0} />
-            <Metric label="Active buckets" value={voiceBuckets._count._all} />
-          </div>
-          {topVoiceBuckets.length ? (
-            <div className="space-y-2">
-              {topVoiceBuckets.map((bucket) => (
-                <div key={`${bucket.scope}:${bucket.user?.email ?? "unknown"}:${bucket.windowStart.toISOString()}`} className="rounded-md border p-3">
-                  <p className="font-medium text-foreground">{bucket.scope} · {bucket.count}</p>
-                  <p className="mt-1 text-xs">{bucket.user?.email ?? "unknown user"}</p>
-                  <p className="mt-1 text-xs">Window {formatDate(bucket.windowStart)}</p>
-                </div>
-              ))}
-            </div>
+          {voicePressure.status === "unavailable" ? (
+            <p>Voice usage data is unavailable. Run Prisma generate/migrate and restart the app if this is unexpected.</p>
           ) : (
-            <p>No recent voice usage.</p>
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Metric label="Requests in 1 hour" value={voicePressure.buckets._sum.count ?? 0} />
+                <Metric label="Active buckets" value={voicePressure.buckets._count._all} />
+              </div>
+              {voicePressure.topBuckets.length ? (
+                <div className="space-y-2">
+                  {voicePressure.topBuckets.map((bucket) => (
+                    <div key={`${bucket.scope}:${bucket.user?.email ?? "unknown"}:${bucket.windowStart.toISOString()}`} className="rounded-md border p-3">
+                      <p className="font-medium text-foreground">{bucket.scope} · {bucket.count}</p>
+                      <p className="mt-1 text-xs">{bucket.user?.email ?? "unknown user"}</p>
+                      <p className="mt-1 text-xs">Window {formatDate(bucket.windowStart)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>No recent voice usage.</p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
     </div>
   )
+}
+
+async function readAuthPressure(windowStart: Date) {
+  try {
+    const [buckets, topBuckets] = await Promise.all([
+      prisma.authRateLimitBucket.aggregate({
+        where: { windowStart: { gte: windowStart } },
+        _sum: { count: true },
+        _count: { _all: true },
+      }),
+      prisma.authRateLimitBucket.findMany({
+        where: { windowStart: { gte: windowStart } },
+        orderBy: { count: "desc" },
+        take: 8,
+        select: { scope: true, bucketKey: true, count: true, windowStart: true },
+      }),
+    ])
+
+    return { status: "ok" as const, buckets, topBuckets }
+  } catch {
+    return { status: "unavailable" as const }
+  }
+}
+
+async function readVoicePressure(windowStart: Date) {
+  try {
+    const [buckets, topBuckets] = await Promise.all([
+      prisma.voiceUsageBucket.aggregate({
+        where: { windowStart: { gte: windowStart } },
+        _sum: { count: true },
+        _count: { _all: true },
+      }),
+      prisma.voiceUsageBucket.findMany({
+        where: { windowStart: { gte: windowStart } },
+        orderBy: { count: "desc" },
+        take: 8,
+        select: { scope: true, count: true, windowStart: true, user: { select: { email: true } } },
+      }),
+    ])
+
+    return { status: "ok" as const, buckets, topBuckets }
+  } catch {
+    return { status: "unavailable" as const }
+  }
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
