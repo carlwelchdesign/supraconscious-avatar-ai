@@ -115,13 +115,15 @@ docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
 
 CI notes:
 
+- The workflow runs `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build` and `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test` before building the Docker image.
 
-```bash
-node .yarn/releases/yarn-4.cjs install --immutable
-node .yarn/releases/yarn-4.cjs --cwd apps/web build
-```
+Vercel notes:
 
-The workflow runs `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build` and `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test` before building the Docker image.
+- Vercel's build machines may default to Yarn v1 which cannot resolve `workspace:*` protocol. To ensure builds succeed you can either:
+  - Set the Vercel Project "Install Command" to `yarn vercel:install` and the "Build Command" to `node .yarn/releases/yarn-4.cjs --cwd apps/web build` (adjust per project), or
+  - Use the repository helper script by setting Vercel's Build Command to: `bash ./scripts/vercel-build.sh`.
+
+The repository intentionally does not use an install lifecycle hook to invoke Yarn from inside Yarn; Vercel should call the bundled launcher explicitly through the install/build commands above.
 
 Set production database schema before using the apps:
 

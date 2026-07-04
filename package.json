@@ -20,7 +20,9 @@
     "typecheck": "turbo typecheck",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel:install": "node .yarn/releases/yarn-4.cjs install --immutable",
+    "vercel:build": "node .yarn/releases/yarn-4.cjs --cwd apps/web build && node .yarn/releases/yarn-4.cjs --cwd apps/admin build && node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
