@@ -41,7 +41,13 @@ export default async function DashboardPage() {
 
   const latestEntry = recentEntries[0] ?? null
   const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
-  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && ((founderParticipant?.sessionCount ?? 0) === 0 || (founderParticipant?.feedbackNoteCount ?? 0) === 0)
+  const founderSessionCount = founderParticipant?.sessionCount ?? 0
+  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
+  const founderNeedsSession = founderSessionCount === 0
+  const founderNeedsFeedbackNote = founderSessionCount > 0 && founderFeedbackNoteCount === 0
+  const latestCouncilEntry = recentEntries.find((entry) => entry.councilSession)
+  const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilEntry ? `/journal/${latestCouncilEntry.id}` : "/journal"
+  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && (founderNeedsSession || founderNeedsFeedbackNote)
   const founderNeedsReview = founderCalibrationMode && Boolean(founderParticipant) && (founderParticipant?.sessionCount ?? 0) > 0 && (founderParticipant?.reviewedSessionCount ?? 0) === 0
 
   const greeting = (() => {
@@ -90,16 +96,18 @@ export default async function DashboardPage() {
             Founder calibration next step
           </p>
           <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
-            Run one guided calibration session.
+            {founderNeedsFeedbackNote ? "Add a specific feedback note." : "Run one guided calibration session."}
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a specific note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide.
+            {founderNeedsFeedbackNote
+              ? "Your first calibration session was captured. Add a feedback type and a specific note so the admin review can decide whether it is ready, a golden example, or a prompt/source/embodiment issue."
+              : "Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a specific note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide."}
           </p>
           <Link
-            href="/journal"
+            href={founderFirstSessionHref}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
-            Open guided journal
+            {founderNeedsFeedbackNote ? "Open saved session" : "Open guided journal"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
