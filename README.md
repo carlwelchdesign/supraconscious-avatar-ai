@@ -43,6 +43,22 @@ Each app has its own `.env.example` and app-level `vercel.json`. Shared packages
 
 CI validates Prisma, typecheck, lint, AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
 
+## Current Launch Path
+
+The repo-side launch path is founder calibration with Carl and Maria. The code and operations surfaces are ready for that flow, but the live launch gate intentionally remains blocked until real founder evidence exists.
+
+Use:
+
+```bash
+yarn verify:founder-calibration-code
+yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+yarn check:founder-calibration-launch
+```
+
+In admin, use `/calibration/setup` for the copyable launch packet, `/calibration/live` for review, and `/health` for runtime configuration and launch-gate status.
+
+Docker and Compose are available for portable runtime testing. The local `sources/` corpus and environment files are excluded from Docker image context; source material should be imported into reviewed database records before building images.
+
 ## Documentation
 
 Start with [docs/README.md](docs/README.md).
