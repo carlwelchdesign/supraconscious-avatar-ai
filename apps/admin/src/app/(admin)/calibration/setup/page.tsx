@@ -243,6 +243,7 @@ function Metric({ title, value }: { title: string; value: string | number }) {
 }
 
 const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
+const PROTECTED_FOUNDER_WEB_PATHS = new Set(["/onboarding", "/journal"])
 
 function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
@@ -252,6 +253,9 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
   if (!href) return null
   if (href.startsWith("http://") || href.startsWith("https://")) return href
   if (FOUNDER_WEB_PATHS.has(href)) {
+    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
+      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+    }
     const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
     return `${webAppBaseUrl}${href}${suffix}`
   }
@@ -261,6 +265,9 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
 function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null) {
   return text.replace(/(^|[\s:])\/(register|login|onboarding|journal)\b/g, (_match, prefix: string, path: string) => {
     const href = `/${path}`
+    if (email && PROTECTED_FOUNDER_WEB_PATHS.has(href)) {
+      return `${prefix}${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+    }
     const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
     return `${prefix}${webAppBaseUrl}/${path}${suffix}`
   })

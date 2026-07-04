@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
+import { choosePostAuthRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
 
@@ -16,6 +17,7 @@ const RegisterSchema = z.object({
 const LoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(1, "Password is required"),
+  next: z.string().optional(),
 })
 
 export type AuthActionState = {
@@ -78,7 +80,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       : user
 
     await createSession(effectiveUser.id, "web")
-    redirectTo = await readPostLoginRedirect(effectiveUser)
+    redirectTo = choosePostAuthRedirect(await readPostLoginRedirect(effectiveUser), parsed.data.next)
   } catch (error) {
     return { error: authDatabaseErrorMessage(error) }
   }

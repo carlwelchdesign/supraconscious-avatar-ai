@@ -10,12 +10,13 @@ type AuthFormProps = {
   mode: "login" | "register"
   action: (state: AuthActionState, formData: FormData) => Promise<AuthActionState>
   defaultEmail?: string
+  nextPath?: string
 }
 
-export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
+export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: AuthFormProps) {
   const [state, formAction, isPending] = useActionState(action, {})
   const isRegister = mode === "register"
-  const alternateHref = buildAlternateHref(isRegister ? "/login" : "/register", defaultEmail)
+  const alternateHref = buildAlternateHref(isRegister ? "/login" : "/register", defaultEmail, nextPath)
 
   return (
     <div className="w-full max-w-sm space-y-8">
@@ -47,6 +48,7 @@ export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
           boxShadow: "0 8px 40px rgba(43,27,53,0.07)",
         }}
       >
+        {nextPath && <input type="hidden" name="next" value={nextPath} />}
         {isRegister && (
           <label className="block space-y-1.5">
             <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
@@ -135,6 +137,10 @@ export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
   )
 }
 
-function buildAlternateHref(path: "/login" | "/register", email: string) {
-  return email ? `${path}?email=${encodeURIComponent(email)}` : path
+function buildAlternateHref(path: "/login" | "/register", email: string, nextPath: string) {
+  const params = new URLSearchParams()
+  if (email) params.set("email", email)
+  if (nextPath) params.set("next", nextPath)
+  const query = params.toString()
+  return query ? `${path}?${query}` : path
 }

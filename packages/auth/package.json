@@ -8,6 +8,7 @@
     "./actions": "./src/actions.ts",
     "./consent": "./src/consent.ts",
     "./redirects": "./src/redirects.ts",
+    "./safe-redirect": "./src/safe-redirect.ts",
     "./session": "./src/session.ts",
     "./user": "./src/user.ts"
   },
