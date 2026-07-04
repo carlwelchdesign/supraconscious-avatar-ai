@@ -6,7 +6,7 @@
 - Confirm Carl and Maria appear as active founder calibration participants with roles `carl` and `maria`.
 - Copy the founder handoff text for each person and send it manually. Protected links route through login with the founder email prefilled and the intended next step preserved.
 - The app does not send email invites, create magic links, create passwords, create sessions, or impersonate founders.
-- Optional CLI handoff: run `node .yarn/releases/yarn-4.cjs --cwd packages/ai handoff:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` to print the same next-step messages outside the admin UI.
+- Optional CLI handoff: run `yarn handoff:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001` to print the same next-step messages outside the admin UI.
 - Have each founder register through the normal web app and complete onboarding consent.
 - Active founder participants will see a founder calibration note on onboarding; after consent, the app redirects them to `/journal`.
 - Use `Sync user` on the setup page if a participant was added before the account existed.
@@ -17,8 +17,8 @@
   - `FOUNDER_CALIBRATION_MARIA_EMAIL`
   - `FOUNDER_CALIBRATION_REVIEWER_EMAILS` when reviewers should also be tracked
   - `FOUNDER_CALIBRATION_SETUP_ACTOR_EMAIL` when audit logging should attach to an existing admin user
-- Run `node .yarn/releases/yarn-4.cjs --cwd packages/ai setup:founder-calibration` to upsert founder participants and link any existing user accounts by email.
-- Verify setup with `node .yarn/releases/yarn-4.cjs --cwd packages/ai report:founder-calibration-setup`.
+- Run `yarn setup:founder-calibration` to upsert founder participants and link any existing user accounts by email.
+- Verify setup with `yarn report:founder-calibration-setup`.
 
 ## Session Cadence
 - Have each founder register or log in through their own account; admins do not create passwords, create sessions, or impersonate founders.
@@ -35,7 +35,7 @@
 - Mark strong sessions as `ready` / golden examples.
 - Mark issues as voice, source, prompt, intensity, embodiment, or prompt regression.
 - Return to `/calibration/setup` after the first run to confirm the next action changed from registration/onboarding/session capture to review or golden-example marking.
-- Verify calibration evidence with `node .yarn/releases/yarn-4.cjs --cwd packages/ai report:founder-calibration` and `node .yarn/releases/yarn-4.cjs --cwd packages/ai report:founder-calibration-comparison`.
+- Verify calibration evidence with `yarn report:founder-calibration` and `yarn report:founder-calibration-comparison`.
 
 ## Tuning Rules
 - Prompt/source changes remain manual.
