@@ -93,4 +93,4 @@ If speech generation or playback fails, the audio control shows the provider/app
 
 ## Usage Metering
 
-Voice limits are stored in `VoiceUsageBucket` rows keyed by user, voice scope, and hourly window. This keeps metering consistent across Vercel/serverless instances and future horizontally scaled containers. A very high-volume deployment may still add provider-side budget alerts or edge-level quotas, but app-level metering no longer depends on a single process.
+Voice limits are stored in `VoiceUsageBucket` rows keyed by user, voice scope, and hourly window. This keeps metering consistent across Vercel/serverless instances and future horizontally scaled containers. Admin `/health` shows recent voice usage pressure by scope and user. A very high-volume deployment may still add provider-side budget alerts or edge-level quotas, but app-level metering no longer depends on a single process.

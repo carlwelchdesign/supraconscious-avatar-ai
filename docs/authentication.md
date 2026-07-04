@@ -75,7 +75,7 @@ Current limits:
 - email verification request: 6 failed attempts per 15 minutes
 - password reset request: 6 failed attempts per 15 minutes
 
-Auth rate-limit counters are stored in `AuthRateLimitBucket` rows keyed by scope, client/email bucket, and fixed time window. This keeps throttling consistent across Vercel/serverless instances and future horizontally scaled containers.
+Auth rate-limit counters are stored in `AuthRateLimitBucket` rows keyed by scope, client/email bucket, and fixed time window. This keeps throttling consistent across Vercel/serverless instances and future horizontally scaled containers. Admin `/health` shows recent auth pressure with redacted bucket keys.
 
 The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts.
 
@@ -134,4 +134,4 @@ Server-side authorization must still be called inside pages, server actions, and
 
 ## Known Gaps
 
-- A high-traffic public launch should still add edge/WAF analytics and abuse monitoring around the app-level auth throttles.
+- A high-traffic public launch should still add edge/WAF analytics around the app-level auth throttles.
