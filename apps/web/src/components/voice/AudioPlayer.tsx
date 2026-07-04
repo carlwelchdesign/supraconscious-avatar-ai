@@ -16,6 +16,7 @@ type Props = {
 export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm", voiceSpeed = 1.0, autoPlay = false }: Props) {
   const [state, setState] = useState<PlayerState>("idle")
   const [progress, setProgress] = useState(0)
+  const [errorMsg, setErrorMsg] = useState("")
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const blobUrlRef = useRef<string | null>(null)
   const didAutoPlayRef = useRef(false)
@@ -36,6 +37,7 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
 
   const fetchAndPlay = useCallback(async () => {
     setState("loading")
+    setErrorMsg("")
     try {
       cleanup()
 
@@ -44,7 +46,10 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, gender: voiceGender, style: voiceStyle, speed: voiceSpeed }),
       })
-      if (!res.ok) throw new Error("Failed to generate audio")
+      if (!res.ok) {
+        const data = await readErrorResponse(res)
+        throw new Error(data || "Failed to generate audio")
+      }
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -61,15 +66,16 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
         setProgress(0)
       }
       audio.onerror = () => {
+        setErrorMsg("Audio playback failed. Retry when ready.")
         setState("error")
-        setTimeout(() => setState("idle"), 2000)
       }
 
       await audio.play()
       setState("playing")
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to generate audio"
+      setErrorMsg(`${message}. Retry when ready.`)
       setState("error")
-      setTimeout(() => setState("idle"), 2000)
     }
   }, [text, voiceGender, voiceStyle, voiceSpeed, cleanup])
 
@@ -135,6 +141,20 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
           />
         </div>
       )}
+      {state === "error" && errorMsg ? (
+        <span className="text-[11px] font-light text-[var(--clay)]">
+          {errorMsg}
+        </span>
+      ) : null}
     </div>
   )
+}
+
+async function readErrorResponse(response: Response) {
+  try {
+    const data = await response.json() as { error?: unknown }
+    return typeof data.error === "string" ? data.error : ""
+  } catch {
+    return ""
+  }
 }

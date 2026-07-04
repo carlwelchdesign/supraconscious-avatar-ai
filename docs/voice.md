@@ -47,6 +47,7 @@ Mobile notes:
 - Microphone capture requires HTTPS on phones and tablets. Local network HTTP URLs such as `http://192.168.x.x:3000` usually cannot access the microphone.
 - The recorder chooses the first browser-supported format from WebM/Opus, WebM, MP4, AAC, and MP3. This is important for iOS Safari, which may not support WebM recording.
 - The upload filename extension is matched to the recorded MIME type before sending audio to OpenAI transcription.
+- If upload/transcription fails after audio is captured, the mic control keeps the last recording in memory and lets the user retry from the same button. The recording is not persisted.
 
 ## Text-To-Speech
 
@@ -74,6 +75,8 @@ Backend:
 
 The journal UI builds speakable response text with `buildSpeakText()` and skips audio playback for high-severity safety responses.
 
+If speech generation or playback fails, the audio control shows the provider/app error where available and keeps the button in a retry state.
+
 ## Voice Mapping
 
 `resolveVoice()` maps user preferences to OpenAI voice names:
@@ -89,5 +92,4 @@ The journal UI builds speakable response text with `buildSpeakText()` and skips 
 ## Known Gaps
 
 - Usage limits are in-process per app instance. A higher-scale deployment should move voice metering to a shared store or provider/edge-level quota.
-- No retry UI for failed transcription/speech.
 - No detailed browser-by-browser troubleshooting page for microphone permissions yet.

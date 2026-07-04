@@ -21,8 +21,10 @@ const MIME_TYPE_CANDIDATES = [
 export function MicButton({ onTranscribe, disabled }: Props) {
   const [state, setState] = useState<MicState>("idle")
   const [errorMsg, setErrorMsg] = useState("")
+  const [hasRetryableRecording, setHasRetryableRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const lastRecordingRef = useRef<Blob | null>(null)
 
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current
@@ -30,6 +32,26 @@ export function MicButton({ onTranscribe, disabled }: Props) {
     recorder.requestData()
     recorder.stop()
   }, [])
+
+  const submitAudio = useCallback(async (blob: Blob) => {
+    setState("processing")
+    setErrorMsg("")
+    try {
+      const fd = new FormData()
+      fd.append("audio", blob, `recording.${extensionForMimeType(blob.type)}`)
+      const res = await fetch("/api/voice/transcribe", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Transcription failed")
+      onTranscribe(data.text)
+      lastRecordingRef.current = null
+      setHasRetryableRecording(false)
+      setState("idle")
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Transcription failed"
+      setErrorMsg(msg)
+      setState("error")
+    }
+  }, [onTranscribe])
 
   const startRecording = useCallback(async () => {
     setErrorMsg("")
@@ -61,25 +83,15 @@ export function MicButton({ onTranscribe, disabled }: Props) {
 
         if (blob.size < 500) {
           setErrorMsg("No speech captured")
+          lastRecordingRef.current = null
+          setHasRetryableRecording(false)
           setState("idle")
           return
         }
 
-        setState("processing")
-        try {
-          const fd = new FormData()
-          fd.append("audio", blob, `recording.${extensionForMimeType(blob.type)}`)
-          const res = await fetch("/api/voice/transcribe", { method: "POST", body: fd })
-          const data = await res.json()
-          if (!res.ok) throw new Error(data.error ?? "Transcription failed")
-          onTranscribe(data.text)
-          setState("idle")
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : "Transcription failed"
-          setErrorMsg(msg)
-          setState("error")
-          setTimeout(() => setState("idle"), 3000)
-        }
+        lastRecordingRef.current = blob
+        setHasRetryableRecording(true)
+        await submitAudio(blob)
       }
 
       mediaRecorder.start(1000)
@@ -88,13 +100,13 @@ export function MicButton({ onTranscribe, disabled }: Props) {
       const msg = microphoneErrorMessage(e)
       setErrorMsg(msg)
       setState("error")
-      setTimeout(() => setState("idle"), 3000)
     }
-  }, [onTranscribe])
+  }, [submitAudio])
 
   const handleClick = () => {
     if (state === "recording") stopRecording()
     else if (state === "idle") startRecording()
+    else if (state === "error" && lastRecordingRef.current) submitAudio(lastRecordingRef.current)
   }
 
   const isRecording = state === "recording"
@@ -106,11 +118,11 @@ export function MicButton({ onTranscribe, disabled }: Props) {
         type="button"
         onClick={handleClick}
         disabled={disabled || isProcessing}
-        title={isRecording ? "Stop recording" : "Dictate entry"}
+        title={state === "error" && hasRetryableRecording ? "Retry transcription" : isRecording ? "Stop recording" : "Dictate entry"}
         className="relative inline-flex items-center justify-center w-10 h-10 rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         style={{
-          background: isRecording ? "var(--clay)" : "rgba(43,27,53,0.06)",
-          color: isRecording ? "var(--cream)" : "var(--plum-soft)",
+          background: isRecording ? "var(--clay)" : state === "error" && hasRetryableRecording ? "rgba(166,95,74,0.1)" : "rgba(43,27,53,0.06)",
+          color: isRecording ? "var(--cream)" : state === "error" && hasRetryableRecording ? "var(--clay)" : "var(--plum-soft)",
         }}
       >
         {isRecording && (
@@ -139,7 +151,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
             border: "1px solid rgba(191,64,64,0.15)",
           }}
         >
-          {errorMsg}
+          {hasRetryableRecording ? `${errorMsg}. Tap mic to retry.` : errorMsg}
         </span>
       )}
     </div>
