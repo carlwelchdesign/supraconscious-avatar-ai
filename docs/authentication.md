@@ -75,7 +75,7 @@ Current limits:
 - email verification request: 6 failed attempts per 15 minutes
 - password reset request: 6 failed attempts per 15 minutes
 
-This is an application-level guard for the current deployment shape. A future high-traffic deployment should move throttling to shared infrastructure such as an edge/WAF layer or a shared store so limits apply consistently across many app replicas.
+Auth rate-limit counters are stored in `AuthRateLimitBucket` rows keyed by scope, client/email bucket, and fixed time window. This keeps throttling consistent across Vercel/serverless instances and future horizontally scaled containers.
 
 The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts.
 
@@ -134,4 +134,4 @@ Server-side authorization must still be called inside pages, server actions, and
 
 ## Known Gaps
 
-- Auth rate limits are in-process per app instance. A high-traffic multi-replica deployment should move rate limiting to shared infrastructure.
+- A high-traffic public launch should still add edge/WAF analytics and abuse monitoring around the app-level auth throttles.
