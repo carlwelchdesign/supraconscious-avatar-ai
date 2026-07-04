@@ -11,6 +11,7 @@ export async function GET() {
     councilSessions,
     safetyEvents,
     consentEvents,
+    pilotEvents,
   ] = await Promise.all([
     prisma.journalEntry.findMany({
       where: { userId: user.id },
@@ -28,10 +29,12 @@ export async function GET() {
       include: {
         messages: true,
         synthesis: true,
+        embodimentGateResponses: true,
         feedback: true,
         generationTraces: {
           select: {
             id: true,
+            sourceChunkId: true,
             traceType: true,
             model: true,
             promptVersion: true,
@@ -39,12 +42,41 @@ export async function GET() {
             validationStatus: true,
             fallbackReason: true,
             createdAt: true,
+            sourceChunk: {
+              select: {
+                id: true,
+                sourceDocument: {
+                  select: {
+                    id: true,
+                    title: true,
+                    sourceType: true,
+                    reviewState: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     }),
     prisma.safetyEvent.findMany({ where: { userId: user.id } }),
     prisma.consentEvent.findMany({ where: { userId: user.id } }),
+    prisma.pilotEvent.findMany({
+      where: { userId: user.id },
+      orderBy: { occurredAt: "desc" },
+      select: {
+        id: true,
+        eventName: true,
+        eventVersion: true,
+        occurredAt: true,
+        properties: true,
+        inputHash: true,
+        sourceMode: true,
+        safetySeverity: true,
+        featureFlags: true,
+        requestId: true,
+      },
+    }),
   ])
 
   await emitPilotEvent({
@@ -71,5 +103,6 @@ export async function GET() {
     councilSessions,
     safetyEvents,
     consentEvents,
+    pilotEvents,
   })
 }

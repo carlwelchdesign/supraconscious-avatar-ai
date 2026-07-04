@@ -285,7 +285,7 @@ export default async function SettingsPage() {
         <div className="px-6">
           <SettingRow
             label="Export your data"
-            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, and consent records."
+            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and pilot event metadata."
             value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Download JSON</a>}
           />
           <SettingRow
