@@ -151,8 +151,8 @@ export default async function FounderCalibrationSetupPage() {
                   <p className="mt-1 text-xs text-muted-foreground">Next: {participant.nextAction}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} />
-                  <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
+                  <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
+                  <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={participant.email} />
                   <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
                   <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
                   {participant.nextActionHref ? <SafeLink href={participant.nextActionHref} label="Next action" webAppBaseUrl={webAppBaseUrl} /> : null}
@@ -248,21 +248,26 @@ function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
-function resolveHandoffHref(href: string | null, webAppBaseUrl: string) {
+function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: string | null) {
   if (!href) return null
   if (href.startsWith("http://") || href.startsWith("https://")) return href
-  if (FOUNDER_WEB_PATHS.has(href)) return `${webAppBaseUrl}${href}`
+  if (FOUNDER_WEB_PATHS.has(href)) {
+    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
+    return `${webAppBaseUrl}${href}${suffix}`
+  }
   return href
 }
 
-function resolveHandoffText(text: string, webAppBaseUrl: string) {
+function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null) {
   return text.replace(/(^|[\s:])\/(register|login|onboarding|journal)\b/g, (_match, prefix: string, path: string) => {
-    return `${prefix}${webAppBaseUrl}/${path}`
+    const href = `/${path}`
+    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
+    return `${prefix}${webAppBaseUrl}/${path}${suffix}`
   })
 }
 
-function SafeLink({ href, label, webAppBaseUrl }: { href: string; label: string; webAppBaseUrl?: string }) {
-  const resolvedHref = webAppBaseUrl ? resolveHandoffHref(href, webAppBaseUrl) : href
+function SafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl?: string; email?: string | null }) {
+  const resolvedHref = webAppBaseUrl ? resolveHandoffHref(href, webAppBaseUrl, email) : href
   return (
     <Link href={resolvedHref ?? href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
       {label}
@@ -336,8 +341,8 @@ function FounderHandoff({
   }
   webAppBaseUrl: string
 }) {
-  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl)
-  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl)
+  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl, status.email)
+  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl, status.email)
 
   return (
     <div className="rounded-md border p-4 text-sm">
@@ -346,7 +351,7 @@ function FounderHandoff({
           <p className="font-medium">Send this to {role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
         </div>
-        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" /> : null}
+        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" email={status.email} /> : null}
         <CopyHandoffButton text={handoffText} />
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
@@ -356,8 +361,8 @@ function FounderHandoff({
         className="mt-3 min-h-32 w-full rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground"
       />
       <div className="mt-3 flex flex-wrap gap-2">
-        <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} />
-        <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
+        <SafeLink href="/register" label="Register" webAppBaseUrl={webAppBaseUrl} email={status.email} />
+        <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={status.email} />
         <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
         <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
         <SafeLink href="/calibration/live" label="Live review" />

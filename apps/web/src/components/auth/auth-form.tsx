@@ -9,9 +9,10 @@ import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 type AuthFormProps = {
   mode: "login" | "register"
   action: (state: AuthActionState, formData: FormData) => Promise<AuthActionState>
+  defaultEmail?: string
 }
 
-export function AuthForm({ mode, action }: AuthFormProps) {
+export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
   const [state, formAction, isPending] = useActionState(action, {})
   const isRegister = mode === "register"
 
@@ -69,6 +70,7 @@ export function AuthForm({ mode, action }: AuthFormProps) {
             name="email"
             type="email"
             autoComplete="email"
+            defaultValue={defaultEmail}
             required
             className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
             style={{ borderColor: "rgba(43,27,53,0.1)" }}
