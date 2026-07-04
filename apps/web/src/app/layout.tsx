@@ -35,7 +35,7 @@ export default function RootLayout({
       className={`${cormorant.variable} ${dmSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" style={{ isolation: "isolate" }} suppressHydrationWarning>
         {/* Grain overlay as real element — iOS Safari ignores pointer-events:none on fixed pseudo-elements */}
         <div
           aria-hidden="true"
