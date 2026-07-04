@@ -99,6 +99,22 @@ export type FounderCalibrationSetupReport = {
   warnings: string[]
 }
 
+export type FounderCalibrationHandoffItem = {
+  role: FounderCalibrationRequiredRole
+  email: string | null
+  nextAction: string
+  primaryHref: string | null
+  handoffText: string
+  readyForFirstSession: boolean
+}
+
+export type FounderCalibrationHandoffReport = {
+  checkedAt: string
+  items: FounderCalibrationHandoffItem[]
+  blockers: string[]
+  warnings: string[]
+}
+
 export type FounderCalibrationSetupSnapshot = {
   checkedAt: Date
   filterMode: FounderCalibrationFilterMode
@@ -124,6 +140,44 @@ export type FounderCalibrationSetupSnapshot = {
 }
 
 const READY_LABELS = new Set(["ready", "voice_good", "source_good", "grounded"])
+
+export async function runFounderCalibrationHandoffReport(options: {
+  webAppBaseUrl?: string
+  adminAppBaseUrl?: string
+  now?: Date
+} = {}): Promise<FounderCalibrationHandoffReport> {
+  return buildFounderCalibrationHandoffReport(
+    await runFounderCalibrationSetupReport(options.now),
+    options,
+  )
+}
+
+export function buildFounderCalibrationHandoffReport(
+  setupReport: FounderCalibrationSetupReport,
+  options: { webAppBaseUrl?: string; adminAppBaseUrl?: string } = {},
+): FounderCalibrationHandoffReport {
+  const webAppBaseUrl = normalizeBaseUrl(options.webAppBaseUrl ?? process.env.INNER_AVATAR_WEB_URL ?? "http://localhost:3000")
+  const adminAppBaseUrl = normalizeBaseUrl(options.adminAppBaseUrl ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001")
+  const items = (["carl", "maria"] as const).map((role) => {
+    const readiness = setupReport.requiredRoles[role]
+    const primaryHref = resolveFounderHandoffHref(readiness.primaryHandoffHref, readiness.email, webAppBaseUrl, adminAppBaseUrl)
+    return {
+      role,
+      email: readiness.email,
+      nextAction: readiness.nextAction,
+      primaryHref,
+      handoffText: resolveFounderHandoffText(readiness.handoffText, readiness.email, webAppBaseUrl, adminAppBaseUrl),
+      readyForFirstSession: Boolean(readiness.active && readiness.accountExists && readiness.onboardingComplete && readiness.consentPresent),
+    }
+  })
+
+  return {
+    checkedAt: setupReport.checkedAt,
+    items,
+    blockers: setupReport.blockers,
+    warnings: setupReport.warnings,
+  }
+}
 
 export async function runFounderCalibrationSetupReport(now = new Date()): Promise<FounderCalibrationSetupReport> {
   const filter = await resolveFounderCalibrationUserFilter()
@@ -497,4 +551,39 @@ function readParticipantRole(value: string): FounderCalibrationParticipantRole {
 
 function readParticipantStatus(value: string): FounderCalibrationParticipantStatus {
   return value === "paused" ? "paused" : "active"
+}
+
+function normalizeBaseUrl(value: string) {
+  return value.replace(/\/+$/, "")
+}
+
+function resolveFounderHandoffHref(
+  href: string | null,
+  email: string | null,
+  webAppBaseUrl: string,
+  adminAppBaseUrl: string,
+) {
+  if (!href) return null
+  if (href.startsWith("http://") || href.startsWith("https://")) return href
+  if (href === "/calibration/live" || href === "/calibration/setup") return `${adminAppBaseUrl}${href}`
+  if ((href === "/onboarding" || href === "/journal") && email) {
+    return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+  }
+  if ((href === "/register" || href === "/login") && email) {
+    return `${webAppBaseUrl}${href}?email=${encodeURIComponent(email)}`
+  }
+  if (href.startsWith("/")) return `${webAppBaseUrl}${href}`
+  return href
+}
+
+function resolveFounderHandoffText(
+  text: string,
+  email: string | null,
+  webAppBaseUrl: string,
+  adminAppBaseUrl: string,
+) {
+  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal|calibration\/live|calibration\/setup)\b/g, (_match, prefix: string, path: string) => {
+    const href = `/${path}`
+    return `${prefix}${resolveFounderHandoffHref(href, email, webAppBaseUrl, adminAppBaseUrl) ?? href}`
+  })
 }

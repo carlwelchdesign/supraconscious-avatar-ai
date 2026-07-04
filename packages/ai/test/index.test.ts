@@ -7,6 +7,7 @@ import {
   buildPilotReviewCoverageReportFromSnapshot,
   buildFounderCalibrationReportFromSnapshot,
   buildFounderCalibrationComparisonFromSnapshot,
+  buildFounderCalibrationHandoffReport,
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -1074,6 +1075,65 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.match(report.requiredRoles.maria.handoffText, /add feedback with a specific note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder handoff report resolves copyable web and admin links", () => {
+  const setupReport = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: false,
+        consentCount: 0,
+        sessions: [],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: "user_maria",
+        userName: "Maria",
+        onboardingComplete: true,
+        consentCount: 5,
+        consentRecords: [
+          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "ai_processing", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "pilot_participation", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "safety_limits", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+        ],
+        sessions: [{
+          id: "session_maria",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: true }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
+        }],
+      },
+    ],
+  })
+  const handoff = buildFounderCalibrationHandoffReport(setupReport, {
+    webAppBaseUrl: "https://web.example/",
+    adminAppBaseUrl: "https://admin.example/",
+  })
+  const carl = handoff.items.find((item) => item.role === "carl")
+  const maria = handoff.items.find((item) => item.role === "maria")
+
+  assert.equal(carl?.primaryHref, "https://web.example/login?email=carl%40example.com&next=%2Fonboarding")
+  assert.match(carl?.handoffText ?? "", /https:\/\/web\.example\/login\?email=carl%40example\.com&next=%2Fonboarding/)
+  assert.equal(carl?.readyForFirstSession, false)
+  assert.equal(maria?.primaryHref, "https://admin.example/calibration/live")
+  assert.match(maria?.handoffText ?? "", /https:\/\/admin\.example\/calibration\/live/)
+  assert.equal(maria?.readyForFirstSession, true)
+  assert.equal(JSON.stringify(handoff).includes("private journal text"), false)
+  assert.equal(JSON.stringify(handoff).includes("raw note"), false)
 })
 
 test("founder calibration setup report requires all current required consent records", () => {
