@@ -15,6 +15,7 @@ type AuthFormProps = {
 export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
   const [state, formAction, isPending] = useActionState(action, {})
   const isRegister = mode === "register"
+  const alternateHref = buildAlternateHref(isRegister ? "/login" : "/register", defaultEmail)
 
   return (
     <div className="w-full max-w-sm space-y-8">
@@ -124,7 +125,7 @@ export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
       <p className="text-center text-[13px] font-light text-[var(--plum-soft)]">
         {isRegister ? "Already have an account?" : "Need an account?"}{" "}
         <Link
-          href={isRegister ? "/login" : "/register"}
+          href={alternateHref}
           className="font-medium text-[var(--primary)] underline-offset-4 hover:underline"
         >
           {isRegister ? "Sign in" : "Register"}
@@ -132,4 +133,8 @@ export function AuthForm({ mode, action, defaultEmail = "" }: AuthFormProps) {
       </p>
     </div>
   )
+}
+
+function buildAlternateHref(path: "/login" | "/register", email: string) {
+  return email ? `${path}?email=${encodeURIComponent(email)}` : path
 }
