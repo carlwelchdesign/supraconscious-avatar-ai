@@ -142,6 +142,7 @@ CI notes:
 
 Vercel notes:
 
+- The root `vercel.json` is configured for the web app project. It installs with the bundled Yarn 4 launcher, builds `apps/web`, and tells Vercel to read the Next.js output from `apps/web/.next`.
 - Vercel's build machines may default to Yarn v1 which cannot resolve `workspace:*` protocol. To ensure builds succeed you can either:
   - Set the Vercel Project "Install Command" to `yarn vercel:install` and the "Build Command" to `node .yarn/releases/yarn-4.cjs --cwd apps/web build` (adjust per project), or
   - Use the repository helper script by setting Vercel's Build Command to: `bash ./scripts/vercel-build.sh`.
