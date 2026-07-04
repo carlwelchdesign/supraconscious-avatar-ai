@@ -17,15 +17,15 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
   const user = await requireAppUser()
   const parsed = FeedbackSchema.parse(Object.fromEntries(formData))
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.note)) {
-    throw new Error("Founder calibration feedback needs a specific note.")
-  }
 
   const session = await prisma.councilSession.findFirst({
     where: { id: parsed.councilSessionId, userId: user.id },
     select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },
   })
   if (!session) throw new Error("Council session not found.")
+  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.note)) {
+    redirect(`/journal/${session.journalEntryId}?feedbackError=founder_note_required`)
+  }
 
   await prisma.councilSessionFeedback.create({
     data: {
@@ -47,6 +47,7 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
   })
 
   revalidatePath(`/journal/${session.journalEntryId}`)
+  revalidatePath("/dashboard")
 }
 
 export async function deleteJournalEntryAction(formData: FormData) {

@@ -9,10 +9,17 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 
-export default async function JournalEntryPage({ params }: { params: Promise<{ entryId: string }> }) {
+export default async function JournalEntryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ entryId: string }>
+  searchParams: Promise<{ feedbackError?: string }>
+}) {
   const user = await requireAppUser()
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
+  const query = await searchParams
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
     include: {
@@ -89,6 +96,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
     : "Not reviewed for calibration"
+  const feedbackErrorMessage = readFeedbackErrorMessage(query.feedbackError)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -305,6 +313,11 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ e
                 A specific note is required for Carl/Maria calibration evidence.
               </p>
             )}
+            {feedbackErrorMessage && (
+              <p className="mt-3 rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--destructive)]" style={{ borderColor: "rgba(191,64,64,0.2)", background: "rgba(191,64,64,0.06)" }}>
+                {feedbackErrorMessage}
+              </p>
+            )}
             {entry.councilSession.feedback.length > 0 && (
               <div className="mt-3 space-y-2">
                 {entry.councilSession.feedback.map((feedback) => (
@@ -394,4 +407,11 @@ function describeCalibrationStatus(label: string, severity: string) {
   if (label === "source_unsupported") return "Source issue"
   if (label === "too_generic" || label === "too_intense") return "Prompt issue"
   return label.replaceAll("_", " ")
+}
+
+function readFeedbackErrorMessage(value: string | undefined) {
+  if (value === "founder_note_required") {
+    return "Founder calibration feedback needs a specific note with a few words beyond the template."
+  }
+  return null
 }
