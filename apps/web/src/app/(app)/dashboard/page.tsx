@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const user = await requireAppUser()
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const [entryCount, patternCount, recentEntries, setupReport] = await Promise.all([
+  const [entryCount, patternCount, recentEntries, latestCouncilSession, setupReport] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
@@ -36,6 +36,13 @@ export default async function DashboardPage() {
         },
       },
     }),
+    founderCalibrationMode
+      ? prisma.councilSession.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        select: { journalEntryId: true },
+      })
+      : Promise.resolve(null),
     founderCalibrationMode ? runFounderCalibrationSetupReport() : Promise.resolve(null),
   ])
 
@@ -45,8 +52,7 @@ export default async function DashboardPage() {
   const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
   const founderNeedsSession = founderSessionCount === 0
   const founderNeedsFeedbackNote = founderSessionCount > 0 && founderFeedbackNoteCount === 0
-  const latestCouncilEntry = recentEntries.find((entry) => entry.councilSession)
-  const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilEntry ? `/journal/${latestCouncilEntry.id}` : "/journal"
+  const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilSession ? `/journal/${latestCouncilSession.journalEntryId}` : "/journal"
   const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && (founderNeedsSession || founderNeedsFeedbackNote)
   const founderNeedsReview = founderCalibrationMode && Boolean(founderParticipant) && (founderParticipant?.sessionCount ?? 0) > 0 && (founderParticipant?.reviewedSessionCount ?? 0) === 0
 
