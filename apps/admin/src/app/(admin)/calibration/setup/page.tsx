@@ -370,7 +370,7 @@ function FounderHandoff({
           <p className="font-medium">Send this to {role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
         </div>
-        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" email={status.email} /> : null}
+        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" webAppBaseUrl={webAppBaseUrl} email={status.email} /> : null}
         <CopyHandoffButton text={handoffText} />
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
