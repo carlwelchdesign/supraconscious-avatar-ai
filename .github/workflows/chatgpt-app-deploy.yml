@@ -7,6 +7,10 @@ on:
       - release/**
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,7 +21,6 @@ jobs:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       INNER_AVATAR_WEB_URL: http://localhost:3000
       NEXT_PUBLIC_ADMIN_URL: http://localhost:3001
-      GHCR_PAT: ${{ secrets.GHCR_PAT }}
 
     steps:
       - name: Checkout repository
@@ -45,15 +48,13 @@ jobs:
         run: docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:${{ github.sha }} .
 
       - name: Login to GitHub Container Registry
-        if: env.GHCR_PAT != ''
         uses: docker/login-action@v5
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ env.GHCR_PAT }}
+          password: ${{ github.token }}
 
       - name: Push Docker image to GHCR
-        if: env.GHCR_PAT != ''
         run: |
           docker tag inner-avatar-chatgpt-app:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/inner-avatar-chatgpt-app:${{ github.sha }}
           docker push ghcr.io/${{ github.repository_owner }}/inner-avatar-chatgpt-app:${{ github.sha }}
