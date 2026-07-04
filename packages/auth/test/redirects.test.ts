@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import { hasRequiredPilotConsents, PILOT_CONSENT_VERSION } from "../src/consent"
 import { choosePostLoginRedirect } from "../src/redirect-rules"
-import { choosePostAuthRedirect, readSafeNextPath } from "../src/safe-redirect"
+import { choosePostAuthRedirect, choosePostRegistrationRedirect, readSafeNextPath } from "../src/safe-redirect"
 
 test("post-login redirect sends incomplete onboarding to onboarding", () => {
   assert.equal(
@@ -101,4 +101,10 @@ test("post-auth redirect honors safe next only after onboarding gates", () => {
   assert.equal(choosePostAuthRedirect("/onboarding", "/onboarding"), "/onboarding")
   assert.equal(choosePostAuthRedirect("/dashboard", "/journal"), "/journal")
   assert.equal(choosePostAuthRedirect("/dashboard", "https://evil.example"), "/dashboard")
+})
+
+test("post-registration redirect preserves only onboarding-safe next paths", () => {
+  assert.equal(choosePostRegistrationRedirect("/onboarding?from=handoff"), "/onboarding?from=handoff")
+  assert.equal(choosePostRegistrationRedirect("/journal"), "/onboarding")
+  assert.equal(choosePostRegistrationRedirect("https://evil.example/onboarding"), "/onboarding")
 })

@@ -22,3 +22,7 @@ export function choosePostAuthRedirect(defaultRedirect: string, requestedNext: u
   if (defaultRedirect === "/onboarding") return safeNext.startsWith("/onboarding") ? safeNext : defaultRedirect
   return safeNext
 }
+
+export function choosePostRegistrationRedirect(requestedNext: unknown) {
+  return choosePostAuthRedirect("/onboarding", requestedNext)
+}

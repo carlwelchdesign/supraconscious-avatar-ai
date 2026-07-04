@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
-import { choosePostAuthRedirect } from "./safe-redirect"
+import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
 
@@ -12,6 +12,7 @@ const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
+  next: z.string().optional(),
 })
 
 const LoginSchema = z.object({
@@ -55,7 +56,7 @@ export async function registerAction(_state: AuthActionState, formData: FormData
     return { error: authDatabaseErrorMessage(error) }
   }
 
-  redirect("/onboarding")
+  redirect(choosePostRegistrationRedirect(parsed.data.next))
 }
 
 export async function loginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
