@@ -15,6 +15,7 @@ export const PILOT_EVENT_NAMES = [
   "journal_entry_deleted",
   "pattern_memory_cleared",
   "session_revoked",
+  "account_deletion_requested",
 ] as const
 
 export type PilotEventName = typeof PILOT_EVENT_NAMES[number]

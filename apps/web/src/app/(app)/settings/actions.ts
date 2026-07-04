@@ -25,6 +25,11 @@ const RevokeSessionSchema = z.object({
   sessionId: z.string().min(1),
 })
 
+const DeleteAccountSchema = z.object({
+  password: z.string().min(1),
+  confirmation: z.string().trim(),
+})
+
 export async function updateReflectionPreferences(
   formData: FormData,
 ): Promise<void> {
@@ -172,6 +177,51 @@ export async function revokeSessionAction(formData: FormData) {
   }
 
   revalidatePath("/settings")
+}
+
+export async function deleteAccountAction(formData: FormData) {
+  const user = await requireAppUser()
+  const parsed = DeleteAccountSchema.safeParse(Object.fromEntries(formData))
+
+  if (!parsed.success || parsed.data.confirmation !== "DELETE") {
+    redirect("/settings?accountDelete=invalid")
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true, passwordHash: true, email: true },
+  })
+
+  if (!currentUser || !(await verifyPassword(parsed.data.password, currentUser.passwordHash))) {
+    redirect("/settings?accountDelete=incorrect")
+  }
+
+  await emitPilotEvent({
+    eventName: "account_deletion_requested",
+    userId: user.id,
+    properties: { selfService: true },
+  })
+
+  await prisma.$transaction([
+    prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        action: "account.delete_self",
+        targetType: "User",
+        targetId: user.id,
+        reason: "User deleted account from settings.",
+        metadata: {
+          email: currentUser.email,
+          selfService: true,
+        },
+      },
+    }),
+    prisma.user.delete({
+      where: { id: user.id },
+    }),
+  ])
+
+  redirect("/")
 }
 
 export async function updateVoicePreferences(

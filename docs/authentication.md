@@ -89,6 +89,12 @@ Cookie settings:
 
 Users can review active sessions from `/settings`, revoke a single session, revoke the current session, or revoke all sessions. Revoking the current session signs the user out. Session revocation writes audit and pilot-event metadata without storing raw journal content.
 
+## Account Deletion
+
+Signed-in users can delete their own account from `/settings` by confirming their current password and typing `DELETE`.
+
+Deleting an account removes the user row and cascades private app-owned records such as sessions, journal entries, analyses, avatar responses, generated prompts, pattern memory, council sessions, council feedback, consent events, safety events, enrollments, and subscriptions stored in the app database. Operational records with nullable user references, such as audit logs, source import metadata, and generation traces, may remain detached for governance and debugging.
+
 ## Route Protection
 
 Web protected routes:

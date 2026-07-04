@@ -3,6 +3,7 @@ import { prisma } from "@inner-avatar/db"
 import {
   changePasswordAction,
   clearPatternMemoryAction,
+  deleteAccountAction,
   revokeSessionAction,
   revokeSessionsAction,
   updateReflectionPreferences,
@@ -60,7 +61,7 @@ function StatusPill({ on }: { on: boolean }) {
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ password?: string }>
+  searchParams: Promise<{ accountDelete?: string; password?: string }>
 }) {
   const params = await searchParams
   const user = await requireAppUser()
@@ -452,9 +453,67 @@ export default async function SettingsPage({
         </div>
       </div>
 
-      <p className="text-[12px] font-light text-[var(--plum-soft)]/50 leading-relaxed">
-        Full account deletion and billing-customer deletion hardening are deferred to the full privacy lifecycle phase.
-      </p>
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          background: "var(--pearl)",
+          borderColor: "rgba(166,95,74,0.18)",
+        }}
+      >
+        <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(166,95,74,0.12)" }}>
+          <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+            Delete account
+          </p>
+        </div>
+        <form action={deleteAccountAction} className="px-6 py-5 space-y-4">
+          <div>
+            <p className="text-[14px] font-medium text-[var(--primary)]">Delete this account and its private app data</p>
+            <p className="mt-0.5 max-w-2xl text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
+              This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. Audit records may remain as detached operational records.
+            </p>
+          </div>
+          {params.accountDelete === "incorrect" ? (
+            <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Password is incorrect.
+            </p>
+          ) : null}
+          {params.accountDelete === "invalid" ? (
+            <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Enter your password and type DELETE to confirm account deletion.
+            </p>
+          ) : null}
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
+              Password
+              <input
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+              />
+            </label>
+            <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
+              Type DELETE
+              <input
+                name="confirmation"
+                type="text"
+                required
+                autoComplete="off"
+                className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-full border border-[rgba(166,95,74,0.28)] px-5 py-2.5 text-[13px] font-medium text-[var(--clay)] hover:bg-[rgba(166,95,74,0.08)]"
+            >
+              Delete account
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
