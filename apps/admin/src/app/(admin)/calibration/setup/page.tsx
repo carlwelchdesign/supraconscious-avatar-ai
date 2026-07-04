@@ -8,6 +8,7 @@ import {
   setupFounderCalibrationPairAction,
   syncFounderCalibrationParticipantAction,
 } from "../actions"
+import { CopyHandoffButton } from "./copy-handoff-button"
 
 export default async function FounderCalibrationSetupPage() {
   const report = await runFounderCalibrationSetupReport()
@@ -341,6 +342,7 @@ function FounderHandoff({
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
         </div>
         {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" /> : null}
+        <CopyHandoffButton text={handoffText} />
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
       <textarea
