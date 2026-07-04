@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { updateCouncilQualityLabelAction } from "./actions"
+import { batchReviewPilotSessionsAction, reviewPilotSessionFromCouncilAction } from "./actions"
 
 const QUALITY_LABELS = [
-  { value: "unreviewed", label: "Unreviewed" },
   { value: "grounded", label: "Grounded" },
   { value: "too_vague", label: "Too vague" },
   { value: "too_intense", label: "Too intense" },
@@ -11,8 +10,24 @@ const QUALITY_LABELS = [
   { value: "safety_concern", label: "Safety concern" },
 ]
 
-export default async function CouncilReviewPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function CouncilReviewPage({ searchParams }: { searchParams?: SearchParams }) {
+  const params = searchParams ? await searchParams : {}
+  const sessionId = firstParam(params.sessionId)
+  const sourceMode = firstParam(params.sourceMode)
+  const reviewStatus = firstParam(params.reviewStatus)
+  const feedbackType = firstParam(params.feedbackType)
+  const where = {
+    ...(sessionId ? { id: sessionId } : {}),
+    ...(sourceMode && sourceMode !== "all" ? { sourceMode } : {}),
+    ...(feedbackType && feedbackType !== "all" ? { feedback: { some: { feedbackType } } } : {}),
+    ...(reviewStatus === "unreviewed" ? { qualityReviews: { none: {} } } : {}),
+    ...(reviewStatus === "reviewed" ? { qualityReviews: { some: {} } } : {}),
+    ...(reviewStatus === "pilot_blocker" ? { qualityReviews: { some: { severity: "pilot_blocker" } } } : {}),
+  }
   const sessions = await prisma.councilSession.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     take: 50,
     select: {
@@ -24,6 +39,7 @@ export default async function CouncilReviewPage() {
       createdAt: true,
       journalEntryId: true,
       user: { select: { email: true } },
+      feedback: { select: { feedbackType: true } },
       messages: { select: { role: true, displayName: true, content: true, confidence: true, abstained: true, sourceChunkIds: true } },
       synthesis: { select: { integratorQuestion: true, integrationStep: true, sourceChunkIds: true } },
       generationTraces: {
@@ -49,7 +65,7 @@ export default async function CouncilReviewPage() {
       qualityReviews: {
         orderBy: { reviewedAt: "desc" },
         take: 1,
-        select: { label: true, severity: true, reason: true, reviewedAt: true },
+        select: { label: true, severity: true, reason: true, metadata: true, reviewedAt: true },
       },
       _count: { select: { generationTraces: true, embodimentGateResponses: true } },
     },
@@ -60,9 +76,61 @@ export default async function CouncilReviewPage() {
       <div>
         <h1 className="text-2xl font-semibold">Council Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Metadata-first review of Inner Council runs, role confidence, traces, and embodiment completion.
+          Metadata-first review of Inner Council runs, role confidence, traces, and embodiment completion. Raw journal text remains hidden here.
         </p>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle>Review filters</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <form className="grid gap-2 md:grid-cols-5">
+            <input
+              name="sessionId"
+              defaultValue={sessionId ?? ""}
+              placeholder="Session id"
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <select name="sourceMode" defaultValue={sourceMode ?? "all"} className="rounded-md border bg-background px-3 py-2 text-sm">
+              <option value="all">All source modes</option>
+              <option value="rag">RAG</option>
+              <option value="no_eligible_source">No source</option>
+              <option value="none">None</option>
+              <option value="grounding">Grounding</option>
+            </select>
+            <select name="reviewStatus" defaultValue={reviewStatus ?? "all"} className="rounded-md border bg-background px-3 py-2 text-sm">
+              <option value="all">All review states</option>
+              <option value="unreviewed">Unreviewed</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="pilot_blocker">Pilot blockers</option>
+            </select>
+            <select name="feedbackType" defaultValue={feedbackType ?? "all"} className="rounded-md border bg-background px-3 py-2 text-sm">
+              <option value="all">All feedback</option>
+              <option value="helpful">Helpful</option>
+              <option value="not_accurate">Not accurate</option>
+              <option value="too_intense">Too intense</option>
+              <option value="unclear">Unclear</option>
+              <option value="unsupported_source">Unsupported source</option>
+            </select>
+            <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Apply filters</button>
+          </form>
+          <form id="council-batch-review" action={batchReviewPilotSessionsAction} className="grid gap-2 rounded-md border p-3 md:grid-cols-[auto_auto_auto_1fr_auto]">
+            <select name="validationStatus" defaultValue="grounded" className="rounded-md border bg-background px-2 py-2 text-xs">
+              {QUALITY_LABELS.map((label) => <option key={label.value} value={label.value}>{label.label}</option>)}
+            </select>
+            <select name="disposition" defaultValue="reviewed" className="rounded-md border bg-background px-2 py-2 text-xs">
+              <option value="reviewed">reviewed</option>
+              <option value="cleared">cleared</option>
+              <option value="blocked">blocked</option>
+            </select>
+            <select name="severity" defaultValue="normal" className="rounded-md border bg-background px-2 py-2 text-xs">
+              <option value="normal">normal</option>
+              <option value="pilot_blocker">pilot blocker</option>
+            </select>
+            <input name="reason" placeholder="Batch reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+            <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Review selected</button>
+          </form>
+        </CardContent>
+      </Card>
 
       <div className="space-y-3">
         {sessions.length === 0 ? (
@@ -83,8 +151,13 @@ export default async function CouncilReviewPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <label className="inline-flex items-center gap-1 text-foreground">
+                    <input form="council-batch-review" type="checkbox" name="sessionIds" value={session.id} />
+                    Select
+                  </label>
                   <span>{session.status}</span>
                   <span>source: {session.sourceMode}</span>
+                  <span>feedback: {session.feedback.map((item) => item.feedbackType).join(", ") || "none"}</span>
                   <span>{session._count.generationTraces} traces</span>
                   <span>{session._count.embodimentGateResponses} gate responses</span>
                   <span>safety: {safety.severity ?? "unknown"}</span>
@@ -118,17 +191,29 @@ export default async function CouncilReviewPage() {
                         Current: {session.qualityReviews[0]?.label ?? "unreviewed"}
                         {session.qualityReviews[0]?.severity === "pilot_blocker" ? " · pilot blocker" : ""}
                       </p>
+                      {session.qualityReviews[0]?.reason ? (
+                        <p className="mt-1 text-xs text-muted-foreground">Reason: {session.qualityReviews[0].reason}</p>
+                      ) : null}
                     </div>
-                    <form action={updateCouncilQualityLabelAction} className="flex flex-wrap items-center gap-2">
+                    <form action={reviewPilotSessionFromCouncilAction} className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="councilSessionId" value={session.id} />
                       <select
                         name="validationStatus"
-                        defaultValue={session.qualityReviews[0]?.label ?? "unreviewed"}
+                        defaultValue={session.qualityReviews[0]?.label ?? "grounded"}
                         className="rounded-md border bg-background px-2 py-1 text-xs"
                       >
                         {QUALITY_LABELS.map((label) => (
                           <option key={label.value} value={label.value}>{label.label}</option>
                         ))}
+                      </select>
+                      <select
+                        name="disposition"
+                        defaultValue={readDisposition(session.qualityReviews[0]?.metadata) ?? "reviewed"}
+                        className="rounded-md border bg-background px-2 py-1 text-xs"
+                      >
+                        <option value="reviewed">reviewed</option>
+                        <option value="cleared">cleared</option>
+                        <option value="blocked">blocked</option>
                       </select>
                       <select
                         name="severity"
@@ -220,4 +305,16 @@ export default async function CouncilReviewPage() {
       </div>
     </div>
   )
+}
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function readDisposition(metadata: unknown) {
+  if (metadata && typeof metadata === "object" && "feedbackDisposition" in metadata) {
+    const value = (metadata as { feedbackDisposition?: unknown }).feedbackDisposition
+    if (value === "reviewed" || value === "cleared" || value === "blocked") return value
+  }
+  return null
 }

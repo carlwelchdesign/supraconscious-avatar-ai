@@ -3,6 +3,7 @@ import test from "node:test"
 import {
   buildApprovedSourceWhere,
   buildPilotLearningReportFromSnapshot,
+  buildPilotReviewCoverageReportFromSnapshot,
   classifySourcePath,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
@@ -456,8 +457,9 @@ test("pilot expansion readiness blocks low review coverage and unresolved source
         createdAt: "2026-07-03T12:00:00.000Z",
         sourceMode: "rag",
         feedbackTypes: ["unsupported_source"],
-        latestReviewLabel: null,
-        latestReviewSeverity: null,
+      latestReviewLabel: null,
+      latestReviewSeverity: null,
+      latestReviewReason: null,
         disposition: "needs_review",
         selectedSourceTitles: [],
         selectedChunkIds: [],
@@ -542,4 +544,101 @@ test("pilot expansion readiness passes with conservative gates satisfied", () =>
   assert.equal(report.passed, true)
   assert.deepEqual(report.recommendedBatchSize, { min: 3, max: 5 })
   assert.equal(report.metrics.reviewCoverageRate, 80)
+})
+
+test("pilot review coverage report prioritizes validation and source feedback without raw journal text", () => {
+  const report = buildPilotReviewCoverageReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    expansionBlockers: [
+      { code: "review_coverage_low", message: "Review coverage low.", count: 50, href: "/pilot" },
+      { code: "unreviewed_source_sessions", message: "Open sessions.", count: 2, href: "/pilot" },
+    ],
+    expansionWarnings: [],
+    learning: {
+      safetyQueue: [],
+      reviewCoverage: {
+        sourceSessions: 5,
+        reviewedSourceSessions: 2,
+        unreviewedSourceSessions: 3,
+        coverageRate: 40,
+        pilotBlockers: 0,
+      },
+      ragLearningQueue: [
+        {
+          councilSessionId: "session_rag",
+          userEmail: "pilot@example.com",
+          createdAt: "2026-07-03T12:00:00.000Z",
+          sourceMode: "rag",
+          feedbackTypes: [],
+          latestReviewLabel: null,
+          latestReviewSeverity: null,
+          latestReviewReason: null,
+          disposition: "reviewed",
+          selectedSourceTitles: ["The Inner Council_"],
+          selectedChunkIds: ["chunk_1"],
+          matchReasons: ["Matched terms: council"],
+          fallbackReason: null,
+          validationStatus: "validated",
+          validationWarnings: [],
+          validationFailedRules: [],
+          citationCoverage: 1,
+          evidenceCoverage: 1,
+          displayExcerptSuppressed: true,
+        },
+        {
+          councilSessionId: "session_source",
+          userEmail: "pilot@example.com",
+          createdAt: "2026-07-03T12:01:00.000Z",
+          sourceMode: "rag",
+          feedbackTypes: ["unsupported_source"],
+          latestReviewLabel: null,
+          latestReviewSeverity: null,
+          latestReviewReason: null,
+          disposition: "needs_review",
+          selectedSourceTitles: ["Embodiment Gate"],
+          selectedChunkIds: ["chunk_2"],
+          matchReasons: ["Matched terms: gate"],
+          fallbackReason: null,
+          validationStatus: "validated",
+          validationWarnings: [],
+          validationFailedRules: [],
+          citationCoverage: 1,
+          evidenceCoverage: 1,
+          displayExcerptSuppressed: true,
+        },
+        {
+          councilSessionId: "session_validation",
+          userEmail: "pilot@example.com",
+          createdAt: "2026-07-03T12:02:00.000Z",
+          sourceMode: "no_eligible_source",
+          feedbackTypes: [],
+          latestReviewLabel: null,
+          latestReviewSeverity: null,
+          latestReviewReason: null,
+          disposition: "needs_review",
+          selectedSourceTitles: [],
+          selectedChunkIds: [],
+          matchReasons: [],
+          fallbackReason: "No approved source matched.",
+          validationStatus: "pilot_validation_failed",
+          validationWarnings: [],
+          validationFailedRules: ["integrator_question_count"],
+          citationCoverage: 0,
+          evidenceCoverage: 0,
+          displayExcerptSuppressed: false,
+        },
+      ],
+    },
+  })
+
+  assert.equal(report.coverage.requiredReviewedForExpansion, 4)
+  assert.equal(report.coverage.additionalReviewsNeededFor80Percent, 2)
+  assert.deepEqual(report.prioritizedQueue.map((item) => item.priority), [
+    "safety_or_validation",
+    "unsupported_source",
+    "unreviewed_rag",
+  ])
+  assert.equal(report.prioritizedQueue[0]?.reviewHref, "/council?sessionId=session_validation")
+  assert.equal(report.prioritizedQueue.every((item) => item.rawJournalTextHidden), true)
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
 })

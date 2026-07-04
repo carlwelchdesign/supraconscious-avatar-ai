@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { readRagActivationMetadata, runPilotExpansionReadiness, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport } from "@inner-avatar/ai"
+import { readRagActivationMetadata, runPilotExpansionReadiness, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport, runPilotReviewCoverageReport } from "@inner-avatar/ai"
 import { createPilotCohortAction, enrollPilotUserAction, expandPilotCohortAction, reviewPilotSessionAction } from "./actions"
 
 const QUALITY_LABELS = [
@@ -14,11 +14,12 @@ const QUALITY_LABELS = [
 ] as const
 
 export default async function PilotReadinessPage() {
-  const [readiness, iteration, learning, expansion] = await Promise.all([
+  const [readiness, iteration, learning, expansion, reviewCoverage] = await Promise.all([
     runPilotLaunchReadiness(),
     runPilotIterationReport(),
     runPilotLearningReport(),
     runPilotExpansionReadiness(),
+    runPilotReviewCoverageReport(),
   ])
   const schemaReady = !readiness.blockers.some((blocker) => blocker.code === "database_schema_not_ready")
   const [cohorts, feedback, ragFlag, recentRetrievalTitles] = schemaReady ? await Promise.all([
@@ -163,6 +164,11 @@ export default async function PilotReadinessPage() {
               {expansion.warnings.map((warning) => <p key={warning}>{warning}</p>)}
             </div>
           )}
+          {reviewCoverage.recommendations.length > 0 && (
+            <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+              {reviewCoverage.recommendations.map((recommendation) => <p key={recommendation}>{recommendation}</p>)}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -203,6 +209,38 @@ export default async function PilotReadinessPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader><CardTitle>Review Coverage To Expand</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-4">
+            <SmallMetric title="Reviewed" value={reviewCoverage.coverage.reviewedSourceSessions} />
+            <SmallMetric title="Source/no-source total" value={reviewCoverage.coverage.sourceSessions} />
+            <SmallMetric title="Needed for 80%" value={reviewCoverage.coverage.requiredReviewedForExpansion} />
+            <SmallMetric title="Reviews remaining" value={reviewCoverage.coverage.additionalReviewsNeededFor80Percent} />
+          </div>
+          <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+            Raw journal text is hidden in this workflow. Review source-grounded and no-source sessions with an explicit disposition to improve coverage.
+          </p>
+          {reviewCoverage.blockers.length > 0 && (
+            <div className="grid gap-2">
+              {reviewCoverage.blockers.map((blocker) => (
+                <div key={blocker.code} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                  <div>
+                    <p className="font-medium text-destructive">{blocker.message}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {blocker.code}{typeof blocker.count === "number" ? ` · ${blocker.count}` : ""}
+                    </p>
+                  </div>
+                  {blocker.href && (
+                    <Link href={blocker.href} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Review</Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -282,21 +320,24 @@ export default async function PilotReadinessPage() {
       <Card>
         <CardHeader><CardTitle>RAG Learning Queue</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {learning.ragLearningQueue.length === 0 ? (
+          {reviewCoverage.prioritizedQueue.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source-grounding review items are open.</p>
-          ) : learning.ragLearningQueue.map((item) => (
+          ) : reviewCoverage.prioritizedQueue.map((item) => (
             <div key={item.councilSessionId} className="rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                   <p className="font-medium">{item.userEmail} · {new Date(item.createdAt).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">
-                    source: {item.sourceMode} · disposition: {item.disposition} · validation: {item.validationStatus ?? "unknown"}
+                    priority: {item.priority} · source: {item.sourceMode} · disposition: {item.disposition} · validation: {item.validationStatus ?? "unknown"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     feedback: {item.feedbackTypes.length ? item.feedbackTypes.join(", ") : "none"} · review: {item.latestReviewLabel ?? "unreviewed"}{item.latestReviewSeverity === "pilot_blocker" ? " · pilot blocker" : ""}
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    raw journal text hidden: {item.rawJournalTextHidden ? "yes" : "no"}{item.latestReviewReason ? ` · reason: ${item.latestReviewReason}` : ""}
+                  </p>
                 </div>
-                <Link href="/council" className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
+                <Link href={item.reviewHref} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
                   Council review
                 </Link>
               </div>

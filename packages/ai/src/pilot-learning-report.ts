@@ -28,6 +28,7 @@ export type PilotLearningQueueItem = {
   feedbackTypes: string[]
   latestReviewLabel: string | null
   latestReviewSeverity: string | null
+  latestReviewReason: string | null
   disposition: "needs_review" | "reviewed" | "blocked" | "cleared"
   selectedSourceTitles: string[]
   selectedChunkIds: string[]
@@ -77,7 +78,7 @@ export type PilotLearningSessionSnapshot = {
   createdAt: Date
   sourceMode: string
   feedbackTypes: string[]
-  qualityReviews: Array<{ label: string; severity: string; metadata: unknown }>
+  qualityReviews: Array<{ label: string; severity: string; reason?: string | null; metadata: unknown }>
   generationTraces: Array<{
     traceType: string
     validationStatus: string
@@ -124,7 +125,7 @@ export async function runPilotLearningReport(now = new Date()): Promise<PilotLea
         qualityReviews: {
           orderBy: { reviewedAt: "desc" },
           take: 1,
-          select: { label: true, severity: true, metadata: true },
+          select: { label: true, severity: true, reason: true, metadata: true },
         },
         generationTraces: {
           where: { traceType: { in: ["retrieval", "council"] } },
@@ -245,6 +246,7 @@ function toLearningQueueItem(session: PilotLearningSessionSnapshot): PilotLearni
     feedbackTypes: Array.from(new Set(session.feedbackTypes)),
     latestReviewLabel: latestReview?.label ?? null,
     latestReviewSeverity: latestReview?.severity ?? null,
+    latestReviewReason: latestReview?.reason ?? null,
     disposition: feedbackDisposition,
     selectedSourceTitles: Array.from(new Set(selectedTraces.map((trace) => readTraceTitle(trace)).filter(isString))),
     selectedChunkIds: selectedTraces.map((trace) => trace.sourceChunkId).filter((id): id is string => Boolean(id)),

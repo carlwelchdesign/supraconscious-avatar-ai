@@ -47,6 +47,8 @@ This runbook is for a controlled internal pilot of the Maria-grounded Inner Coun
 - Default to batches of 3-5 existing registered internal users.
 - Use the expansion gate in `/admin/pilot`; do not bypass it with manual enrollment unless this is a super-admin setup correction with a reason.
 - Before inviting a batch, confirm launch readiness passes, RAG activation metadata is present, source/no-source review coverage is at least 80%, no new unresolved safety items exist, no pilot blockers are open, and unsupported-source or negative feedback has a reviewer disposition.
+- Use the pilot review coverage report and `/admin/council` filters to clear source-grounded and no-source sessions. Start with validation failures, unsupported-source feedback, negative feedback, then routine RAG/no-source sessions.
+- Batch review is allowed only for selected sessions with a shared reason, label, disposition, and severity. It must create one quality review and audit log per session, with no raw journal text in metadata.
 - After each batch, wait for first-session completion and daily learning review before inviting another batch.
 - Store only expansion metadata in audit logs: cohort, user emails, batch size, readiness summary, reason, and enrollment result.
 
