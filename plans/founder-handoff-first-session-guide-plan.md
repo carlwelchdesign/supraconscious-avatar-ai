@@ -40,6 +40,7 @@ Make the first Carl/Maria calibration sessions easy to run after admin setup. Th
   - Demo users, paused participants, and non-founders do not see founder handoff reminders.
 - Regression checks:
   - Prisma validate/generate.
+  - Auth redirect tests.
   - AI tests, founder setup report, founder calibration report, comparison report.
   - Web/admin/ChatGPT typechecks.
   - Targeted lint.
