@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
+import { formatFounderCalibrationScenario, isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { reviewCalibrationSessionAction } from "../actions"
@@ -92,7 +92,7 @@ export default async function LiveCalibrationPage() {
             <p className="text-muted-foreground">No founder calibration sessions yet.</p>
           ) : comparison.scenarioCoverage.map((item) => (
             <div key={item.scenario} className="rounded-md border p-3">
-              <p className="font-medium">{item.scenario}</p>
+              <p className="font-medium">{formatFounderCalibrationScenario(item.scenario)}</p>
               <p className="text-xs text-muted-foreground">
                 {item.totalSessions} total · {item.reviewedSessions} reviewed · {item.goldenExamples} ready · {item.unresolvedIssues} open
               </p>
@@ -122,7 +122,7 @@ export default async function LiveCalibrationPage() {
                   <div>
                     <p className="font-medium">{session.user.email} · {new Date(session.createdAt).toLocaleString()}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      scenario: {scenario} · source: {session.sourceMode} · prompt: {promptVersion}
+                      scenario: {formatFounderCalibrationScenario(scenario)} · source: {session.sourceMode} · prompt: {promptVersion}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       feedback: {feedbackTypes.join(", ") || "none"} · note: {hasFeedbackNote ? "yes" : "no"} · review: {latestReview?.label ?? "unreviewed"}

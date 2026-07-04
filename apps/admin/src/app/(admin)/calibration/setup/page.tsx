@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { runFounderCalibrationSetupReport, FOUNDER_CALIBRATION_PARTICIPANT_ROLES } from "@inner-avatar/ai"
+import { formatFounderCalibrationScenario, runFounderCalibrationSetupReport, FOUNDER_CALIBRATION_PARTICIPANT_ROLES } from "@inner-avatar/ai"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import {
   activateFounderCalibrationParticipantAction,
@@ -162,7 +162,7 @@ export default async function FounderCalibrationSetupPage() {
               <div className="mt-3 grid gap-2 md:grid-cols-3">
                 {participant.scenarioStatus.map((item) => (
                   <div key={item.scenario} className="rounded-md bg-muted/40 px-3 py-2 text-xs">
-                    <p className="font-medium">{item.scenario}</p>
+                    <p className="font-medium">{formatFounderCalibrationScenario(item.scenario)}</p>
                     <p className="mt-1 text-muted-foreground">
                       {item.completed ? `${item.sessionCount} run` : "not run"} · {item.hasReadyExample ? "ready example" : "no ready example"}
                     </p>
@@ -224,7 +224,7 @@ export default async function FounderCalibrationSetupPage() {
             <p className="text-muted-foreground">No founder calibration scenarios have been run yet.</p>
           ) : report.scenarioCoverage.map((item) => (
             <div key={item.scenario} className="rounded-md border p-3">
-              <p className="font-medium">{item.scenario}</p>
+              <p className="font-medium">{formatFounderCalibrationScenario(item.scenario)}</p>
               <p className="text-xs text-muted-foreground">{item.totalSessions} session{item.totalSessions === 1 ? "" : "s"}</p>
             </div>
           ))}

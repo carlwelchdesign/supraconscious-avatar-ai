@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./founder-calibration-scenarios": "./src/founder-calibration-scenarios.ts",
     "./founder-feedback-notes": "./src/founder-feedback-notes.ts",
     "./openai": "./src/openai.ts",
     "./schemas": "./src/schemas.ts"

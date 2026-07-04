@@ -1,6 +1,7 @@
 import { prisma } from "@inner-avatar/db"
 import { hasRequiredPilotConsents, type PilotConsentRecord } from "@inner-avatar/types/pilot-consent"
 import {
+  formatFounderCalibrationScenario,
   FOUNDER_CALIBRATION_SCENARIOS,
   readFounderCalibrationScenario,
   type FounderCalibrationScenario,
@@ -470,9 +471,9 @@ function chooseParticipantNextAction(
   const primaryMissingAction = missingActions[0]
   if (primaryMissingAction) return { message: primaryMissingAction.message, href: readFounderLaunchHref(primaryMissingAction.code) }
   const nextScenario = scenarioStatus.find((item) => !item.completed)
-  if (nextScenario) return { message: `Run the ${nextScenario.scenario} guided scenario.`, href: "/journal" }
+  if (nextScenario) return { message: `Run the ${formatFounderCalibrationScenario(nextScenario.scenario)} guided scenario.`, href: "/journal" }
   const scenarioWithoutReadyExample = scenarioStatus.find((item) => item.completed && !item.hasReadyExample)
-  if (scenarioWithoutReadyExample) return { message: `Review ${scenarioWithoutReadyExample.scenario} and mark ready or assign an issue.`, href: "/calibration/live" }
+  if (scenarioWithoutReadyExample) return { message: `Review ${formatFounderCalibrationScenario(scenarioWithoutReadyExample.scenario)} and mark ready or assign an issue.`, href: "/calibration/live" }
   return { message: "Founder calibration launch loop is ready; continue with the next real session.", href: "/calibration/live" }
 }
 
@@ -495,15 +496,16 @@ function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant)
 function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant, primaryHandoffHref: string | null) {
   const firstIncompleteScenario = participant.scenarioStatus.find((item) => !item.completed)
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
+  const suggestedScenarioLabel = formatFounderCalibrationScenario(suggestedScenario)
   const primaryPath = primaryHandoffHref ?? "/journal"
   if (!participant.accountExists) {
-    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about what felt right or wrong. Start here: ${primaryPath}`
+    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about what felt right or wrong. Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || !participant.consentPresent) {
-    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note. Continue here: ${primaryPath}`
+    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note. Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
-    return `Please open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
+    return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
     return `Please open the latest calibration session and add feedback with a specific note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`

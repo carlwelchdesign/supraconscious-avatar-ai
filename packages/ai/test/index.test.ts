@@ -33,6 +33,7 @@ import {
   runPilotCouncilEvals,
   readDisposition,
   readFeedbackDisposition,
+  formatFounderCalibrationScenario,
   sanitizeProperties,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
@@ -949,6 +950,12 @@ test("founder participant filter prefers DB participants before env fallback", (
   assert.deepEqual(fallbackFilter.where.email.notIn, ["demo@inner-avatar.ai"])
 })
 
+test("founder calibration scenarios have human-readable labels", () => {
+  assert.equal(formatFounderCalibrationScenario("voice_test"), "Voice test")
+  assert.equal(formatFounderCalibrationScenario("source_grounding_test"), "Source-grounding test")
+  assert.equal(formatFounderCalibrationScenario("not_real"), "Freeform")
+})
+
 test("founder calibration setup report lists missing actions without raw notes", () => {
   const report = buildFounderCalibrationSetupReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
@@ -1018,7 +1025,7 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
-  assert.equal(carl?.nextAction, "Run the source_grounding_test guided scenario.")
+  assert.equal(carl?.nextAction, "Run the Source-grounding test guided scenario.")
   assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.completed, true)
   assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.hasReadyExample, true)
   const maria = report.participants.find((participant) => participant.email === "maria@example.com")
@@ -1070,7 +1077,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.ok(report.missingActions.some((action) => action.code === "onboarding_incomplete" && action.href === "/onboarding"))
   assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.href === "/onboarding"))
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
-  assert.match(report.requiredRoles.carl.handoffText, /preselected voice_test guided calibration prompt/)
+  assert.match(report.requiredRoles.carl.handoffText, /preselected Voice test guided calibration prompt/)
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
   assert.match(report.requiredRoles.maria.handoffText, /add feedback with a specific note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
