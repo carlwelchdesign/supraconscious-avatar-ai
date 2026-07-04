@@ -1,4 +1,5 @@
 import { prisma } from "@inner-avatar/db"
+import { hasRequiredPilotConsents, type PilotConsentRecord } from "@inner-avatar/types/pilot-consent"
 import {
   FOUNDER_CALIBRATION_SCENARIOS,
   readFounderCalibrationScenario,
@@ -28,6 +29,7 @@ export type FounderCalibrationSetupParticipant = {
   accountExists: boolean
   onboardingComplete: boolean
   consentCount: number
+  consentPresent: boolean
   sessionCount: number
   lastSessionAt: string | null
   feedbackNoteCount: number
@@ -109,6 +111,7 @@ export type FounderCalibrationSetupSnapshot = {
     userName: string | null
     onboardingComplete: boolean
     consentCount: number
+    consentRecords?: PilotConsentRecord[]
     sessions: Array<{
       id: string
       createdAt: Date
@@ -146,6 +149,7 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
       userName: participant.user?.name ?? null,
       onboardingComplete: participant.user?.onboardingComplete ?? false,
       consentCount: participant.user?.consentEvents.length ?? 0,
+      consentRecords: participant.user?.consentEvents ?? [],
       sessions: (participant.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
         createdAt: session.createdAt,
@@ -167,7 +171,7 @@ async function readSetupParticipantsSafely() {
             id: true,
             name: true,
             onboardingComplete: true,
-            consentEvents: { select: { id: true } },
+            consentEvents: { select: { consentType: true, consentVersion: true, granted: true } },
             councilSessions: {
               orderBy: { createdAt: "desc" },
               take: 50,
@@ -208,6 +212,9 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   const scenarioCounts = new Map<FounderCalibrationScenario, number>()
   const participants = snapshot.participants.map((participant) => {
     const sessions = participant.status === "active" ? participant.sessions : []
+    const consentPresent = participant.consentRecords
+      ? hasRequiredPilotConsents(participant.consentRecords)
+      : participant.consentCount > 0
     const feedbackNoteCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasNote).length, 0)
     const reviewedSessionCount = sessions.filter((session) => session.qualityReviews.length > 0).length
     const goldenExampleCount = sessions.filter((session) => session.qualityReviews.some((review) => READY_LABELS.has(review.label))).length
@@ -224,6 +231,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       accountExists: Boolean(participant.userId),
       onboardingComplete: participant.onboardingComplete,
       consentCount: participant.consentCount,
+      consentPresent,
       sessionCount: sessions.length,
       feedbackNoteCount,
       goldenExampleCount,
@@ -240,6 +248,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       accountExists: Boolean(participant.userId),
       onboardingComplete: participant.onboardingComplete,
       consentCount: participant.consentCount,
+      consentPresent,
       sessionCount: sessions.length,
       lastSessionAt: sessions[0]?.createdAt.toISOString() ?? null,
       feedbackNoteCount,
@@ -265,7 +274,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     activeParticipants: activeParticipants.length,
     linkedUsers: activeParticipants.filter((participant) => participant.accountExists).length,
     onboardingComplete: activeParticipants.filter((participant) => participant.onboardingComplete).length,
-    participantsWithConsent: activeParticipants.filter((participant) => participant.consentCount > 0).length,
+    participantsWithConsent: activeParticipants.filter((participant) => participant.consentPresent).length,
     participantsWithSessions: activeParticipants.filter((participant) => participant.sessionCount > 0).length,
     participantsWithFeedbackNotes: activeParticipants.filter((participant) => participant.feedbackNoteCount > 0).length,
     participantsWithGoldenExamples: activeParticipants.filter((participant) => participant.goldenExampleCount > 0).length,
@@ -332,7 +341,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       active: false,
       accountExists: participant.accountExists,
       onboardingComplete: participant.onboardingComplete,
-      consentPresent: participant.consentCount > 0,
+      consentPresent: participant.consentPresent,
       sessionPresent: participant.sessionCount > 0,
       feedbackNotePresent: participant.feedbackNoteCount > 0,
       goldenExamplePresent: participant.goldenExampleCount > 0,
@@ -351,7 +360,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
     active: true,
     accountExists: participant.accountExists,
     onboardingComplete: participant.onboardingComplete,
-    consentPresent: participant.consentCount > 0,
+    consentPresent: participant.consentPresent,
     sessionPresent: participant.sessionCount > 0,
     feedbackNotePresent: participant.feedbackNoteCount > 0,
     goldenExamplePresent: participant.goldenExampleCount > 0,
@@ -419,7 +428,7 @@ function readFounderLaunchHref(code: string) {
 
 function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant) {
   if (!participant.accountExists) return "/register"
-  if (!participant.onboardingComplete || participant.consentCount === 0) return "/onboarding"
+  if (!participant.onboardingComplete || !participant.consentPresent) return "/onboarding"
   if (participant.sessionCount === 0 || participant.feedbackNoteCount === 0) return "/journal"
   if (participant.goldenExampleCount === 0) return "/calibration/live"
   return "/journal"
@@ -432,7 +441,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   if (!participant.accountExists) {
     return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note about what felt right or wrong. Start here: ${primaryPath}`
   }
-  if (!participant.onboardingComplete || participant.consentCount === 0) {
+  if (!participant.onboardingComplete || !participant.consentPresent) {
     return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenario} guided calibration prompt. Submit one reflection, select a feedback type, and leave a short note. Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
@@ -453,6 +462,7 @@ function buildParticipantMissingActions(input: {
   accountExists: boolean
   onboardingComplete: boolean
   consentCount: number
+  consentPresent: boolean
   sessionCount: number
   feedbackNoteCount: number
   goldenExampleCount: number
@@ -461,7 +471,7 @@ function buildParticipantMissingActions(input: {
   const actions: FounderCalibrationMissingAction[] = []
   if (!input.accountExists) actions.push({ code: "account_missing", email: input.email, message: `${input.email} needs to register.`, href: "/users" })
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/users" })
-  if (input.accountExists && input.consentCount === 0) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs pilot consent records.`, href: "/users" })
+  if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/users" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/calibration/live" })
   if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one calibration feedback note.`, href: "/calibration/live" })
   if (input.sessionCount > 0 && input.goldenExampleCount === 0) actions.push({ code: "golden_example_missing", email: input.email, message: `${input.email} needs at least one ready/golden example review.`, href: "/calibration/live" })

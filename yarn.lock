@@ -1164,6 +1164,7 @@ __metadata:
   dependencies:
     "@inner-avatar/config": "workspace:*"
     "@inner-avatar/db": "workspace:*"
+    "@inner-avatar/types": "workspace:*"
     openai: "npm:^6.35.0"
     tsx: "npm:^4.21.0"
     zod: "npm:^4.3.6"

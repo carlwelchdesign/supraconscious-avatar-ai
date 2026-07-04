@@ -1,4 +1,5 @@
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { prisma } from "@inner-avatar/db"
 import { isFounderCalibrationUser, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
@@ -7,6 +8,19 @@ import { redirect } from "next/navigation"
 export default async function JournalPage() {
   const user = await requireAppUser()
   if (!user.onboardingComplete) redirect("/onboarding")
+  const consentRecords = await prisma.consentEvent.findMany({
+    where: {
+      userId: user.id,
+      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
+    },
+    select: {
+      consentType: true,
+      consentVersion: true,
+      granted: true,
+    },
+  })
+  if (!hasRequiredPilotConsents(consentRecords)) redirect("/onboarding?error=consent_required")
+
   const today = new Date()
   const month = today.getMonth() + 1
   const day = today.getDate()

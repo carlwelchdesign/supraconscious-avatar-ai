@@ -1,6 +1,7 @@
 import "server-only"
 
 import { prisma } from "@inner-avatar/db"
+import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "./consent"
 import { choosePostLoginRedirect } from "./redirect-rules"
 
 export { choosePostLoginRedirect } from "./redirect-rules"
@@ -12,9 +13,21 @@ export async function readPostLoginRedirect(user: { id: string; email: string; o
       where: { userId: user.id },
     })
     : 0
+  const consentRecords = await prisma.consentEvent.findMany({
+    where: {
+      userId: user.id,
+      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
+    },
+    select: {
+      consentType: true,
+      consentVersion: true,
+      granted: true,
+    },
+  })
 
   return choosePostLoginRedirect({
     onboardingComplete: user.onboardingComplete,
+    hasRequiredPilotConsents: hasRequiredPilotConsents(consentRecords),
     isFounderParticipant: Boolean(founderParticipant),
     councilSessionCount,
   })

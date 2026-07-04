@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
@@ -18,14 +19,16 @@ export default async function OnboardingPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const user = await requireAppUser()
-  if (user.onboardingComplete) redirect("/journal")
   const params = await searchParams
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const latestConsents = await prisma.consentEvent.findMany({
-    where: { userId: user.id },
+    where: {
+      userId: user.id,
+      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
+    },
     orderBy: { createdAt: "desc" },
-    take: 5,
   })
+  if (user.onboardingComplete && hasRequiredPilotConsents(latestConsents)) redirect("/journal")
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -84,7 +87,7 @@ export default async function OnboardingPage({
 
       {latestConsents.length > 0 && (
         <p className="text-[12px] font-light text-[var(--plum-soft)]/60">
-          Existing consent records are stored as immutable pilot readiness records.
+          Existing consent records are stored as immutable pilot readiness records. If required consent evidence is missing, please complete this step again before beginning.
         </p>
       )}
     </div>

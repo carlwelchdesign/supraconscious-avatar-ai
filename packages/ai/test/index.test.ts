@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
 import {
   buildApprovedSourceWhere,
   buildPilotLearningReportFromSnapshot,
@@ -1062,6 +1063,52 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.match(report.requiredRoles.maria.handoffText, /add feedback with a short note/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder calibration setup report requires all current required consent records", () => {
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: true,
+        consentCount: 1,
+        consentRecords: [
+          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+        ],
+        sessions: [],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: "user_maria",
+        userName: "Maria",
+        onboardingComplete: true,
+        consentCount: 4,
+        consentRecords: [
+          { consentType: "privacy_terms", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "ai_processing", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "pilot_participation", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+          { consentType: "safety_limits", consentVersion: PILOT_CONSENT_VERSION, granted: true },
+        ],
+        sessions: [],
+      },
+    ],
+  })
+
+  assert.equal(report.requiredRoles.carl.consentPresent, false)
+  assert.equal(report.requiredRoles.maria.consentPresent, true)
+  assert.ok(report.missingActions.some((action) => action.code === "consent_missing" && action.email === "carl@example.com"))
+  assert.equal(report.readiness.participantsWithConsent, 1)
 })
 
 test("founder calibration setup report requires active Carl and Maria roles", () => {

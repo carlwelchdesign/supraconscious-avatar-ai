@@ -2,21 +2,13 @@
 
 import { redirect } from "next/navigation"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
-const REQUIRED_CONSENTS = [
-  "privacy_terms",
-  "ai_processing",
-  "pilot_participation",
-  "safety_limits",
-] as const
-
-const OPTIONAL_CONSENTS = ["pattern_memory"] as const
-
 export async function acceptPilotOrientationAction(formData: FormData) {
   const user = await requireAppUser()
-  const accepted = REQUIRED_CONSENTS.every((type) => formData.get(type) === "on")
+  const accepted = REQUIRED_PILOT_CONSENTS.every((type) => formData.get(type) === "on")
   const patternMemoryGranted = formData.get("pattern_memory") === "on"
 
   if (!accepted) {
@@ -24,23 +16,23 @@ export async function acceptPilotOrientationAction(formData: FormData) {
   }
 
   await prisma.$transaction([
-    ...REQUIRED_CONSENTS.map((consentType) =>
+    ...REQUIRED_PILOT_CONSENTS.map((consentType) =>
       prisma.consentEvent.create({
         data: {
           userId: user.id,
           consentType,
-          consentVersion: "pilot-readiness-v1",
+          consentVersion: PILOT_CONSENT_VERSION,
           granted: true,
           metadata: { source: "first_session_orientation" },
         },
       }),
     ),
-    ...OPTIONAL_CONSENTS.map((consentType) =>
+    ...OPTIONAL_PILOT_CONSENTS.map((consentType) =>
       prisma.consentEvent.create({
         data: {
           userId: user.id,
           consentType,
-          consentVersion: "pilot-readiness-v1",
+          consentVersion: PILOT_CONSENT_VERSION,
           granted: patternMemoryGranted,
           metadata: { source: "first_session_orientation" },
         },
@@ -56,8 +48,8 @@ export async function acceptPilotOrientationAction(formData: FormData) {
     eventName: "consent_accepted",
     userId: user.id,
     properties: {
-      consentVersion: "pilot-readiness-v1",
-      consentCount: REQUIRED_CONSENTS.length + OPTIONAL_CONSENTS.length,
+      consentVersion: PILOT_CONSENT_VERSION,
+      consentCount: REQUIRED_PILOT_CONSENTS.length + OPTIONAL_PILOT_CONSENTS.length,
       patternMemoryGranted,
     },
   })
