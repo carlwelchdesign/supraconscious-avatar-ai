@@ -12,22 +12,27 @@ const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Refram
 const CALIBRATION_PROMPTS = [
   {
     label: "Voice test",
+    scenario: "voice_test",
     text: "I want to test whether this reflection sounds grounded in Maria's work without pretending to be Maria. Reflect on a decision where I feel split between protection and truth.",
   },
   {
     label: "Source-grounding test",
+    scenario: "source_grounding_test",
     text: "Use the Inner Council idea as background if there is approved source material for it. I want to see whether the guidance names the source clearly without overclaiming.",
   },
   {
     label: "Embodiment test",
+    scenario: "embodiment_test",
     text: "I understand the insight, but I need one small embodied shift I can actually live today. Help me find the next grounded action.",
   },
   {
     label: "No-source fallback test",
+    scenario: "no_source_fallback_test",
     text: "This is a practical situation with no obvious Maria doctrine match. Show me whether the guide can be useful without pretending source material was used.",
   },
   {
     label: "Too-intense boundary test",
+    scenario: "intensity_boundary_test",
     text: "I feel tender and exposed. I want a reflection that stays gentle, does not confront too hard, and still helps me notice one true thing.",
   },
 ] as const
@@ -146,6 +151,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const [embodimentSaved, setEmbodimentSaved] = useState(false)
   const [feedbackSaved, setFeedbackSaved] = useState("")
   const [feedbackNote, setFeedbackNote] = useState("")
+  const [calibrationScenario, setCalibrationScenario] = useState<(typeof CALIBRATION_PROMPTS)[number]["scenario"] | "freeform">("freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -169,7 +175,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, calibrationScenario }),
       })
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.error ?? "Reflection failed.")
@@ -185,7 +191,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
     setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
   }
 
-  const applyCalibrationPrompt = (promptText: string) => {
+  const applyCalibrationPrompt = (prompt: (typeof CALIBRATION_PROMPTS)[number]) => {
+    setCalibrationScenario(prompt.scenario)
+    const promptText = prompt.text
     setText((prev) => (prev.trim() ? `${prev}\n\n${promptText}` : promptText))
   }
 
@@ -289,11 +297,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
-              {CALIBRATION_PROMPTS.map((prompt) => (
+                  {CALIBRATION_PROMPTS.map((prompt) => (
                 <button
                   key={prompt.label}
                   type="button"
-                  onClick={() => applyCalibrationPrompt(prompt.text)}
+                  onClick={() => applyCalibrationPrompt(prompt)}
                   className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
                   style={{ borderColor: "rgba(43,27,53,0.08)" }}
                 >

@@ -12,6 +12,7 @@ const LABELS = [
   ["too_generic", "Too generic"],
   ["too_intense", "Too intense"],
   ["embodiment_weak", "Embodiment weak"],
+  ["prompt_regression", "Prompt regression"],
   ["ready", "Ready"],
 ] as const
 
@@ -75,6 +76,9 @@ export default async function CalibrationPage() {
         <p className="mt-1 text-xs text-muted-foreground">
           Set `FOUNDER_CALIBRATION_EMAILS` to override the default Carl/Maria email filter.
         </p>
+        <Link href="/calibration/live" className="mt-3 inline-flex rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
+          Open live calibration cockpit
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

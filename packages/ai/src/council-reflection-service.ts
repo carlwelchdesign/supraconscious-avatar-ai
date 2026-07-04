@@ -10,6 +10,7 @@ import { checkAndAdvanceProgression } from "./progression.js"
 import { classifyJournalSafety } from "./safety-classifier.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
+import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
 import { emitPilotEvent, hashPilotInput } from "./pilot-events.js"
 import { prisma } from "@inner-avatar/db"
 
@@ -27,10 +28,12 @@ export type CouncilReflectionInput = {
   inputMode?: "text" | "voice"
   councilModeEnabled: boolean
   ragEnabled: boolean
+  calibrationScenario?: FounderCalibrationScenario
   requestId?: string
 }
 
 export async function runCouncilReflection(user: CouncilReflectionUser, input: CouncilReflectionInput) {
+  const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const featureFlags = {
     council_mode: input.councilModeEnabled,
     rag_enabled: input.ragEnabled,
@@ -51,7 +54,7 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
     inputText: input.text,
     featureFlags,
     requestId: input.requestId,
-    properties: { inputMode, wordCount: input.text.trim().split(/\s+/).filter(Boolean).length },
+    properties: { inputMode, wordCount: input.text.trim().split(/\s+/).filter(Boolean).length, calibrationScenario },
   })
 
   const safetyStart = Date.now()
@@ -65,7 +68,7 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
     safetySeverity: safety.severity,
     featureFlags,
     requestId: input.requestId,
-    properties: { flags: safety.flags, allowReflectiveFlow: safety.allowReflectiveFlow },
+    properties: { flags: safety.flags, allowReflectiveFlow: safety.allowReflectiveFlow, calibrationScenario },
   })
 
   if (safety.severity !== "none") {
@@ -128,7 +131,7 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
       safetySeverity: safety.severity,
       featureFlags,
       requestId: input.requestId,
-      properties: { safetyBypass: true },
+      properties: { safetyBypass: true, calibrationScenario },
     })
 
     return {
@@ -210,6 +213,7 @@ async function runCouncilMode(
   featureFlags: Record<string, boolean>,
   timings: { safetyLatencyMs: number; analysisLatencyMs: number },
 ) {
+  const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const retrievalStart = Date.now()
   const sourceContext = input.ragEnabled
     ? await retrieveCouncilContext(input.text, { safetySeverity: safety.severity })
@@ -229,7 +233,7 @@ async function runCouncilMode(
       safetySeverity: safety.severity,
       featureFlags,
       requestId: input.requestId,
-      properties: { selectedCount: sourceContext.length, latencyMs: retrievalLatencyMs },
+      properties: { selectedCount: sourceContext.length, latencyMs: retrievalLatencyMs, calibrationScenario },
     })
   }
 
@@ -242,6 +246,7 @@ async function runCouncilMode(
     safetySeverity: safety.severity,
     featureFlags,
     requestId: input.requestId,
+    properties: { calibrationScenario },
   })
 
   const councilPromptTemplate = await resolveCouncilPromptTemplate()
@@ -320,7 +325,12 @@ async function runCouncilMode(
             model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
             promptVersion: councilPromptVersion,
             inputHash: hashPilotInput(input.text),
-            outputJson: { councilRun, pilotValidation: validation, promptTemplate: { key: councilPromptTemplate.key, version: councilPromptTemplate.version, source: councilPromptTemplate.source } },
+            outputJson: {
+              councilRun,
+              pilotValidation: validation,
+              promptTemplate: { key: councilPromptTemplate.key, version: councilPromptTemplate.version, source: councilPromptTemplate.source },
+              calibration: { scenario: calibrationScenario },
+            },
             validationStatus: validation.passed ? "validated" : "pilot_validation_failed",
             latencyMs: councilLatencyMs,
           },
@@ -379,7 +389,7 @@ async function runCouncilMode(
       safetySeverity: safety.severity,
       featureFlags,
       requestId: input.requestId,
-      properties: { validationPassed: validation.passed, failedRules: validation.failedRules },
+      properties: { validationPassed: validation.passed, failedRules: validation.failedRules, calibrationScenario },
     }),
     markFirstPilotSessionComplete(user.id),
   ])

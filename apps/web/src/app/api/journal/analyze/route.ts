@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     }, {
       text: body.text,
       inputMode: body.inputMode,
+      calibrationScenario: body.calibrationScenario,
       councilModeEnabled,
       ragEnabled,
       requestId: request.headers.get("x-request-id") ?? undefined,

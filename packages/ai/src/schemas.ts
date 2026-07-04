@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { FounderCalibrationScenarioSchema } from "./founder-calibration-scenarios.js"
 
 export const SafetySeveritySchema = z.enum(["none", "low", "medium", "high"])
 
@@ -74,6 +75,7 @@ export const GeneratedPromptSchema = z.object({
 export const JournalAnalyzeRequestSchema = z.object({
   text: z.string().trim().min(20, "Write at least 20 characters before reflecting."),
   inputMode: z.enum(["text", "voice"]).default("text"),
+  calibrationScenario: FounderCalibrationScenarioSchema.optional().default("freeform"),
 })
 
 export const CouncilRoleSchema = z.enum([

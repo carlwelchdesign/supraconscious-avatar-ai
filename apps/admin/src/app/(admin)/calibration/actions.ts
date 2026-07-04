@@ -7,10 +7,12 @@ import { prisma } from "@inner-avatar/db"
 
 const CalibrationReviewSchema = z.object({
   councilSessionId: z.string().min(1),
-  label: z.enum(["voice_good", "voice_wrong", "source_good", "source_unsupported", "too_generic", "too_intense", "embodiment_weak", "ready"]),
+  label: z.enum(["voice_good", "voice_wrong", "source_good", "source_unsupported", "too_generic", "too_intense", "embodiment_weak", "prompt_regression", "ready"]),
   calibrationIssueType: z.enum(["none", "voice_mismatch", "source_issue", "prompt_issue", "product_copy_issue", "embodiment_weak"]).default("none"),
   severity: z.enum(["normal", "pilot_blocker"]).default("normal"),
   reason: z.string().trim().min(10, "A calibration review reason is required."),
+  relatedPromptVersion: z.string().trim().optional(),
+  relatedGoldenExampleId: z.string().trim().optional(),
 })
 
 export async function reviewCalibrationSessionAction(formData: FormData) {
@@ -34,6 +36,8 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
         reviewedFrom: "admin_calibration",
         calibrationIssueType: parsed.calibrationIssueType === "none" ? null : parsed.calibrationIssueType,
         goldenExample: parsed.label === "ready",
+        relatedPromptVersion: parsed.relatedPromptVersion || null,
+        relatedGoldenExampleId: parsed.relatedGoldenExampleId || null,
       },
     },
   })
@@ -50,6 +54,8 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
         label: parsed.label,
         severity: parsed.severity,
         calibrationIssueType: parsed.calibrationIssueType,
+        relatedPromptVersion: parsed.relatedPromptVersion || null,
+        relatedGoldenExampleId: parsed.relatedGoldenExampleId || null,
       },
     },
   })

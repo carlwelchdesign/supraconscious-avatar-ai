@@ -5,6 +5,7 @@ import {
   buildPilotLearningReportFromSnapshot,
   buildPilotReviewCoverageReportFromSnapshot,
   buildFounderCalibrationReportFromSnapshot,
+  buildFounderCalibrationComparisonFromSnapshot,
   buildCouncilPromptVersion,
   classifySourcePath,
   DEFAULT_COUNCIL_PROMPT_KEY,
@@ -18,6 +19,7 @@ import {
   parseRagActivationEvalReport,
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
+  readFounderCalibrationScenario,
   resolveCouncilPromptTemplate,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
@@ -723,9 +725,18 @@ test("founder calibration report groups feedback and review issues without raw j
           {
             traceType: "retrieval",
             validationStatus: "selected",
+            promptVersion: "council.system@v2",
             sourceChunkId: "chunk_1",
             sourceTitle: "The Inner Council_",
             outputJson: { title: "The Inner Council_" },
+          },
+          {
+            traceType: "council",
+            validationStatus: "validated",
+            promptVersion: "council.system@v2",
+            sourceChunkId: null,
+            sourceTitle: null,
+            outputJson: { calibration: { scenario: "source_grounding_test" } },
           },
         ],
       },
@@ -772,4 +783,50 @@ test("founder calibration fixtures pass without creating persisted smoke session
   assert.equal(report.cases.length, 6)
   assert.ok(report.cases.some((item) => item.name === "high_risk_grounding"))
   assert.equal(JSON.stringify(report).includes("journalEntryId"), false)
+})
+
+test("founder calibration comparison groups scenarios without raw notes", () => {
+  const report = buildFounderCalibrationComparisonFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    sessions: [
+      {
+        id: "ready_voice",
+        sourceMode: "rag",
+        feedbackTypes: ["helpful"],
+        qualityReviews: [{ label: "ready", severity: "normal", metadata: { goldenExample: true } }],
+        generationTraces: [{
+          traceType: "council",
+          promptVersion: "council.system@v3",
+          outputJson: { calibration: { scenario: "voice_test" } },
+        }],
+      },
+      {
+        id: "open_source",
+        sourceMode: "rag",
+        feedbackTypes: ["unsupported_source"],
+        qualityReviews: [{ label: "source_unsupported", severity: "normal", metadata: {} }],
+        generationTraces: [{
+          traceType: "council",
+          promptVersion: "council.system@v3",
+          outputJson: { calibration: { scenario: "source_grounding_test" } },
+        }],
+      },
+      {
+        id: "freeform_missing",
+        sourceMode: "none",
+        feedbackTypes: [],
+        qualityReviews: [],
+        generationTraces: [],
+      },
+    ],
+  })
+
+  assert.equal(readFounderCalibrationScenario("unknown"), "freeform")
+  assert.equal(report.goldenExamples.length, 1)
+  assert.equal(report.unresolvedIssues.length, 2)
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.goldenExamples, 1)
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
+  assert.equal(report.promptVersions[0]?.promptVersion, "council.system@v3")
+  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(JSON.stringify(report).includes("raw note"), false)
 })

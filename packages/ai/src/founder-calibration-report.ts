@@ -1,4 +1,5 @@
 import { prisma } from "@inner-avatar/db"
+import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
 
 const DEFAULT_EXCLUDED_EMAILS = new Set(["demo@inner-avatar.ai"])
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
@@ -24,6 +25,13 @@ export type FounderCalibrationSessionMetrics = {
   unreviewedSessions: number
   readySessions: number
   pilotBlockers: number
+}
+
+export type FounderCalibrationScenarioCoverage = {
+  scenario: FounderCalibrationScenario
+  totalSessions: number
+  readySessions: number
+  issueSessions: number
 }
 
 export type FounderCalibrationTheme = {
@@ -88,6 +96,7 @@ export type FounderCalibrationReport = {
   goldenExamples: string[]
   actionQueues: FounderCalibrationActionQueue[]
   calibrationCoverage: FounderCalibrationCoverage
+  scenarioCoverage: FounderCalibrationScenarioCoverage[]
   nextRecommendedAction: string
   blockers: string[]
   recommendations: string[]
@@ -109,6 +118,7 @@ export type FounderCalibrationSessionSnapshot = {
   generationTraces: Array<{
     traceType: string
     validationStatus: string
+    promptVersion: string | null
     sourceChunkId: string | null
     outputJson: unknown
     sourceTitle: string | null
@@ -137,12 +147,13 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
         select: { label: true, severity: true, reason: true, metadata: true },
       },
       generationTraces: {
-        where: { traceType: "retrieval" },
+        where: { traceType: { in: ["retrieval", "council"] } },
         orderBy: { createdAt: "desc" },
         take: 20,
         select: {
           traceType: true,
           validationStatus: true,
+          promptVersion: true,
           sourceChunkId: true,
           outputJson: true,
           sourceChunk: { select: { sourceDocument: { select: { title: true } } } },
@@ -164,6 +175,7 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
       generationTraces: session.generationTraces.map((trace) => ({
         traceType: trace.traceType,
         validationStatus: trace.validationStatus,
+        promptVersion: trace.promptVersion,
         sourceChunkId: trace.sourceChunkId,
         outputJson: trace.outputJson,
         sourceTitle: trace.sourceChunk?.sourceDocument.title ?? null,
@@ -187,6 +199,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
     ["prompt_fixes", new Set<string>()],
     ["embodiment_fixes", new Set<string>()],
   ])
+  const scenarioCoverage = new Map<FounderCalibrationScenario, { totalSessions: Set<string>; readySessions: Set<string>; issueSessions: Set<string> }>()
   let feedbackNotes = 0
   let reviewedSessions = 0
   let pilotBlockers = 0
@@ -210,6 +223,9 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
       readySessions.add(session.id)
       addQueue(actionQueueSessionIds, "ready_examples", session.id)
     }
+    const scenario = readSessionScenario(session)
+    const scenarioStats = getScenarioStats(scenarioCoverage, scenario)
+    scenarioStats.totalSessions.add(session.id)
     if (session.feedback.length > 0) sessionsWithFeedback.add(session.id)
 
     for (const feedback of session.feedback) {
@@ -231,6 +247,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
       if (SOURCE_ISSUE_LABELS.has(review.label) || issueType === "source_issue") {
         sourceGroundingIssues.push(toSourceIssue(session, review))
         addQueue(actionQueueSessionIds, "source_fixes", session.id)
+        scenarioStats.issueSessions.add(session.id)
       }
       if (PROMPT_ISSUE_LABELS.has(review.label) || issueType === "prompt_issue" || issueType === "voice_mismatch") {
         promptIssues.push({
@@ -241,11 +258,15 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
           issueType,
         })
         addQueue(actionQueueSessionIds, issueType === "voice_mismatch" || VOICE_ISSUE_LABELS.has(review.label) ? "voice_fixes" : "prompt_fixes", session.id)
+        scenarioStats.issueSessions.add(session.id)
       }
       if (EMBODIMENT_ISSUE_LABELS.has(review.label) || issueType === "embodiment_weak") {
         addQueue(actionQueueSessionIds, "embodiment_fixes", session.id)
+        scenarioStats.issueSessions.add(session.id)
       }
     }
+
+    if (latestReview && READY_LABELS.has(latestReview.label)) scenarioStats.readySessions.add(session.id)
 
     if (session.feedback.some((feedback) => feedback.feedbackType === "unsupported_source")) {
       sourceGroundingIssues.push(toSourceIssue(session, latestReview ?? null))
@@ -320,10 +341,38 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
       reviewCoverageRate: totalSessions ? Number((reviewedSessions / totalSessions).toFixed(3)) : 0,
       noteCoverageRate: totalSessions ? Number((sessionsWithNotes.size / totalSessions).toFixed(3)) : 0,
     },
+    scenarioCoverage: Array.from(scenarioCoverage.entries()).map(([scenario, stats]) => ({
+      scenario,
+      totalSessions: stats.totalSessions.size,
+      readySessions: stats.readySessions.size,
+      issueSessions: stats.issueSessions.size,
+    })).sort((a, b) => b.totalSessions - a.totalSessions || a.scenario.localeCompare(b.scenario)),
     nextRecommendedAction,
     blockers,
     recommendations,
   }
+}
+
+function getScenarioStats(
+  coverage: Map<FounderCalibrationScenario, { totalSessions: Set<string>; readySessions: Set<string>; issueSessions: Set<string> }>,
+  scenario: FounderCalibrationScenario,
+) {
+  const current = coverage.get(scenario) ?? {
+    totalSessions: new Set<string>(),
+    readySessions: new Set<string>(),
+    issueSessions: new Set<string>(),
+  }
+  coverage.set(scenario, current)
+  return current
+}
+
+function readSessionScenario(session: FounderCalibrationSessionSnapshot) {
+  const councilTrace = session.generationTraces.find((trace) => trace.traceType === "council")
+  const output = councilTrace?.outputJson
+  if (!output || typeof output !== "object" || !("calibration" in output)) return "freeform"
+  const calibration = (output as { calibration?: unknown }).calibration
+  if (!calibration || typeof calibration !== "object" || !("scenario" in calibration)) return "freeform"
+  return readFounderCalibrationScenario((calibration as { scenario?: unknown }).scenario)
 }
 
 function buildFounderUserWhere() {
