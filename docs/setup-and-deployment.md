@@ -171,17 +171,33 @@ yarn build:web
 yarn build:admin
 ```
 
-### Docker / GitHub Actions (ChatGPT MCP App)
+## Docker And Compose
 
-The repository includes a Dockerfile and CI workflow for the ChatGPT MCP App:
-
-
-Build and run locally:
+The repository includes production Dockerfiles for web, admin, and ChatGPT/MCP plus a local Compose stack with Postgres. Vercel remains the current production path, but Docker gives the project a portable runtime for staging experiments or future non-Vercel deployment.
 
 ```bash
-docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:latest .
-docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
+cp .env.example .env
+yarn docker:build:web
+yarn docker:build:admin
+yarn docker:build:chatgpt
+yarn docker:compose:migrate
+yarn docker:compose:up
 ```
+
+Compose exposes:
+
+- Web: `http://localhost:3000`
+- Admin: `http://localhost:3001`
+- ChatGPT/MCP health: `http://localhost:3002/health`
+- Postgres: `localhost:5433`
+
+Migrations are intentionally explicit. Web, admin, and ChatGPT containers do not run migrations automatically at boot.
+
+See [Container and Kubernetes Readiness](container-and-kubernetes.md) for the full runtime environment and future Kubernetes scaling model.
+
+### Docker / GitHub Actions (ChatGPT MCP App)
+
+The repository also keeps a focused CI workflow for the ChatGPT MCP app image.
 
 CI notes:
 
