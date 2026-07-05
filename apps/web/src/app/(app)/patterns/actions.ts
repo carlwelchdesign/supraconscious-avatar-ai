@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { requireJournalAccessUser } from "@/lib/journal-access"
 
 const PatternFeedbackSchema = z.object({
   patternMemoryId: z.string().min(1),
@@ -12,7 +12,7 @@ const PatternFeedbackSchema = z.object({
 })
 
 export async function submitPatternFeedbackAction(formData: FormData) {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessUser()
   const parsed = PatternFeedbackSchema.parse(Object.fromEntries(formData))
 
   const pattern = await prisma.patternMemory.findFirst({

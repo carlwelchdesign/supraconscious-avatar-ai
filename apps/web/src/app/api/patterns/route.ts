@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 
 export async function GET() {
   try {
-    const user = await requireAppUser()
+    const user = await requireJournalAccessUser()
     const [patterns, recentEntries] = await Promise.all([
       prisma.patternMemory.findMany({
         where: { userId: user.id, active: true },
@@ -25,6 +25,10 @@ export async function GET() {
 
     return NextResponse.json({ patterns, recentEntries })
   } catch (error) {
+    const accessError = getJournalAccessError(error)
+    if (accessError) {
+      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+    }
     const message = error instanceof Error ? error.message : "Unable to load patterns."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }

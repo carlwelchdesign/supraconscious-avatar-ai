@@ -1,5 +1,5 @@
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
+import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const stages = [
   {
@@ -30,7 +30,7 @@ const stages = [
 ]
 
 export default async function AvatarPage() {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessPageUser()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
   const currentStage = stages[stageIndex] ?? stages[0]

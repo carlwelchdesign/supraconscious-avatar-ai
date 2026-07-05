@@ -1,15 +1,15 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
 import { isFounderCalibrationUser, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
+import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
 
 export default async function DashboardPage() {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessPageUser()
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const [entryCount, patternCount, recentEntries, setupReport] = await Promise.all([

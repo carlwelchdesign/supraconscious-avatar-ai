@@ -1,5 +1,5 @@
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { submitPatternFeedbackAction } from "./actions"
 
 type PatternSummary = {
@@ -50,7 +50,7 @@ export default async function PatternsPage({
 }: {
   searchParams: Promise<{ feedback?: string }>
 }) {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessPageUser()
   const params = await searchParams
   const feedbackMessage = params.feedback ? FEEDBACK_MESSAGES[params.feedback] : null
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
