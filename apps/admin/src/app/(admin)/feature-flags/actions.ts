@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -14,27 +15,31 @@ const FeatureFlagSchema = z.object({
 
 export async function upsertFeatureFlagAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FeatureFlagSchema.parse({
+  const parsed = FeatureFlagSchema.safeParse({
     key: formData.get("key"),
     description: formData.get("description"),
     enabled: formData.get("enabled"),
     reason: formData.get("reason"),
   })
-  const requestedEnabled = parsed.enabled === "on"
+  if (!parsed.success) {
+    redirect("/feature-flags?status=invalid")
+  }
 
-  if (parsed.key === "rag_enabled" && requestedEnabled) {
-    throw new Error("RAG can only be enabled through the RAG readiness activation gate.")
+  const requestedEnabled = parsed.data.enabled === "on"
+
+  if (parsed.data.key === "rag_enabled" && requestedEnabled) {
+    redirect("/feature-flags?status=rag_blocked")
   }
 
   const flag = await prisma.featureFlag.upsert({
-    where: { key: parsed.key },
+    where: { key: parsed.data.key },
     create: {
-      key: parsed.key,
-      description: parsed.description,
+      key: parsed.data.key,
+      description: parsed.data.description,
       enabled: requestedEnabled,
     },
     update: {
-      description: parsed.description,
+      description: parsed.data.description,
       enabled: requestedEnabled,
     },
   })
@@ -45,10 +50,11 @@ export async function upsertFeatureFlagAction(formData: FormData) {
       action: "feature_flag.upsert",
       targetType: "FeatureFlag",
       targetId: flag.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
       metadata: { key: flag.key, enabled: flag.enabled },
     },
   })
 
   revalidatePath("/feature-flags")
+  redirect("/feature-flags?status=saved")
 }

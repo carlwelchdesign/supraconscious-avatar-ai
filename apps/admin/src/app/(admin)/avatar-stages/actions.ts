@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -14,18 +15,21 @@ const AvatarStageSchema = z.object({
 
 export async function upsertAvatarStageAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = AvatarStageSchema.parse(Object.fromEntries(formData))
+  const parsed = AvatarStageSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/avatar-stages?status=invalid")
+  }
 
   const stage = await prisma.avatarStageConfig.upsert({
-    where: { stage: parsed.stage },
+    where: { stage: parsed.data.stage },
     create: {
-      stage: parsed.stage,
-      name: parsed.name,
-      description: parsed.description,
+      stage: parsed.data.stage,
+      name: parsed.data.name,
+      description: parsed.data.description,
     },
     update: {
-      name: parsed.name,
-      description: parsed.description,
+      name: parsed.data.name,
+      description: parsed.data.description,
       active: true,
     },
   })
@@ -36,10 +40,11 @@ export async function upsertAvatarStageAction(formData: FormData) {
       action: "avatar_stage_config.upsert",
       targetType: "AvatarStageConfig",
       targetId: stage.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
       metadata: { stage: stage.stage },
     },
   })
 
   revalidatePath("/avatar-stages")
+  redirect("/avatar-stages?status=saved")
 }

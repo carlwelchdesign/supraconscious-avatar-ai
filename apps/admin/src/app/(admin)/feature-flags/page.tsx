@@ -4,12 +4,35 @@ import { Input } from "@inner-avatar/ui/input"
 import { prisma } from "@inner-avatar/db"
 import { upsertFeatureFlagAction } from "./actions"
 
-export default async function FeatureFlagsPage() {
+const FLAG_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  saved: { tone: "success", message: "Feature flag saved." },
+  invalid: { tone: "error", message: "Feature flag needs a valid key and reason." },
+  rag_blocked: { tone: "error", message: "RAG can only be enabled through the dedicated RAG readiness activation gate." },
+}
+
+export default async function FeatureFlagsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? FLAG_STATUS_MESSAGES[status] : null
   const flags = await prisma.featureFlag.findMany({ orderBy: { key: "asc" } })
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Feature Flags</h1>
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Create or Update Flag</CardTitle>

@@ -5,12 +5,34 @@ import { Textarea } from "@inner-avatar/ui/textarea"
 import { prisma } from "@inner-avatar/db"
 import { upsertAvatarStageAction } from "./actions"
 
-export default async function AvatarStagesPage() {
+const STAGE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  saved: { tone: "success", message: "Guide stage saved." },
+  invalid: { tone: "error", message: "Guide stage needs a stage number from 1 to 5, name, and reason." },
+}
+
+export default async function AvatarStagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? STAGE_STATUS_MESSAGES[status] : null
   const stages = await prisma.avatarStageConfig.findMany({ orderBy: { stage: "asc" } })
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Guide Stages</h1>
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Create or Update Stage</CardTitle>
