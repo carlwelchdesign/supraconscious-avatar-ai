@@ -30,7 +30,7 @@ export default async function HealthPage() {
     { label: "Turnstile bot protection", value: turnstileConfigured ? "configured" : "disabled" },
     { label: "Billing configuration", value: stripeConfigured ? "configured" : "disabled/incomplete" },
     { label: "Founder handoff URLs", value: handoffUrlsConfigured ? "configured" : "using defaults" },
-    { label: "Founder launch gate", value: founderSetup.readiness.ready ? "ready" : `${founderSetup.missingActions.length} action${founderSetup.missingActions.length === 1 ? "" : "s"} remaining` },
+    { label: "Founder calibration setup", value: founderSetup.readiness.ready ? "ready" : `${founderSetup.missingActions.length} action${founderSetup.missingActions.length === 1 ? "" : "s"} remaining` },
     { label: "Environment", value: process.env.NODE_ENV ?? "unknown" },
   ]
 

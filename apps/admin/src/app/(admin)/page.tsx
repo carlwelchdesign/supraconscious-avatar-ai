@@ -34,16 +34,16 @@ export default async function AdminHomePage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Founder Launch Status</CardTitle>
+          <CardTitle>Founder Calibration Status</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {founderSetup.readiness.ready ? (
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">
-              Carl and Maria launch evidence is complete. Continue reviewing sessions before making prompt or source changes.
+              Carl and Maria have enough first-session evidence to keep calibrating. Continue reviewing sessions before making prompt or source changes.
             </p>
           ) : (
             <div className="rounded-md border bg-muted/40 p-3 text-muted-foreground">
-              <p className="font-medium text-foreground">Founder calibration is blocked by {founderSetup.missingActions.length} action{founderSetup.missingActions.length === 1 ? "" : "s"}.</p>
+              <p className="font-medium text-foreground">{founderSetup.missingActions.length} founder calibration action{founderSetup.missingActions.length === 1 ? "" : "s"} remaining.</p>
               <div className="mt-2 space-y-1">
                 {founderSetup.missingActions.slice(0, 4).map((action) => (
                   <p key={`${action.code}-${action.email ?? "global"}`}>{action.message}</p>
@@ -56,7 +56,7 @@ export default async function AdminHomePage() {
           )}
           <div className="flex flex-wrap gap-2">
             <Link href="/calibration/setup" className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
-              Setup and launch packet
+              Setup and handoff packet
             </Link>
             <Link href="/calibration/live" className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
               Live review
