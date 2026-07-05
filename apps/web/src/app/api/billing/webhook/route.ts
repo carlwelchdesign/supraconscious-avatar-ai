@@ -5,24 +5,24 @@ import {
   syncCheckoutSession,
   syncStripeSubscription,
 } from "@inner-avatar/billing"
+import { evaluateStripeWebhookReadiness } from "@/lib/billing-webhook-policy"
 
 export const runtime = "nodejs"
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature")
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const readiness = evaluateStripeWebhookReadiness({ signature })
 
-  if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: "Stripe webhook is not configured." }, { status: 400 })
+  if (!readiness.ready) {
+    return NextResponse.json({ error: readiness.error }, { status: readiness.status })
   }
 
   let event
 
   try {
-    event = getStripe().webhooks.constructEvent(await req.text(), signature, webhookSecret)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid Stripe webhook signature."
-    return NextResponse.json({ error: message }, { status: 400 })
+    event = getStripe().webhooks.constructEvent(await req.text(), readiness.signature, readiness.webhookSecret)
+  } catch {
+    return NextResponse.json({ error: "Invalid Stripe webhook signature." }, { status: 400 })
   }
 
   switch (event.type) {
