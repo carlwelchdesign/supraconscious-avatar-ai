@@ -259,6 +259,52 @@ export default async function CalibrationPage() {
                   )}
                 </div>
 
+                <div className="mt-3 rounded-md border bg-muted/30 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Review decision</p>
+                  <div className="mt-2 grid gap-2 md:grid-cols-4">
+                    <PresetReviewButton
+                      sessionId={session.id}
+                      label="ready"
+                      issueType="none"
+                      buttonText="Ready / golden"
+                      reason="Use as golden example for Carl and Maria calibration."
+                      tone="ready"
+                    />
+                    <PresetReviewButton
+                      sessionId={session.id}
+                      label="voice_wrong"
+                      issueType="voice_mismatch"
+                      buttonText="Needs voice fix"
+                      reason="Voice needs tuning for Carl and Maria calibration."
+                    />
+                    <PresetReviewButton
+                      sessionId={session.id}
+                      label="source_unsupported"
+                      issueType="source_issue"
+                      buttonText="Needs source fix"
+                      reason="Source grounding needs review for Carl and Maria calibration."
+                    />
+                    <PresetReviewButton
+                      sessionId={session.id}
+                      label="embodiment_weak"
+                      issueType="embodiment_weak"
+                      buttonText="Needs embodiment fix"
+                      reason="Embodiment guidance needs refinement for Carl and Maria calibration."
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <Link href="/prompts" className="rounded border px-2 py-1 font-medium hover:bg-background">
+                      Tune prompts
+                    </Link>
+                    <Link href="/sources" className="rounded border px-2 py-1 font-medium hover:bg-background">
+                      Review sources
+                    </Link>
+                    <Link href={`/council?sessionId=${session.id}`} className="rounded border px-2 py-1 font-medium hover:bg-background">
+                      Open workbench
+                    </Link>
+                  </div>
+                </div>
+
                 <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_auto_1fr_auto]">
                   <input type="hidden" name="councilSessionId" value={session.id} />
                   <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-2 text-xs">
@@ -273,17 +319,6 @@ export default async function CalibrationPage() {
                   </select>
                   <input name="reason" placeholder="Calibration reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
                   <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
-                </form>
-                <form action={reviewCalibrationSessionAction} className="mt-2 flex flex-wrap items-center gap-2">
-                  <input type="hidden" name="councilSessionId" value={session.id} />
-                  <input type="hidden" name="label" value="ready" />
-                  <input type="hidden" name="calibrationIssueType" value="none" />
-                  <input type="hidden" name="severity" value="normal" />
-                  <input type="hidden" name="reason" value="Use as golden example for Carl and Maria calibration." />
-                  <button className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10">
-                    Use as golden example
-                  </button>
-                  <span className="text-xs text-muted-foreground">Creates a ready review with no raw journal text.</span>
                 </form>
               </div>
             )
@@ -300,6 +335,41 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
+  )
+}
+
+function PresetReviewButton({
+  sessionId,
+  label,
+  issueType,
+  buttonText,
+  reason,
+  tone = "neutral",
+}: {
+  sessionId: string
+  label: (typeof LABELS)[number][0]
+  issueType: (typeof ISSUE_TYPES)[number][0]
+  buttonText: string
+  reason: string
+  tone?: "neutral" | "ready"
+}) {
+  return (
+    <form action={reviewCalibrationSessionAction}>
+      <input type="hidden" name="councilSessionId" value={sessionId} />
+      <input type="hidden" name="label" value={label} />
+      <input type="hidden" name="calibrationIssueType" value={issueType} />
+      <input type="hidden" name="severity" value="normal" />
+      <input type="hidden" name="reason" value={reason} />
+      <button
+        className={
+          tone === "ready"
+            ? "w-full rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
+            : "w-full rounded-md border px-3 py-2 text-xs font-medium hover:bg-background"
+        }
+      >
+        {buttonText}
+      </button>
+    </form>
   )
 }
 
