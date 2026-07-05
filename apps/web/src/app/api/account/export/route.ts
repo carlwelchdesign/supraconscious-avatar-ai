@@ -5,6 +5,22 @@ import { prisma } from "@inner-avatar/db"
 
 export async function GET() {
   const user = await requireAppUser()
+  const exportProfile = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    avatarTone: user.avatarTone,
+    intensityLevel: user.intensityLevel,
+    currentLevel: user.currentLevel,
+    avatarStage: user.avatarStage,
+    patternMemoryEnabled: user.patternMemoryEnabled,
+    voiceEnabled: user.voiceEnabled,
+    voiceAutoPlay: user.voiceAutoPlay,
+    voiceInputDefault: user.voiceInputDefault,
+    voiceGender: user.voiceGender,
+    voiceStyle: user.voiceStyle,
+    voiceSpeed: user.voiceSpeed,
+  }
 
   const [
     journalEntries,
@@ -105,7 +121,7 @@ export async function GET() {
 
   return NextResponse.json(buildAccountExportPayload({
     exportedAt: new Date().toISOString(),
-    user,
+    user: exportProfile,
     journalEntries,
     patternMemories,
     councilSessions,

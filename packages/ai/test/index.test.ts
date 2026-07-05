@@ -220,6 +220,31 @@ test("account export payload includes core privacy and billing data", () => {
   assert.equal(payload.subscriptions.length, 1)
 })
 
+test("account export payload does not expose auth secrets from wider user records", () => {
+  const payload = buildAccountExportPayload({
+    exportedAt: "2026-07-05T00:00:00.000Z",
+    user: {
+      id: "user_1",
+      email: "founder@example.com",
+      passwordHash: "hashed-password",
+      role: "super_admin",
+      emailVerified: true,
+    } as any,
+    journalEntries: [],
+    patternMemories: [],
+    councilSessions: [],
+    safetyEvents: [],
+    consentEvents: [],
+    pilotEvents: [],
+    subscriptions: [],
+  })
+
+  const serialized = JSON.stringify(payload)
+  assert.equal(serialized.includes("passwordHash"), false)
+  assert.equal(serialized.includes("hashed-password"), false)
+  assert.equal(serialized.includes("super_admin"), false)
+})
+
 test("council prompt template resolver falls back when no active template exists", async () => {
   const resolved = await resolveCouncilPromptTemplate({
     prismaClient: {
