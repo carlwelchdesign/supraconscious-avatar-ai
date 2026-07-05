@@ -87,7 +87,11 @@ Required web env vars:
 
 ## Prompt Management
 
-Prompt template records live in `PromptTemplate`. Admin changes write audit logs. The AI package still contains core hardcoded prompt logic; template-driven runtime prompt selection can be layered in later.
+Prompt template records live in `PromptTemplate`. Admin changes write audit logs with the prompt key, old version, new version, and related calibration session ids when provided.
+
+The live Inner Council flow resolves the active `council.system` template at runtime. If no active template exists, or if the active template is missing required guardrails, the AI package falls back to the checked-in default council prompt. Council generation traces record the prompt key/version that was used, so prompt changes can be reviewed against founder calibration evidence.
+
+Do not paste raw journal text into prompt update reasons or related-session metadata. Use `/calibration` and `/calibration/live` to identify golden examples or issue sessions, then link those session ids when updating `council.system`.
 
 ## Operational Checks
 
