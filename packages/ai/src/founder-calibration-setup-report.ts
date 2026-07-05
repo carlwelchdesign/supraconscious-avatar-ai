@@ -419,7 +419,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   if (snapshot.filterMode !== "db") warnings.push("Founder calibration participant setup is incomplete; DB participants should be configured before relying on reports.")
   for (const participant of activeParticipants) {
     if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
-      warnings.push(`${participant.email} has sessions without specific feedback notes; continue development, but collect notes when useful.`)
+      warnings.push(`${participant.email} has sessions without feedback notes; continue development, and collect notes only when they clarify what should change.`)
     }
     if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
       warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
@@ -585,14 +585,15 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
   const suggestedScenarioLabel = formatFounderCalibrationScenario(suggestedScenario)
   const primaryPath = primaryHandoffHref ?? "/journal"
+  const feedbackInstruction = "Submit one reflection and select a feedback type. Add a note only when it helps explain what felt right, wrong, unsupported, or unlike Maria's phrasing."
   if (!participant.accountExists) {
-    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about what felt right or wrong. Start here: ${primaryPath}`
+    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || !participant.consentPresent) {
-    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note. Continue here: ${primaryPath}`
+    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
-    return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
+    return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
     return `The first session is captured. Continue development with the next guided journal pass; add a feedback note only when it helps clarify what should change. Continue here: ${primaryPath}`

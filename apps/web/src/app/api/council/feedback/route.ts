@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { emitPilotEvent } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -14,10 +14,6 @@ export async function POST(request: Request) {
   try {
     const user = await requireAppUser()
     const body = FeedbackRequestSchema.parse(await request.json())
-    const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-    if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(body.note)) {
-      return NextResponse.json({ error: "Founder calibration feedback needs a specific note." }, { status: 400 })
-    }
 
     const session = await prisma.councilSession.findFirst({
       where: { id: body.councilSessionId, userId: user.id },

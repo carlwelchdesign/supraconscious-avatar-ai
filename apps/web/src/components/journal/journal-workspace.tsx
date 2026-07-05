@@ -304,7 +304,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Founder calibration
               </p>
               <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Use these sessions to tune the guide with Carl and Maria. After each reflection, leave a note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
+                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type; add a note only when it helps explain voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
               </p>
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
@@ -313,7 +313,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave a specific note. Notes are expected for Carl/Maria calibration and do not retrain the guide automatically.
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, and choose a feedback type. Notes are optional and do not retrain the guide automatically.
                 </p>
               )}
             </div>

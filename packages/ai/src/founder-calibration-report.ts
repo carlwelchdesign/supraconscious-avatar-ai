@@ -327,7 +327,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   ].filter((item): item is string => Boolean(item))
 
   const recommendations = [
-    feedbackNotes === 0 ? "Have Carl and Maria leave specific notes when feedback is not helpful, too intense, unclear, or source-related." : null,
+    feedbackNotes === 0 ? "Ask Carl and Maria for notes only when feedback needs more context, such as not helpful, too intense, unclear, or source-related." : null,
     unreviewedSessions > 0 ? "Review recent Carl/Maria sessions before changing prompts or inviting more users." : null,
     sourceGroundingIssues.length > 0 ? "Resolve source-grounding issues before expanding retrieval scope." : null,
     promptIssues.length > 0 ? "Group prompt/voice issues before editing prompt templates." : null,
@@ -462,7 +462,7 @@ function chooseNextRecommendedAction(input: {
   unreviewedSessions: number
 }) {
   if (input.totalSessions === 0) return "Run one real Carl/Maria calibration session using a guided prompt."
-  if (input.feedbackNotes === 0) return "Ask for specific feedback notes on the next session so calibration evidence is useful."
+  if (input.feedbackNotes === 0) return "Use notes only when the next session needs more context than the feedback type provides."
   if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
   if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
   if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."
