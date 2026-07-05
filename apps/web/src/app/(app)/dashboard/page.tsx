@@ -48,6 +48,7 @@ export default async function DashboardPage() {
   const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && founderNeedsSession
   const founderNeedsFeedbackNote = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount > 0 && founderFeedbackNoteCount === 0
   const founderAwaitingReview = founderCalibrationMode && Boolean(founderParticipant) && founderFeedbackNoteCount > 0 && founderGoldenExampleCount === 0
+  const founderFeedbackNoteHref = founderParticipant?.latestSessionHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
 
@@ -131,7 +132,7 @@ export default async function DashboardPage() {
             A reflection was saved, but Carl/Maria calibration still needs a short note about what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
           </p>
           <Link
-            href={`/journal/${latestEntry.id}`}
+            href={founderFeedbackNoteHref}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
             Add feedback note
