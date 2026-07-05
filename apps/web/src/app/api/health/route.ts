@@ -9,7 +9,7 @@ export async function GET() {
       service: "inner-avatar-web",
       database: "ok",
       environment: process.env.NODE_ENV ?? "unknown",
-    })
+    }, { headers: { "Cache-Control": "no-store" } })
   } catch {
     return NextResponse.json(
       {
@@ -18,7 +18,7 @@ export async function GET() {
         database: "error",
         environment: process.env.NODE_ENV ?? "unknown",
       },
-      { status: 503 },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     )
   }
 }

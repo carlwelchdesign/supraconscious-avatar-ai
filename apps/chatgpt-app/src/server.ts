@@ -52,6 +52,8 @@ app.use('/widget', express.static(path.join(__dirname, 'widget')))
 
 // Health check
 app.get('/health', (req, res) => {
+  void req
+  res.set('Cache-Control', 'no-store')
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
