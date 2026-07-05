@@ -266,7 +266,7 @@ export default async function PilotReadinessPage() {
             <p>Council mode: {readiness.latestEvalMetadata.councilModeEnabled ? "enabled" : "disabled"}</p>
             <p>RAG: {readiness.latestEvalMetadata.ragEnabled ? "enabled" : "disabled"}</p>
             <p>RAG activation eval: {ragActivation.evalPassed ? "passed" : "not approved"}</p>
-            <p>ChatGPT app: legacy analysis-only for this pilot.</p>
+            <p>ChatGPT app: Inner Council MCP tool available; older analysis tools remain compatibility helpers.</p>
           </CardContent>
         </Card>
       </div>
