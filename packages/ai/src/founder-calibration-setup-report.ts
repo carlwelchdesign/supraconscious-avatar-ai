@@ -37,6 +37,7 @@ export type FounderCalibrationSetupParticipant = {
   feedbackNoteCount: number
   reviewedSessionCount: number
   goldenExampleCount: number
+  latestSessionHref: string | null
   nextAction: string
   nextActionHref: string | null
   scenarioStatus: FounderCalibrationParticipantScenarioStatus[]
@@ -371,7 +372,13 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       goldenExampleCount,
       latestSessionHref,
     })
-    const nextAction = chooseParticipantNextAction(missingActions, scenarioStatus, sessions.length)
+    const nextAction = chooseParticipantNextAction({
+      missingActions,
+      scenarioStatus,
+      sessionCount: sessions.length,
+      feedbackNoteCount,
+      latestSessionHref,
+    })
 
     return {
       id: participant.id,
@@ -389,6 +396,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       feedbackNoteCount,
       reviewedSessionCount,
       goldenExampleCount,
+      latestSessionHref: sessions.length > 0 ? latestSessionHref : null,
       nextAction: nextAction.message,
       nextActionHref: nextAction.href,
       scenarioStatus,
@@ -548,13 +556,19 @@ function buildScenarioStatus(sessions: FounderCalibrationSetupSnapshot["particip
   })
 }
 
-function chooseParticipantNextAction(
-  missingActions: FounderCalibrationMissingAction[],
-  scenarioStatus: FounderCalibrationParticipantScenarioStatus[],
-  sessionCount: number,
-) {
+function chooseParticipantNextAction(input: {
+  missingActions: FounderCalibrationMissingAction[]
+  scenarioStatus: FounderCalibrationParticipantScenarioStatus[]
+  sessionCount: number
+  feedbackNoteCount: number
+  latestSessionHref: string
+}) {
+  const { missingActions, scenarioStatus, sessionCount, feedbackNoteCount, latestSessionHref } = input
   const primaryMissingAction = missingActions[0]
   if (primaryMissingAction) return { message: primaryMissingAction.message, href: primaryMissingAction.href ?? readFounderLaunchHref(primaryMissingAction.code) }
+  if (sessionCount > 0 && feedbackNoteCount === 0) {
+    return { message: "Add one short feedback note to the latest saved session.", href: latestSessionHref }
+  }
   const nextScenario = scenarioStatus.find((item) => !item.completed)
   if (nextScenario) {
     const scenarioLabel = formatFounderCalibrationScenario(nextScenario.scenario)
@@ -578,6 +592,7 @@ function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant)
   if (!participant.accountExists) return "/register"
   if (!participant.onboardingComplete || !participant.consentPresent) return "/onboarding"
   if (participant.sessionCount === 0) return "/journal"
+  if (participant.feedbackNoteCount === 0) return participant.latestSessionHref ?? "/journal"
   return "/journal"
 }
 
