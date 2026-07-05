@@ -37,12 +37,15 @@ yarn docker:build:chatgpt
 
 ## Deployment
 
-Deploy two Vercel projects:
+The current Vercel deployment uses the root `vercel.json` with the pinned Yarn 4 launcher and builds the web app from `apps/web`.
 
-- Web project root directory: `apps/web`
-- Admin project root directory: `apps/admin`
+If you split admin into its own Vercel project later, keep the install command on the repository Yarn launcher:
 
-Each app has its own `.env.example` and app-level `vercel.json`. Shared packages are imported through workspaces and are not deployed as standalone services.
+```bash
+node .yarn/releases/yarn-4.cjs install --immutable
+```
+
+Shared packages are imported through workspaces and are not deployed as standalone services.
 
 CI validates Prisma, typecheck, lint, auth/web/AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
 
