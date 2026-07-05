@@ -122,15 +122,12 @@ export default async function JournalEntryPage({
     ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
     : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
   const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
-  const hasUsefulCalibrationFeedbackNote = entry.councilSession?.feedback.some((feedback) => isFounderCalibrationFeedbackNoteUseful(feedback.note)) ?? false
-  const hasAnyCalibrationFeedbackNote = entry.councilSession?.feedback.some((feedback) => feedback.note?.trim()) ?? false
+  const hasCalibrationFeedback = (entry.councilSession?.feedback.length ?? 0) > 0
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
-    : hasUsefulCalibrationFeedbackNote
-      ? "Feedback note saved"
-      : hasAnyCalibrationFeedbackNote
-        ? "Feedback note needs more detail"
-      : "Feedback note needed"
+    : hasCalibrationFeedback
+      ? "Feedback saved"
+      : "Feedback needed"
   const feedbackMessage = readFeedbackMessage(query.feedback)
 
   return (
@@ -374,7 +371,7 @@ export default async function JournalEntryPage({
                     {isFounderCalibrationFeedbackNoteUseful(feedback.note)
                       ? " · note saved"
                       : feedback.note
-                        ? " · note needs more detail"
+                        ? " · note saved"
                         : " · no note"}
                   </p>
                 ))}

@@ -414,6 +414,6 @@ function readPilotValidation(value: unknown) {
 
 function formatFeedbackNoteStatus(note?: string | null) {
   if (isFounderCalibrationFeedbackNoteUseful(note)) return " · specific note saved"
-  if (note?.trim()) return " · note needs more detail"
+  if (note?.trim()) return " · note saved"
   return " · no note"
 }

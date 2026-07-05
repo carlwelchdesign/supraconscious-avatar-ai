@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
-import { isFounderCalibrationFeedbackNoteUseful, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
+import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
@@ -331,16 +331,13 @@ export default async function DashboardPage({
               const pattern = entry.avatarResponse?.patternName
               const safety = entry.councilSession?.safetySnapshot as { severity?: string } | undefined
               const feedbackTypes = entry.councilSession?.feedback.map((item) => item.feedbackType) ?? []
-              const hasUsefulFeedbackNote = entry.councilSession?.feedback.some((item) => isFounderCalibrationFeedbackNoteUseful(item.note)) ?? false
-              const hasAnyFeedbackNote = entry.councilSession?.feedback.some((item) => item.note?.trim()) ?? false
               const review = entry.councilSession?.qualityReviews[0]
               const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
               const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
               const statuses = [
                 entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
                 entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
-                founderCalibrationMode && entry.councilSession && !hasUsefulFeedbackNote ? "Feedback note needed" : null,
-                founderCalibrationMode && entry.councilSession && hasAnyFeedbackNote && !hasUsefulFeedbackNote ? "More detail needed" : null,
+                founderCalibrationMode && entry.councilSession?.feedback.some((item) => item.note?.trim()) ? "Note added" : null,
                 reportedForReview && !reviewMetadata?.feedbackDisposition ? "Needs follow-up" : null,
                 review?.severity === "pilot_blocker" ? "Needs attention" : null,
                 reviewMetadata?.feedbackDisposition === "cleared" ? "Resolved" : null,
