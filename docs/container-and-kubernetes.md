@@ -22,6 +22,14 @@ yarn docker:compose:migrate
 
 For local-only schema experiments that intentionally use Prisma `db push`, run `yarn docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
 
+Validate the Compose file without expanding local secrets:
+
+```bash
+yarn docker:compose:config
+```
+
+Do not paste normal `docker compose config` output into tickets or logs when `.env` contains real API keys. The safe script above keeps variable placeholders visible instead of printing secret values.
+
 Run the local container stack:
 
 ```bash
