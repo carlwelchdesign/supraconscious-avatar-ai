@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { canDisplaySourceQuote, evaluateSourceEligibility, hasUsableSourceRightsGrant } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
@@ -43,13 +44,15 @@ const RightsGrantSchema = z.object({
 
 export async function updateSourceDocumentStateAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = SourceStateSchema.parse(Object.fromEntries(formData))
-  const approving = ["approved", "approved_curriculum"].includes(parsed.reviewState) ||
-    ["approved", "paraphrase_only"].includes(parsed.rightsStatus)
+  const parsed = SourceStateSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/sources?status=source_invalid")
+
+  const approving = ["approved", "approved_curriculum"].includes(parsed.data.reviewState) ||
+    ["approved", "paraphrase_only"].includes(parsed.data.rightsStatus)
 
   if (approving) {
     const source = await prisma.sourceDocument.findUnique({
-      where: { id: parsed.sourceDocumentId },
+      where: { id: parsed.data.sourceDocumentId },
       select: {
         rightsGrants: {
           select: {
@@ -63,18 +66,18 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
       },
     })
 
-    if (!source) throw new Error("Source document not found.")
+    if (!source) redirect("/sources?status=source_missing")
 
     if (!hasUsableSourceRightsGrant(source, "paraphrase_generation")) {
-      throw new Error("Add a current paraphrase-compatible rights grant before approving this source.")
+      redirect("/sources?status=source_rights_missing")
     }
   }
 
   await prisma.sourceDocument.update({
-    where: { id: parsed.sourceDocumentId },
+    where: { id: parsed.data.sourceDocumentId },
     data: {
-      reviewState: parsed.reviewState,
-      rightsStatus: parsed.rightsStatus,
+      reviewState: parsed.data.reviewState,
+      rightsStatus: parsed.data.rightsStatus,
     },
   })
 
@@ -83,25 +86,27 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
       actorId: actor.id,
       action: "source_document.review_state.update",
       targetType: "SourceDocument",
-      targetId: parsed.sourceDocumentId,
-      reason: parsed.reason,
+      targetId: parsed.data.sourceDocumentId,
+      reason: parsed.data.reason,
       metadata: {
-        reviewState: parsed.reviewState,
-        rightsStatus: parsed.rightsStatus,
+        reviewState: parsed.data.reviewState,
+        rightsStatus: parsed.data.rightsStatus,
       },
     },
   })
 
   revalidatePath("/sources")
+  redirect("/sources?status=source_saved")
 }
 
 export async function updateCurriculumDayStateAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = CurriculumStateSchema.parse(Object.fromEntries(formData))
+  const parsed = CurriculumStateSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/sources?status=curriculum_invalid")
 
   await prisma.curriculumDay.update({
-    where: { id: parsed.curriculumDayId },
-    data: { publishState: parsed.publishState },
+    where: { id: parsed.data.curriculumDayId },
+    data: { publishState: parsed.data.publishState },
   })
 
   await prisma.auditLog.create({
@@ -109,27 +114,30 @@ export async function updateCurriculumDayStateAction(formData: FormData) {
       actorId: actor.id,
       action: "curriculum_day.publish_state.update",
       targetType: "CurriculumDay",
-      targetId: parsed.curriculumDayId,
-      reason: parsed.reason,
-      metadata: { publishState: parsed.publishState },
+      targetId: parsed.data.curriculumDayId,
+      reason: parsed.data.reason,
+      metadata: { publishState: parsed.data.publishState },
     },
   })
 
   revalidatePath("/sources")
   revalidatePath("/journal")
+  redirect("/sources?status=curriculum_saved")
 }
 
 export async function updateSourceChunkStateAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = ChunkStateSchema.parse(Object.fromEntries(formData))
-  const conceptTags = parseCsv(parsed.conceptTags)
-  const councilRoleTags = parseCsv(parsed.councilRoleTags)
-  const approving = ["approved", "approved_curriculum"].includes(parsed.reviewState)
-  const quoteSafe = parsed.quotePermission === "quote_safe"
+  const parsed = ChunkStateSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/sources?status=chunk_invalid")
+
+  const conceptTags = parseCsv(parsed.data.conceptTags)
+  const councilRoleTags = parseCsv(parsed.data.councilRoleTags)
+  const approving = ["approved", "approved_curriculum"].includes(parsed.data.reviewState)
+  const quoteSafe = parsed.data.quotePermission === "quote_safe"
 
   if (approving || quoteSafe) {
     const chunk = await prisma.sourceChunk.findUnique({
-      where: { id: parsed.sourceChunkId },
+      where: { id: parsed.data.sourceChunkId },
       select: {
         reviewState: true,
         quotePermission: true,
@@ -152,30 +160,30 @@ export async function updateSourceChunkStateAction(formData: FormData) {
       },
     })
 
-    if (!chunk) throw new Error("Source chunk not found.")
+    if (!chunk) redirect("/sources?status=chunk_missing")
 
     const proposedChunk = {
-      reviewState: parsed.reviewState,
-      quotePermission: parsed.quotePermission,
-      safetyIntensity: parsed.safetyIntensity,
+      reviewState: parsed.data.reviewState,
+      quotePermission: parsed.data.quotePermission,
+      safetyIntensity: parsed.data.safetyIntensity,
     }
     const decision = evaluateSourceEligibility(chunk.sourceDocument, proposedChunk)
 
     if (approving && !decision.eligible) {
-      throw new Error(`Chunk cannot be approved yet: ${decision.reasons.join(", ")}.`)
+      redirect("/sources?status=chunk_not_eligible")
     }
 
     if (quoteSafe && !canDisplaySourceQuote(chunk.sourceDocument, proposedChunk)) {
-      throw new Error("Quote-safe display requires an approved direct-quote rights grant with quote allowed.")
+      redirect("/sources?status=chunk_quote_blocked")
     }
   }
 
   await prisma.sourceChunk.update({
-    where: { id: parsed.sourceChunkId },
+    where: { id: parsed.data.sourceChunkId },
     data: {
-      reviewState: parsed.reviewState,
-      quotePermission: parsed.quotePermission,
-      safetyIntensity: parsed.safetyIntensity,
+      reviewState: parsed.data.reviewState,
+      quotePermission: parsed.data.quotePermission,
+      safetyIntensity: parsed.data.safetyIntensity,
       conceptTags,
       councilRoleTags,
     },
@@ -186,12 +194,12 @@ export async function updateSourceChunkStateAction(formData: FormData) {
       actorId: actor.id,
       action: "source_chunk.review_state.update",
       targetType: "SourceChunk",
-      targetId: parsed.sourceChunkId,
-      reason: parsed.reason,
+      targetId: parsed.data.sourceChunkId,
+      reason: parsed.data.reason,
       metadata: {
-        reviewState: parsed.reviewState,
-        quotePermission: parsed.quotePermission,
-        safetyIntensity: parsed.safetyIntensity,
+        reviewState: parsed.data.reviewState,
+        quotePermission: parsed.data.quotePermission,
+        safetyIntensity: parsed.data.safetyIntensity,
         conceptTags,
         councilRoleTags,
       },
@@ -199,30 +207,32 @@ export async function updateSourceChunkStateAction(formData: FormData) {
   })
 
   revalidatePath("/sources")
+  redirect("/sources?status=chunk_saved")
 }
 
 export async function upsertSourceRightsGrantAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = RightsGrantSchema.parse({
+  const parsed = RightsGrantSchema.safeParse({
     ...Object.fromEntries(formData),
     allowedUses: formData.getAll("allowedUses"),
     quoteAllowed: formData.get("quoteAllowed"),
     attributionRequired: formData.get("attributionRequired"),
   })
+  if (!parsed.success) redirect("/sources?status=rights_invalid")
 
   const grant = await prisma.sourceRightsGrant.create({
     data: {
-      sourceDocumentId: parsed.sourceDocumentId,
-      ownerName: parsed.ownerName,
-      grantType: parsed.grantType,
-      allowedUses: parsed.allowedUses,
-      quoteAllowed: parsed.quoteAllowed === "on",
-      attributionRequired: parsed.attributionRequired === "on",
-      attributionText: parsed.attributionText,
-      status: parsed.status,
+      sourceDocumentId: parsed.data.sourceDocumentId,
+      ownerName: parsed.data.ownerName,
+      grantType: parsed.data.grantType,
+      allowedUses: parsed.data.allowedUses,
+      quoteAllowed: parsed.data.quoteAllowed === "on",
+      attributionRequired: parsed.data.attributionRequired === "on",
+      attributionText: parsed.data.attributionText,
+      status: parsed.data.status,
       reviewerId: actor.id,
       reviewedAt: new Date(),
-      reason: parsed.reason,
+      reason: parsed.data.reason,
     },
   })
 
@@ -232,17 +242,18 @@ export async function upsertSourceRightsGrantAction(formData: FormData) {
       action: "source_rights_grant.create",
       targetType: "SourceRightsGrant",
       targetId: grant.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
       metadata: {
-        sourceDocumentId: parsed.sourceDocumentId,
-        status: parsed.status,
-        allowedUses: parsed.allowedUses,
-        quoteAllowed: parsed.quoteAllowed === "on",
+        sourceDocumentId: parsed.data.sourceDocumentId,
+        status: parsed.data.status,
+        allowedUses: parsed.data.allowedUses,
+        quoteAllowed: parsed.data.quoteAllowed === "on",
       },
     },
   })
 
   revalidatePath("/sources")
+  redirect("/sources?status=rights_saved")
 }
 
 function parseCsv(value: string | undefined) {

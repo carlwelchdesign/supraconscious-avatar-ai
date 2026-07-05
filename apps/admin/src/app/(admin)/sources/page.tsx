@@ -15,7 +15,29 @@ const QUOTE_PERMISSIONS = ["none", "paraphrase_only", "quote_safe"]
 const SAFETY_INTENSITIES = ["normal", "gentle", "sensitive", "blocked"]
 const ALLOWED_USES = ["internal_retrieval", "paraphrase_generation", "direct_quote_display", "curriculum_display"]
 
-export default async function SourcesPage() {
+const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  source_saved: { tone: "success", message: "Source document state saved." },
+  source_invalid: { tone: "error", message: "Source document update needs a valid state and reason." },
+  source_missing: { tone: "error", message: "That source document is no longer available." },
+  source_rights_missing: { tone: "error", message: "Add a current paraphrase-compatible rights grant before approving this source." },
+  curriculum_saved: { tone: "success", message: "Curriculum publish state saved." },
+  curriculum_invalid: { tone: "error", message: "Curriculum update needs a valid state and reason." },
+  chunk_saved: { tone: "success", message: "Source chunk state saved." },
+  chunk_invalid: { tone: "error", message: "Chunk update needs valid review, quote, safety, and reason fields." },
+  chunk_missing: { tone: "error", message: "That source chunk is no longer available." },
+  chunk_not_eligible: { tone: "error", message: "Chunk cannot be approved until its document state, rights, and safety policy allow retrieval." },
+  chunk_quote_blocked: { tone: "error", message: "Quote-safe display requires approved direct-quote rights with quote permission." },
+  rights_saved: { tone: "success", message: "Source rights grant saved." },
+  rights_invalid: { tone: "error", message: "Rights grant needs an owner, allowed use, status, and reason." },
+}
+
+export default async function SourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? SOURCE_STATUS_MESSAGES[status] : null
   const [documents, curriculumDays, chunks, reviewChunks, batches] = await Promise.all([
     prisma.sourceDocument.findMany({
       orderBy: { updatedAt: "desc" },
@@ -78,6 +100,18 @@ export default async function SourcesPage() {
           Metadata-first review for Maria source material, curriculum, and retrieval chunks.
         </p>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
