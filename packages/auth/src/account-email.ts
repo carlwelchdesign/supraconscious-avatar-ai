@@ -3,6 +3,7 @@ import "server-only"
 import { headers } from "next/headers"
 import { randomBytes } from "node:crypto"
 import { prisma } from "@inner-avatar/db"
+import { resolveAccountEmailBaseUrl } from "./account-email-url"
 import { sendTransactionalEmail } from "./email"
 import { hashPassword, hashSessionToken } from "./session"
 
@@ -239,19 +240,23 @@ function normalizeEmail(email: string) {
 }
 
 async function buildAppUrl(path: string) {
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "")
-  if (configured) return `${configured}${path}`
-
   try {
     const headerStore = await headers()
-    const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host")
-    const protocol = headerStore.get("x-forwarded-proto") ?? "http"
-    if (host) return `${protocol}://${host}${path}`
+    return `${resolveAccountEmailBaseUrl({
+      innerAvatarWebUrl: process.env.INNER_AVATAR_WEB_URL,
+      nextPublicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
+      forwardedHost: headerStore.get("x-forwarded-host"),
+      host: headerStore.get("host"),
+      forwardedProto: headerStore.get("x-forwarded-proto"),
+    })}${path}`
   } catch {
     // Scripts may call this outside a request.
   }
 
-  return `http://localhost:3000${path}`
+  return `${resolveAccountEmailBaseUrl({
+    innerAvatarWebUrl: process.env.INNER_AVATAR_WEB_URL,
+    nextPublicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
+  })}${path}`
 }
 
 function escapeHtml(value: string) {

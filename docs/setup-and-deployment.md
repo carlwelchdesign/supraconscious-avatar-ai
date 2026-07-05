@@ -59,7 +59,7 @@ Production environment checklist:
 | `OPENAI_API_KEY` | Required | Recommended | Recommended | Missing keys fall back locally, but production AI/voice needs this. |
 | `OPENAI_MODEL` | Optional | Optional | Optional | Defaults to `gpt-5-mini`. |
 | `NEXT_PUBLIC_APP_URL` | Required | Required | Required | Public web origin. |
-| `INNER_AVATAR_WEB_URL` | Required | Required | Required | Used for safe founder handoff links back to the web app. |
+| `INNER_AVATAR_WEB_URL` | Required | Required | Required | Public web origin for founder handoff links, auth verification/reset emails, ChatGPT widget redirects, and CORS. |
 | `NEXT_PUBLIC_ADMIN_URL` | Required | Required | Required | Used for admin review links. |
 | `RESEND_API_KEY` | Required for production auth email | Optional | No | Enables verification and password reset delivery. |
 | `AUTH_EMAIL_FROM` | Required with Resend | Optional | No | Must be an approved sender domain/address. |

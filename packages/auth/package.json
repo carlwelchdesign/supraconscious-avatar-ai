@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./account-email-url": "./src/account-email-url.ts",
     "./account-email": "./src/account-email.ts",
     "./actions": "./src/actions.ts",
     "./consent": "./src/consent.ts",
@@ -17,7 +18,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "tsx test/redirects.test.ts",
+    "test": "node --test --import tsx test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
