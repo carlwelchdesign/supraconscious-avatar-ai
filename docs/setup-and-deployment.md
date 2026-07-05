@@ -141,6 +141,8 @@ yarn --cwd apps/chatgpt-app build
 yarn --cwd apps/chatgpt-app test
 ```
 
+The current preferred MCP tool is `run_inner_council_reflection`; it uses the same Inner Council service as the web journal. The older analysis/avatar/prompt tools remain available for compatibility.
+
 Useful route smoke checks:
 
 ```bash

@@ -7,12 +7,14 @@ This document describes the ChatGPT MCP server added in Phase 5 and finalized in
 - A small Express-based MCP server implemented in `apps/chatgpt-app`.
 - Exposes a health endpoint, tools metadata at `/mcp/tools`, and a POST tool-execution route at `/mcp/tools/:toolName`.
 - Serves a small static widget from `apps/chatgpt-app/src/widget` at `/widget`.
-- Implements six MCP tools used by the product for journaling and reflection workflows.
+- Implements seven MCP tools used by the product for journaling and reflection workflows.
+- The preferred current tool is `run_inner_council_reflection`, which calls the same Inner Council service as the web journal and returns safety status, council voices, Integrator question, source provenance, generated prompt, and progression.
+- The older analysis/avatar/prompt tools remain available as compatibility helpers for clients that have not moved to the full Inner Council flow yet.
 
 ## Key files
 
 - `apps/chatgpt-app/src/server.ts` — main Express MCP server and `startChatGptApp` entrypoint.
-- `apps/chatgpt-app/src/tools/*` — tool handlers: `create-journal-entry`, `analyze-journal-entry`, `generate-avatar-reflection`, `generate-personalized-prompt`, `get-recent-patterns`, `save-reflection-session`.
+- `apps/chatgpt-app/src/tools/*` — tool handlers: `run-inner-council-reflection`, `create-journal-entry`, `analyze-journal-entry`, `generate-avatar-reflection`, `generate-personalized-prompt`, `get-recent-patterns`, `save-reflection-session`.
 - `apps/chatgpt-app/src/middleware/*` — `auth` and `safety` middleware helpers.
 - `apps/chatgpt-app/src/widget/*` — static widget assets (HTML/CSS/JS) served as static files.
 - `apps/chatgpt-app/.env.example` — runtime environment template for local and hosted MCP deployments.
@@ -39,7 +41,7 @@ Run the test suite:
 yarn --cwd apps/chatgpt-app test
 ```
 
-All tests pass in CI: 32 passing tests at the time of writing.
+All tests pass locally: 35 passing tests at the time of writing.
 
 ## Docker
 

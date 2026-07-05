@@ -1,6 +1,19 @@
 # ChatGPT MCP App
 
-Small Express-based MCP server used by Supraconscious for legacy journal analysis and guide reflections.
+Small Express-based MCP server used by Supraconscious for ChatGPT/MCP access, the embeddable widget, and the Inner Council reflection tool.
+
+Primary tool
+
+- `run_inner_council_reflection` runs the same council service used by the web journal: safety handling, source provenance, council voices, Integrator question, generated prompt, and progression.
+
+Compatibility tools
+
+- `create_journal_entry`
+- `analyze_journal_entry`
+- `generate_avatar_reflection`
+- `generate_personalized_prompt`
+- `get_recent_patterns`
+- `save_reflection_session`
 
 Quick commands
 

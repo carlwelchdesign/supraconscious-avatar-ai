@@ -11,6 +11,7 @@ import {
   generateAvatarReflection,
   generatePersonalizedPrompt,
   getRecentPatterns,
+  runInnerCouncilReflection,
   saveReflectionSession
 } from "./tools/index.js"
 import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
@@ -108,6 +109,22 @@ app.get('/mcp/tools', (req, res) => {
         }
       },
       {
+        name: 'run_inner_council_reflection',
+        description: 'Runs the same Supraconscious Inner Council reflection flow used by the web journal, including safety handling, council voices, Integrator question, and source provenance.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            text: { type: 'string' },
+            inputMode: { type: 'string', enum: ['text', 'voice'] },
+            calibrationScenario: {
+              type: 'string',
+              enum: ['voice_test', 'source_grounding_test', 'embodiment_test', 'no_source_fallback_test', 'intensity_boundary_test', 'freeform']
+            }
+          },
+          required: ['text']
+        }
+      },
+      {
         name: 'get_recent_patterns',
         description: 'Returns recent non-sensitive pattern summaries for the authenticated user.',
         inputSchema: {
@@ -159,6 +176,15 @@ app.post('/mcp/tools/:toolName',
       case 'generate_personalized_prompt':
         result = await generatePersonalizedPrompt(input, (req as AuthenticatedRequest).userId)
         break
+      case 'run_inner_council_reflection':
+      {
+        const authenticatedUserId = (req as AuthenticatedRequest).userId
+        if (!authenticatedUserId) {
+          return res.status(401).json({ error: 'Authentication required' })
+        }
+        result = await runInnerCouncilReflection(input, authenticatedUserId)
+        break
+      }
       case 'get_recent_patterns':
         result = await getRecentPatterns(input, (req as AuthenticatedRequest).userId)
         break

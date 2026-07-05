@@ -39,8 +39,9 @@ test('server exposes MCP tools metadata', async () => {
 
   assert.strictEqual(response.status, 200)
   assert.ok(Array.isArray(body.tools))
-  assert.strictEqual(body.tools.length, 6)
+  assert.strictEqual(body.tools.length, 7)
   assert.ok(body.tools.some((tool: any) => tool.name === 'analyze_journal_entry'))
+  assert.ok(body.tools.some((tool: any) => tool.name === 'run_inner_council_reflection'))
 
   server.close()
 })
