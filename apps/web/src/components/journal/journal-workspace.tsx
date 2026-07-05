@@ -649,7 +649,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Session feedback
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Help tune the founder calibration loop when something stands out. Feedback does not automatically retrain the guide or act as a diagnosis.
+                {founderCalibrationMode
+                  ? "Help tune the guide when something stands out. Feedback does not automatically retrain the guide or act as a diagnosis."
+                  : "Tell us whether this reflection helped. Your feedback stays with this session and does not automatically retrain the guide."}
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
@@ -660,7 +662,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 value={feedbackNote}
                 onChange={(event) => setFeedbackNote(event.target.value)}
                 maxLength={500}
-                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                placeholder={founderCalibrationMode
+                  ? "Optional note: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                  : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
@@ -702,7 +706,9 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               {feedbackSaved && (
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
-                    Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide.
+                    {founderCalibrationMode
+                      ? "Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide."
+                      : "Feedback saved. It will help improve future review of the guide, but it does not automatically retrain the guide."}
                   </p>
                   {founderCalibrationMode && result.journalEntry?.id && (
                     <div className="mt-3 flex flex-wrap gap-2">

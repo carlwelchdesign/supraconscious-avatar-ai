@@ -188,10 +188,10 @@ export default async function DashboardPage() {
             &ldquo;{latestEntry.avatarResponse.mirror ?? "Your guide is listening."}&rdquo;
           </p>
           <Link
-            href="/journal"
+            href={`/journal/${latestEntry.id}`}
             className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-medium text-[var(--clay)] hover:text-[var(--primary)] transition-colors"
           >
-            Continue reflecting
+            Open this session
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -247,8 +247,8 @@ export default async function DashboardPage() {
               const statuses = [
                 entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
                 entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
-                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under pilot review" : null,
-                review?.severity === "pilot_blocker" ? "Pilot blocker" : null,
+                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under review" : null,
+                review?.severity === "pilot_blocker" ? (founderCalibrationMode ? "Calibration blocker" : "Review blocked") : null,
                 reviewMetadata?.feedbackDisposition === "cleared" ? "Review cleared" : null,
                 reviewMetadata?.feedbackDisposition === "blocked" ? "Review blocked" : null,
                 entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
@@ -312,7 +312,7 @@ export default async function DashboardPage() {
                         <p className="text-[11px] font-light text-[var(--plum-soft)]/70">
                           {statuses.join(" · ")}
                         </p>
-                        {entry.councilSession?.feedback.length ? (
+                        {founderCalibrationMode && entry.councilSession?.feedback.length ? (
                           <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
                             Calibration note: feedback helps reviewers improve guidance; it does not automatically retrain the guide.
                           </p>

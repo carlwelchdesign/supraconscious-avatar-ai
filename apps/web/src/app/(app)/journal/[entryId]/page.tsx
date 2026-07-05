@@ -293,16 +293,20 @@ export default async function JournalEntryPage({
           </div>
           <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
             <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-              Pilot status
+              {founderCalibrationMode ? "Founder review status" : "Session status"}
             </p>
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
               {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
             </p>
-            <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
-              Calibration: {calibrationStatus}
-            </p>
+            {founderCalibrationMode && (
+              <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
+                Calibration: {calibrationStatus}
+              </p>
+            )}
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
-              Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide.
+              {founderCalibrationMode
+                ? "Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide."
+                : "Feedback is saved with this session; it does not automatically retrain the guide."}
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
@@ -331,7 +335,9 @@ export default async function JournalEntryPage({
               <textarea
                 name="note"
                 maxLength={500}
-                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                placeholder={founderCalibrationMode
+                  ? "Optional note: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                  : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
                 className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />

@@ -420,7 +420,7 @@ async function runCouncilMode(
         allowedUse: chunk.allowedUse,
         displayExcerpt: chunk.displayExcerpt,
       })),
-      pilotScope: "Internal pilot only. This guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority.",
+      pilotScope: "This guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority.",
     },
   }
 }

@@ -400,13 +400,13 @@ export default async function SettingsPage({
       >
         <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Pilot data controls
+            Data controls
           </p>
         </div>
         <div className="px-6">
           <SettingRow
             label="Export your data"
-            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and pilot event metadata."
+            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata."
             value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Download JSON</a>}
           />
           <SettingRow
