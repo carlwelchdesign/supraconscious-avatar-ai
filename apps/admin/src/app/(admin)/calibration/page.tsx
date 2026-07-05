@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { resolveFounderCalibrationUserFilter, runFounderCalibrationReport } from "@inner-avatar/ai"
+import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { reviewCalibrationSessionAction } from "./actions"
@@ -86,7 +86,7 @@ export default async function CalibrationPage({
       <div>
         <h1 className="text-2xl font-semibold">Founder Calibration</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Carl/Maria calibration review. Raw journal text is hidden; use notes, council output, and source traces to tune the experience.
+          Carl/Maria calibration review. Raw journal text is hidden; use feedback status, council output, and source traces to tune the experience.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link href="/calibration/live" className="inline-flex rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">
@@ -270,14 +270,17 @@ export default async function CalibrationPage({
                 </div>
 
                 <div className="mt-3 rounded-md border p-3">
-                  <p className="font-medium">Feedback notes</p>
+                  <p className="font-medium">Feedback status</p>
                   {session.feedback.length === 0 ? (
                     <p className="mt-1 text-xs text-muted-foreground">No feedback yet.</p>
                   ) : session.feedback.map((feedback) => (
                     <p key={`${feedback.feedbackType}-${feedback.createdAt.toISOString()}`} className="mt-1 text-xs text-muted-foreground">
-                      {feedback.feedbackType}{feedback.note ? `: ${feedback.note}` : " · no note"}
+                      {feedback.feedbackType}{formatFeedbackNoteStatus(feedback.note)}
                     </p>
                   ))}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Open the live cockpit when the exact note text is needed for Carl/Maria calibration review.
+                  </p>
                   {latestReview?.reason && (
                     <p className="mt-2 text-xs text-muted-foreground">latest review reason: {latestReview.reason}</p>
                   )}
@@ -342,7 +345,7 @@ export default async function CalibrationPage({
                     <option value="normal">normal</option>
                     <option value="pilot_blocker">pilot blocker</option>
                   </select>
-                  <input name="reason" placeholder="Calibration reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                  <input name="reason" placeholder="Calibration reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
                   <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
                 </form>
               </div>
@@ -407,4 +410,10 @@ function readPilotValidation(value: unknown) {
   const warnings = Array.isArray(record.warnings) ? record.warnings.filter((item): item is string => typeof item === "string") : []
   const failedRules = Array.isArray(record.failedRules) ? record.failedRules.filter((item): item is string => typeof item === "string") : []
   return [...warnings, ...failedRules]
+}
+
+function formatFeedbackNoteStatus(note?: string | null) {
+  if (isFounderCalibrationFeedbackNoteUseful(note)) return " · specific note saved"
+  if (note?.trim()) return " · note needs more detail"
+  return " · no note"
 }
