@@ -9,6 +9,8 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 
+const GUIDE_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
+
 export default async function JournalEntryPage({
   params,
 }: {
@@ -67,6 +69,8 @@ export default async function JournalEntryPage({
     style: user.voiceStyle ?? "warm",
     speed: user.voiceSpeed ?? 1.0,
   }
+  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
+  const guideStageName = GUIDE_STAGE_NAMES[guideStage - 1] ?? GUIDE_STAGE_NAMES[0]
   const retrievalTraces = entry.councilSession?.generationTraces ?? []
   const selectedSources = retrievalTraces
     .filter((trace) => trace.validationStatus === "selected")
@@ -150,12 +154,12 @@ export default async function JournalEntryPage({
         >
           {/* Header */}
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
-            <AvatarOrb size="sm" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="mb-3" priority />
+            <AvatarOrb size="sm" stage={guideStage as 1|2|3|4|5} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
               Council reflection
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
-              Echo · Stage {user.avatarStage ?? 1}
+              {guideStageName} · Stage {guideStage}
             </p>
           </div>
 

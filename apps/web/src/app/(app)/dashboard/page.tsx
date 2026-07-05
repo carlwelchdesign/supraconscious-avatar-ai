@@ -44,6 +44,8 @@ export default async function DashboardPage() {
   const founderSessionCount = founderParticipant?.sessionCount ?? 0
   const founderNeedsSession = founderSessionCount === 0
   const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && founderNeedsSession
+  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
+  const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -120,14 +122,14 @@ export default async function DashboardPage() {
           style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
         />
 
-        <AvatarOrb size="lg" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
+        <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Inner Council guide · Stage {user.avatarStage ?? 1}
+            Inner Council guide · Stage {guideStage}
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
-            {AVATAR_STAGE_NAMES[(user.avatarStage ?? 1) - 1]}
+            {guideStageName}
           </h2>
           <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
             Reflecting your language back with care while the council practice deepens.
@@ -147,7 +149,7 @@ export default async function DashboardPage() {
         {[
           { label: "Entries written", value: entryCount, unit: entryCount === 1 ? "entry" : "entries" },
           { label: "Active patterns", value: patternCount, unit: "patterns" },
-          { label: "Guide stage", value: user.avatarStage ?? 1, unit: "of 5" },
+          { label: "Guide stage", value: guideStage, unit: "of 5" },
         ].map(({ label, value, unit }) => (
           <div
             key={label}

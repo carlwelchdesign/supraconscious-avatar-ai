@@ -61,10 +61,11 @@ export default async function JournalPage() {
   const suggestedScenario = founderParticipant?.scenarioStatus.find((item) => !item.completed)?.scenario
   const suggestedCalibrationScenario = suggestedScenario === "freeform" ? undefined : suggestedScenario
   const needsFounderFirstSessionGuide = founderCalibrationMode && Boolean(founderParticipant) && ((founderParticipant?.sessionCount ?? 0) === 0 || (founderParticipant?.feedbackNoteCount ?? 0) === 0)
+  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
 
   return (
     <JournalWorkspace
-      avatarStage={(user.avatarStage ?? 1) as 1 | 2 | 3 | 4 | 5}
+      avatarStage={guideStage as 1 | 2 | 3 | 4 | 5}
       thresholdPrompt={thresholdPrompt}
       founderCalibrationMode={founderCalibrationMode}
       suggestedCalibrationScenario={suggestedCalibrationScenario}

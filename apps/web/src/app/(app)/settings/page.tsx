@@ -66,6 +66,7 @@ export default async function SettingsPage({
   const params = await searchParams
   const user = await requireAppUser()
   const currentSession = await getCurrentSession("web")
+  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const subscription = await prisma.subscription.findFirst({
     where: { userId: user.id },
     orderBy: { updatedAt: "desc" },
@@ -304,7 +305,7 @@ export default async function SettingsPage({
             description="Your current stage of reflection depth."
             value={
               <span className="font-medium text-[var(--primary)]">
-                Stage {user.avatarStage ?? 1}
+                Stage {guideStage}
               </span>
             }
           />

@@ -17,6 +17,8 @@ const navItems = [
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
+  const guideStage = Math.min(Math.max(user?.avatarStage ?? 1, 1), 5)
+  const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
@@ -53,12 +55,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Guide presence + user */}
         <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
           <div className="flex flex-col items-center text-center mb-4">
-            <AvatarOrb size="xs" stage={(user?.avatarStage ?? 1) as 1|2|3|4|5} className="mb-2" />
+            <AvatarOrb size="xs" stage={guideStage as 1|2|3|4|5} className="mb-2" />
             <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
               Inner Council
             </p>
             <p className="text-[12px] font-light text-[var(--plum-soft)]">
-              {AVATAR_STAGE_NAMES[(user?.avatarStage ?? 1) - 1]} · Stage {user?.avatarStage ?? 1}
+              {guideStageName} · Stage {guideStage}
             </p>
           </div>
 

@@ -31,7 +31,8 @@ const stages = [
 
 export default async function AvatarPage() {
   const user = await requireAppUser()
-  const stageIndex = (user.avatarStage ?? 1) - 1
+  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
+  const stageIndex = guideStage - 1
   const currentStage = stages[stageIndex] ?? stages[0]
 
   return (
@@ -64,10 +65,10 @@ export default async function AvatarPage() {
           className="absolute top-1/2 right-12 -translate-y-1/2 w-72 h-72 rounded-full blur-[80px] opacity-15 pointer-events-none"
           style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
         />
-        <AvatarOrb size="lg" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
+        <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
         <div className="relative z-10 text-center sm:text-left">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Current stage · {user.avatarStage ?? 1} of 5
+            Current stage · {guideStage} of 5
           </p>
           <h2 className="font-display text-[36px] font-light text-[var(--cream)] mb-3 leading-tight">
             {currentStage.name}
