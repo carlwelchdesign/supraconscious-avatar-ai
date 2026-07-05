@@ -124,7 +124,7 @@ For the founder calibration code path, run the full verifier:
 yarn verify:founder-calibration-code
 ```
 
-This checks Prisma generation, auth tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
+This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
 
 Before asking Carl and Maria to start live sessions, print the current launch packet:
 

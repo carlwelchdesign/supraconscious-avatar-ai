@@ -66,6 +66,9 @@ jobs:
       - name: Run auth tests
         run: node .yarn/releases/yarn-4.cjs test:auth
 
+      - name: Run web tests
+        run: node .yarn/releases/yarn-4.cjs test:web
+
       - name: Run AI tests
         run: node .yarn/releases/yarn-4.cjs test:ai
 

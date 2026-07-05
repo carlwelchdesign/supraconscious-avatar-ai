@@ -44,7 +44,7 @@ Deploy two Vercel projects:
 
 Each app has its own `.env.example` and app-level `vercel.json`. Shared packages are imported through workspaces and are not deployed as standalone services.
 
-CI validates Prisma, typecheck, lint, AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
+CI validates Prisma, typecheck, lint, auth/web/AI/RAG/pilot/founder checks, app builds, and Docker image builds on pull requests.
 
 ## Current Launch Path
 

@@ -17,7 +17,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 
 ## Release Checks
 
-Pull requests run CI for Prisma validation, typecheck, lint, AI/RAG/pilot/founder checks, web/admin/ChatGPT builds, and Docker image builds. Vercel remains the current production deployment path.
+Pull requests run CI for Prisma validation, typecheck, lint, auth/web/AI/RAG/pilot/founder checks, web/admin/ChatGPT builds, and Docker image builds. Vercel remains the current production deployment path.
 
 ## Current Product
 
