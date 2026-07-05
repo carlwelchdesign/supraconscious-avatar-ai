@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { emitPilotEvent, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -24,8 +24,8 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
   if (!session) throw new Error("Council session not found.")
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  if (founderCalibrationMode && !parsed.note?.trim()) {
-    throw new Error("Add a short feedback note for Carl/Maria calibration.")
+  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.note)) {
+    throw new Error("Add one specific detail to the feedback note for Carl/Maria calibration.")
   }
 
   await prisma.councilSessionFeedback.create({

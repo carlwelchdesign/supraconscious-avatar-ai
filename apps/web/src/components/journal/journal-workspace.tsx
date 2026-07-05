@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
-import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -262,7 +262,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
   const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
-  const canSaveFounderFeedback = !founderCalibrationMode || feedbackNote.trim().length > 0
+  const canSaveFounderFeedback = !founderCalibrationMode || isFounderCalibrationFeedbackNoteUseful(feedbackNote)
   const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
 
   const speakText = result
@@ -706,7 +706,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </div>
               {founderCalibrationMode && !canSaveFounderFeedback && (
                 <p className="mt-2 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Add a short note to save founder calibration feedback.
+                  Add one specific detail after the template label to save founder calibration feedback.
                 </p>
               )}
               {feedbackSaved && (
