@@ -342,7 +342,7 @@ export default async function JournalEntryPage({
                 {entry.councilSession.feedback.map((feedback) => (
                   <p key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
                     <span className="font-medium text-[var(--primary)]">{feedback.feedbackType}</span>
-                    {feedback.note ? `: ${feedback.note}` : " · no note"}
+                    {feedback.note ? " · note saved" : " · no note"}
                   </p>
                 ))}
               </div>
