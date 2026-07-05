@@ -18,16 +18,15 @@ import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./m
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 export const app = express()
-const PORT = Number(process.env.CHATGPT_APP_PORT) || 3002
+const PORT = readServerPort()
 
 // Middleware
 app.use(helmet())
 app.use(cors({
-  origin: [
-    'https://chat.openai.com',
-    'https://chatgpt.com',
-    process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : false
-  ].filter(Boolean),
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+    callback(null, readCorsOrigins().includes(normalizeBaseUrl(origin)))
+  },
   credentials: true
 }))
 app.use(express.json({ limit: '10mb' }))
@@ -186,7 +185,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' })
 })
 
-export function startChatGptApp(port: number = Number(process.env.CHATGPT_APP_PORT) || 3002) {
+export function startChatGptApp(port: number = readServerPort()) {
   return app.listen(port, () => {
     console.log(`ChatGPT App MCP server running on port ${port}`)
     console.log(`Health check: http://localhost:${port}/health`)
@@ -200,4 +199,20 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
 function normalizeBaseUrl(value: string) {
   return value.replace(/\/+$/, '')
+}
+
+function readServerPort() {
+  const port = Number(process.env.CHATGPT_APP_PORT ?? process.env.PORT)
+  return Number.isFinite(port) && port > 0 ? port : 3002
+}
+
+function readCorsOrigins() {
+  return Array.from(new Set([
+    'https://chat.openai.com',
+    'https://chatgpt.com',
+    process.env.INNER_AVATAR_WEB_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
+    process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined,
+  ].filter((origin): origin is string => Boolean(origin)).map(normalizeBaseUrl)))
 }

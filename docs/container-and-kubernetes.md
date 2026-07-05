@@ -68,6 +68,8 @@ Stripe variables are optional only while billing is intentionally disabled. Befo
 
 Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUBLIC_ADMIN_URL`; set both to real public origins in staging or production so copied launch packets do not point at localhost.
 
+The ChatGPT/MCP container also uses `INNER_AVATAR_WEB_URL` / `NEXT_PUBLIC_APP_URL` for widget redirects and CORS. It listens on `CHATGPT_APP_PORT` when set, otherwise on the platform-provided `PORT`, and finally defaults to `3002`.
+
 Migrations are not run automatically when web, admin, or ChatGPT containers boot. Local Compose uses the explicit `db-push` setup service. Production schema changes should remain a controlled release step.
 
 ## Container Shape

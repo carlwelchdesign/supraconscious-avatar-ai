@@ -48,7 +48,9 @@ docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
 
 Environment
 
-- `CHATGPT_APP_PORT` — default `3002`.
+- `CHATGPT_APP_PORT` or platform `PORT` — default `3002`.
+- `INNER_AVATAR_WEB_URL` or `NEXT_PUBLIC_APP_URL` — public web app origin for widget redirects and CORS.
+- `NEXT_PUBLIC_ADMIN_URL` — admin origin included in CORS when configured.
 
 Notes
 

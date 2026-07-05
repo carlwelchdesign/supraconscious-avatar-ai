@@ -69,7 +69,7 @@ Production environment checklist:
 | `STRIPE_WEBHOOK_SECRET` | Required for billing | No | No | Set to the webhook secret for the web deployment. |
 | `STRIPE_STARTER_PRICE_ID` / `STRIPE_PRO_PRICE_ID` | Required for billing | No | No | Needed before enabling paid plans. |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Required for billing UI | No | No | Public Stripe key for the web app. |
-| `CHATGPT_APP_PORT` | No | No | Optional | Defaults to `3002`. |
+| `CHATGPT_APP_PORT` / `PORT` | No | No | Optional | Defaults to `3002`; hosted runtimes may set `PORT`, while local scripts can use `CHATGPT_APP_PORT`. |
 
 For local/dev scripts, the root `.env.example` includes additional helper variables for founder setup, pilot seeding, RAG smoke tests, and handoff packet generation.
 
