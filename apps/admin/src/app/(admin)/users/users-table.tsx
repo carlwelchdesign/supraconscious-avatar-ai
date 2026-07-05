@@ -166,6 +166,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                       size="small"
                       label="Temporary password"
                       autoComplete="new-password"
+                      required
                       slotProps={{ htmlInput: { minLength: 8 } }}
                     />
                     <TextField
@@ -173,6 +174,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                       size="small"
                       label="Reason"
                       placeholder="Founder login setup"
+                      required
                       slotProps={{ htmlInput: { minLength: 10 } }}
                     />
                     <Button type="submit" variant="outlined" size="small">
@@ -190,6 +192,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                       size="small"
                       label="Verification reason"
                       placeholder="Founder email confirmed"
+                      required
                       slotProps={{ htmlInput: { minLength: 10 } }}
                     />
                     <Button type="submit" variant="outlined" size="small" color={user.emailVerified ? "warning" : "success"}>
