@@ -6,17 +6,28 @@ import { startChatGptApp } from '../src/server'
 let server: any
 
 test('server health endpoint responds with ok status', async () => {
-  server = startChatGptApp(0)
-  const address = server.address()
-  const port = typeof address === 'string' ? 0 : address.port
-  const response = await fetch(`http://127.0.0.1:${port}/health`)
-  const body = await response.json()
+  const previousLog = console.log
+  const logs: string[] = []
+  console.log = (...args: unknown[]) => {
+    logs.push(args.map(String).join(' '))
+  }
+  try {
+    server = startChatGptApp(0)
+    const address = server.address()
+    const port = typeof address === 'string' ? 0 : address.port
+    const response = await fetch(`http://127.0.0.1:${port}/health`)
+    const body = await response.json()
 
-  assert.strictEqual(response.status, 200)
-  assert.strictEqual(body.status, 'ok')
-  assert.ok(body.timestamp)
-
-  server.close()
+    assert.strictEqual(response.status, 200)
+    assert.strictEqual(body.status, 'ok')
+    assert.ok(body.timestamp)
+    assert.ok(logs.some((line) => line.includes(`port ${port}`)))
+    assert.ok(logs.some((line) => line.includes(`localhost:${port}/health`)))
+    assert.equal(logs.some((line) => line.includes('localhost:0')), false)
+  } finally {
+    console.log = previousLog
+    server?.close()
+  }
 })
 
 test('server exposes MCP tools metadata', async () => {

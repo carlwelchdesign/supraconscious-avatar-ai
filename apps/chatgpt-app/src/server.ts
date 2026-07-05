@@ -186,11 +186,14 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 })
 
 export function startChatGptApp(port: number = readServerPort()) {
-  return app.listen(port, () => {
-    console.log(`ChatGPT App MCP server running on port ${port}`)
-    console.log(`Health check: http://localhost:${port}/health`)
-    console.log(`MCP tools: http://localhost:${port}/mcp/tools`)
+  const server = app.listen(port, () => {
+    const address = server.address()
+    const actualPort = typeof address === 'string' ? port : address?.port ?? port
+    console.log(`ChatGPT App MCP server running on port ${actualPort}`)
+    console.log(`Health check: http://localhost:${actualPort}/health`)
+    console.log(`MCP tools: http://localhost:${actualPort}/mcp/tools`)
   })
+  return server
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
