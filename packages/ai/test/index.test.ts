@@ -1192,10 +1192,12 @@ test("founder setup treats freeform founder sessions as captured first-session p
 
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
   assert.equal(carl?.sessionCount, 1)
-  assert.equal(carl?.nextAction, "Add one short feedback note to the latest saved session.")
+  assert.equal(carl?.nextAction, "carl@example.com needs one specific calibration feedback note.")
   assert.equal(carl?.nextActionHref, "/journal/entry_carl")
+  assert.ok(carl?.missingActions.some((action) => action.code === "feedback_note_missing" && action.href === "/journal/entry_carl"))
+  assert.ok(carl?.missingActions.some((action) => action.code === "review_missing" && action.href === "/calibration/live"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
-  assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com")), false)
+  assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one specific calibration feedback note")), true)
 })
 
 test("founder calibration setup report gives role-specific handoff links", () => {

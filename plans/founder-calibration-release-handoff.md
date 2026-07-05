@@ -59,9 +59,9 @@ Additional recent checks:
 - Docker build context excludes `.env*`, key files, `.DS_Store`, and local `sources/` corpus files.
 
 ## Current Live Blockers
-- `carlwelchdesign@gmail.com` is configured, linked, onboarded, consented, and has one `voice_test` session.
-- `carlwelchdesign@gmail.com` needs one specific calibration feedback note.
-- `carlwelchdesign@gmail.com` needs one ready/golden review or a specific issue review.
+- `carlwelchdesign+supra@gmail.com` is configured, linked, onboarded, consented, and has saved founder calibration sessions.
+- `carlwelchdesign+supra@gmail.com` needs one specific calibration feedback note.
+- `carlwelchdesign+supra@gmail.com` needs one ready/golden review or a specific issue review.
 - `meliatsaroucha@gmail.com` is configured and linked.
 - `meliatsaroucha@gmail.com` needs onboarding.
 - `meliatsaroucha@gmail.com` needs current required pilot consent records.

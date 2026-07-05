@@ -369,6 +369,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       consentPresent,
       sessionCount: sessions.length,
       feedbackNoteCount,
+      reviewedSessionCount,
       goldenExampleCount,
       latestSessionHref,
     })
@@ -629,6 +630,7 @@ function buildParticipantMissingActions(input: {
   consentPresent: boolean
   sessionCount: number
   feedbackNoteCount: number
+  reviewedSessionCount: number
   goldenExampleCount: number
   latestSessionHref?: string
 }) {
@@ -638,6 +640,22 @@ function buildParticipantMissingActions(input: {
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/onboarding" })
   if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/onboarding" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/journal" })
+  if (input.accountExists && input.sessionCount > 0 && input.feedbackNoteCount === 0) {
+    actions.push({
+      code: "feedback_note_missing",
+      email: input.email,
+      message: `${input.email} needs one specific calibration feedback note.`,
+      href: input.latestSessionHref ?? "/journal",
+    })
+  }
+  if (input.accountExists && input.sessionCount > 0 && input.reviewedSessionCount === 0) {
+    actions.push({
+      code: "review_missing",
+      email: input.email,
+      message: `${input.email} needs one ready/golden review or a specific issue review.`,
+      href: "/calibration/live",
+    })
+  }
   return actions
 }
 
