@@ -314,7 +314,7 @@ export default async function JournalEntryPage({
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                Notes are optional now. Use them only when they help explain what should change.
+                A short note is required for founder calibration so the review has something specific to act on.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -339,15 +339,16 @@ export default async function JournalEntryPage({
               <textarea
                 name="note"
                 maxLength={500}
+                required={founderCalibrationMode}
                 placeholder={founderCalibrationMode
-                  ? "Optional note: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                  ? "Required note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
                   : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
                 className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
               {founderCalibrationMode && (
                 <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
-                  Notes are optional now. Add one only when it helps clarify what should change.
+                  This note stays with the session for review and does not automatically retrain the guide.
                 </p>
               )}
               <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>

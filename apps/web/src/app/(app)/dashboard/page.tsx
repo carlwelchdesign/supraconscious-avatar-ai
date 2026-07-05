@@ -96,7 +96,7 @@ export default async function DashboardPage() {
             Run one guided calibration session.
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Use the suggested guided scenario and submit one reflection. Feedback notes are optional now; add one only when it helps explain what should change.
+            Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave one short note about what felt right or what should change.
           </p>
           <Link
             href="/journal"

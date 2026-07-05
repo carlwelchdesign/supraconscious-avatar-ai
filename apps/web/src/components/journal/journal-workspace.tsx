@@ -262,6 +262,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
   const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
   const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
+  const canSaveFounderFeedback = !founderCalibrationMode || feedbackNote.trim().length > 0
   const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
 
   const speakText = result
@@ -304,7 +305,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Founder calibration
               </p>
               <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type; add a note only when it helps explain voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
+                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type and add a short note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
               </p>
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
@@ -313,7 +314,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, and choose a feedback type. Notes are optional and do not retrain the guide automatically.
+                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave one short note. Notes do not retrain the guide automatically.
                 </p>
               )}
             </div>
@@ -650,12 +651,12 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 {founderCalibrationMode
-                  ? "Help tune the guide when something stands out. Feedback does not automatically retrain the guide or act as a diagnosis."
+                  ? "Help tune the guide by leaving one short note with your feedback type. Feedback does not automatically retrain the guide or act as a diagnosis."
                   : "Tell us whether this reflection helped. Your feedback stays with this session and does not automatically retrain the guide."}
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  Notes are optional now. Add one only when it helps explain what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
+                  A note is required for Carl/Maria calibration so the review has something specific to act on.
                 </p>
               )}
               <textarea
@@ -663,7 +664,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 onChange={(event) => setFeedbackNote(event.target.value)}
                 maxLength={500}
                 placeholder={founderCalibrationMode
-                  ? "Optional note: what felt wrong, what Maria would say differently, or which source felt unsupported."
+                  ? "Required note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
                   : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
@@ -694,7 +695,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   <button
                     key={value}
                     type="button"
-                    disabled={isSavingFeedback}
+                    disabled={isSavingFeedback || !canSaveFounderFeedback}
                     onClick={() => handleSessionFeedback(value)}
                     className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
                     style={{ borderColor: "rgba(43,27,53,0.08)" }}
@@ -703,6 +704,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   </button>
                 ))}
               </div>
+              {founderCalibrationMode && !canSaveFounderFeedback && (
+                <p className="mt-2 text-[11px] font-light text-[var(--plum-soft)]/70">
+                  Add a short note to save founder calibration feedback.
+                </p>
+              )}
               {feedbackSaved && (
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
