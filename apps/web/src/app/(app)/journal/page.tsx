@@ -1,5 +1,5 @@
 import { prisma } from "@inner-avatar/db"
-import { isFounderCalibrationUser, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
+import { isFounderCalibrationUser, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
@@ -44,14 +44,11 @@ export default async function JournalPage() {
     )
   const thresholdPrompt = todaysPrompt ?? fallbackPrompt
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const setupReport = founderCalibrationMode ? await runFounderCalibrationSetupReport() : null
-  const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
-  const suggestedScenario = founderParticipant?.scenarioStatus.find((item) => !item.completed)?.scenario
-  const suggestedCalibrationScenario = suggestedScenario === "freeform" ? undefined : suggestedScenario
-  const founderSessionCount = founderParticipant?.sessionCount ?? 0
-  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
-  const needsFounderFirstSessionGuide = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount === 0
-  const needsFounderFeedbackNote = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount > 0 && founderFeedbackNoteCount === 0
+  const founderReadiness = await runFounderCalibrationJournalReadiness({
+    userId: user.id,
+    email: user.email,
+    founderCalibrationMode,
+  })
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
 
   return (
@@ -60,10 +57,10 @@ export default async function JournalPage() {
       thresholdPrompt={thresholdPrompt}
       todayLabel={todayLabel}
       founderCalibrationMode={founderCalibrationMode}
-      suggestedCalibrationScenario={suggestedCalibrationScenario}
-      needsFounderFirstSessionGuide={needsFounderFirstSessionGuide}
-      needsFounderFeedbackNote={needsFounderFeedbackNote}
-      founderFeedbackNoteHref={founderParticipant?.latestSessionHref ?? null}
+      suggestedCalibrationScenario={founderReadiness.suggestedCalibrationScenario ?? undefined}
+      needsFounderFirstSessionGuide={founderReadiness.needsFounderFirstSessionGuide}
+      needsFounderFeedbackNote={founderReadiness.needsFounderFeedbackNote}
+      founderFeedbackNoteHref={founderReadiness.founderFeedbackNoteHref}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,

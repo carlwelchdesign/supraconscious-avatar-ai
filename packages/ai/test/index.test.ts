@@ -10,6 +10,7 @@ import {
   buildFounderCalibrationComparisonFromSnapshot,
   buildFounderCalibrationHandoffReport,
   buildFounderCalibrationLaunchPacket,
+  buildFounderCalibrationJournalReadiness,
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -1230,6 +1231,76 @@ test("founder setup treats freeform founder sessions as captured first-session p
   assert.ok(carl?.missingActions.some((action) => action.code === "review_missing" && action.href === "/calibration/live"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
   assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one specific calibration feedback note")), true)
+})
+
+test("founder journal readiness preserves first-session and feedback-note prompts", () => {
+  const setupReport = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: true,
+        consentCount: 5,
+        sessions: [{
+          id: "session_carl",
+          journalEntryId: "entry_carl",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: false }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
+        }],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: "user_maria",
+        userName: "Maria",
+        onboardingComplete: true,
+        consentCount: 5,
+        sessions: [],
+      },
+    ],
+  })
+
+  const carl = setupReport.participants.find((participant) => participant.email === "carl@example.com") ?? null
+  const maria = setupReport.participants.find((participant) => participant.email === "maria@example.com") ?? null
+
+  assert.deepEqual(buildFounderCalibrationJournalReadiness({ founderCalibrationMode: false, participant: carl }), {
+    founderCalibrationMode: false,
+    suggestedCalibrationScenario: null,
+    needsFounderFirstSessionGuide: false,
+    needsFounderFeedbackNote: false,
+    founderFeedbackNoteHref: null,
+    sessionCount: 0,
+    feedbackNoteCount: 0,
+  })
+  assert.deepEqual(buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: carl }), {
+    founderCalibrationMode: true,
+    suggestedCalibrationScenario: "source_grounding_test",
+    needsFounderFirstSessionGuide: false,
+    needsFounderFeedbackNote: true,
+    founderFeedbackNoteHref: "/journal/entry_carl",
+    sessionCount: 1,
+    feedbackNoteCount: 0,
+  })
+  assert.deepEqual(buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: maria }), {
+    founderCalibrationMode: true,
+    suggestedCalibrationScenario: "voice_test",
+    needsFounderFirstSessionGuide: true,
+    needsFounderFeedbackNote: false,
+    founderFeedbackNoteHref: null,
+    sessionCount: 0,
+    feedbackNoteCount: 0,
+  })
 })
 
 test("founder calibration setup report gives role-specific handoff links", () => {

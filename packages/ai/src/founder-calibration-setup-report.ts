@@ -101,6 +101,16 @@ export type FounderCalibrationSetupReport = {
   warnings: string[]
 }
 
+export type FounderCalibrationJournalReadiness = {
+  founderCalibrationMode: boolean
+  suggestedCalibrationScenario: Exclude<FounderCalibrationScenario, "freeform"> | null
+  needsFounderFirstSessionGuide: boolean
+  needsFounderFeedbackNote: boolean
+  founderFeedbackNoteHref: string | null
+  sessionCount: number
+  feedbackNoteCount: number
+}
+
 export type FounderCalibrationHandoffItem = {
   role: FounderCalibrationRequiredRole
   email: string | null
@@ -291,10 +301,139 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
   })
 }
 
+export async function runFounderCalibrationJournalReadiness(input: {
+  userId: string
+  email: string
+  founderCalibrationMode: boolean
+}): Promise<FounderCalibrationJournalReadiness> {
+  if (!input.founderCalibrationMode) {
+    return buildFounderCalibrationJournalReadiness({ founderCalibrationMode: false, participant: null })
+  }
+
+  const participant = await readJournalParticipantSafely(input)
+  if (!participant) {
+    return buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: null })
+  }
+
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date(),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [{
+      id: participant.id,
+      email: participant.email,
+      participantRole: participant.participantRole,
+      status: participant.status,
+      userId: participant.user?.id ?? participant.userId,
+      userName: participant.user?.name ?? null,
+      onboardingComplete: participant.user?.onboardingComplete ?? false,
+      consentCount: participant.user?.consentEvents.length ?? 0,
+      consentRecords: participant.user?.consentEvents ?? [],
+      sessions: (participant.user?.councilSessions ?? []).map((session) => ({
+        id: session.id,
+        journalEntryId: session.journalEntryId,
+        createdAt: session.createdAt,
+        feedback: session.feedback.map((feedback) => ({ hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
+        qualityReviews: session.qualityReviews,
+        generationTraces: session.generationTraces,
+      })),
+    }],
+  })
+
+  return buildFounderCalibrationJournalReadiness({
+    founderCalibrationMode: true,
+    participant: report.participants.find((item) => item.userId === input.userId || item.email === input.email.toLowerCase()) ?? null,
+  })
+}
+
+export function buildFounderCalibrationJournalReadiness(input: {
+  founderCalibrationMode: boolean
+  participant: FounderCalibrationSetupParticipant | null
+}): FounderCalibrationJournalReadiness {
+  const { founderCalibrationMode, participant } = input
+  if (!founderCalibrationMode) {
+    return {
+      founderCalibrationMode: false,
+      suggestedCalibrationScenario: null,
+      needsFounderFirstSessionGuide: false,
+      needsFounderFeedbackNote: false,
+      founderFeedbackNoteHref: null,
+      sessionCount: 0,
+      feedbackNoteCount: 0,
+    }
+  }
+
+  const suggestedScenario = participant?.scenarioStatus.find((item) => !item.completed)?.scenario
+  const suggestedCalibrationScenario = suggestedScenario && suggestedScenario !== "freeform" ? suggestedScenario : null
+  const sessionCount = participant?.sessionCount ?? 0
+  const feedbackNoteCount = participant?.feedbackNoteCount ?? 0
+
+  return {
+    founderCalibrationMode,
+    suggestedCalibrationScenario,
+    needsFounderFirstSessionGuide: founderCalibrationMode && Boolean(participant) && sessionCount === 0,
+    needsFounderFeedbackNote: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackNoteCount === 0,
+    founderFeedbackNoteHref: participant?.latestSessionHref ?? null,
+    sessionCount,
+    feedbackNoteCount,
+  }
+}
+
 async function readSetupParticipantsSafely() {
   try {
     return await prisma.founderCalibrationParticipant.findMany({
       orderBy: [{ status: "asc" }, { email: "asc" }],
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            onboardingComplete: true,
+            consentEvents: {
+              orderBy: { createdAt: "desc" },
+              select: { consentType: true, consentVersion: true, granted: true, createdAt: true },
+            },
+            councilSessions: {
+              orderBy: { createdAt: "desc" },
+              take: 50,
+              select: {
+                id: true,
+                journalEntryId: true,
+                createdAt: true,
+                feedback: { select: { note: true } },
+                qualityReviews: {
+                  orderBy: { reviewedAt: "desc" },
+                  take: 5,
+                  select: { label: true, severity: true },
+                },
+                generationTraces: {
+                  where: { traceType: "council" },
+                  orderBy: { createdAt: "desc" },
+                  take: 1,
+                  select: { traceType: true, outputJson: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+  } catch (error) {
+    if (isMissingFounderParticipantTable(error)) return null
+    throw error
+  }
+}
+
+async function readJournalParticipantSafely(input: { userId: string; email: string }) {
+  try {
+    return await prisma.founderCalibrationParticipant.findFirst({
+      where: {
+        status: "active",
+        OR: [
+          { userId: input.userId },
+          { email: input.email.toLowerCase() },
+        ],
+      },
       include: {
         user: {
           select: {
