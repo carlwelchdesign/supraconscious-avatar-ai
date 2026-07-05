@@ -5,6 +5,7 @@ import { prisma } from "@inner-avatar/db"
 
 export async function GET() {
   const user = await requireAppUser()
+
   const [
     journalEntries,
     patternMemories,
@@ -96,7 +97,7 @@ export async function GET() {
     }),
   ])
 
-  await emitPilotEvent({
+  const exportEvent = await emitPilotEvent({
     eventName: "data_export_requested",
     userId: user.id,
     properties: { entryCount: journalEntries.length, councilSessionCount: councilSessions.length },
@@ -110,7 +111,21 @@ export async function GET() {
     councilSessions,
     safetyEvents,
     consentEvents,
-    pilotEvents,
+    pilotEvents: [
+      {
+        id: exportEvent.id,
+        eventName: exportEvent.eventName,
+        eventVersion: exportEvent.eventVersion,
+        occurredAt: exportEvent.occurredAt,
+        properties: exportEvent.properties,
+        inputHash: exportEvent.inputHash,
+        sourceMode: exportEvent.sourceMode,
+        safetySeverity: exportEvent.safetySeverity,
+        featureFlags: exportEvent.featureFlags,
+        requestId: exportEvent.requestId,
+      },
+      ...pilotEvents,
+    ],
     subscriptions,
   }))
 }
