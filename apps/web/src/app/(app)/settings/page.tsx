@@ -1,4 +1,5 @@
 import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
+import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import {
   changePasswordAction,
@@ -66,6 +67,7 @@ export default async function SettingsPage({
   const params = await searchParams
   const user = await requireAppUser()
   const currentSession = await getCurrentSession("web")
+  const billingEnabled = isStripeConfigured()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const subscription = await prisma.subscription.findFirst({
     where: { userId: user.id },
@@ -219,6 +221,11 @@ export default async function SettingsPage({
               Billing management is not available in this environment yet. Your journal and reflection data are unchanged.
             </p>
           ) : null}
+          {!billingEnabled ? (
+            <p className="mt-5 rounded-xl bg-[rgba(184,137,90,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Paid billing is disabled in this environment. Your free reflection flow is still available.
+            </p>
+          ) : null}
           <SettingRow
             label="Plan"
             description="Your current Supraconscious subscription plan."
@@ -234,7 +241,7 @@ export default async function SettingsPage({
             value={<StatusPill on={subscription?.status === "active"} />}
           />
           <div className="py-5">
-            {subscription?.stripeCustomerId ? (
+            {subscription?.stripeCustomerId && billingEnabled ? (
               <form action="/api/billing/portal" method="post">
                 <button
                   type="submit"
@@ -243,13 +250,17 @@ export default async function SettingsPage({
                   Manage billing
                 </button>
               </form>
-            ) : (
+            ) : billingEnabled ? (
               <a
                 href="/pricing"
                 className="inline-flex rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
               >
                 Choose a plan
               </a>
+            ) : (
+              <span className="inline-flex rounded-full border px-5 py-2.5 text-[13px] font-medium text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
+                Billing disabled
+              </span>
             )}
           </div>
         </div>

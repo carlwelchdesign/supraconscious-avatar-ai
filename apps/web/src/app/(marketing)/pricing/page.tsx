@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { getCurrentUser } from "@inner-avatar/auth/session"
+import { isStripeConfigured } from "@inner-avatar/billing"
 import { Button } from "@inner-avatar/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { startCheckoutAction } from "./actions"
@@ -33,6 +34,7 @@ export default async function PricingPage({
   searchParams: Promise<{ checkout?: string }>
 }) {
   const user = await getCurrentUser()
+  const billingEnabled = isStripeConfigured()
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-16">
@@ -46,6 +48,11 @@ export default async function PricingPage({
         </p>
       </div>
       <PricingStatus searchParams={searchParams} />
+      {!billingEnabled ? (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Paid checkout is not enabled in this environment yet. The free reflection flow remains available.
+        </div>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (
           <Card key={plan.name} className={plan.name === "Starter" ? "border-primary" : undefined}>
@@ -66,9 +73,12 @@ export default async function PricingPage({
               {"plan" in plan ? (
                 <form action={startCheckoutAction}>
                   <input type="hidden" name="plan" value={plan.plan} />
-                  <Button className="w-full" variant={plan.name === "Starter" ? "default" : "outline"}>
+                  <Button className="w-full" variant={plan.name === "Starter" ? "default" : "outline"} disabled={!billingEnabled}>
                     {user ? `Choose ${plan.name}` : `Sign in for ${plan.name}`}
                   </Button>
+                  {!billingEnabled ? (
+                    <p className="mt-2 text-xs text-muted-foreground">Paid checkout is currently disabled.</p>
+                  ) : null}
                 </form>
               ) : (
                 <Button className="w-full" variant="outline" asChild>
