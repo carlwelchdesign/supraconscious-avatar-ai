@@ -19,6 +19,7 @@ test('server health endpoint responds with ok status', async () => {
     const body = await response.json()
 
     assert.strictEqual(response.status, 200)
+    assert.strictEqual(response.headers.get('cache-control'), 'no-store')
     assert.strictEqual(body.status, 'ok')
     assert.ok(body.timestamp)
     assert.ok(logs.some((line) => line.includes(`port ${port}`)))
