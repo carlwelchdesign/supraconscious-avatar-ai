@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import path from "node:path"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import { config as loadDotenv } from "dotenv"
 
 const globalForPrisma = globalThis as unknown as {
@@ -23,7 +23,7 @@ function getPrismaClient() {
   const adapter = new PrismaPg({ connectionString })
   const client = new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: prismaLogLevels(),
   })
 
   if (process.env.NODE_ENV !== "production") {
@@ -63,3 +63,9 @@ export const prisma = new Proxy({} as PrismaClient, {
 })
 
 export default prisma
+
+function prismaLogLevels(): Prisma.LogLevel[] {
+  if (process.env.PRISMA_QUERY_LOGGING === "true") return ["query", "error", "warn"]
+  if (process.env.NODE_ENV === "development") return ["error", "warn"]
+  return ["error"]
+}

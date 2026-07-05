@@ -54,6 +54,7 @@ Production environment checklist:
 | Variable | Web | Admin | ChatGPT/MCP | Notes |
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` | Required | Required | Required | Use the production Postgres URL; run schema changes as a controlled release step. |
+| `PRISMA_QUERY_LOGGING` | Optional | Optional | Optional | Set to `true` only for short local debugging. Leave off for founder testing and production so raw query parameters stay out of logs. |
 | `AUTH_SECRET` | Required | Required | Required | Use the same long random value anywhere session/auth helpers run. |
 | `SUPER_ADMIN_EMAILS` | Required | Required | Optional | Required before the first admin login. |
 | `OPENAI_API_KEY` | Required | Recommended | Recommended | Missing keys fall back locally, but production AI/voice needs this. |
