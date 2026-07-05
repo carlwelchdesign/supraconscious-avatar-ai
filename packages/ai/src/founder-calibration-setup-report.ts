@@ -370,7 +370,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       goldenExampleCount,
       latestSessionHref,
     })
-    const nextAction = chooseParticipantNextAction(missingActions, scenarioStatus)
+    const nextAction = chooseParticipantNextAction(missingActions, scenarioStatus, sessions.length)
 
     return {
       id: participant.id,
@@ -550,11 +550,16 @@ function buildScenarioStatus(sessions: FounderCalibrationSetupSnapshot["particip
 function chooseParticipantNextAction(
   missingActions: FounderCalibrationMissingAction[],
   scenarioStatus: FounderCalibrationParticipantScenarioStatus[],
+  sessionCount: number,
 ) {
   const primaryMissingAction = missingActions[0]
   if (primaryMissingAction) return { message: primaryMissingAction.message, href: primaryMissingAction.href ?? readFounderLaunchHref(primaryMissingAction.code) }
   const nextScenario = scenarioStatus.find((item) => !item.completed)
-  if (nextScenario) return { message: `Run the ${formatFounderCalibrationScenario(nextScenario.scenario)} guided scenario.`, href: "/journal" }
+  if (nextScenario) {
+    const scenarioLabel = formatFounderCalibrationScenario(nextScenario.scenario)
+    if (sessionCount > 0) return { message: `First session captured. Next useful pass: ${scenarioLabel}.`, href: "/journal" }
+    return { message: `Run the ${scenarioLabel} guided scenario.`, href: "/journal" }
+  }
   const scenarioWithoutReadyExample = scenarioStatus.find((item) => item.completed && !item.hasReadyExample)
   if (scenarioWithoutReadyExample) return { message: `Review ${formatFounderCalibrationScenario(scenarioWithoutReadyExample.scenario)} and mark ready or assign an issue.`, href: "/calibration/live" }
   return { message: "Founder calibration launch loop is ready; continue with the next real session.", href: "/calibration/live" }

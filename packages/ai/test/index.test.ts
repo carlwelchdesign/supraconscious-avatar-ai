@@ -1036,7 +1036,7 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.totalSessions, 1)
   assert.equal(report.scenarioCoverage.some((item) => item.scenario === "source_grounding_test"), false)
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
-  assert.equal(carl?.nextAction, "Run the Source-grounding test guided scenario.")
+  assert.equal(carl?.nextAction, "First session captured. Next useful pass: Source-grounding test.")
   assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.completed, true)
   assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "voice_test")?.hasReadyExample, true)
   const maria = report.participants.find((participant) => participant.email === "maria@example.com")
@@ -1045,6 +1045,58 @@ test("founder calibration setup report lists missing actions without raw notes",
   assert.equal(maria?.scenarioStatus.some((item) => item.scenario === "freeform"), false)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
+})
+
+test("founder setup treats freeform founder sessions as captured first-session progress", () => {
+  const report = buildFounderCalibrationSetupReportFromSnapshot({
+    checkedAt: new Date("2026-07-03T12:00:00.000Z"),
+    filterMode: "db",
+    filterWarnings: [],
+    participants: [
+      {
+        id: "participant_carl",
+        email: "carl@example.com",
+        participantRole: "carl",
+        status: "active",
+        userId: "user_carl",
+        userName: "Carl",
+        onboardingComplete: true,
+        consentCount: 5,
+        sessions: [{
+          id: "session_carl",
+          journalEntryId: "entry_carl",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: false }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: {} }],
+        }],
+      },
+      {
+        id: "participant_maria",
+        email: "maria@example.com",
+        participantRole: "maria",
+        status: "active",
+        userId: "user_maria",
+        userName: "Maria",
+        onboardingComplete: true,
+        consentCount: 5,
+        sessions: [{
+          id: "session_maria",
+          journalEntryId: "entry_maria",
+          createdAt: new Date("2026-07-03T12:00:00.000Z"),
+          feedback: [{ hasNote: false }],
+          qualityReviews: [],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
+        }],
+      },
+    ],
+  })
+
+  const carl = report.participants.find((participant) => participant.email === "carl@example.com")
+  assert.equal(carl?.sessionCount, 1)
+  assert.equal(carl?.nextAction, "First session captured. Next useful pass: Voice test.")
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
+  assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com")), false)
 })
 
 test("founder calibration setup report gives role-specific handoff links", () => {
