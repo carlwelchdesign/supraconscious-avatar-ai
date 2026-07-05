@@ -997,13 +997,26 @@ test("founder calibration comparison groups scenarios without raw notes", () => 
         qualityReviews: [],
         generationTraces: [],
       },
+      {
+        id: "resolved_source",
+        sourceMode: "rag",
+        feedbackTypes: ["unsupported_source"],
+        qualityReviews: [{ label: "ready", severity: "normal", metadata: { goldenExample: true } }],
+        generationTraces: [{
+          traceType: "council",
+          promptVersion: "council.system@v4",
+          outputJson: { calibration: { scenario: "source_grounding_test" } },
+        }],
+      },
     ],
   })
 
   assert.equal(readFounderCalibrationScenario("unknown"), "freeform")
-  assert.equal(report.goldenExamples.length, 1)
+  assert.equal(report.goldenExamples.length, 2)
   assert.equal(report.unresolvedIssues.length, 2)
+  assert.equal(report.unresolvedIssues.some((item) => item.councilSessionId === "resolved_source"), false)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.goldenExamples, 1)
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "source_grounding_test")?.goldenExamples, 1)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
   assert.equal(report.promptVersions[0]?.promptVersion, "council.system@v3")
   assert.equal(JSON.stringify(report).includes("private journal text"), false)

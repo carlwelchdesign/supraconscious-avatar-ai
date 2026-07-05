@@ -133,7 +133,7 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
       continue
     }
 
-    const needsReview = !latestReview || session.feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
+    const needsReview = !latestReview || (!READY_LABELS.has(latestReview.label) && session.feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type)))
     const hasIssueLabel = session.qualityReviews.some((review) => isIssueReview(review.label, review.severity))
     if (needsReview || hasIssueLabel) {
       stats.unresolvedIssues += 1
