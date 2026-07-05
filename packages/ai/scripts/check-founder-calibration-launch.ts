@@ -12,12 +12,12 @@ const handoff = buildFounderCalibrationHandoffReport(report, {
 })
 
 if (report.readiness.ready) {
-  console.log("Founder calibration launch is ready.")
+  console.log("Founder calibration live actions are complete.")
   printHandoff()
   process.exit(0)
 }
 
-console.log("Founder calibration launch is not ready.")
+console.log("Founder calibration has remaining live founder actions.")
 for (const blocker of report.blockers) {
   console.log(`- ${blocker}`)
 }

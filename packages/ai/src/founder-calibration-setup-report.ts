@@ -111,6 +111,7 @@ export type FounderCalibrationJournalReadiness = {
   needsFounderFeedbackNote: boolean
   founderFeedbackNoteHref: string | null
   sessionCount: number
+  feedbackEvidenceCount: number
   feedbackNoteCount: number
   reviewedSessionCount: number
   goldenExampleCount: number
@@ -374,6 +375,7 @@ export function buildFounderCalibrationJournalReadiness(input: {
       needsFounderFeedbackNote: false,
       founderFeedbackNoteHref: null,
       sessionCount: 0,
+      feedbackEvidenceCount: 0,
       feedbackNoteCount: 0,
       reviewedSessionCount: 0,
       goldenExampleCount: 0,
@@ -395,6 +397,7 @@ export function buildFounderCalibrationJournalReadiness(input: {
     needsFounderFeedbackNote: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackEvidenceCount === 0,
     founderFeedbackNoteHref: participant?.latestSessionHref ?? null,
     sessionCount,
+    feedbackEvidenceCount,
     feedbackNoteCount,
     reviewedSessionCount,
     goldenExampleCount,
@@ -813,7 +816,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   if (participant.goldenExampleCount === 0) {
     return `The first calibration evidence is captured. Golden examples are optional now; continue with the next useful guided session or mark examples later when one clearly stands out. Continue here: ${primaryPath}`
   }
-  return `Founder calibration is ready for another guided session. Open /journal, use the next useful guided scenario, and leave a feedback note after the reflection. Continue here: ${primaryPath}`
+  return `Founder calibration is ready for another guided session. Open /journal, use the next useful guided scenario, and choose a feedback type after the reflection. Add a note only when a specific tuning detail matters. Continue here: ${primaryPath}`
 }
 
 function buildParticipantMissingActions(input: {

@@ -12,7 +12,7 @@ Current admin routes:
 - `/users`: users, roles, account dates, entry counts.
 - `/subscriptions`: subscription state and billing metadata.
 - `/safety`: safety events and flagged entry metadata.
-- `/health`: database, runtime configuration, founder launch gate, auth abuse pressure, and voice usage checks.
+- `/health`: database, runtime configuration, founder calibration status, auth abuse pressure, and voice usage checks.
 - `/prompts`: prompt template create/list/edit.
 - `/avatar-stages`: editable guide stage metadata. The route keeps its legacy name for compatibility.
 - `/feature-flags`: feature flag create/list/update.
@@ -22,7 +22,7 @@ Current admin routes:
 
 ## Founder Calibration Operations
 
-Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. Feedback notes and a human review are required for the founder launch gate; they are operational evidence, not a reason to stop code development.
+Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. A feedback type is enough to keep calibration moving; written notes and human reviews are useful when they capture a specific tuning detail or strong example.
 
 Use this sequence:
 
@@ -41,11 +41,11 @@ Then:
 - if a linked founder cannot sign in, use the audited super-admin temporary password reset in `/users`; do not create duplicate accounts or bypass onboarding
 - copy the Full Launch Packet or the per-founder handoff text and send it manually
 - have each founder complete onboarding/consent through the normal web app
-- have each founder run one guided journal scenario and leave a specific feedback note
-- review sessions in `/calibration/live`
-- mark strong sessions `ready`/golden or route issues to voice, source, prompt, intensity, or embodiment review
+- have each founder run one guided journal scenario and choose a feedback type
+- optionally review sessions in `/calibration/live` when feedback points to a specific issue or a strong example
+- mark strong sessions `ready`/golden or route issues to voice, source, prompt, intensity, or embodiment review when useful
 
-The launch gate is expected to fail until those live founder actions exist in the database.
+The setup report may still show live founder actions until Maria completes onboarding and her first session. That is operational handoff work, not a reason to stop app development.
 
 ## Access Control
 
@@ -107,7 +107,7 @@ After deploy:
 - visit admin `/login`
 - confirm normal `user` accounts cannot access admin routes
 - confirm `/safety` does not show raw journal content in list views
-- confirm `/health` shows database `ok`, expected runtime configuration, and the current founder launch gate state
+- confirm `/health` shows database `ok`, expected runtime configuration, and the current founder calibration state
 - reveal a flagged entry with a reason and confirm an `AuditLog` row is created
 
 ## Incident Notes

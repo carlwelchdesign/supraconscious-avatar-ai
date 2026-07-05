@@ -49,12 +49,12 @@ export default async function DashboardPage({
   const latestEntry = recentEntries[0] ?? null
   const founderCalibrationMode = founderReadiness.founderCalibrationMode
   const founderSessionCount = founderReadiness.sessionCount
-  const founderFeedbackNoteCount = founderReadiness.feedbackNoteCount
+  const founderFeedbackEvidenceCount = founderReadiness.feedbackEvidenceCount
   const founderGoldenExampleCount = founderReadiness.goldenExampleCount
   const founderNeedsSession = founderSessionCount === 0
   const founderNeedsFirstSession = founderCalibrationMode && founderNeedsSession
-  const founderNeedsFeedbackNote = founderCalibrationMode && founderSessionCount > 0 && founderFeedbackNoteCount === 0
-  const founderAwaitingReview = founderCalibrationMode && founderFeedbackNoteCount > 0 && founderGoldenExampleCount === 0
+  const founderNeedsFeedback = founderCalibrationMode && founderSessionCount > 0 && founderFeedbackEvidenceCount === 0
+  const founderCanContinueCalibration = founderCalibrationMode && founderFeedbackEvidenceCount > 0 && founderGoldenExampleCount === 0
   const founderFeedbackNoteHref = founderReadiness.founderFeedbackNoteHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
@@ -135,7 +135,7 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {founderNeedsFeedbackNote && latestEntry && (
+      {founderNeedsFeedback && latestEntry && (
         <div
           className="rounded-2xl border p-6"
           style={{
@@ -148,22 +148,22 @@ export default async function DashboardPage({
             Founder calibration next step
           </p>
           <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
-            Add one note to your latest session.
+            Choose one feedback type for your latest session.
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            A reflection was saved, but Carl/Maria calibration still needs a short note about what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
+            A reflection was saved, but Carl/Maria calibration still needs one feedback type. Add a written note only if there is a specific voice, source, intensity, embodiment, or phrasing detail to capture.
           </p>
           <Link
             href={founderFeedbackNoteHref}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
-            Add feedback note
+            Add feedback
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       )}
 
-      {founderAwaitingReview && (
+      {founderCanContinueCalibration && (
         <div
           className="rounded-2xl border p-5"
           style={{
@@ -175,7 +175,7 @@ export default async function DashboardPage({
             Founder calibration
           </p>
           <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your feedback note is saved. Keep going with another guided scenario, or open the session if you want to add more detail about what felt right or what should change.
+            Your feedback is saved. Keep going with another guided scenario, or open the session if you want to add more detail about what felt right or what should change.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
