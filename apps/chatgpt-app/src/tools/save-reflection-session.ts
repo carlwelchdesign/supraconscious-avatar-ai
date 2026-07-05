@@ -37,98 +37,26 @@ const SaveReflectionSessionSchema = z.object({
   })
 })
 
+type ReflectionSessionPrisma = Pick<typeof prisma, "journalEntry" | "entryAnalysis" | "avatarResponse" | "generatedPrompt">
+
 export async function saveReflectionSession(input: unknown, userId?: string, deps: { prisma?: typeof prisma } = {}) {
   const { prisma: prismaClient = prisma } = deps
 
   try {
-    // This tool requires authentication
     if (!userId) {
       throw new Error("Authentication required to save reflection session")
     }
 
     const validatedInput = SaveReflectionSessionSchema.parse(input)
-
-    // Create journal entry
-    const journalEntry = await prismaClient.journalEntry.create({
-      data: {
-        userId,
-        rawText: validatedInput.entryText,
-        inputMode: "text",
-        isDraft: false
-      }
-    })
-
-    // Save analysis
-    await prismaClient.entryAnalysis.create({
-      data: {
-        userId,
-        journalEntryId: journalEntry.id,
-        emotionalSignals: {
-          primary: validatedInput.analysis.emotionalSignals,
-          secondary: [],
-          intensity: 5
-        },
-        languageMarkers: {
-          repeatedWords: validatedInput.analysis.languagePatterns,
-          absolutes: [],
-          passiveVoiceExamples: [],
-          ownershipLanguageExamples: []
-        },
-        behavioralPatterns: validatedInput.analysis.behavioralPatterns.map(p => ({
-          label: p.label,
-          confidence: p.confidence,
-          evidence: []
-        })),
-        contradictionSignals: validatedInput.analysis.contradictions.map(c => ({
-          statedDesire: c.statedDesire,
-          conflictingBehavior: c.conflictingBehavior,
-          confidence: 0.8
-        })),
-        avoidanceSignals: [],
-        suggestedLevel: validatedInput.analysis.suggestedLevel,
-        safetyFlags: {
-          severity: validatedInput.analysis.safetyStatus === "crisis" ? "high" :
-                   validatedInput.analysis.safetyStatus === "needs_grounding" ? "medium" : "none",
-          flags: []
-        },
-        summary: validatedInput.analysis.summary
-      }
-    })
-
-    // Save avatar response
-    await prismaClient.avatarResponse.create({
-      data: {
-        userId,
-        journalEntryId: journalEntry.id,
-        openingLine: validatedInput.avatarResponse.openingLine || "",
-        mirror: validatedInput.avatarResponse.mirror || "",
-        patternName: validatedInput.avatarResponse.patternName || "",
-        contradiction: validatedInput.avatarResponse.contradiction || "",
-        socraticQuestion: validatedInput.avatarResponse.socraticQuestion || "",
-        integrationStep: validatedInput.avatarResponse.integrationStep || "",
-        closingLine: validatedInput.avatarResponse.closingLine || ""
-      }
-    })
-
-    // Save generated prompt
-    await prismaClient.generatedPrompt.create({
-      data: {
-        userId,
-        journalEntryId: journalEntry.id,
-        level: 3, // Default level
-        title: validatedInput.generatedPrompt.title,
-        context: validatedInput.generatedPrompt.context,
-        materials: validatedInput.generatedPrompt.materialsAndPreparation,
-        execution: validatedInput.generatedPrompt.execution,
-        integration: validatedInput.generatedPrompt.integration,
-        targetPattern: "reflection"
-      }
-    })
-
-    return {
-      sessionId: journalEntry.id,
-      saved: true
+    const transactionClient = prismaClient as ReflectionSessionPrisma & {
+      $transaction?: <T>(fn: (client: ReflectionSessionPrisma) => Promise<T>) => Promise<T>
     }
+
+    const result = typeof transactionClient.$transaction === "function"
+      ? await transactionClient.$transaction((client) => persistReflectionSession(client, validatedInput, userId))
+      : await persistReflectionSession(prismaClient, validatedInput, userId)
+
+    return result
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
@@ -137,5 +65,89 @@ export async function saveReflectionSession(input: unknown, userId?: string, dep
       throw error
     }
     throw new Error("Failed to save reflection session")
+  }
+}
+
+async function persistReflectionSession(
+  prismaClient: ReflectionSessionPrisma,
+  validatedInput: z.infer<typeof SaveReflectionSessionSchema>,
+  userId: string,
+) {
+  const journalEntry = await prismaClient.journalEntry.create({
+    data: {
+      userId,
+      rawText: validatedInput.entryText,
+      inputMode: "text",
+      isDraft: false
+    }
+  })
+
+  await prismaClient.entryAnalysis.create({
+    data: {
+      userId,
+      journalEntryId: journalEntry.id,
+      emotionalSignals: {
+        primary: validatedInput.analysis.emotionalSignals,
+        secondary: [],
+        intensity: 5
+      },
+      languageMarkers: {
+        repeatedWords: validatedInput.analysis.languagePatterns,
+        absolutes: [],
+        passiveVoiceExamples: [],
+        ownershipLanguageExamples: []
+      },
+      behavioralPatterns: validatedInput.analysis.behavioralPatterns.map(p => ({
+        label: p.label,
+        confidence: p.confidence,
+        evidence: []
+      })),
+      contradictionSignals: validatedInput.analysis.contradictions.map(c => ({
+        statedDesire: c.statedDesire,
+        conflictingBehavior: c.conflictingBehavior,
+        confidence: 0.8
+      })),
+      avoidanceSignals: [],
+      suggestedLevel: validatedInput.analysis.suggestedLevel,
+      safetyFlags: {
+        severity: validatedInput.analysis.safetyStatus === "crisis" ? "high" :
+                 validatedInput.analysis.safetyStatus === "needs_grounding" ? "medium" : "none",
+        flags: []
+      },
+      summary: validatedInput.analysis.summary
+    }
+  })
+
+  await prismaClient.avatarResponse.create({
+    data: {
+      userId,
+      journalEntryId: journalEntry.id,
+      openingLine: validatedInput.avatarResponse.openingLine || "",
+      mirror: validatedInput.avatarResponse.mirror || "",
+      patternName: validatedInput.avatarResponse.patternName || "",
+      contradiction: validatedInput.avatarResponse.contradiction || "",
+      socraticQuestion: validatedInput.avatarResponse.socraticQuestion || "",
+      integrationStep: validatedInput.avatarResponse.integrationStep || "",
+      closingLine: validatedInput.avatarResponse.closingLine || ""
+    }
+  })
+
+  await prismaClient.generatedPrompt.create({
+    data: {
+      userId,
+      journalEntryId: journalEntry.id,
+      level: 3, // Default level
+      title: validatedInput.generatedPrompt.title,
+      context: validatedInput.generatedPrompt.context,
+      materials: validatedInput.generatedPrompt.materialsAndPreparation,
+      execution: validatedInput.generatedPrompt.execution,
+      integration: validatedInput.generatedPrompt.integration,
+      targetPattern: "reflection"
+    }
+  })
+
+  return {
+    sessionId: journalEntry.id,
+    saved: true
   }
 }
