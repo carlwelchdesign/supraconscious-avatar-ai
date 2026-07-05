@@ -190,7 +190,12 @@ test("account export payload includes core privacy and billing data", () => {
       currentLevel: 2,
       avatarStage: 1,
       patternMemoryEnabled: true,
-      voiceEnabled: false,
+      voiceEnabled: true,
+      voiceAutoPlay: true,
+      voiceInputDefault: "voice",
+      voiceGender: "female",
+      voiceStyle: "soft",
+      voiceSpeed: 1.25,
     },
     journalEntries: [{ id: "entry_1", rawText: "owned journal text" }],
     patternMemories: [{ id: "pattern_1" }],
@@ -203,6 +208,12 @@ test("account export payload includes core privacy and billing data", () => {
 
   assert.equal(payload.profile.email, "founder@example.com")
   assert.equal(payload.profile.patternMemoryEnabled, true)
+  assert.equal(payload.profile.voiceEnabled, true)
+  assert.equal(payload.profile.voiceAutoPlay, true)
+  assert.equal(payload.profile.voiceInputDefault, "voice")
+  assert.equal(payload.profile.voiceGender, "female")
+  assert.equal(payload.profile.voiceStyle, "soft")
+  assert.equal(payload.profile.voiceSpeed, 1.25)
   assert.equal(payload.journalEntries.length, 1)
   assert.equal(payload.councilSessions.length, 1)
   assert.equal(payload.pilotEvents.length, 1)

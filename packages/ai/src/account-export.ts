@@ -8,6 +8,11 @@ export type AccountExportUser = {
   avatarStage?: number | null
   patternMemoryEnabled?: boolean | null
   voiceEnabled?: boolean | null
+  voiceAutoPlay?: boolean | null
+  voiceInputDefault?: string | null
+  voiceGender?: string | null
+  voiceStyle?: string | null
+  voiceSpeed?: number | null
 }
 
 export type AccountExportInputs = {
@@ -35,6 +40,11 @@ export function buildAccountExportPayload(input: AccountExportInputs) {
       avatarStage: input.user.avatarStage ?? null,
       patternMemoryEnabled: input.user.patternMemoryEnabled ?? null,
       voiceEnabled: input.user.voiceEnabled ?? null,
+      voiceAutoPlay: input.user.voiceAutoPlay ?? null,
+      voiceInputDefault: input.user.voiceInputDefault ?? null,
+      voiceGender: input.user.voiceGender ?? null,
+      voiceStyle: input.user.voiceStyle ?? null,
+      voiceSpeed: input.user.voiceSpeed ?? null,
     },
     journalEntries: input.journalEntries,
     patternMemories: input.patternMemories,
