@@ -3,6 +3,7 @@ type SmokeCase = {
   url: string
   expectedStatus: number | number[]
   expectedRedirectPath?: string
+  expectedRedirectParams?: Record<string, string>
   expectedBodyIncludes?: string[]
 }
 
@@ -55,6 +56,14 @@ const cases: SmokeCase[] = [
     url: `${webAppBaseUrl}/journal`,
     expectedStatus: [302, 303, 307, 308],
     expectedRedirectPath: "/login",
+    expectedRedirectParams: { next: "/journal" },
+  },
+  {
+    name: "web saved journal handoff protects anonymous users and preserves destination",
+    url: `${webAppBaseUrl}/journal/founder-smoke-entry?feedback=note_required`,
+    expectedStatus: [302, 303, 307, 308],
+    expectedRedirectPath: "/login",
+    expectedRedirectParams: { next: "/journal/founder-smoke-entry?feedback=note_required" },
   },
   {
     name: "admin login",
@@ -111,6 +120,9 @@ async function runSmokeCase(testCase: SmokeCase, timeout: number): Promise<Smoke
     const passedRedirect = testCase.expectedRedirectPath
       ? redirectLocationMatches(redirectLocation, testCase.expectedRedirectPath)
       : true
+    const passedRedirectParams = testCase.expectedRedirectParams
+      ? redirectParamsMatch(redirectLocation, testCase.expectedRedirectParams)
+      : true
     const body = testCase.expectedBodyIncludes ? await response.text() : ""
     const passedBody = testCase.expectedBodyIncludes
       ? testCase.expectedBodyIncludes.every((expected) => body.includes(expected))
@@ -119,10 +131,10 @@ async function runSmokeCase(testCase: SmokeCase, timeout: number): Promise<Smoke
     return {
       name: testCase.name,
       url: testCase.url,
-      passed: passedStatus && passedRedirect && passedBody,
+      passed: passedStatus && passedRedirect && passedRedirectParams && passedBody,
       status: response.status,
       redirectLocation,
-      error: passedBody ? undefined : "Response body did not include expected founder handoff form values.",
+      error: readSmokeError({ passedBody, passedRedirectParams }),
     }
   } catch (error) {
     return {
@@ -143,6 +155,31 @@ function redirectLocationMatches(location: string | null, expectedPath: string) 
   } catch {
     return location.startsWith(expectedPath)
   }
+}
+
+function redirectParamsMatch(location: string | null, expectedParams: Record<string, string>) {
+  if (!location) return false
+  const url = readRedirectUrl(location)
+  if (!url) return false
+  return Object.entries(expectedParams).every(([key, value]) => url.searchParams.get(key) === value)
+}
+
+function readRedirectUrl(location: string) {
+  try {
+    return new URL(location)
+  } catch {
+    try {
+      return new URL(location, "http://localhost")
+    } catch {
+      return null
+    }
+  }
+}
+
+function readSmokeError(input: { passedBody: boolean; passedRedirectParams: boolean }) {
+  if (!input.passedRedirectParams) return "Redirect did not preserve expected handoff parameters."
+  if (!input.passedBody) return "Response body did not include expected founder handoff form values."
+  return undefined
 }
 
 function toStatusList(status: number | number[]) {

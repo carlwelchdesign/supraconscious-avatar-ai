@@ -6,6 +6,10 @@ const SAFE_NEXT_PATHS = new Set([
   "/settings",
 ])
 
+const SAFE_NEXT_PREFIXES = [
+  "/journal/",
+]
+
 export function readSafeNextPath(value: unknown) {
   if (typeof value !== "string") return ""
   const trimmed = value.trim()
@@ -13,7 +17,7 @@ export function readSafeNextPath(value: unknown) {
   if (trimmed.includes("://")) return ""
 
   const [path] = trimmed.split(/[?#]/)
-  return SAFE_NEXT_PATHS.has(path) ? trimmed : ""
+  return SAFE_NEXT_PATHS.has(path) || SAFE_NEXT_PREFIXES.some((prefix) => path.startsWith(prefix)) ? trimmed : ""
 }
 
 export function choosePostAuthRedirect(defaultRedirect: string, requestedNext: unknown) {

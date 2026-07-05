@@ -27,7 +27,9 @@ export default function proxy(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  return NextResponse.redirect(new URL("/login", req.url))
+  const loginUrl = new URL("/login", req.url)
+  loginUrl.searchParams.set("next", `${req.nextUrl.pathname}${req.nextUrl.search}`)
+  return NextResponse.redirect(loginUrl)
 }
 
 export const config = {

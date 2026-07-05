@@ -90,6 +90,8 @@ test("required pilot consent uses the latest event per consent type", () => {
 
 test("safe next paths reject external or unsafe redirects", () => {
   assert.equal(readSafeNextPath("/journal"), "/journal")
+  assert.equal(readSafeNextPath("/journal/session_123"), "/journal/session_123")
+  assert.equal(readSafeNextPath("/journal/session_123?feedback=saved"), "/journal/session_123?feedback=saved")
   assert.equal(readSafeNextPath("/journal?from=handoff"), "/journal?from=handoff")
   assert.equal(readSafeNextPath("https://evil.example/journal"), "")
   assert.equal(readSafeNextPath("//evil.example/journal"), "")
@@ -100,6 +102,7 @@ test("post-auth redirect honors safe next only after onboarding gates", () => {
   assert.equal(choosePostAuthRedirect("/onboarding", "/journal"), "/onboarding")
   assert.equal(choosePostAuthRedirect("/onboarding", "/onboarding"), "/onboarding")
   assert.equal(choosePostAuthRedirect("/dashboard", "/journal"), "/journal")
+  assert.equal(choosePostAuthRedirect("/dashboard", "/journal/session_123"), "/journal/session_123")
   assert.equal(choosePostAuthRedirect("/dashboard", "https://evil.example"), "/dashboard")
 })
 
