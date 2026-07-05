@@ -4,8 +4,8 @@ import {
   classifyJournalSafety,
   generateSymbolicPrompt,
 } from "@inner-avatar/ai"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
 
 const GeneratePromptSchema = z.object({
@@ -18,7 +18,7 @@ const GeneratePromptSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const user = await requireAppUser()
+    const user = await requireJournalAccessUser()
     const body = GeneratePromptSchema.parse(await request.json())
     const journalEntry = await resolveLegacyJournalEntry({
       userId: user.id,
@@ -52,6 +52,10 @@ export async function POST(request: Request) {
       legacyNotice: "For the full Inner Council flow, use /api/journal/analyze.",
     })
   } catch (error) {
+    const accessError = getJournalAccessError(error)
+    if (accessError) {
+      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+    }
     const message = error instanceof Error ? error.message : "Unable to generate personalized prompt."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }

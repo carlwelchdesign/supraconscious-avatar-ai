@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 
 const FeedbackRequestSchema = z.object({
   councilSessionId: z.string().min(1),
@@ -12,7 +12,7 @@ const FeedbackRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const user = await requireAppUser()
+    const user = await requireJournalAccessUser()
     const body = FeedbackRequestSchema.parse(await request.json())
 
     const session = await prisma.councilSession.findFirst({
@@ -51,6 +51,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ feedback })
   } catch (error) {
+    const accessError = getJournalAccessError(error)
+    if (accessError) {
+      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+    }
     const message = error instanceof Error ? error.message : "Unable to save feedback."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }

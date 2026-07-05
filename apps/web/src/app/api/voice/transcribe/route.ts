@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
-import { requireAppUser } from "@inner-avatar/auth/session"
+import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { transcribeAudio } from "@/lib/voice/transcribe"
 
 export async function POST(request: Request) {
   try {
-    const user = await requireAppUser()
+    const user = await requireJournalAccessUser()
     const formData = await request.formData()
     const audio = formData.get("audio") as Blob | null
 
@@ -27,6 +27,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ text })
   } catch (error) {
+    const accessError = getJournalAccessError(error)
+    if (accessError) {
+      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+    }
     const message = error instanceof Error ? error.message : "Transcription failed."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
   }

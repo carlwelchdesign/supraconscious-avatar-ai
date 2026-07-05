@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { requireAppUser } from "@inner-avatar/auth/session"
+import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { synthesizeSpeech } from "@/lib/voice/speak"
 
@@ -13,7 +13,7 @@ const SpeakSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const user = await requireAppUser()
+    const user = await requireJournalAccessUser()
     const body = SpeakSchema.parse(await request.json())
 
     const usage = await reserveVoiceUsage("voice_speak", user.id)
@@ -31,6 +31,10 @@ export async function POST(request: Request) {
       },
     })
   } catch (error) {
+    const accessError = getJournalAccessError(error)
+    if (accessError) {
+      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+    }
     const message = error instanceof Error ? error.message : "Speech synthesis failed."
     return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
   }
