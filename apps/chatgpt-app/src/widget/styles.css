@@ -122,6 +122,12 @@ textarea:focus {
   background: #c49a2c;
 }
 
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .btn-link {
   background: none;
   color: var(--muted-plum);
@@ -159,6 +165,26 @@ textarea:focus {
 .actions {
   text-align: center;
   margin-top: 20px;
+}
+
+.status-message {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.status-success {
+  background: #eef8ef;
+  border: 1px solid #b7ddb9;
+  color: #245b29;
+}
+
+.status-error {
+  background: #fff1ef;
+  border: 1px solid #e5b1aa;
+  color: #7a2d25;
 }
 
 .loading {

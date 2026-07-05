@@ -20,6 +20,7 @@ class InnerAvatarWidget {
         this.reflectionContent = document.getElementById('reflection-content');
         this.promptContent = document.getElementById('prompt-content');
         this.loading = document.getElementById('loading');
+        this.statusMessage = document.getElementById('status-message');
     }
 
     bindEvents() {
@@ -31,10 +32,11 @@ class InnerAvatarWidget {
     async handleAnalyze() {
         const text = this.journalText.value.trim();
         if (!text) {
-            alert('Please write something to reflect on.');
+            this.setStatus('Please write something to reflect on.', 'error');
             return;
         }
 
+        this.clearStatus();
         this.showLoading();
 
         try {
@@ -50,7 +52,7 @@ class InnerAvatarWidget {
             this.showReflection();
         } catch (error) {
             console.error('Analysis failed:', error);
-            alert('Sorry, there was an error generating your reflection. Please try again.');
+            this.setStatus('Sorry, there was an error generating your reflection. Please try again.', 'error');
             this.hideLoading();
         }
     }
@@ -58,6 +60,9 @@ class InnerAvatarWidget {
     async handleSave() {
         const text = this.journalText.value.trim();
         if (!text) return;
+
+        this.setSaveState(true);
+        this.clearStatus();
 
         try {
             // Get current results
@@ -73,10 +78,12 @@ class InnerAvatarWidget {
                 generatedPrompt: prompt
             });
 
-            alert('Reflection saved! You can continue working with it in the full Inner Avatar app.');
+            this.setStatus('Reflection saved. You can continue working with it in the full Inner Avatar app.', 'success');
         } catch (error) {
             console.error('Save failed:', error);
-            alert('Sorry, there was an error saving your reflection. You can still continue in the full app.');
+            this.setStatus('Sorry, there was an error saving your reflection. You can still continue in the full app.', 'error');
+        } finally {
+            this.setSaveState(false);
         }
     }
 
@@ -103,27 +110,41 @@ class InnerAvatarWidget {
     }
 
     displayResults(analysis, reflection, prompt) {
-        // Display avatar reflection
-        let reflectionHtml = '';
-        if (reflection.openingLine) reflectionHtml += `<p><strong>${reflection.openingLine}</strong></p>`;
-        if (reflection.mirror) reflectionHtml += `<p>${reflection.mirror}</p>`;
-        if (reflection.patternName) reflectionHtml += `<p><em>Pattern: ${reflection.patternName}</em></p>`;
-        if (reflection.contradiction) reflectionHtml += `<p>${reflection.contradiction}</p>`;
-        if (reflection.socraticQuestion) reflectionHtml += `<p>${reflection.socraticQuestion}</p>`;
-        if (reflection.integrationStep) reflectionHtml += `<p>${reflection.integrationStep}</p>`;
-        if (reflection.closingLine) reflectionHtml += `<p><strong>${reflection.closingLine}</strong></p>`;
+        this.renderReflection(reflection);
+        this.renderPrompt(prompt);
+    }
 
-        this.reflectionContent.innerHTML = reflectionHtml;
+    renderReflection(reflection) {
+        this.reflectionContent.replaceChildren();
+        this.appendParagraph(this.reflectionContent, reflection.openingLine, 'strong');
+        this.appendParagraph(this.reflectionContent, reflection.mirror);
+        this.appendParagraph(this.reflectionContent, reflection.patternName ? `Pattern: ${reflection.patternName}` : '', 'em');
+        this.appendParagraph(this.reflectionContent, reflection.contradiction);
+        this.appendParagraph(this.reflectionContent, reflection.socraticQuestion);
+        this.appendParagraph(this.reflectionContent, reflection.integrationStep);
+        this.appendParagraph(this.reflectionContent, reflection.closingLine, 'strong');
+    }
 
-        // Display personalized prompt
-        let promptHtml = '';
-        if (prompt.title) promptHtml += `<p><strong>${prompt.title}</strong></p>`;
-        if (prompt.context) promptHtml += `<p>${prompt.context}</p>`;
-        if (prompt.materialsAndPreparation) promptHtml += `<p><em>Materials: ${prompt.materialsAndPreparation}</em></p>`;
-        if (prompt.execution) promptHtml += `<p>${prompt.execution}</p>`;
-        if (prompt.integration) promptHtml += `<p>${prompt.integration}</p>`;
+    renderPrompt(prompt) {
+        this.promptContent.replaceChildren();
+        this.appendParagraph(this.promptContent, prompt.title, 'strong');
+        this.appendParagraph(this.promptContent, prompt.context);
+        this.appendParagraph(this.promptContent, prompt.materialsAndPreparation ? `Materials: ${prompt.materialsAndPreparation}` : '', 'em');
+        this.appendParagraph(this.promptContent, prompt.execution);
+        this.appendParagraph(this.promptContent, prompt.integration);
+    }
 
-        this.promptContent.innerHTML = promptHtml;
+    appendParagraph(container, text, emphasis) {
+        if (!text) return;
+        const paragraph = document.createElement('p');
+        if (emphasis) {
+            const element = document.createElement(emphasis);
+            element.textContent = text;
+            paragraph.appendChild(element);
+        } else {
+            paragraph.textContent = text;
+        }
+        container.appendChild(paragraph);
     }
 
     showLoading() {
@@ -138,9 +159,25 @@ class InnerAvatarWidget {
         this.analyzeBtn.textContent = 'Reflect';
     }
 
+    setSaveState(isSaving) {
+        this.saveBtn.disabled = isSaving;
+        this.saveBtn.textContent = isSaving ? 'Saving...' : 'Save to Inner Avatar';
+    }
+
+    setStatus(message, type) {
+        this.statusMessage.textContent = message;
+        this.statusMessage.className = `status-message status-${type}`;
+    }
+
+    clearStatus() {
+        this.statusMessage.textContent = '';
+        this.statusMessage.className = 'status-message hidden';
+    }
+
     showReflection() {
         this.journalSection.classList.add('hidden');
         this.reflectionSection.classList.remove('hidden');
+        this.reflectionSection.appendChild(this.statusMessage);
     }
 }
 
