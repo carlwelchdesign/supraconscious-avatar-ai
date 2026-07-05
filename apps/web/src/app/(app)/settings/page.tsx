@@ -62,7 +62,7 @@ function StatusPill({ on }: { on: boolean }) {
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string }>
+  searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string; session?: string }>
 }) {
   const params = await searchParams
   const user = await requireAppUser()
@@ -453,6 +453,16 @@ export default async function SettingsPage({
           </p>
         </div>
         <div className="px-6">
+          {params.session === "revoked" ? (
+            <p className="mt-5 rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
+              Session revoked.
+            </p>
+          ) : null}
+          {params.session === "invalid" ? (
+            <p className="mt-5 rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              That session could not be revoked. Refresh the page and try again.
+            </p>
+          ) : null}
           {sessions.length === 0 ? (
             <p className="py-5 text-[12px] font-light text-[var(--plum-soft)]">
               No active sessions were found.

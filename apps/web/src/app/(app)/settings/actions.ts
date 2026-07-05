@@ -168,13 +168,16 @@ export async function revokeSessionsAction() {
 
 export async function revokeSessionAction(formData: FormData) {
   const user = await requireAppUser()
-  const parsed = RevokeSessionSchema.parse(Object.fromEntries(formData))
+  const parsed = RevokeSessionSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/settings?session=invalid")
+  }
   const currentSession = await getCurrentSession("web")
-  const isCurrentSession = currentSession?.id === parsed.sessionId
+  const isCurrentSession = currentSession?.id === parsed.data.sessionId
 
   const deleted = await prisma.session.deleteMany({
     where: {
-      id: parsed.sessionId,
+      id: parsed.data.sessionId,
       userId: user.id,
     },
   })
@@ -185,7 +188,7 @@ export async function revokeSessionAction(formData: FormData) {
         actorId: user.id,
         action: "session.revoke_one",
         targetType: "Session",
-        targetId: parsed.sessionId,
+        targetId: parsed.data.sessionId,
         reason: isCurrentSession ? "User revoked current session." : "User revoked one session.",
         metadata: {
           currentSession: isCurrentSession,
@@ -205,6 +208,7 @@ export async function revokeSessionAction(formData: FormData) {
   }
 
   revalidatePath("/settings")
+  redirect("/settings?session=revoked")
 }
 
 export async function deleteAccountAction(formData: FormData) {
