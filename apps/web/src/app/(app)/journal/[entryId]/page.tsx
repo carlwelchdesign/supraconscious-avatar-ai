@@ -96,7 +96,9 @@ export default async function JournalEntryPage({
   const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
-    : "Not reviewed for calibration"
+    : entry.councilSession?.feedback.some((feedback) => feedback.note?.trim())
+      ? "Feedback note saved"
+      : "Feedback note needed"
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -401,7 +403,7 @@ export default async function JournalEntryPage({
 }
 
 function describeCalibrationStatus(label: string, severity: string) {
-  if (severity === "pilot_blocker") return "Blocked for calibration"
+  if (severity === "pilot_blocker") return "Needs attention"
   if (label === "ready") return "Ready"
   if (label === "voice_good" || label === "source_good") return "Good enough"
   if (label === "voice_wrong") return "Voice issue"

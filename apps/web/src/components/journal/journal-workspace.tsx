@@ -133,12 +133,13 @@ type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
   voicePrefs?: VoicePrefs
   thresholdPrompt?: ThresholdPrompt
+  todayLabel?: string
   founderCalibrationMode?: boolean
   suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
   needsFounderFirstSessionGuide?: boolean
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
+export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, todayLabel = "", founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
@@ -390,11 +391,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               style={{ borderColor: "rgba(43,27,53,0.06)" }}
             >
               <span className="text-[12px] font-light text-[var(--plum-soft)]">
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {todayLabel}
               </span>
               <span className="text-[12px] font-light text-[var(--plum-soft)]">
                 {wordCount} {wordCount === 1 ? "word" : "words"}

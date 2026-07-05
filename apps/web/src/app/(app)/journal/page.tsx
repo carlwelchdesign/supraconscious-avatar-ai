@@ -26,6 +26,11 @@ export default async function JournalPage() {
   const today = new Date()
   const month = today.getMonth() + 1
   const day = today.getDate()
+  const todayLabel = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
   const promptSelect = {
     id: true,
     month: true,
@@ -67,6 +72,7 @@ export default async function JournalPage() {
     <JournalWorkspace
       avatarStage={guideStage as 1 | 2 | 3 | 4 | 5}
       thresholdPrompt={thresholdPrompt}
+      todayLabel={todayLabel}
       founderCalibrationMode={founderCalibrationMode}
       suggestedCalibrationScenario={suggestedCalibrationScenario}
       needsFounderFirstSessionGuide={needsFounderFirstSessionGuide}

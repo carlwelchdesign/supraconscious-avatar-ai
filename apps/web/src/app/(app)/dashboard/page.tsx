@@ -153,8 +153,24 @@ export default async function DashboardPage() {
             Founder calibration
           </p>
           <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your feedback note is saved. The next step is review: mark the session ready/golden or route it to a prompt, source, or embodiment fix.
+            Your feedback note is saved. Keep going with another guided scenario, or open the session if you want to add more detail about what felt right or what should change.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/journal"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-4 py-2 text-[12px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
+            >
+              Continue calibration
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              href={founderFeedbackNoteHref}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition-all hover:-translate-y-px"
+              style={{ borderColor: "rgba(43,27,53,0.08)" }}
+            >
+              Open latest session
+            </Link>
+          </div>
         </div>
       )}
 
