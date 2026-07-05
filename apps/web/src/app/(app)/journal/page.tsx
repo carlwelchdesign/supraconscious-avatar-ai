@@ -1,5 +1,5 @@
 import { prisma } from "@inner-avatar/db"
-import { isFounderCalibrationUser, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
+import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
@@ -23,32 +23,23 @@ export default async function JournalPage() {
     frameOfThought: true,
     socraticQuestion: true,
   } as const
-  const todaysPrompt = await prisma.curriculumDay.findFirst({
-    where: {
-      publishState: "approved_curriculum",
-      month,
-      day,
-    },
-    select: promptSelect,
-  })
-  const fallbackPrompt = todaysPrompt
-    ? null
-    : await prisma.curriculumDay.findFirst({
+  const [monthPrompts, founderReadiness] = await Promise.all([
+    prisma.curriculumDay.findMany({
       where: {
         publishState: "approved_curriculum",
         month,
       },
       orderBy: { day: "asc" },
       select: promptSelect,
-    },
-    )
+    }),
+    runFounderCalibrationJournalReadiness({
+      userId: user.id,
+      email: user.email,
+    }),
+  ])
+  const todaysPrompt = monthPrompts.find((prompt) => prompt.day === day) ?? null
+  const fallbackPrompt = todaysPrompt ? null : (monthPrompts[0] ?? null)
   const thresholdPrompt = todaysPrompt ?? fallbackPrompt
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const founderReadiness = await runFounderCalibrationJournalReadiness({
-    userId: user.id,
-    email: user.email,
-    founderCalibrationMode,
-  })
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
 
   return (
@@ -56,7 +47,7 @@ export default async function JournalPage() {
       avatarStage={guideStage as 1 | 2 | 3 | 4 | 5}
       thresholdPrompt={thresholdPrompt}
       todayLabel={todayLabel}
-      founderCalibrationMode={founderCalibrationMode}
+      founderCalibrationMode={founderReadiness.founderCalibrationMode}
       suggestedCalibrationScenario={founderReadiness.suggestedCalibrationScenario ?? undefined}
       needsFounderFirstSessionGuide={founderReadiness.needsFounderFirstSessionGuide}
       needsFounderFeedbackNote={founderReadiness.needsFounderFeedbackNote}

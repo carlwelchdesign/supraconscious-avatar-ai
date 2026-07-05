@@ -7,6 +7,7 @@ import {
   type FounderCalibrationScenario,
 } from "./founder-calibration-scenarios.js"
 import {
+  parseFounderCalibrationEmails,
   resolveFounderCalibrationUserFilter,
   type FounderCalibrationFilterMode,
   type FounderCalibrationParticipantRole,
@@ -304,15 +305,24 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
 export async function runFounderCalibrationJournalReadiness(input: {
   userId: string
   email: string
-  founderCalibrationMode: boolean
+  founderCalibrationMode?: boolean
 }): Promise<FounderCalibrationJournalReadiness> {
-  if (!input.founderCalibrationMode) {
+  if (input.founderCalibrationMode === false) {
     return buildFounderCalibrationJournalReadiness({ founderCalibrationMode: false, participant: null })
   }
 
   const participant = await readJournalParticipantSafely(input)
-  if (!participant) {
-    return buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: null })
+  if (participant.status === "missing_table") {
+    return buildFounderCalibrationJournalReadiness({
+      founderCalibrationMode: readFounderCalibrationModeFromEnv(input.email),
+      participant: null,
+    })
+  }
+  if (!participant.record) {
+    return buildFounderCalibrationJournalReadiness({
+      founderCalibrationMode: input.founderCalibrationMode ?? await readFallbackFounderCalibrationMode(input.email),
+      participant: null,
+    })
   }
 
   const report = buildFounderCalibrationSetupReportFromSnapshot({
@@ -320,16 +330,16 @@ export async function runFounderCalibrationJournalReadiness(input: {
     filterMode: "db",
     filterWarnings: [],
     participants: [{
-      id: participant.id,
-      email: participant.email,
-      participantRole: participant.participantRole,
-      status: participant.status,
-      userId: participant.user?.id ?? participant.userId,
-      userName: participant.user?.name ?? null,
-      onboardingComplete: participant.user?.onboardingComplete ?? false,
-      consentCount: participant.user?.consentEvents.length ?? 0,
-      consentRecords: participant.user?.consentEvents ?? [],
-      sessions: (participant.user?.councilSessions ?? []).map((session) => ({
+      id: participant.record.id,
+      email: participant.record.email,
+      participantRole: participant.record.participantRole,
+      status: participant.record.status,
+      userId: participant.record.user?.id ?? participant.record.userId,
+      userName: participant.record.user?.name ?? null,
+      onboardingComplete: participant.record.user?.onboardingComplete ?? false,
+      consentCount: participant.record.user?.consentEvents.length ?? 0,
+      consentRecords: participant.record.user?.consentEvents ?? [],
+      sessions: (participant.record.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
         journalEntryId: session.journalEntryId,
         createdAt: session.createdAt,
@@ -426,7 +436,7 @@ async function readSetupParticipantsSafely() {
 
 async function readJournalParticipantSafely(input: { userId: string; email: string }) {
   try {
-    return await prisma.founderCalibrationParticipant.findFirst({
+    const record = await prisma.founderCalibrationParticipant.findFirst({
       where: {
         status: "active",
         OR: [
@@ -469,10 +479,36 @@ async function readJournalParticipantSafely(input: { userId: string; email: stri
         },
       },
     })
+    return { status: "ok" as const, record }
+  } catch (error) {
+    if (isMissingFounderParticipantTable(error)) return { status: "missing_table" as const, record: null }
+    throw error
+  }
+}
+
+async function readFallbackFounderCalibrationMode(email: string) {
+  const activeParticipantCount = await readActiveFounderParticipantCountSafely()
+  if (activeParticipantCount === null) return readFounderCalibrationModeFromEnv(email)
+  if (activeParticipantCount > 0) return false
+  return readFounderCalibrationModeFromEnv(email)
+}
+
+async function readActiveFounderParticipantCountSafely() {
+  try {
+    return await prisma.founderCalibrationParticipant.count({
+      where: { status: "active" },
+    })
   } catch (error) {
     if (isMissingFounderParticipantTable(error)) return null
     throw error
   }
+}
+
+function readFounderCalibrationModeFromEnv(email: string) {
+  const normalizedEmail = email.toLowerCase()
+  const envEmails = parseFounderCalibrationEmails(process.env.FOUNDER_CALIBRATION_EMAILS)
+  if (envEmails.length > 0) return envEmails.includes(normalizedEmail)
+  return !["demo@inner-avatar.ai"].includes(normalizedEmail)
 }
 
 function isMissingFounderParticipantTable(error: unknown) {

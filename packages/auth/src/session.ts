@@ -6,6 +6,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
 import bcrypt from "bcryptjs"
 import { prisma } from "@inner-avatar/db"
 import type { SessionScope } from "@inner-avatar/types"
+import { shouldRefreshSessionLastSeen } from "./session-refresh"
 
 const SESSION_COOKIES: Record<SessionScope, string> = {
   web: "ia_web_session",
@@ -82,10 +83,7 @@ export async function getCurrentUser(scope: SessionScope = "web") {
     return null
   }
 
-  await prisma.session.update({
-    where: { id: session.id },
-    data: { lastSeenAt: new Date() },
-  })
+  await refreshSessionLastSeenIfNeeded(session)
 
   return session.user
 }
@@ -108,10 +106,7 @@ export async function getCurrentSession(scope: SessionScope = "web") {
     return null
   }
 
-  await prisma.session.update({
-    where: { id: session.id },
-    data: { lastSeenAt: new Date() },
-  })
+  await refreshSessionLastSeenIfNeeded(session)
 
   return session
 }
@@ -148,4 +143,12 @@ export function constantTimeEqual(left: string, right: string) {
   const leftBuffer = Buffer.from(left)
   const rightBuffer = Buffer.from(right)
   return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer)
+}
+
+function refreshSessionLastSeenIfNeeded(session: { id: string; lastSeenAt: Date | null }) {
+  if (!shouldRefreshSessionLastSeen(session.lastSeenAt)) return Promise.resolve()
+  return prisma.session.update({
+    where: { id: session.id },
+    data: { lastSeenAt: new Date() },
+  })
 }
