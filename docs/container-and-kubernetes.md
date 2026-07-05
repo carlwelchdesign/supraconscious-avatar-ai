@@ -15,8 +15,10 @@ yarn docker:build:chatgpt
 Prepare the local Compose database schema explicitly:
 
 ```bash
-docker compose --profile setup run --rm db-push
+yarn docker:compose:migrate
 ```
+
+For local-only schema experiments that intentionally use Prisma `db push`, run `yarn docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
 
 Run the local container stack:
 
@@ -71,7 +73,7 @@ Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUB
 
 The ChatGPT/MCP container also uses `INNER_AVATAR_WEB_URL` / `NEXT_PUBLIC_APP_URL` for widget redirects and CORS. It listens on `CHATGPT_APP_PORT` when set, otherwise on the platform-provided `PORT`, and finally defaults to `3002`. Set `CHATGPT_APP_API_TOKEN` in hosted, staging, and production environments so MCP tool execution requires a bearer token; `/health` and tool metadata can remain public.
 
-Migrations are not run automatically when web, admin, or ChatGPT containers boot. Local Compose uses the explicit `db-push` setup service. Production schema changes should remain a controlled release step.
+Migrations are not run automatically when web, admin, or ChatGPT containers boot. Local Compose uses the explicit `db-migrate` setup service by default. Production schema changes should remain a controlled release step.
 
 ## Container Shape
 

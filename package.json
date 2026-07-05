@@ -18,6 +18,8 @@
     "docker:build:web": "docker build -f apps/web/Dockerfile -t inner-avatar-web:latest .",
     "docker:build:admin": "docker build -f apps/admin/Dockerfile -t inner-avatar-admin:latest .",
     "docker:build:chatgpt": "docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:latest .",
+    "docker:compose:migrate": "docker compose --profile setup run --rm db-migrate",
+    "docker:compose:db-push": "docker compose --profile setup run --rm db-push",
     "docker:compose:up": "docker compose up --build",
     "docker:compose:down": "docker compose down",
     "build": "turbo build",

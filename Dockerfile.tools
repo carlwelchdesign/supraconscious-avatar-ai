@@ -20,4 +20,4 @@ COPY packages/ui/package.json ./packages/ui/package.json
 
 RUN node .yarn/releases/yarn-4.cjs install --immutable
 
-CMD ["node", ".yarn/releases/yarn-4.cjs", "db:push"]
+CMD ["node", ".yarn/releases/yarn-4.cjs", "db:migrate:deploy"]

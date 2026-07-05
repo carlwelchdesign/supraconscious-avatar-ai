@@ -15,10 +15,23 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  db-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.tools
+    environment:
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - setup
+
   db-push:
     build:
       context: .
       dockerfile: Dockerfile.tools
+    command: ["node", ".yarn/releases/yarn-4.cjs", "db:push"]
     environment:
       DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
     depends_on:
