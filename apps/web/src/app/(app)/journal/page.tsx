@@ -48,7 +48,10 @@ export default async function JournalPage() {
   const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
   const suggestedScenario = founderParticipant?.scenarioStatus.find((item) => !item.completed)?.scenario
   const suggestedCalibrationScenario = suggestedScenario === "freeform" ? undefined : suggestedScenario
-  const needsFounderFirstSessionGuide = founderCalibrationMode && Boolean(founderParticipant) && ((founderParticipant?.sessionCount ?? 0) === 0 || (founderParticipant?.feedbackNoteCount ?? 0) === 0)
+  const founderSessionCount = founderParticipant?.sessionCount ?? 0
+  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
+  const needsFounderFirstSessionGuide = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount === 0
+  const needsFounderFeedbackNote = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount > 0 && founderFeedbackNoteCount === 0
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
 
   return (
@@ -59,6 +62,8 @@ export default async function JournalPage() {
       founderCalibrationMode={founderCalibrationMode}
       suggestedCalibrationScenario={suggestedCalibrationScenario}
       needsFounderFirstSessionGuide={needsFounderFirstSessionGuide}
+      needsFounderFeedbackNote={needsFounderFeedbackNote}
+      founderFeedbackNoteHref={founderParticipant?.latestSessionHref ?? null}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,

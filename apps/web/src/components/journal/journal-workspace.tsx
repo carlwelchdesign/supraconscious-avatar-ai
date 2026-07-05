@@ -137,9 +137,21 @@ type Props = {
   founderCalibrationMode?: boolean
   suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
   needsFounderFirstSessionGuide?: boolean
+  needsFounderFeedbackNote?: boolean
+  founderFeedbackNoteHref?: string | null
 }
 
-export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt = null, todayLabel = "", founderCalibrationMode = false, suggestedCalibrationScenario, needsFounderFirstSessionGuide = false }: Props) {
+export function JournalWorkspace({
+  avatarStage = 1,
+  voicePrefs,
+  thresholdPrompt = null,
+  todayLabel = "",
+  founderCalibrationMode = false,
+  suggestedCalibrationScenario,
+  needsFounderFirstSessionGuide = false,
+  needsFounderFeedbackNote = false,
+  founderFeedbackNoteHref = null,
+}: Props) {
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
@@ -310,13 +322,26 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </p>
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
-                  Suggested first run: {suggestedPrompt.label}
+                  {needsFounderFirstSessionGuide ? "Suggested first run" : "Suggested next guided scenario"}: {suggestedPrompt.label}
                 </p>
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
                   First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, choose a feedback type, and leave one short note. Notes do not retrain the guide automatically.
                 </p>
+              )}
+              {needsFounderFeedbackNote && (
+                <div className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
+                  <p>
+                    A first reflection is already saved. Add one specific feedback note to that saved session before starting more calibration runs.
+                  </p>
+                  {founderFeedbackNoteHref && (
+                    <Link href={founderFeedbackNoteHref} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--primary)] hover:text-[var(--clay)]">
+                      Open saved session
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[480px] lg:justify-end">
