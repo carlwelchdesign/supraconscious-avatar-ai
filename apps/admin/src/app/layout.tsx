@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{ isolation: "isolate" }} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <MuiProvider>{children}</MuiProvider>
       </body>
     </html>
