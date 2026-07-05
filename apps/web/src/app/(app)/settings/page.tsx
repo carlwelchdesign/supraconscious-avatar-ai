@@ -155,12 +155,12 @@ export default async function SettingsPage({
           />
           <SettingRow
             label="Remember recurring signals"
-            description="Stores recurring signals and short evidence excerpts unless you turn it off."
+            description="Stores recurring signals and short evidence excerpts only when this is explicitly on."
             value={
               <input
                 name="patternMemoryEnabled"
                 type="checkbox"
-                defaultChecked={user.patternMemoryEnabled ?? true}
+                defaultChecked={user.patternMemoryEnabled === true}
                 className="h-5 w-5 accent-[var(--clay)]"
                 aria-label="Enable pattern memory"
               />
