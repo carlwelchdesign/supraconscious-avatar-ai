@@ -11,15 +11,12 @@ import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./ac
 
 export default async function JournalEntryPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ entryId: string }>
-  searchParams: Promise<{ feedbackError?: string }>
 }) {
   const user = await requireAppUser()
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
-  const query = await searchParams
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
     include: {
@@ -96,7 +93,6 @@ export default async function JournalEntryPage({
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
     : "Not reviewed for calibration"
-  const feedbackErrorMessage = readFeedbackErrorMessage(query.feedbackError)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -310,12 +306,7 @@ export default async function JournalEntryPage({
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                A specific note is required for Carl/Maria calibration evidence.
-              </p>
-            )}
-            {feedbackErrorMessage && (
-              <p className="mt-3 rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--destructive)]" style={{ borderColor: "rgba(191,64,64,0.2)", background: "rgba(191,64,64,0.06)" }}>
-                {feedbackErrorMessage}
+                Notes are optional now. Use them only when they help explain what should change.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -340,14 +331,13 @@ export default async function JournalEntryPage({
               <textarea
                 name="note"
                 maxLength={500}
-                required={founderCalibrationMode}
-                placeholder={founderCalibrationMode ? "Required note: what felt right, what felt wrong, what Maria would say differently, or which source felt unsupported." : "Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."}
+                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
                 className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
               {founderCalibrationMode && (
                 <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
-                  Include a few specific words about what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
+                  Notes are optional now. Add one only when it helps clarify what should change.
                 </p>
               )}
               <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
@@ -407,11 +397,4 @@ function describeCalibrationStatus(label: string, severity: string) {
   if (label === "source_unsupported") return "Source issue"
   if (label === "too_generic" || label === "too_intense") return "Prompt issue"
   return label.replaceAll("_", " ")
-}
-
-function readFeedbackErrorMessage(value: string | undefined) {
-  if (value === "founder_note_required") {
-    return "Founder calibration feedback needs a specific note with a few words beyond the template."
-  }
-  return null
 }

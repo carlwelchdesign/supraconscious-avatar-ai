@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const user = await requireAppUser()
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const [entryCount, patternCount, recentEntries, latestCouncilSession, setupReport] = await Promise.all([
+  const [entryCount, patternCount, recentEntries, setupReport] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
@@ -36,28 +36,14 @@ export default async function DashboardPage() {
         },
       },
     }),
-    founderCalibrationMode
-      ? prisma.councilSession.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        select: { journalEntryId: true },
-      })
-      : Promise.resolve(null),
     founderCalibrationMode ? runFounderCalibrationSetupReport() : Promise.resolve(null),
   ])
 
   const latestEntry = recentEntries[0] ?? null
   const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
   const founderSessionCount = founderParticipant?.sessionCount ?? 0
-  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
   const founderNeedsSession = founderSessionCount === 0
-  const founderNeedsFeedbackNote = founderSessionCount > 0 && founderFeedbackNoteCount === 0
-  const founderFirstSessionHref = founderNeedsFeedbackNote && latestCouncilSession ? `/journal/${latestCouncilSession.journalEntryId}` : "/journal"
-  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && (founderNeedsSession || founderNeedsFeedbackNote)
-  const founderNeedsReview = founderCalibrationMode && Boolean(founderParticipant) && (founderParticipant?.sessionCount ?? 0) > 0 && (founderParticipant?.reviewedSessionCount ?? 0) === 0
-  const adminReviewHref = user.role === "admin" || user.role === "super_admin"
-    ? `${readAdminBaseUrl()}/calibration/live`
-    : null
+  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && founderNeedsSession
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -105,47 +91,18 @@ export default async function DashboardPage() {
             Founder calibration next step
           </p>
           <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
-            {founderNeedsFeedbackNote ? "Add a specific feedback note." : "Run one guided calibration session."}
+            Run one guided calibration session.
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            {founderNeedsFeedbackNote
-              ? "Your first calibration session was captured. Add a feedback type and a specific note so the admin review can decide whether it is ready, a golden example, or a prompt/source/embodiment issue."
-              : "Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave a specific note. The note is reviewed for Carl/Maria calibration and does not automatically retrain the guide."}
+            Use the suggested guided scenario and submit one reflection. Feedback notes are optional now; add one only when it helps explain what should change.
           </p>
           <Link
-            href={founderFirstSessionHref}
+            href="/journal"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
-            {founderNeedsFeedbackNote ? "Open saved session" : "Open guided journal"}
+            Open guided journal
             <ArrowRight className="h-4 w-4" />
           </Link>
-        </div>
-      )}
-
-      {founderNeedsReview && (
-        <div
-          className="rounded-2xl border p-6"
-          style={{
-            background: "var(--pearl)",
-            borderColor: "rgba(43,27,53,0.07)",
-          }}
-        >
-          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-            Founder calibration status
-          </p>
-          <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your first calibration evidence has been captured. The admin review step is next: mark it ready/golden or route it to a voice, source, prompt, intensity, or embodiment fix.
-          </p>
-          {adminReviewHref && (
-            <Link
-              href={adminReviewHref}
-              className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
-              style={{ borderColor: "rgba(43,27,53,0.08)" }}
-            >
-              Open admin review
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          )}
         </div>
       )}
 
@@ -374,8 +331,4 @@ export default async function DashboardPage() {
       )}
     </div>
   )
-}
-
-function readAdminBaseUrl() {
-  return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001").replace(/\/+$/, "")
 }

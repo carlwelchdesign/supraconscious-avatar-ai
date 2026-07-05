@@ -242,11 +242,10 @@ export function buildFounderCalibrationLaunchPacket(
 
   lines.push(
     "## After First Sessions",
-    "- Review sessions in admin live review.",
-    "- Mark strong sessions ready/golden or assign a voice, source, prompt, intensity, or embodiment issue.",
+    "- Continue with the next useful guided journal pass.",
+    "- Add feedback notes or mark strong sessions ready/golden when the evidence is useful, not as a blocker.",
     "- Run: yarn report:founder-calibration",
     "- Run: yarn report:founder-calibration-comparison",
-    "- Run: yarn check:founder-calibration-launch",
   )
 
   return lines.join("\n")

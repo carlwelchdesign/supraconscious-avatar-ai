@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { emitPilotEvent } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -16,16 +16,12 @@ const FeedbackSchema = z.object({
 export async function submitSavedSessionFeedbackAction(formData: FormData) {
   const user = await requireAppUser()
   const parsed = FeedbackSchema.parse(Object.fromEntries(formData))
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
 
   const session = await prisma.councilSession.findFirst({
     where: { id: parsed.councilSessionId, userId: user.id },
     select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },
   })
   if (!session) throw new Error("Council session not found.")
-  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.note)) {
-    redirect(`/journal/${session.journalEntryId}?feedbackError=founder_note_required`)
-  }
 
   await prisma.councilSessionFeedback.create({
     data: {

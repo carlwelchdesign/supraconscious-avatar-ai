@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
-import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -204,8 +204,6 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       return `${prev}\n\n${promptText}`
     })
   }
-  const founderFeedbackNoteRequired = founderCalibrationMode && result?.councilSession && !isFounderCalibrationFeedbackNoteUseful(feedbackNote)
-
   const applyFeedbackTemplate = (template: string) => {
     setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
   }
@@ -651,18 +649,18 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 Session feedback
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Help tune the founder calibration loop. Your feedback note is reviewed for Carl/Maria calibration; it does not automatically retrain the guide or act as a diagnosis.
+                Help tune the founder calibration loop when something stands out. Feedback does not automatically retrain the guide or act as a diagnosis.
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  A specific note is required for Carl/Maria calibration evidence.
+                  Notes are optional now. Add one only when it helps explain what felt right, wrong, unsupported, or unlike Maria&apos;s phrasing.
                 </p>
               )}
               <textarea
                 value={feedbackNote}
                 onChange={(event) => setFeedbackNote(event.target.value)}
                 maxLength={500}
-                placeholder={founderCalibrationMode ? "Required note: what felt right, what felt wrong, what Maria would say differently, or which source felt unsupported." : "Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."}
+                placeholder="Optional note for calibration: what felt wrong, what Maria would say differently, or which source felt unsupported."
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
@@ -692,7 +690,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   <button
                     key={value}
                     type="button"
-                    disabled={isSavingFeedback || Boolean(founderFeedbackNoteRequired)}
+                    disabled={isSavingFeedback}
                     onClick={() => handleSessionFeedback(value)}
                     className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
                     style={{ borderColor: "rgba(43,27,53,0.08)" }}
@@ -701,11 +699,6 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                   </button>
                 ))}
               </div>
-              {founderFeedbackNoteRequired && (
-                <p className="mt-3 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Add a specific note with a few words beyond the template before choosing a feedback type.
-                </p>
-              )}
               {feedbackSaved && (
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">

@@ -116,16 +116,15 @@ For the founder calibration code path, run the full verifier:
 yarn verify:founder-calibration-code
 ```
 
-This checks Prisma generation, auth tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready; it does not replace the live founder launch gate.
+This checks Prisma generation, auth tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
 
-Before asking Carl and Maria to start live sessions, print the current launch packet and confirm the live gate status:
+Before asking Carl and Maria to start live sessions, print the current launch packet:
 
 ```bash
 yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
-yarn check:founder-calibration-launch
 ```
 
-The launch gate should remain blocked until Carl and Maria complete onboarding, consent, first guided sessions, feedback notes, and admin review.
+Founder reports are operational visibility. Feedback notes and ready/golden reviews are useful calibration evidence, not blockers for continued app development.
 
 To build and test the ChatGPT MCP server package locally:
 

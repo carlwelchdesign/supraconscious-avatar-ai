@@ -22,7 +22,7 @@ Current admin routes:
 
 ## Founder Calibration Operations
 
-Founder calibration is for Carl and Maria only until the live launch gate passes. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent.
+Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. Feedback notes and golden examples are useful calibration evidence, not blockers for continued app development.
 
 Use this sequence:
 
@@ -31,7 +31,6 @@ yarn verify:founder-calibration-code
 yarn dev:founder-calibration
 yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3
 yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
-yarn check:founder-calibration-launch
 ```
 
 Then:
