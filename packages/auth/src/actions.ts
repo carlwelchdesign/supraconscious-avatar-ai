@@ -264,7 +264,7 @@ export async function verifyEmailAction(_state: AuthActionState, formData: FormD
   const result = await verifyEmailWithToken(parsed.data.token)
   if (!result.verified) return { error: result.error ?? "Could not verify email." }
 
-  return { success: "Your email is verified. You can continue using Inner Avatar." }
+  return { success: "Your email is verified. You can continue using Supraconscious." }
 }
 
 export async function requestPasswordResetAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {

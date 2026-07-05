@@ -22,8 +22,8 @@ const plans = [
     name: "Pro",
     price: "$19",
     plan: "pro",
-    description: "Deeper pattern review and richer Avatar continuity.",
-    features: ["Everything in Starter", "Expanded pattern dashboard", "Avatar progression", "Priority AI usage"],
+    description: "Deeper pattern review and richer guide continuity.",
+    features: ["Everything in Starter", "Expanded pattern dashboard", "Guide progression", "Priority AI usage"],
   },
 ] as const
 

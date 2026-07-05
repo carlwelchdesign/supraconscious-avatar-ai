@@ -35,7 +35,7 @@ export function AvatarOrb({ stage = 1, size = "md", className, priority }: Avata
     >
       <Image
         src={src}
-        alt={`Avatar stage ${stage}`}
+        alt={`Guide stage ${stage}`}
         fill
         sizes={`${px}px`}
         className="object-contain"

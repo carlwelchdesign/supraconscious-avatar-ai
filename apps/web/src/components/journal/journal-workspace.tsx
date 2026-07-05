@@ -466,7 +466,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
         {/* ── Reflection panel ───────────────────────────────────── */}
         <aside className="space-y-4">
 
-          {/* Avatar header */}
+          {/* Guide header */}
           <div
             className="rounded-3xl border p-6"
             style={{
@@ -477,7 +477,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
             <div className="flex flex-col items-center text-center mb-5">
               <AvatarOrb size="lg" stage={result ? result.progression.newStage as 1|2|3|4|5 : avatarStage} className="mb-3" />
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-                Avatar Response
+                Guide Response
               </p>
               <p className="text-[12px] font-light text-[var(--plum-soft)]">
                 {result

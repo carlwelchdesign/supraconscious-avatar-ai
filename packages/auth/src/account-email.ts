@@ -40,18 +40,18 @@ export async function requestEmailVerificationForUser(user: UserEmailTarget): Pr
   const url = await buildAppUrl(`/verify-email?token=${encodeURIComponent(token)}`)
   const email = await sendTransactionalEmail({
     to: user.email,
-    subject: "Verify your Inner Avatar email",
+    subject: "Verify your Supraconscious email",
     text: [
       `Hi ${user.name ?? "there"},`,
       "",
-      "Verify your Inner Avatar email by opening this link:",
+      "Verify your Supraconscious email by opening this link:",
       url,
       "",
       "This link expires in 24 hours. If you did not request this, you can ignore this email.",
     ].join("\n"),
     html: [
       `<p>Hi ${escapeHtml(user.name ?? "there")},</p>`,
-      "<p>Verify your Inner Avatar email by opening this link:</p>",
+      "<p>Verify your Supraconscious email by opening this link:</p>",
       `<p><a href="${escapeHtml(url)}">Verify email</a></p>`,
       "<p>This link expires in 24 hours. If you did not request this, you can ignore this email.</p>",
     ].join(""),
@@ -155,18 +155,18 @@ export async function requestPasswordResetByEmail(email: string): Promise<Accoun
   const url = await buildAppUrl(`/reset-password?token=${encodeURIComponent(token)}`)
   const emailResult = await sendTransactionalEmail({
     to: user.email,
-    subject: "Reset your Inner Avatar password",
+    subject: "Reset your Supraconscious password",
     text: [
       `Hi ${user.name ?? "there"},`,
       "",
-      "Reset your Inner Avatar password by opening this link:",
+      "Reset your Supraconscious password by opening this link:",
       url,
       "",
       "This link expires in 60 minutes. If you did not request this, you can ignore this email.",
     ].join("\n"),
     html: [
       `<p>Hi ${escapeHtml(user.name ?? "there")},</p>`,
-      "<p>Reset your Inner Avatar password by opening this link:</p>",
+      "<p>Reset your Supraconscious password by opening this link:</p>",
       `<p><a href="${escapeHtml(url)}">Reset password</a></p>`,
       "<p>This link expires in 60 minutes. If you did not request this, you can ignore this email.</p>",
     ].join(""),

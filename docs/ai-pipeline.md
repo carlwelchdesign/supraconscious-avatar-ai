@@ -13,8 +13,8 @@ The client submits text from `JournalWorkspace`. The route:
 5. Logs a `SafetyEvent` when needed.
 6. If high-risk or reflective flow is blocked, stores a grounded response and grounding prompt.
 7. Otherwise runs structured entry analysis.
-8. Generates the Avatar response and symbolic prompt.
-9. Stores `EntryAnalysis`, `AvatarResponse`, and `GeneratedPrompt`.
+8. Generates the guide response and symbolic prompt.
+9. Stores `EntryAnalysis`, `AvatarResponse`, and `GeneratedPrompt` for compatibility.
 10. Updates `PatternMemory`.
 11. Checks level/stage progression.
 12. Returns all data to the journal UI.
@@ -67,9 +67,9 @@ High severity blocks normal symbolic reflection and returns a grounded support r
 
 This structured output is persisted in `EntryAnalysis` and used by downstream generation.
 
-## Avatar Response
+## Guide Response
 
-`generateAvatarResponse()` produces short fields:
+`generateAvatarResponse()` is the compatibility generator for short guide reflection fields:
 
 - opening line
 - mirror

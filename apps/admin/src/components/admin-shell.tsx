@@ -15,7 +15,7 @@ const nav = [
   { href: "/sources", label: "Sources", icon: BookOpen },
   { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },
   { href: "/council", label: "Council Review", icon: Sparkles },
-  { href: "/avatar-stages", label: "Avatar Stages", icon: BarChart3 },
+  { href: "/avatar-stages", label: "Guide Stages", icon: BarChart3 },
   { href: "/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/ai-quality", label: "AI Quality", icon: MessageSquareText },
 ]
@@ -27,7 +27,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen md:flex">
       <aside className="border-b bg-card md:sticky md:top-0 md:h-screen md:w-72 md:border-b-0 md:border-r">
         <div className="border-b p-5">
-          <Link href="/" className="text-lg font-semibold">Inner Avatar Admin</Link>
+          <Link href="/" className="text-lg font-semibold">Supraconscious Admin</Link>
           <p className="mt-1 text-xs text-muted-foreground">{user?.email}</p>
         </div>
         <nav className="grid gap-1 p-3">

@@ -5,7 +5,7 @@
 Voice is optional and controlled per user in settings. It includes:
 
 - microphone input for journal transcription
-- text-to-speech playback for Avatar responses
+- text-to-speech playback for guide responses
 - voice preferences for gender, style, speed, default input mode, and autoplay
 
 Preferences are stored on `User`.

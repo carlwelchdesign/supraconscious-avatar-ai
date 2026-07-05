@@ -10,7 +10,7 @@ export default async function AvatarStagesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Avatar Stages</h1>
+      <h1 className="text-2xl font-semibold">Guide Stages</h1>
       <Card>
         <CardHeader>
           <CardTitle>Create or Update Stage</CardTitle>

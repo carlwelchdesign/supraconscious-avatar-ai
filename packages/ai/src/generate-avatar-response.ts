@@ -67,7 +67,7 @@ Always include one small integration step.`,
   })
 
   if (!response.output_parsed) {
-    throw new Error("Avatar generator returned no structured output.")
+    throw new Error("Guide generator returned no structured output.")
   }
 
   return response.output_parsed

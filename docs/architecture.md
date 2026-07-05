@@ -8,7 +8,7 @@ The repo is a Yarn workspaces + Turborepo monorepo with two independently deploy
 - `apps/admin`: internal admin panel with its own `/login`, own session cookie, own route protection, and its own deployment target.
 - `packages/db`: Prisma schema at `packages/db/prisma/schema.prisma`, Prisma client singleton, and shared DB access.
 - `packages/auth`: password hashing, login/register/logout server actions, scoped session cookies, and RBAC guards.
-- `packages/ai`: OpenAI client helper, Zod schemas, safety classifier, analysis, Avatar response, prompt generation, pattern memory, and progression logic.
+- `packages/ai`: OpenAI client helper, Zod schemas, safety classifier, analysis, Inner Council and guide response generation, prompt generation, pattern memory, and progression logic.
 - `packages/billing`: Stripe checkout, billing portal, webhook sync helpers, plan mapping, and subscription status normalization.
 - `packages/ui`: shared UI primitives and visual components used by both apps.
 - `packages/types`: shared TypeScript unions such as `UserRole` and `SessionScope`.
@@ -54,12 +54,12 @@ Core models:
 
 - `User`: account, role, reflection preferences, progression state, safety/memory flags, and voice preferences.
 - `Session`: hashed session token, expiry, last-seen timestamp, and `scope` (`web` or `admin`).
-- `JournalEntry`, `EntryAnalysis`, `AvatarResponse`, `GeneratedPrompt`, `PatternMemory`, `SafetyEvent`: journaling and AI pipeline data.
+- `JournalEntry`, `EntryAnalysis`, `AvatarResponse`, `GeneratedPrompt`, `PatternMemory`, `SafetyEvent`: journaling and AI pipeline data. Some model names retain legacy `Avatar` wording for compatibility.
 - `Subscription`: Stripe subscription metadata synced from checkout and webhook events.
 - `AuditLog`: immutable record of sensitive admin actions.
 - `PromptTemplate`: admin-managed prompt/system text.
 - `FeatureFlag`: admin-managed product gates.
-- `AvatarStageConfig`: editable admin metadata for Avatar stages.
+- `AvatarStageConfig`: editable admin metadata for guide stages. The model name retains legacy `Avatar` wording for compatibility.
 
 ## Styling
 

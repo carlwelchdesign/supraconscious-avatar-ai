@@ -11,7 +11,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/patterns", label: "Patterns", icon: BarChart2 },
-  { href: "/avatar", label: "Avatar", icon: Sparkles },
+  { href: "/avatar", label: "Guide", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
@@ -50,7 +50,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Avatar presence + user */}
+        {/* Guide presence + user */}
         <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
           <div className="flex flex-col items-center text-center mb-4">
             <AvatarOrb size="xs" stage={(user?.avatarStage ?? 1) as 1|2|3|4|5} className="mb-2" />

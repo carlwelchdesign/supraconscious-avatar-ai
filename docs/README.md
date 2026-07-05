@@ -1,4 +1,4 @@
-# Inner Avatar AI Documentation
+# Supraconscious Documentation
 
 This documentation describes the current monorepo. Update it whenever auth, database models, AI behavior, deployment scripts, or user-facing flows change.
 
@@ -7,7 +7,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Architecture](architecture.md): workspace structure, app boundaries, data flow, and major packages.
 - [Local Setup and Deployment](setup-and-deployment.md): environment variables, Yarn commands, Prisma setup, and Vercel notes.
 - [Authentication](authentication.md): first-party login, scoped sessions, route protection, and admin RBAC.
-- [AI Journaling Pipeline](ai-pipeline.md): safety, analysis, Avatar response, prompt generation, pattern memory, and progression.
+- [AI Journaling Pipeline](ai-pipeline.md): safety, analysis, Inner Council response generation, embodiment prompts, pattern memory, and progression.
 - [Voice Features](voice.md): microphone transcription, text-to-speech playback, preferences, and API routes.
 - [Voice Browser Troubleshooting](voice-browser-troubleshooting.md): browser and device-specific microphone/playback support notes.
 - [Admin and Operations](admin-and-operations.md): separate admin app, privacy controls, audit logging, users, subscriptions, safety, prompt templates, feature flags, and operational checks.
@@ -21,7 +21,7 @@ Pull requests run CI for Prisma validation, typecheck, lint, AI/RAG/pilot/founde
 
 ## Current Product
 
-Inner Avatar is a private guided journaling SaaS. A registered user writes or dictates an entry, the backend runs a safety check, analyzes the entry into structured data, generates a short Avatar reflection, creates a symbolic prompt, updates pattern memory, and may advance the user's level or Avatar stage.
+Supraconscious is a private guided journaling SaaS centered on Maria-grounded Inner Council reflection. A registered user writes or dictates an entry, the backend runs a safety check, analyzes the entry into structured data, generates a bounded council reflection with a guide synthesis, creates an embodiment prompt, updates pattern memory when consent allows it, and may advance the user's reflection level or guide stage.
 
 The product positioning is reflective journaling, not therapy, diagnosis, or treatment.
 

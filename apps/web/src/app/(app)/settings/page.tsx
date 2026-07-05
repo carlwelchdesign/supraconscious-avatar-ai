@@ -94,7 +94,7 @@ export default async function SettingsPage({
           Your privacy & preferences
         </h1>
         <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          Your journal is private by default. These controls let you shape how your Avatar works.
+          Your journal is private by default. These controls let you shape how your guide works.
         </p>
       </div>
 
@@ -135,8 +135,8 @@ export default async function SettingsPage({
         </div>
         <form action={updateReflectionPreferences} className="px-6">
           <SettingRow
-            label="Avatar tone"
-            description="How your Avatar speaks to you during reflections."
+            label="Guide tone"
+            description="How your guide speaks to you during reflections."
             value={
               <span className="font-medium text-[var(--primary)]">
                 {user.avatarTone ?? "Gentle"}
@@ -145,7 +145,7 @@ export default async function SettingsPage({
           />
           <SettingRow
             label="Reflection intensity"
-            description="How deeply your Avatar engages with each entry."
+            description="How deeply your guide engages with each entry."
             value={
               <span className="font-medium text-[var(--primary)]">
                 {user.intensityLevel ?? 1} / 5
@@ -300,7 +300,7 @@ export default async function SettingsPage({
             value={user.name ?? "—"}
           />
           <SettingRow
-            label="Avatar stage"
+            label="Guide stage"
             description="Your current stage of reflection depth."
             value={
               <span className="font-medium text-[var(--primary)]">

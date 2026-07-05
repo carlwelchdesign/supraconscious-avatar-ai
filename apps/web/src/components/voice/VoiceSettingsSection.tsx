@@ -132,11 +132,11 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
             />
           </Row>
 
-          <Row inline label="Auto-play responses" description="Play the Avatar response as audio after each reflection.">
+          <Row inline label="Auto-play responses" description="Play the guide response as audio after each reflection.">
             <Toggle name="voiceAutoPlay" defaultChecked={initial.voiceAutoPlay} />
           </Row>
 
-          <Row label="Voice character" description="Choose the tone of your Avatar's voice.">
+          <Row label="Voice character" description="Choose the tone of your guide's voice.">
             <div className="space-y-2.5">
               <PillGroup
                 name="voiceGender"

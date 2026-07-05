@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── Inner Avatar Design System ─────────────────────────────────── */
+/* ─── Supraconscious Design System ───────────────────────────────── */
 :root {
   /* Surfaces */
   --background: #F4EDE4;
@@ -87,7 +87,7 @@ body {
   border-color: var(--border);
 }
 
-/* ─── Avatar Orb Animations ─────────────────────────────────────────── */
+/* ─── Guide Orb Animations ─────────────────────────────────────────── */
 @keyframes orb-breathe {
   0%, 100% {
     transform: scale(1);

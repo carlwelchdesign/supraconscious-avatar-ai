@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 const BASE_URL = 'http://localhost:3002';
 
 async function testWidget() {
-  console.log('🧪 Testing Inner Avatar ChatGPT Widget...\n');
+  console.log('🧪 Testing Supraconscious ChatGPT Widget...\n');
 
   try {
     // Test 1: Check widget HTML loads

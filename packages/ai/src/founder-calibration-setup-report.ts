@@ -587,7 +587,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const primaryPath = primaryHandoffHref ?? "/journal"
   const feedbackInstruction = "Submit one reflection and select a feedback type. Add a note only when it helps explain what felt right, wrong, unsupported, or unlike Maria's phrasing."
   if (!participant.accountExists) {
-    return `Please register for Inner Avatar using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
+    return `Please register for Supraconscious using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || !participant.consentPresent) {
     return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Continue here: ${primaryPath}`

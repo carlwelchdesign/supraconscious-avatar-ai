@@ -226,7 +226,7 @@ model FeatureFlag {
   @@index([enabled])
 }
 
-// Avatar stage config - editable admin metadata for stage presentation
+// Guide stage config - editable admin metadata for stage presentation
 model AvatarStageConfig {
   id          String   @id @default(cuid())
   stage       Int      @unique
@@ -292,7 +292,7 @@ model EntryAnalysis {
   @@index([createdAt])
 }
 
-// Avatar response - the reflective response from the Inner Avatar
+// Avatar response - legacy model name for the reflective guide response
 model AvatarResponse {
   id             String @id @default(cuid())
   journalEntryId String @unique

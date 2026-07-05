@@ -3,8 +3,8 @@ import { MuiProvider } from "@/components/mui-provider"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Inner Avatar Admin",
-  description: "Internal administration for Inner Avatar.",
+  title: "Supraconscious Admin",
+  description: "Internal administration for Supraconscious.",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
