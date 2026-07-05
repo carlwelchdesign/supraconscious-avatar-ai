@@ -13,7 +13,27 @@ const QUALITY_LABELS = [
   ["safety_concern", "Safety concern"],
 ] as const
 
-export default async function PilotReadinessPage() {
+const PILOT_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  cohort_created: { tone: "success", message: "Pilot cohort created." },
+  cohort_invalid: { tone: "error", message: "Cohort setup needs a name and reason." },
+  enrollment_saved: { tone: "success", message: "Pilot enrollment saved." },
+  enrollment_invalid: { tone: "error", message: "Enrollment needs a valid cohort, registered user email, and reason." },
+  user_missing: { tone: "error", message: "That user is not registered yet." },
+  expansion_saved: { tone: "success", message: "Pilot expansion completed and audit logs were written." },
+  expansion_invalid: { tone: "error", message: "Expansion needs a cohort, 3-5 emails, and a reason." },
+  expansion_blocked: { tone: "error", message: "Expansion is blocked by the readiness gate or missing registered users." },
+  review_saved: { tone: "success", message: "Pilot review saved." },
+  review_invalid: { tone: "error", message: "Review needs a valid session, label, disposition, and reason." },
+  session_missing: { tone: "error", message: "That council session is no longer available." },
+}
+
+export default async function PilotReadinessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? PILOT_STATUS_MESSAGES[status] : null
   const [readiness, iteration, learning, expansion, reviewCoverage] = await Promise.all([
     runPilotLaunchReadiness(),
     runPilotIterationReport(),
@@ -70,6 +90,18 @@ export default async function PilotReadinessPage() {
           Last checked {new Date(iteration.checkedAt).toLocaleString()}
         </p>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <Card className={readiness.passed ? "border-emerald-500/30" : "border-destructive/30"}>
         <CardHeader>

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { expandPilotCohort } from "@inner-avatar/ai"
 import { requireAdminUser, requireSuperAdminUser } from "@inner-avatar/auth/session"
@@ -34,11 +35,13 @@ const PilotSessionReviewSchema = z.object({
 
 export async function createPilotCohortAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = CohortSchema.parse(Object.fromEntries(formData))
+  const parsed = CohortSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/pilot?status=cohort_invalid")
+
   const cohort = await prisma.pilotCohort.create({
     data: {
-      name: parsed.name,
-      description: parsed.description,
+      name: parsed.data.name,
+      description: parsed.data.description,
       status: "active",
       createdById: actor.id,
     },
@@ -50,33 +53,36 @@ export async function createPilotCohortAction(formData: FormData) {
       action: "pilot_cohort.create",
       targetType: "PilotCohort",
       targetId: cohort.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
       metadata: { name: cohort.name },
     },
   })
 
   revalidatePath("/pilot")
+  redirect("/pilot?status=cohort_created")
 }
 
 export async function enrollPilotUserAction(formData: FormData) {
   const actor = await requireSuperAdminUser()
-  const parsed = EnrollmentSchema.parse(Object.fromEntries(formData))
+  const parsed = EnrollmentSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/pilot?status=enrollment_invalid")
+
   const user = await prisma.user.findUnique({
-    where: { email: parsed.email },
+    where: { email: parsed.data.email },
     select: { id: true, email: true },
   })
-  if (!user) throw new Error("User not found.")
+  if (!user) redirect("/pilot?status=user_missing")
 
   const enrollment = await prisma.pilotEnrollment.upsert({
     where: {
       userId_pilotCohortId: {
         userId: user.id,
-        pilotCohortId: parsed.pilotCohortId,
+        pilotCohortId: parsed.data.pilotCohortId,
       },
     },
     create: {
       userId: user.id,
-      pilotCohortId: parsed.pilotCohortId,
+      pilotCohortId: parsed.data.pilotCohortId,
       status: "invited",
     },
     update: {
@@ -91,52 +97,61 @@ export async function enrollPilotUserAction(formData: FormData) {
       action: "pilot_enrollment.upsert",
       targetType: "PilotEnrollment",
       targetId: enrollment.id,
-      reason: parsed.reason,
-      metadata: { userEmail: user.email, pilotCohortId: parsed.pilotCohortId, mode: "setup_one_off" },
+      reason: parsed.data.reason,
+      metadata: { userEmail: user.email, pilotCohortId: parsed.data.pilotCohortId, mode: "setup_one_off" },
     },
   })
 
   revalidatePath("/pilot")
+  redirect("/pilot?status=enrollment_saved")
 }
 
 export async function expandPilotCohortAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = ExpansionSchema.parse(Object.fromEntries(formData))
-  const emails = parsed.emails
+  const parsed = ExpansionSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/pilot?status=expansion_invalid")
+
+  const emails = parsed.data.emails
     .split(/[\n,]/)
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean)
 
-  await expandPilotCohort({
-    actorId: actor.id,
-    pilotCohortId: parsed.pilotCohortId,
-    emails,
-    reason: parsed.reason,
-  })
+  try {
+    await expandPilotCohort({
+      actorId: actor.id,
+      pilotCohortId: parsed.data.pilotCohortId,
+      emails,
+      reason: parsed.data.reason,
+    })
+  } catch {
+    redirect("/pilot?status=expansion_blocked")
+  }
 
   revalidatePath("/pilot")
+  redirect("/pilot?status=expansion_saved")
 }
 
 export async function reviewPilotSessionAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = PilotSessionReviewSchema.parse(Object.fromEntries(formData))
+  const parsed = PilotSessionReviewSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) redirect("/pilot?status=review_invalid")
 
   const session = await prisma.councilSession.findUnique({
-    where: { id: parsed.councilSessionId },
+    where: { id: parsed.data.councilSessionId },
     select: { id: true },
   })
-  if (!session) throw new Error("Council session not found.")
+  if (!session) redirect("/pilot?status=session_missing")
 
   const review = await prisma.qualityReview.create({
     data: {
       reviewerId: actor.id,
-      councilSessionId: parsed.councilSessionId,
+      councilSessionId: parsed.data.councilSessionId,
       targetType: "PilotSessionFeedback",
-      label: parsed.label,
-      severity: parsed.severity,
-      reason: parsed.reason,
+      label: parsed.data.label,
+      severity: parsed.data.severity,
+      reason: parsed.data.reason,
       metadata: {
-        feedbackDisposition: parsed.disposition,
+        feedbackDisposition: parsed.data.disposition,
         reviewedFrom: "admin_pilot",
       },
     },
@@ -147,17 +162,18 @@ export async function reviewPilotSessionAction(formData: FormData) {
       actorId: actor.id,
       action: "pilot_session.feedback_review.update",
       targetType: "CouncilSession",
-      targetId: parsed.councilSessionId,
-      reason: parsed.reason,
+      targetId: parsed.data.councilSessionId,
+      reason: parsed.data.reason,
       metadata: {
         qualityReviewId: review.id,
-        label: parsed.label,
-        severity: parsed.severity,
-        feedbackDisposition: parsed.disposition,
+        label: parsed.data.label,
+        severity: parsed.data.severity,
+        feedbackDisposition: parsed.data.disposition,
       },
     },
   })
 
   revalidatePath("/pilot")
   revalidatePath("/council")
+  redirect("/pilot?status=review_saved")
 }
