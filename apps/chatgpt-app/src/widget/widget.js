@@ -2,6 +2,7 @@
 class InnerAvatarWidget {
     constructor() {
         this.apiBase = window.location.origin;
+        this.webAppUrl = this.readWebAppUrl();
         this.init();
     }
 
@@ -89,7 +90,12 @@ class InnerAvatarWidget {
 
     handleContinue() {
         // Open the full Inner Avatar web app
-        window.open('https://inner-avatar.ai/dashboard', '_blank');
+        window.open(`${this.webAppUrl}/dashboard`, '_blank', 'noopener,noreferrer');
+    }
+
+    readWebAppUrl() {
+        const configuredUrl = window.INNER_AVATAR_WIDGET_CONFIG?.webAppUrl || window.location.origin;
+        return configuredUrl.replace(/\/+$/, '');
     }
 
     async callTool(toolName, input) {

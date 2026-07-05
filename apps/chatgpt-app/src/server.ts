@@ -41,6 +41,13 @@ const limiter = rateLimit({
 app.use('/api/', limiter)
 
 // Serve widget static files
+app.get('/widget/config.js', (req, res) => {
+  void req
+  const webAppUrl = normalizeBaseUrl(process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
+  res
+    .type('application/javascript')
+    .send(`window.INNER_AVATAR_WIDGET_CONFIG = ${JSON.stringify({ webAppUrl })};`)
+})
 app.use('/widget', express.static(path.join(__dirname, 'widget')))
 
 // Health check
@@ -171,9 +178,6 @@ app.post('/mcp/tools/:toolName',
   }
 })
 
-// Widget resources
-app.use('/widget', express.static(path.join(__dirname, 'widget')))
-
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   void req
@@ -192,4 +196,8 @@ export function startChatGptApp(port: number = Number(process.env.CHATGPT_APP_PO
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   startChatGptApp(PORT)
+}
+
+function normalizeBaseUrl(value: string) {
+  return value.replace(/\/+$/, '')
 }
