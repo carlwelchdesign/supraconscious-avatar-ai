@@ -25,7 +25,19 @@ const ISSUE_TYPES = [
   ["embodiment_weak", "Embodiment weak"],
 ] as const
 
-export default async function CalibrationPage() {
+const CALIBRATION_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  review_saved: { tone: "success", message: "Founder calibration review saved." },
+  review_invalid: { tone: "error", message: "Calibration review needs a valid session, label, and reason." },
+  review_missing: { tone: "error", message: "That founder calibration session is no longer available." },
+}
+
+export default async function CalibrationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? CALIBRATION_STATUS_MESSAGES[status] : null
   const [report, founderFilter] = await Promise.all([
     runFounderCalibrationReport(),
     resolveFounderCalibrationUserFilter(),
@@ -85,6 +97,18 @@ export default async function CalibrationPage() {
           </Link>
         </div>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric title="Sessions" value={report.sessionMetrics.totalSessions} />
@@ -307,6 +331,7 @@ export default async function CalibrationPage() {
 
                 <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_auto_1fr_auto]">
                   <input type="hidden" name="councilSessionId" value={session.id} />
+                  <input type="hidden" name="returnTo" value="calibration" />
                   <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-2 text-xs">
                     {LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
@@ -356,6 +381,7 @@ function PresetReviewButton({
   return (
     <form action={reviewCalibrationSessionAction}>
       <input type="hidden" name="councilSessionId" value={sessionId} />
+      <input type="hidden" name="returnTo" value="calibration" />
       <input type="hidden" name="label" value={label} />
       <input type="hidden" name="calibrationIssueType" value={issueType} />
       <input type="hidden" name="severity" value="normal" />

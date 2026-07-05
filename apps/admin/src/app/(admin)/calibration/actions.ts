@@ -21,6 +21,7 @@ const CalibrationReviewSchema = z.object({
   reason: z.string().trim().min(10, "A calibration review reason is required."),
   relatedPromptVersion: z.string().trim().optional(),
   relatedGoldenExampleId: z.string().trim().optional(),
+  returnTo: z.enum(["calibration", "calibration_live", "council"]).default("calibration"),
 })
 
 const FounderParticipantSchema = z.object({
@@ -43,28 +44,34 @@ const FounderPairSetupSchema = z.object({
 
 export async function reviewCalibrationSessionAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = CalibrationReviewSchema.parse(Object.fromEntries(formData))
+  const parsed = CalibrationReviewSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect(`${calibrationReturnPath("calibration")}?status=review_invalid`)
+  }
+
   const founderFilter = await resolveFounderCalibrationUserFilter()
   const session = await prisma.councilSession.findFirst({
-    where: { id: parsed.councilSessionId, user: founderFilter.where },
+    where: { id: parsed.data.councilSessionId, user: founderFilter.where },
     select: { id: true },
   })
-  if (!session) throw new Error("Founder calibration session not found.")
+  if (!session) {
+    redirect(`${calibrationReturnPath(parsed.data.returnTo)}?status=review_missing`)
+  }
 
   const review = await prisma.qualityReview.create({
     data: {
       reviewerId: actor.id,
       councilSessionId: session.id,
       targetType: "FounderCalibration",
-      label: parsed.label,
-      severity: parsed.severity,
-      reason: parsed.reason,
+      label: parsed.data.label,
+      severity: parsed.data.severity,
+      reason: parsed.data.reason,
       metadata: {
         reviewedFrom: "admin_calibration",
-        calibrationIssueType: parsed.calibrationIssueType === "none" ? null : parsed.calibrationIssueType,
-        goldenExample: parsed.label === "ready",
-        relatedPromptVersion: parsed.relatedPromptVersion || null,
-        relatedGoldenExampleId: parsed.relatedGoldenExampleId || null,
+        calibrationIssueType: parsed.data.calibrationIssueType === "none" ? null : parsed.data.calibrationIssueType,
+        goldenExample: parsed.data.label === "ready",
+        relatedPromptVersion: parsed.data.relatedPromptVersion || null,
+        relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
       },
     },
   })
@@ -75,14 +82,14 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
       action: "founder_calibration.review.create",
       targetType: "CouncilSession",
       targetId: session.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
       metadata: {
         qualityReviewId: review.id,
-        label: parsed.label,
-        severity: parsed.severity,
-        calibrationIssueType: parsed.calibrationIssueType,
-        relatedPromptVersion: parsed.relatedPromptVersion || null,
-        relatedGoldenExampleId: parsed.relatedGoldenExampleId || null,
+        label: parsed.data.label,
+        severity: parsed.data.severity,
+        calibrationIssueType: parsed.data.calibrationIssueType,
+        relatedPromptVersion: parsed.data.relatedPromptVersion || null,
+        relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
       },
     },
   })
@@ -92,6 +99,7 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
   revalidatePath("/calibration/setup")
   revalidatePath("/pilot")
   revalidatePath("/council")
+  redirect(`${calibrationReturnPath(parsed.data.returnTo)}?status=review_saved`)
 }
 
 export async function addFounderCalibrationParticipantAction(formData: FormData) {
@@ -264,4 +272,10 @@ function parseReviewerEmails(value: string | undefined) {
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean)
+}
+
+function calibrationReturnPath(returnTo: "calibration" | "calibration_live" | "council") {
+  if (returnTo === "calibration_live") return "/calibration/live"
+  if (returnTo === "council") return "/council"
+  return "/calibration"
 }

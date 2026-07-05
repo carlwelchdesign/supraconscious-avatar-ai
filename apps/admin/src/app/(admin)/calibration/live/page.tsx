@@ -14,7 +14,19 @@ const QUICK_LABELS = [
   ["prompt_regression", "Prompt regression"],
 ] as const
 
-export default async function LiveCalibrationPage() {
+const LIVE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  review_saved: { tone: "success", message: "Founder calibration review saved." },
+  review_invalid: { tone: "error", message: "Calibration review needs a valid session, label, and reason." },
+  review_missing: { tone: "error", message: "That founder calibration session is no longer available." },
+}
+
+export default async function LiveCalibrationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? LIVE_STATUS_MESSAGES[status] : null
   const webAppBaseUrl = readWebAppBaseUrl()
   const [comparison, setup, founderFilter] = await Promise.all([
     runFounderCalibrationComparison(),
@@ -62,6 +74,18 @@ export default async function LiveCalibrationPage() {
           Carl/Maria live review cockpit. Raw journal text is hidden; use scenario, council output, notes, prompt version, and source mode.
         </p>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader><CardTitle>Setup Readiness</CardTitle></CardHeader>
@@ -161,6 +185,7 @@ export default async function LiveCalibrationPage() {
 
                 <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_1fr_1fr_1fr_auto]">
                   <input type="hidden" name="councilSessionId" value={session.id} />
+                  <input type="hidden" name="returnTo" value="calibration_live" />
                   <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-2 text-xs">
                     {QUICK_LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>

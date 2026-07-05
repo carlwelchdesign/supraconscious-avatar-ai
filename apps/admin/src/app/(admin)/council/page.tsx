@@ -28,6 +28,7 @@ const COUNCIL_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messa
   batch_saved: { tone: "success", message: "Selected council sessions were reviewed." },
   batch_invalid: { tone: "error", message: "Batch review needs at least one selected session, a label, disposition, and reason." },
   session_missing: { tone: "error", message: "One or more selected council sessions are no longer available." },
+  review_missing: { tone: "error", message: "That founder calibration session is no longer available." },
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
@@ -272,6 +273,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                   {founderEmails.has(session.user.email.toLowerCase()) && (
                     <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 rounded-md border bg-muted/30 p-3 md:grid-cols-[auto_auto_1fr_auto]">
                       <input type="hidden" name="councilSessionId" value={session.id} />
+                      <input type="hidden" name="returnTo" value="council" />
                       <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-1 text-xs">
                         {FOUNDER_LABELS.map((label) => (
                           <option key={label.value} value={label.value}>{label.label}</option>
