@@ -1,4 +1,5 @@
 import { prisma } from "@inner-avatar/db"
+import { canDisplaySourceQuote } from "./source-policy.js"
 
 export type RagReadinessCounts = {
   approvedDocuments: number
@@ -172,7 +173,7 @@ export async function getRagReadinessCounts(): Promise<RagReadinessCounts> {
   const [
     approvedDocuments,
     eligibleChunks,
-    quoteSafeChunks,
+    quoteSafeChunkCandidates,
     blockedOrSensitiveChunks,
     failedImports,
     rightsMissingApprovedChunks,
@@ -205,10 +206,30 @@ export async function getRagReadinessCounts(): Promise<RagReadinessCounts> {
         },
       },
     }),
-    prisma.sourceChunk.count({
+    prisma.sourceChunk.findMany({
       where: {
         quotePermission: "quote_safe",
         sourceDocument: { sourceType: "product_doctrine" },
+      },
+      select: {
+        reviewState: true,
+        quotePermission: true,
+        safetyIntensity: true,
+        sourceDocument: {
+          select: {
+            reviewState: true,
+            rightsStatus: true,
+            rightsGrants: {
+              select: {
+                status: true,
+                allowedUses: true,
+                quoteAllowed: true,
+                expiresAt: true,
+                revokedAt: true,
+              },
+            },
+          },
+        },
       },
     }),
     prisma.sourceChunk.count({
@@ -248,7 +269,9 @@ export async function getRagReadinessCounts(): Promise<RagReadinessCounts> {
   return {
     approvedDocuments,
     eligibleChunks,
-    quoteSafeChunks,
+    quoteSafeChunks: quoteSafeChunkCandidates.filter((chunk) =>
+      canDisplaySourceQuote(chunk.sourceDocument, chunk, { now })
+    ).length,
     blockedOrSensitiveChunks,
     failedImports,
     rightsMissingApprovedChunks,

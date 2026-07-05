@@ -187,6 +187,14 @@ export function canDisplaySourceQuote(
   }).canDisplayQuote
 }
 
+export function hasUsableSourceRightsGrant(
+  document: Pick<SourcePolicyDocument, "rightsGrants">,
+  use: SourceAllowedUse = "paraphrase_generation",
+  options: Pick<SourcePolicyOptions, "now"> = {},
+) {
+  return Boolean(findUsableGrant(document.rightsGrants ?? [], use, options.now ?? new Date()))
+}
+
 export function parseAllowedUses(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === "string")

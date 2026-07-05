@@ -29,6 +29,7 @@ import {
   readFounderCalibrationScenario,
   resolveFounderCalibrationFilterFromInputs,
   resolveCouncilPromptTemplate,
+  hasUsableSourceRightsGrant,
   isFounderCalibrationFeedbackNoteUseful,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
@@ -133,6 +134,40 @@ test("approved source filter never retrieves unapproved chunks", () => {
   assert.deepEqual(where.sourceDocument.reviewState, { in: ["approved", "approved_curriculum"] })
   assert.deepEqual(where.sourceDocument.rightsStatus, { in: ["approved", "paraphrase_only"] })
   assert.equal(where.safetyIntensity.not, "blocked")
+})
+
+test("source rights helper rejects unusable grants", () => {
+  const now = new Date("2026-07-04T12:00:00.000Z")
+
+  assert.equal(hasUsableSourceRightsGrant({
+    rightsGrants: [{
+      status: "paraphrase_only",
+      allowedUses: ["internal_retrieval", "paraphrase_generation"],
+      quoteAllowed: false,
+      expiresAt: null,
+      revokedAt: null,
+    }],
+  }, "paraphrase_generation", { now }), true)
+
+  assert.equal(hasUsableSourceRightsGrant({
+    rightsGrants: [{
+      status: "paraphrase_only",
+      allowedUses: ["internal_retrieval"],
+      quoteAllowed: false,
+      expiresAt: null,
+      revokedAt: null,
+    }],
+  }, "paraphrase_generation", { now }), false)
+
+  assert.equal(hasUsableSourceRightsGrant({
+    rightsGrants: [{
+      status: "paraphrase_only",
+      allowedUses: ["paraphrase_generation"],
+      quoteAllowed: false,
+      expiresAt: new Date("2026-01-01T00:00:00.000Z"),
+      revokedAt: null,
+    }],
+  }, "paraphrase_generation", { now }), false)
 })
 
 test("inner council feature flags seed with conservative RAG defaults", () => {

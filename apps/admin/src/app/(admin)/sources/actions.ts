@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { canDisplaySourceQuote, evaluateSourceEligibility } from "@inner-avatar/ai"
+import { canDisplaySourceQuote, evaluateSourceEligibility, hasUsableSourceRightsGrant } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -48,15 +48,25 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
     ["approved", "paraphrase_only"].includes(parsed.rightsStatus)
 
   if (approving) {
-    const rightsGrantCount = await prisma.sourceRightsGrant.count({
-      where: {
-        sourceDocumentId: parsed.sourceDocumentId,
-        status: { in: ["approved", "paraphrase_only"] },
+    const source = await prisma.sourceDocument.findUnique({
+      where: { id: parsed.sourceDocumentId },
+      select: {
+        rightsGrants: {
+          select: {
+            status: true,
+            allowedUses: true,
+            quoteAllowed: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
+        },
       },
     })
 
-    if (rightsGrantCount === 0) {
-      throw new Error("Add an approved or paraphrase-only rights grant before approving this source.")
+    if (!source) throw new Error("Source document not found.")
+
+    if (!hasUsableSourceRightsGrant(source, "paraphrase_generation")) {
+      throw new Error("Add a current paraphrase-compatible rights grant before approving this source.")
     }
   }
 
