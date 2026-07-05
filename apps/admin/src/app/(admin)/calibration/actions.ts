@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import type { Prisma } from "@prisma/client"
 import { requireAdminUser } from "@inner-avatar/auth/session"
@@ -95,117 +96,147 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
 
 export async function addFounderCalibrationParticipantAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FounderParticipantSchema.parse(Object.fromEntries(formData))
+  const parsed = FounderParticipantSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/calibration/setup?status=participant_invalid")
+  }
+
   const user = await prisma.user.findUnique({
-    where: { email: parsed.email },
+    where: { email: parsed.data.email },
     select: { id: true },
   })
 
   const participant = await prisma.founderCalibrationParticipant.upsert({
-    where: { email: parsed.email },
+    where: { email: parsed.data.email },
     create: {
-      email: parsed.email,
+      email: parsed.data.email,
       userId: user?.id ?? null,
-      participantRole: parsed.participantRole,
+      participantRole: parsed.data.participantRole,
       status: "active",
       addedById: actor.id,
-      reason: parsed.reason,
+      reason: parsed.data.reason,
     },
     update: {
       userId: user?.id ?? null,
-      participantRole: parsed.participantRole,
+      participantRole: parsed.data.participantRole,
       status: "active",
-      reason: parsed.reason,
+      reason: parsed.data.reason,
     },
   })
 
-  await auditFounderParticipant(actor.id, "founder_calibration_participant.upsert", participant.id, parsed.reason, {
-    email: parsed.email,
-    participantRole: parsed.participantRole,
+  await auditFounderParticipant(actor.id, "founder_calibration_participant.upsert", participant.id, parsed.data.reason, {
+    email: parsed.data.email,
+    participantRole: parsed.data.participantRole,
     status: "active",
     linkedUser: Boolean(user),
   })
   revalidateFounderCalibrationPaths()
+  redirect("/calibration/setup?status=participant_saved")
 }
 
 export async function setupFounderCalibrationPairAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FounderPairSetupSchema.parse(Object.fromEntries(formData))
+  const parsed = FounderPairSetupSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/calibration/setup?status=pair_invalid")
+  }
+
   await setupFounderCalibrationParticipants({
-    carlEmail: parsed.carlEmail,
-    mariaEmail: parsed.mariaEmail,
-    reviewerEmails: parseReviewerEmails(parsed.reviewerEmails),
+    carlEmail: parsed.data.carlEmail,
+    mariaEmail: parsed.data.mariaEmail,
+    reviewerEmails: parseReviewerEmails(parsed.data.reviewerEmails),
     actorEmail: actor.email,
-    reason: parsed.reason,
+    reason: parsed.data.reason,
   })
   revalidateFounderCalibrationPaths()
+  redirect("/calibration/setup?status=pair_saved")
 }
 
 export async function pauseFounderCalibrationParticipantAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FounderParticipantStatusSchema.parse(Object.fromEntries(formData))
-  const participant = await prisma.founderCalibrationParticipant.update({
-    where: { id: parsed.id },
-    data: { status: "paused", reason: parsed.reason },
+  const parsed = FounderParticipantStatusSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/calibration/setup?status=participant_invalid")
+  }
+
+  const participant = await prisma.founderCalibrationParticipant.findUnique({
+    where: { id: parsed.data.id },
+  })
+  if (!participant) redirect("/calibration/setup?status=participant_missing")
+
+  const updated = await prisma.founderCalibrationParticipant.update({
+    where: { id: participant.id },
+    data: { status: "paused", reason: parsed.data.reason },
   })
 
-  await auditFounderParticipant(actor.id, "founder_calibration_participant.pause", participant.id, parsed.reason, {
-    email: participant.email,
-    participantRole: participant.participantRole,
+  await auditFounderParticipant(actor.id, "founder_calibration_participant.pause", updated.id, parsed.data.reason, {
+    email: updated.email,
+    participantRole: updated.participantRole,
     status: "paused",
   })
   revalidateFounderCalibrationPaths()
+  redirect("/calibration/setup?status=participant_paused")
 }
 
 export async function activateFounderCalibrationParticipantAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FounderParticipantStatusSchema.parse(Object.fromEntries(formData))
+  const parsed = FounderParticipantStatusSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/calibration/setup?status=participant_invalid")
+  }
+
   const existing = await prisma.founderCalibrationParticipant.findUnique({
-    where: { id: parsed.id },
+    where: { id: parsed.data.id },
     select: { email: true },
   })
-  if (!existing) throw new Error("Founder calibration participant not found.")
+  if (!existing) redirect("/calibration/setup?status=participant_missing")
   const user = await prisma.user.findUnique({
     where: { email: existing.email },
     select: { id: true },
   })
   const participant = await prisma.founderCalibrationParticipant.update({
-    where: { id: parsed.id },
-    data: { status: "active", userId: user?.id ?? null, reason: parsed.reason },
+    where: { id: parsed.data.id },
+    data: { status: "active", userId: user?.id ?? null, reason: parsed.data.reason },
   })
 
-  await auditFounderParticipant(actor.id, "founder_calibration_participant.activate", participant.id, parsed.reason, {
+  await auditFounderParticipant(actor.id, "founder_calibration_participant.activate", participant.id, parsed.data.reason, {
     email: participant.email,
     participantRole: participant.participantRole,
     status: "active",
     linkedUser: Boolean(user ?? participant.userId),
   })
   revalidateFounderCalibrationPaths()
+  redirect("/calibration/setup?status=participant_activated")
 }
 
 export async function syncFounderCalibrationParticipantAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = FounderParticipantStatusSchema.parse(Object.fromEntries(formData))
+  const parsed = FounderParticipantStatusSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/calibration/setup?status=participant_invalid")
+  }
+
   const participant = await prisma.founderCalibrationParticipant.findUnique({
-    where: { id: parsed.id },
+    where: { id: parsed.data.id },
     select: { id: true, email: true, participantRole: true },
   })
-  if (!participant) throw new Error("Founder calibration participant not found.")
+  if (!participant) redirect("/calibration/setup?status=participant_missing")
   const user = await prisma.user.findUnique({
     where: { email: participant.email },
     select: { id: true },
   })
   const updated = await prisma.founderCalibrationParticipant.update({
     where: { id: participant.id },
-    data: { userId: user?.id ?? null, reason: parsed.reason },
+    data: { userId: user?.id ?? null, reason: parsed.data.reason },
   })
 
-  await auditFounderParticipant(actor.id, "founder_calibration_participant.sync", participant.id, parsed.reason, {
+  await auditFounderParticipant(actor.id, "founder_calibration_participant.sync", participant.id, parsed.data.reason, {
     email: participant.email,
     participantRole: updated.participantRole,
     linkedUser: Boolean(user),
   })
   revalidateFounderCalibrationPaths()
+  redirect("/calibration/setup?status=participant_synced")
 }
 
 async function auditFounderParticipant(actorId: string, action: string, targetId: string, reason: string, metadata: Prisma.InputJsonObject) {

@@ -16,7 +16,24 @@ import {
 } from "../actions"
 import { CopyHandoffButton } from "./copy-handoff-button"
 
-export default async function FounderCalibrationSetupPage() {
+const SETUP_STATUS_MESSAGES: Record<string, { tone: "success" | "warning" | "error"; message: string }> = {
+  pair_saved: { tone: "success", message: "Carl and Maria setup saved. Existing accounts were linked when emails matched." },
+  pair_invalid: { tone: "error", message: "Carl/Maria setup needs valid emails and a reason of at least 10 characters." },
+  participant_saved: { tone: "success", message: "Founder participant saved." },
+  participant_invalid: { tone: "error", message: "Participant action needs a valid target and a reason of at least 10 characters." },
+  participant_missing: { tone: "error", message: "That founder participant is no longer available." },
+  participant_paused: { tone: "warning", message: "Founder participant paused." },
+  participant_activated: { tone: "success", message: "Founder participant activated and linked to a matching account if one exists." },
+  participant_synced: { tone: "success", message: "Founder participant account link synced." },
+}
+
+export default async function FounderCalibrationSetupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? SETUP_STATUS_MESSAGES[status] : null
   const report = await runFounderCalibrationSetupReport()
   const webAppBaseUrl = readWebAppBaseUrl()
   const adminAppBaseUrl = readAdminAppBaseUrl()
@@ -36,6 +53,19 @@ export default async function FounderCalibrationSetupPage() {
           Configure Carl and Maria as real calibration participants. Raw journal text and feedback note text stay out of this view.
         </p>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "warning" ? "border-amber-500/20 bg-amber-500/5 text-amber-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric title="Active" value={report.readiness.activeParticipants} />
