@@ -91,11 +91,18 @@ If the admin app runs somewhere other than `http://localhost:3001`, update `NEXT
 
 ## Database Setup
 
-For local schema sync:
+For local schema sync against disposable development data:
 
 ```bash
 yarn db:generate
 yarn db:push
+```
+
+For CI, staging, production, or any shared database, apply checked-in migrations instead:
+
+```bash
+yarn db:generate
+yarn db:migrate:deploy
 ```
 
 Use destructive Prisma flags only when intentionally dropping or replacing data.

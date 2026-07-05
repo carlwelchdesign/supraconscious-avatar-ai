@@ -54,8 +54,8 @@ jobs:
       - name: Validate Prisma schema
         run: node .yarn/releases/yarn-4.cjs prisma validate
 
-      - name: Prepare database schema
-        run: node .yarn/releases/yarn-4.cjs db:push
+      - name: Apply database migrations
+        run: node .yarn/releases/yarn-4.cjs db:migrate:deploy
 
       - name: Typecheck
         run: node .yarn/releases/yarn-4.cjs typecheck
