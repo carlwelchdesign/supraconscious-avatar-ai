@@ -22,7 +22,7 @@ model User {
   currentLevel         Int      @default(1) // 1-5: Awareness to Conscious Choice
   avatarStage          Int      @default(1) // 1-5: Echo to Inner Author
   safetyModeEnabled    Boolean  @default(true)
-  patternMemoryEnabled Boolean  @default(true)
+  patternMemoryEnabled Boolean  @default(false)
   onboardingComplete   Boolean  @default(false)
   topicsToAvoid        Json? // Array of topics to handle gently
   voiceEnabled         Boolean  @default(false)

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { emitPilotEvent } from "@inner-avatar/ai"
+import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -14,11 +16,41 @@ export async function PATCH(request: Request) {
   try {
     const user = await requireAppUser()
     const body = PreferencesSchema.parse(await request.json())
+    const patternMemoryChanged = typeof body.patternMemoryEnabled === "boolean"
 
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: body,
+    const updated = await prisma.$transaction(async (tx) => {
+      const savedUser = await tx.user.update({
+        where: { id: user.id },
+        data: body,
+      })
+
+      if (patternMemoryChanged) {
+        await tx.consentEvent.create({
+          data: {
+            userId: user.id,
+            consentType: "pattern_memory",
+            consentVersion: PILOT_CONSENT_VERSION,
+            granted: body.patternMemoryEnabled === true,
+            metadata: { source: "api_avatar_preferences" },
+          },
+        })
+      }
+
+      return savedUser
     })
+
+    if (patternMemoryChanged) {
+      await emitPilotEvent({
+        eventName: "consent_accepted",
+        userId: user.id,
+        properties: {
+          consentType: "pattern_memory",
+          consentVersion: PILOT_CONSENT_VERSION,
+          granted: body.patternMemoryEnabled === true,
+          source: "api_avatar_preferences",
+        },
+      })
+    }
 
     return NextResponse.json({ user: updated })
   } catch (error) {
