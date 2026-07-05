@@ -461,7 +461,7 @@ export default async function PilotReadinessPage() {
           <form action={createPilotCohortAction} className="grid gap-2 md:grid-cols-[1fr_2fr_2fr_auto]">
             <input name="name" placeholder="Cohort name" className="rounded-md border bg-background px-3 py-2 text-sm" />
             <input name="description" placeholder="Description" className="rounded-md border bg-background px-3 py-2 text-sm" />
-            <input name="reason" placeholder="Cohort setup reason" className="rounded-md border bg-background px-3 py-2 text-sm" />
+            <input name="reason" placeholder="Cohort setup reason" required className="rounded-md border bg-background px-3 py-2 text-sm" />
             <button disabled={!schemaReady} className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Create cohort</button>
           </form>
           {!schemaReady && (
