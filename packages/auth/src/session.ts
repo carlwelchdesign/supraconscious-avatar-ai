@@ -3,6 +3,7 @@ import "server-only"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
+import { cache } from "react"
 import bcrypt from "bcryptjs"
 import { prisma } from "@inner-avatar/db"
 import type { SessionScope } from "@inner-avatar/types"
@@ -66,29 +67,11 @@ export async function destroySession(scope: SessionScope = "web") {
 }
 
 export async function getCurrentUser(scope: SessionScope = "web") {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(getSessionCookieName(scope))?.value
-  if (!token) return null
-
-  const session = await prisma.session.findUnique({
-    where: { tokenHash: hashSessionToken(token) },
-    include: { user: true },
-  })
-
-  if (!session || session.scope !== scope || session.expiresAt <= new Date()) {
-    if (session) {
-      await prisma.session.delete({ where: { id: session.id } })
-    }
-    cookieStore.delete(getSessionCookieName(scope))
-    return null
-  }
-
-  await refreshSessionLastSeenIfNeeded(session)
-
-  return session.user
+  const session = await getCurrentSession(scope)
+  return session?.user ?? null
 }
 
-export async function getCurrentSession(scope: SessionScope = "web") {
+export const getCurrentSession = cache(async function getCurrentSession(scope: SessionScope = "web") {
   const cookieStore = await cookies()
   const token = cookieStore.get(getSessionCookieName(scope))?.value
   if (!token) return null
@@ -109,7 +92,7 @@ export async function getCurrentSession(scope: SessionScope = "web") {
   await refreshSessionLastSeenIfNeeded(session)
 
   return session
-}
+})
 
 export async function requireAppUser(scope: SessionScope = "web") {
   const user = await getCurrentUser(scope)
