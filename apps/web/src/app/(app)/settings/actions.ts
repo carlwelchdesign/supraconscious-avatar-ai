@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
-import { getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
+import { destroySession, getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
 import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 
@@ -161,6 +161,8 @@ export async function revokeSessionsAction() {
     properties: { revokedAll: true },
   })
 
+  await destroySession("web")
+  await destroySession("admin")
   redirect("/login")
 }
 
@@ -198,6 +200,7 @@ export async function revokeSessionAction(formData: FormData) {
   }
 
   if (isCurrentSession) {
+    await destroySession("web")
     redirect("/login")
   }
 
@@ -259,6 +262,8 @@ export async function deleteAccountAction(formData: FormData) {
     }),
   ])
 
+  await destroySession("web")
+  await destroySession("admin")
   redirect("/")
 }
 
