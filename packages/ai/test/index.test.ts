@@ -28,6 +28,7 @@ import {
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
   readFounderCalibrationScenario,
+  isFounderCalibrationUser,
   resolveFounderCalibrationFilterFromInputs,
   resolveCouncilPromptTemplate,
   hasUsableSourceRightsGrant,
@@ -1088,6 +1089,38 @@ test("founder participant filter prefers DB participants before env fallback", (
   })
   assert.equal(fallbackFilter.mode, "fallback")
   assert.deepEqual(fallbackFilter.where.email.notIn, ["demo@inner-avatar.ai"])
+})
+
+test("founder calibration user check uses targeted DB lookup before fallback", async () => {
+  let countCalls = 0
+  const matchingClient = {
+    founderCalibrationParticipant: {
+      findFirst: async () => ({ id: "participant_carl" }),
+      count: async () => {
+        countCalls += 1
+        return 1
+      },
+    },
+  }
+  assert.equal(await isFounderCalibrationUser("Carl@Example.com", matchingClient), true)
+  assert.equal(countCalls, 0)
+
+  const configuredClient = {
+    founderCalibrationParticipant: {
+      findFirst: async () => null,
+      count: async () => 2,
+    },
+  }
+  assert.equal(await isFounderCalibrationUser("other@example.com", configuredClient), false)
+
+  const emptyClient = {
+    founderCalibrationParticipant: {
+      findFirst: async () => null,
+      count: async () => 0,
+    },
+  }
+  assert.equal(await isFounderCalibrationUser("other@example.com", emptyClient), true)
+  assert.equal(await isFounderCalibrationUser("demo@inner-avatar.ai", emptyClient), false)
 })
 
 test("founder calibration scenarios have human-readable labels", () => {

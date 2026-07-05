@@ -88,15 +88,14 @@ export async function isFounderCalibrationUser(
   prismaClient: Pick<typeof prisma, "founderCalibrationParticipant"> = prisma,
 ) {
   const normalizedEmail = normalizeFounderCalibrationEmail(email)
-  const participants = await readAllFounderParticipantsSafely(prismaClient)
-  if (participants === null) {
+  const participantStatus = await readFounderParticipantStatusSafely(normalizedEmail, prismaClient)
+  if (participantStatus === null) {
     const envEmails = parseFounderCalibrationEmails(process.env.FOUNDER_CALIBRATION_EMAILS)
     return envEmails.length > 0 ? envEmails.includes(normalizedEmail) : !DEFAULT_EXCLUDED_EMAILS.includes(normalizedEmail)
   }
 
-  if (participants.length > 0) {
-    return participants.some((participant) => participant.status === "active" && normalizeFounderCalibrationEmail(participant.email) === normalizedEmail)
-  }
+  if (participantStatus.activeMatch) return true
+  if (participantStatus.activeParticipantCount > 0) return false
 
   const envEmails = parseFounderCalibrationEmails(process.env.FOUNDER_CALIBRATION_EMAILS)
   if (envEmails.length > 0) return envEmails.includes(normalizedEmail)
@@ -127,13 +126,21 @@ async function readActiveFounderParticipantEmailsSafely(
   }
 }
 
-async function readAllFounderParticipantsSafely(
+async function readFounderParticipantStatusSafely(
+  normalizedEmail: string,
   prismaClient: Pick<typeof prisma, "founderCalibrationParticipant">,
-): Promise<Array<{ email: string; status: string }> | null> {
+): Promise<{ activeMatch: boolean; activeParticipantCount: number } | null> {
   try {
-    return await prismaClient.founderCalibrationParticipant.findMany({
-      select: { email: true, status: true },
+    const participant = await prismaClient.founderCalibrationParticipant.findFirst({
+      where: { email: normalizedEmail, status: "active" },
+      select: { id: true },
     })
+    if (participant) return { activeMatch: true, activeParticipantCount: 1 }
+
+    const activeParticipantCount = await prismaClient.founderCalibrationParticipant.count({
+      where: { status: "active" },
+    })
+    return { activeMatch: false, activeParticipantCount }
   } catch (error) {
     if (isMissingFounderParticipantTable(error)) return null
     throw error
