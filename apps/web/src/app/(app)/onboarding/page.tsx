@@ -18,16 +18,17 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  const user = await requireAppUser()
-  const params = await searchParams
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const latestConsents = await prisma.consentEvent.findMany({
-    where: {
-      userId: user.id,
-      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const [user, params] = await Promise.all([requireAppUser(), searchParams])
+  const [founderCalibrationMode, latestConsents] = await Promise.all([
+    isFounderCalibrationUser(user.email),
+    prisma.consentEvent.findMany({
+      where: {
+        userId: user.id,
+        consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ])
   if (user.onboardingComplete && hasRequiredPilotConsents(latestConsents)) redirect("/journal")
 
   return (

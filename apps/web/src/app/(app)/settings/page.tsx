@@ -64,26 +64,27 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string; session?: string }>
 }) {
-  const params = await searchParams
-  const user = await requireAppUser()
-  const currentSession = await getCurrentSession("web")
+  const [params, user] = await Promise.all([searchParams, requireAppUser()])
   const billingEnabled = isStripeConfigured()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const subscription = await prisma.subscription.findFirst({
-    where: { userId: user.id },
-    orderBy: { updatedAt: "desc" },
-  })
-  const sessions = await prisma.session.findMany({
-    where: { userId: user.id },
-    orderBy: { lastSeenAt: "desc" },
-    select: {
-      id: true,
-      scope: true,
-      createdAt: true,
-      lastSeenAt: true,
-      expiresAt: true,
-    },
-  })
+  const [currentSession, subscription, sessions] = await Promise.all([
+    getCurrentSession("web"),
+    prisma.subscription.findFirst({
+      where: { userId: user.id },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.session.findMany({
+      where: { userId: user.id },
+      orderBy: { lastSeenAt: "desc" },
+      select: {
+        id: true,
+        scope: true,
+        createdAt: true,
+        lastSeenAt: true,
+        expiresAt: true,
+      },
+    }),
+  ])
 
   return (
     <div className="space-y-10">
