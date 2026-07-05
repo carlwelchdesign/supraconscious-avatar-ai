@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import {
+  Alert,
   Box,
   Chip,
   Button,
@@ -29,9 +30,20 @@ type UserRow = {
   sessionCount: number
 }
 
-export function UsersTable({ users }: { users: UserRow[] }) {
+const STATUS_MESSAGES: Record<string, { severity: "success" | "warning" | "error"; message: string }> = {
+  password_reset: { severity: "success", message: "Temporary password saved and existing sessions revoked." },
+  password_invalid: { severity: "error", message: "Password reset needs a valid temporary password and a reason of at least 10 characters." },
+  password_failed: { severity: "error", message: "Password reset did not complete. Try again or check the logs." },
+  user_missing: { severity: "error", message: "That user is no longer available." },
+  email_verified: { severity: "success", message: "User email marked verified." },
+  email_unverified: { severity: "warning", message: "User email marked unverified." },
+  email_invalid: { severity: "error", message: "Email verification update needs a valid user and reason." },
+}
+
+export function UsersTable({ users, status }: { users: UserRow[]; status?: string }) {
   const [query, setQuery] = useState("")
   const normalizedQuery = query.trim().toLowerCase()
+  const statusMessage = status ? STATUS_MESSAGES[status] : null
 
   const filteredUsers = useMemo(() => {
     if (!normalizedQuery) return users
@@ -61,6 +73,12 @@ export function UsersTable({ users }: { users: UserRow[] }) {
           Search accounts by name, email, role, ID, entry count, or session count.
         </Typography>
       </Box>
+
+      {statusMessage ? (
+        <Alert severity={statusMessage.severity}>
+          {statusMessage.message}
+        </Alert>
+      ) : null}
 
       <Paper variant="outlined" sx={{ p: 2 }}>
         <TextField

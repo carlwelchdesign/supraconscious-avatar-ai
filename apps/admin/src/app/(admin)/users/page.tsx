@@ -1,7 +1,12 @@
 import { prisma } from "@inner-avatar/db"
 import { UsersTable } from "./users-table"
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -18,6 +23,7 @@ export default async function UsersPage() {
 
   return (
     <UsersTable
+      status={status}
       users={users.map((user) => ({
         id: user.id,
         email: user.email,

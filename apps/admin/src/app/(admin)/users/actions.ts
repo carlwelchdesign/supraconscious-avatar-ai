@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { hashPassword, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -19,17 +20,21 @@ const UpdateEmailVerificationSchema = z.object({
 
 export async function resetUserPasswordAction(formData: FormData) {
   const actor = await requireSuperAdminUser()
-  const parsed = ResetUserPasswordSchema.parse(Object.fromEntries(formData))
+  const parsed = ResetUserPasswordSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/users?status=password_invalid")
+  }
+
   const targetUser = await prisma.user.findUnique({
-    where: { id: parsed.userId },
+    where: { id: parsed.data.userId },
     select: { id: true, email: true, role: true },
   })
-  if (!targetUser) throw new Error("User not found.")
+  if (!targetUser) redirect("/users?status=user_missing")
 
   const [updatedUser, revokedSessions] = await prisma.$transaction([
     prisma.user.update({
       where: { id: targetUser.id },
-      data: { passwordHash: await hashPassword(parsed.temporaryPassword) },
+      data: { passwordHash: await hashPassword(parsed.data.temporaryPassword) },
       select: { id: true },
     }),
     prisma.session.deleteMany({
@@ -41,7 +46,7 @@ export async function resetUserPasswordAction(formData: FormData) {
         action: "user.password.reset",
         targetType: "User",
         targetId: targetUser.id,
-        reason: parsed.reason,
+        reason: parsed.data.reason,
         metadata: {
           email: targetUser.email,
           role: targetUser.role,
@@ -52,7 +57,7 @@ export async function resetUserPasswordAction(formData: FormData) {
     }),
   ])
 
-  if (!updatedUser.id) throw new Error("Password reset failed.")
+  if (!updatedUser.id) redirect("/users?status=password_failed")
   if (revokedSessions.count > 0) {
     await prisma.auditLog.create({
       data: {
@@ -60,7 +65,7 @@ export async function resetUserPasswordAction(formData: FormData) {
         action: "user.sessions.revoked_after_password_reset",
         targetType: "User",
         targetId: targetUser.id,
-        reason: parsed.reason,
+        reason: parsed.data.reason,
         metadata: {
           email: targetUser.email,
           revokedSessionCount: revokedSessions.count,
@@ -71,17 +76,22 @@ export async function resetUserPasswordAction(formData: FormData) {
 
   revalidatePath("/users")
   revalidatePath("/calibration/setup")
+  redirect("/users?status=password_reset")
 }
 
 export async function updateEmailVerificationAction(formData: FormData) {
   const actor = await requireSuperAdminUser()
-  const parsed = UpdateEmailVerificationSchema.parse(Object.fromEntries(formData))
-  const verified = parsed.emailVerified === "true"
+  const parsed = UpdateEmailVerificationSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/users?status=email_invalid")
+  }
+
+  const verified = parsed.data.emailVerified === "true"
   const targetUser = await prisma.user.findUnique({
-    where: { id: parsed.userId },
+    where: { id: parsed.data.userId },
     select: { id: true, email: true, role: true, emailVerified: true },
   })
-  if (!targetUser) throw new Error("User not found.")
+  if (!targetUser) redirect("/users?status=user_missing")
 
   await prisma.$transaction([
     prisma.user.update({
@@ -95,7 +105,7 @@ export async function updateEmailVerificationAction(formData: FormData) {
         action: verified ? "user.email.mark_verified" : "user.email.mark_unverified",
         targetType: "User",
         targetId: targetUser.id,
-        reason: parsed.reason,
+        reason: parsed.data.reason,
         metadata: {
           email: targetUser.email,
           role: targetUser.role,
@@ -108,4 +118,5 @@ export async function updateEmailVerificationAction(formData: FormData) {
 
   revalidatePath("/users")
   revalidatePath("/calibration/setup")
+  redirect(`/users?status=${verified ? "email_verified" : "email_unverified"}`)
 }
