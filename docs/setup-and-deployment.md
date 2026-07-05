@@ -132,7 +132,7 @@ Before asking Carl and Maria to start live sessions, print the current launch pa
 yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 ```
 
-Founder reports are operational visibility. Feedback notes and ready/golden reviews are useful calibration evidence, not blockers for continued app development.
+Founder reports are operational visibility. Feedback notes and a ready/golden or issue review are required for the founder launch gate; they are operational evidence, not a reason to stop code development.
 
 To build and test the ChatGPT MCP server package locally:
 

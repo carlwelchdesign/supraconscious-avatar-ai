@@ -22,7 +22,7 @@ Current admin routes:
 
 ## Founder Calibration Operations
 
-Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. Feedback notes and golden examples are useful calibration evidence, not blockers for continued app development.
+Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. Feedback notes and a human review are required for the founder launch gate; they are operational evidence, not a reason to stop code development.
 
 Use this sequence:
 
