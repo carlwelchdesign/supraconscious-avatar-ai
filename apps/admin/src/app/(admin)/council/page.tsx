@@ -22,6 +22,14 @@ const FOUNDER_LABELS = [
   { value: "prompt_regression", label: "Prompt regression" },
 ]
 
+const COUNCIL_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  review_saved: { tone: "success", message: "Council quality label saved." },
+  review_invalid: { tone: "error", message: "Council review needs a valid session, label, disposition, and reason." },
+  batch_saved: { tone: "success", message: "Selected council sessions were reviewed." },
+  batch_invalid: { tone: "error", message: "Batch review needs at least one selected session, a label, disposition, and reason." },
+  session_missing: { tone: "error", message: "One or more selected council sessions are no longer available." },
+}
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function CouncilReviewPage({ searchParams }: { searchParams?: SearchParams }) {
@@ -30,6 +38,8 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
   const sourceMode = firstParam(params.sourceMode)
   const reviewStatus = firstParam(params.reviewStatus)
   const feedbackType = firstParam(params.feedbackType)
+  const status = firstParam(params.status)
+  const statusMessage = status ? COUNCIL_STATUS_MESSAGES[status] : null
   const founderFilter = await resolveFounderCalibrationUserFilter()
   const founderEmails = new Set(founderFilter.where.email.in ?? [])
   const where = {
@@ -93,6 +103,18 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
           Metadata-first review of Inner Council runs, role confidence, traces, and embodiment completion. Raw journal text remains hidden here.
         </p>
       </div>
+
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader><CardTitle>Review filters</CardTitle></CardHeader>

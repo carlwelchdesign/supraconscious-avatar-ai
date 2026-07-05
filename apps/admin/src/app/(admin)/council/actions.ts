@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -27,49 +28,57 @@ export async function updateCouncilQualityLabelAction(formData: FormData) {
 
 export async function reviewPilotSessionFromCouncilAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = CouncilQualitySchema.parse(Object.fromEntries(formData))
+  const parsed = CouncilQualitySchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/council?status=review_invalid")
+  }
 
   await createCouncilQualityReview({
     actorId: actor.id,
-    councilSessionId: parsed.councilSessionId,
-    label: parsed.validationStatus,
-    disposition: parsed.disposition,
-    severity: parsed.severity,
-    reason: parsed.reason,
+    councilSessionId: parsed.data.councilSessionId,
+    label: parsed.data.validationStatus,
+    disposition: parsed.data.disposition,
+    severity: parsed.data.severity,
+    reason: parsed.data.reason,
     action: "council_session.quality_label.update",
     reviewedFrom: "admin_council",
   })
 
   revalidatePath("/council")
   revalidatePath("/pilot")
+  redirect("/council?status=review_saved")
 }
 
 export async function batchReviewPilotSessionsAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = BatchCouncilQualitySchema.parse({
+  const parsed = BatchCouncilQualitySchema.safeParse({
     sessionIds: formData.getAll("sessionIds").map((value) => String(value)),
     validationStatus: formData.get("validationStatus"),
     disposition: formData.get("disposition"),
     severity: formData.get("severity") ?? "normal",
     reason: formData.get("reason"),
   })
-  const uniqueSessionIds = Array.from(new Set(parsed.sessionIds))
+  if (!parsed.success) {
+    redirect("/council?status=batch_invalid")
+  }
+
+  const uniqueSessionIds = Array.from(new Set(parsed.data.sessionIds))
   const sessions = await prisma.councilSession.findMany({
     where: { id: { in: uniqueSessionIds } },
     select: { id: true },
   })
   if (sessions.length !== uniqueSessionIds.length) {
-    throw new Error("One or more council sessions were not found.")
+    redirect("/council?status=session_missing")
   }
 
   for (const sessionId of uniqueSessionIds) {
     await createCouncilQualityReview({
       actorId: actor.id,
       councilSessionId: sessionId,
-      label: parsed.validationStatus,
-      disposition: parsed.disposition,
-      severity: parsed.severity,
-      reason: parsed.reason,
+      label: parsed.data.validationStatus,
+      disposition: parsed.data.disposition,
+      severity: parsed.data.severity,
+      reason: parsed.data.reason,
       action: "council_session.batch_quality_label.update",
       reviewedFrom: "admin_council_batch",
     })
@@ -77,6 +86,7 @@ export async function batchReviewPilotSessionsAction(formData: FormData) {
 
   revalidatePath("/council")
   revalidatePath("/pilot")
+  redirect("/council?status=batch_saved")
 }
 
 async function createCouncilQualityReview(input: {
