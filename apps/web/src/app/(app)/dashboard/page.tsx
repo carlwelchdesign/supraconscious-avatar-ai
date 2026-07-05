@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
-import { isFounderCalibrationUser, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
+import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
@@ -16,8 +16,7 @@ export default async function DashboardPage({
   const user = await requireJournalAccessPageUser()
   const query = await searchParams
 
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const [entryCount, patternCount, recentEntries, setupReport] = await Promise.all([
+  const [entryCount, patternCount, recentEntries, founderReadiness] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
@@ -41,19 +40,22 @@ export default async function DashboardPage({
         },
       },
     }),
-    founderCalibrationMode ? runFounderCalibrationSetupReport() : Promise.resolve(null),
+    runFounderCalibrationJournalReadiness({
+      userId: user.id,
+      email: user.email,
+    }),
   ])
 
   const latestEntry = recentEntries[0] ?? null
-  const founderParticipant = setupReport?.participants.find((participant) => participant.userId === user.id || participant.email === user.email.toLowerCase())
-  const founderSessionCount = founderParticipant?.sessionCount ?? 0
-  const founderFeedbackNoteCount = founderParticipant?.feedbackNoteCount ?? 0
-  const founderGoldenExampleCount = founderParticipant?.goldenExampleCount ?? 0
+  const founderCalibrationMode = founderReadiness.founderCalibrationMode
+  const founderSessionCount = founderReadiness.sessionCount
+  const founderFeedbackNoteCount = founderReadiness.feedbackNoteCount
+  const founderGoldenExampleCount = founderReadiness.goldenExampleCount
   const founderNeedsSession = founderSessionCount === 0
-  const founderNeedsFirstSession = founderCalibrationMode && Boolean(founderParticipant) && founderNeedsSession
-  const founderNeedsFeedbackNote = founderCalibrationMode && Boolean(founderParticipant) && founderSessionCount > 0 && founderFeedbackNoteCount === 0
-  const founderAwaitingReview = founderCalibrationMode && Boolean(founderParticipant) && founderFeedbackNoteCount > 0 && founderGoldenExampleCount === 0
-  const founderFeedbackNoteHref = founderParticipant?.latestSessionHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
+  const founderNeedsFirstSession = founderCalibrationMode && founderNeedsSession
+  const founderNeedsFeedbackNote = founderCalibrationMode && founderSessionCount > 0 && founderFeedbackNoteCount === 0
+  const founderAwaitingReview = founderCalibrationMode && founderFeedbackNoteCount > 0 && founderGoldenExampleCount === 0
+  const founderFeedbackNoteHref = founderReadiness.founderFeedbackNoteHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
   const dashboardMessage = readDashboardMessage(query)

@@ -110,6 +110,8 @@ export type FounderCalibrationJournalReadiness = {
   founderFeedbackNoteHref: string | null
   sessionCount: number
   feedbackNoteCount: number
+  reviewedSessionCount: number
+  goldenExampleCount: number
 }
 
 export type FounderCalibrationHandoffItem = {
@@ -370,6 +372,8 @@ export function buildFounderCalibrationJournalReadiness(input: {
       founderFeedbackNoteHref: null,
       sessionCount: 0,
       feedbackNoteCount: 0,
+      reviewedSessionCount: 0,
+      goldenExampleCount: 0,
     }
   }
 
@@ -377,6 +381,8 @@ export function buildFounderCalibrationJournalReadiness(input: {
   const suggestedCalibrationScenario = suggestedScenario && suggestedScenario !== "freeform" ? suggestedScenario : null
   const sessionCount = participant?.sessionCount ?? 0
   const feedbackNoteCount = participant?.feedbackNoteCount ?? 0
+  const reviewedSessionCount = participant?.reviewedSessionCount ?? 0
+  const goldenExampleCount = participant?.goldenExampleCount ?? 0
 
   return {
     founderCalibrationMode,
@@ -386,6 +392,8 @@ export function buildFounderCalibrationJournalReadiness(input: {
     founderFeedbackNoteHref: participant?.latestSessionHref ?? null,
     sessionCount,
     feedbackNoteCount,
+    reviewedSessionCount,
+    goldenExampleCount,
   }
 }
 

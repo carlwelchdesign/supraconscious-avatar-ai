@@ -1282,6 +1282,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderFeedbackNoteHref: null,
     sessionCount: 0,
     feedbackNoteCount: 0,
+    reviewedSessionCount: 0,
+    goldenExampleCount: 0,
   })
   assert.deepEqual(buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: carl }), {
     founderCalibrationMode: true,
@@ -1291,6 +1293,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderFeedbackNoteHref: "/journal/entry_carl",
     sessionCount: 1,
     feedbackNoteCount: 0,
+    reviewedSessionCount: 0,
+    goldenExampleCount: 0,
   })
   assert.deepEqual(buildFounderCalibrationJournalReadiness({ founderCalibrationMode: true, participant: maria }), {
     founderCalibrationMode: true,
@@ -1300,6 +1304,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderFeedbackNoteHref: null,
     sessionCount: 0,
     feedbackNoteCount: 0,
+    reviewedSessionCount: 0,
+    goldenExampleCount: 0,
   })
 })
 

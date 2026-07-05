@@ -55,7 +55,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Guide presence + user */}
         <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
           <div className="flex flex-col items-center text-center mb-4">
-            <AvatarOrb size="xs" stage={guideStage as 1|2|3|4|5} className="mb-2" />
+            <AvatarOrb size="xs" stage={guideStage as 1|2|3|4|5} className="mb-2" priority />
             <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
               Inner Council
             </p>

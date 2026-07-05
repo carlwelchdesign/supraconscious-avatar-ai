@@ -27,6 +27,7 @@ type AvatarOrbProps = {
 export function AvatarOrb({ stage = 1, size = "md", className, priority }: AvatarOrbProps) {
   const px = SIZES[size]
   const src = STAGE_IMAGES[stage] ?? STAGE_IMAGES[1]
+  const eager = priority ?? (size === "lg" || size === "xl")
 
   return (
     <div
@@ -39,7 +40,8 @@ export function AvatarOrb({ stage = 1, size = "md", className, priority }: Avata
         fill
         sizes={`${px}px`}
         className="object-contain"
-        priority={priority ?? (size === "lg" || size === "xl")}
+        loading={eager ? "eager" : "lazy"}
+        priority={eager}
       />
     </div>
   )
