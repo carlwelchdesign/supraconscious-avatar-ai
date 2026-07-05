@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
+import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
 import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
@@ -35,12 +36,35 @@ export async function updateReflectionPreferences(
   formData: FormData,
 ): Promise<void> {
   const user = await requireAppUser()
+  const patternMemoryEnabled = formData.get("patternMemoryEnabled") === "on"
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      patternMemoryEnabled: formData.get("patternMemoryEnabled") === "on",
-      safetyModeEnabled: true,
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        patternMemoryEnabled,
+        safetyModeEnabled: true,
+      },
+    }),
+    prisma.consentEvent.create({
+      data: {
+        userId: user.id,
+        consentType: "pattern_memory",
+        consentVersion: PILOT_CONSENT_VERSION,
+        granted: patternMemoryEnabled,
+        metadata: { source: "settings_reflection_preferences" },
+      },
+    }),
+  ])
+
+  await emitPilotEvent({
+    eventName: "consent_accepted",
+    userId: user.id,
+    properties: {
+      consentType: "pattern_memory",
+      consentVersion: PILOT_CONSENT_VERSION,
+      granted: patternMemoryEnabled,
+      source: "settings_reflection_preferences",
     },
   })
 
