@@ -18,14 +18,27 @@ export default async function JournalEntryPage({
   params: Promise<{ entryId: string }>
   searchParams: Promise<{ feedback?: string }>
 }) {
-  const user = await requireJournalAccessPageUser()
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  const { entryId } = await params
-  const query = await searchParams
-  const entry = await prisma.journalEntry.findFirst({
-    where: { id: entryId, userId: user.id },
-    include: {
-      avatarResponse: true,
+  const [user, resolvedParams, query] = await Promise.all([
+    requireJournalAccessPageUser(),
+    params,
+    searchParams,
+  ])
+  const [founderCalibrationMode, entry] = await Promise.all([
+    isFounderCalibrationUser(user.email),
+    prisma.journalEntry.findFirst({
+      where: { id: resolvedParams.entryId, userId: user.id },
+      include: {
+        avatarResponse: {
+          select: {
+            openingLine: true,
+            mirror: true,
+            patternName: true,
+            contradiction: true,
+            socraticQuestion: true,
+            integrationStep: true,
+            closingLine: true,
+          },
+        },
       councilSession: {
         include: {
           messages: {
@@ -65,8 +78,9 @@ export default async function JournalEntryPage({
           },
         },
       },
-    },
-  })
+      },
+    }),
+  ])
 
   if (!entry) notFound()
 
