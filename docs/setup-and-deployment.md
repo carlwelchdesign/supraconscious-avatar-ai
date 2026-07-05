@@ -199,7 +199,7 @@ Set production database schema before using the apps:
 
 ```bash
 yarn db:generate
-yarn db:push
+yarn db:migrate:deploy
 ```
 
 Configure the Stripe webhook endpoint for the web deployment:

@@ -112,11 +112,11 @@ After deploy:
 
 ## Incident Notes
 
-If login throws database errors about missing columns, regenerate the Prisma client and push the schema to the active database:
+If login throws database errors about missing columns, regenerate the Prisma client and apply checked-in migrations to the active database:
 
 ```bash
 yarn db:generate
-yarn db:push
+yarn db:migrate:deploy
 ```
 
-If production uses a different database than local development, run the schema update against the production `DATABASE_URL`.
+Use `yarn db:push` only for local throwaway databases when you intentionally want Prisma to sync the schema without creating or applying migrations. If production uses a different database than local development, run migrations against the production `DATABASE_URL` as a controlled release step.
