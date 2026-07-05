@@ -10,7 +10,7 @@ export default async function HealthPage() {
     database = "error"
   }
 
-  const founderSetup = await runFounderCalibrationSetupReport()
+  const founderSetup = await readFounderSetupHealth()
   const authEmailConfigured = Boolean(process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM)
   const turnstileConfigured = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY)
   const stripeConfigured = Boolean(
@@ -30,7 +30,14 @@ export default async function HealthPage() {
     { label: "Turnstile bot protection", value: turnstileConfigured ? "configured" : "disabled" },
     { label: "Billing configuration", value: stripeConfigured ? "configured" : "disabled/incomplete" },
     { label: "Founder handoff URLs", value: handoffUrlsConfigured ? "configured" : "using defaults" },
-    { label: "Founder calibration setup", value: founderSetup.readiness.ready ? "ready" : `${founderSetup.missingActions.length} action${founderSetup.missingActions.length === 1 ? "" : "s"} remaining` },
+    {
+      label: "Founder calibration setup",
+      value: founderSetup.status === "unavailable"
+        ? "unavailable"
+        : founderSetup.report.readiness.ready
+          ? "ready"
+          : `${founderSetup.report.missingActions.length} action${founderSetup.report.missingActions.length === 1 ? "" : "s"} remaining`,
+    },
     { label: "Environment", value: process.env.NODE_ENV ?? "unknown" },
   ]
 
@@ -52,7 +59,8 @@ export default async function HealthPage() {
         turnstileConfigured={turnstileConfigured}
         stripeConfigured={stripeConfigured}
         handoffUrlsConfigured={handoffUrlsConfigured}
-        founderMissingActions={founderSetup.missingActions.map((action) => action.message)}
+        founderMissingActions={founderSetup.status === "ok" ? founderSetup.report.missingActions.map((action) => action.message) : []}
+        founderUnavailable={founderSetup.status === "unavailable"}
       />
       <AbuseAndUsagePressure />
     </div>
@@ -65,18 +73,21 @@ function RuntimeConfigurationNotes({
   stripeConfigured,
   handoffUrlsConfigured,
   founderMissingActions,
+  founderUnavailable,
 }: {
   authEmailConfigured: boolean
   turnstileConfigured: boolean
   stripeConfigured: boolean
   handoffUrlsConfigured: boolean
   founderMissingActions: string[]
+  founderUnavailable: boolean
 }) {
   const notes = [
     authEmailConfigured ? null : "Auth email delivery is not configured; verification and reset links require manual/admin fallback.",
     turnstileConfigured ? null : "Turnstile is disabled; server-side auth rate limits still apply.",
     stripeConfigured ? null : "Billing is disabled or incomplete; keep paid plans hidden until Stripe env vars are configured.",
     handoffUrlsConfigured ? null : "Founder handoff links are using default local URLs; set production web/admin origins before sending launch packets.",
+    founderUnavailable ? "Founder calibration setup could not be read. Check database migrations and runtime configuration." : null,
     ...founderMissingActions.slice(0, 4),
   ].filter(Boolean)
 
@@ -95,6 +106,14 @@ function RuntimeConfigurationNotes({
       </CardContent>
     </Card>
   )
+}
+
+async function readFounderSetupHealth() {
+  try {
+    return { status: "ok" as const, report: await runFounderCalibrationSetupReport() }
+  } catch {
+    return { status: "unavailable" as const }
+  }
 }
 
 async function AbuseAndUsagePressure() {
