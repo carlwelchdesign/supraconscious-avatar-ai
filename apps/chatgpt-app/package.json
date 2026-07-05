@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc && node scripts/copy-widget-assets.mjs",
-    "start": "node dist/server.js",
+    "start": "node --import tsx dist/server.js",
     "test": "tsx test/index.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
