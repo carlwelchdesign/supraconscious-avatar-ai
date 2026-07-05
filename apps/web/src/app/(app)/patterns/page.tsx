@@ -211,7 +211,7 @@ export default async function PatternsPage({
             Patterns emerge over time
           </h2>
           <p className="text-[14px] font-light text-[var(--plum-soft)] max-w-sm mx-auto leading-relaxed">
-            Keep writing. Your Avatar notices recurring language and emotional signals only after they appear across multiple entries.
+            Keep writing. The council notices recurring language and emotional signals only after they appear across multiple entries.
           </p>
         </div>
       )}

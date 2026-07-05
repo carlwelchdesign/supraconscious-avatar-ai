@@ -19,9 +19,9 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Inner Avatar — Write. See clearly. Choose consciously.",
+  title: "Supraconscious Inner Council — Write. See clearly. Choose consciously.",
   description:
-    "A guided AI journaling experience that helps you notice patterns, reflect with depth, and turn awareness into conscious action.",
+    "A Maria-inspired spiritual reflection journal where a bounded Inner Council helps you notice patterns, ask one clarifying question, and choose one embodied next step.",
 }
 
 export default function RootLayout({

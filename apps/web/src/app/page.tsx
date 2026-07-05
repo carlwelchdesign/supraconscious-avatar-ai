@@ -19,7 +19,7 @@ export default async function Home() {
         }}
       >
         <span className="font-display text-xl font-medium tracking-wide text-[var(--primary)]">
-          Inner Avatar
+          Supraconscious
         </span>
         <nav className="hidden md:flex items-center gap-8">
           <Link
@@ -60,19 +60,19 @@ export default async function Home() {
         <div>
           <div className="hero-item-1 inline-flex items-center gap-2 text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-8 px-4 py-2 rounded-full border border-[var(--clay)]/25 bg-[var(--clay)]/8">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--clay)] animate-dot-pulse" />
-            Guided AI journaling
+            Maria-inspired Inner Council
           </div>
 
           <h1 className="hero-item-2 font-display text-[clamp(52px,6vw,84px)] font-light leading-[1.08] tracking-[-0.02em] text-[var(--primary)] mb-7">
-            Write.
+            Enter.
             <br />
-            <em className="italic font-normal text-[var(--clay)]">See clearly.</em>
+            <em className="italic font-normal text-[var(--clay)]">Listen inward.</em>
             <br />
-            Choose consciously.
+            Cross the gate.
           </h1>
 
           <p className="hero-item-3 text-[17px] font-light leading-[1.75] text-[var(--plum-soft)] max-w-[480px] mb-12">
-            A guided AI journaling experience that helps you notice patterns, reflect with depth, and turn awareness into conscious action.
+            A guided spiritual reflection journal inspired by Maria Olon Tsaroucha&apos;s supraconscious teachings. Write what is present, hear four inner archetypal lenses, then answer one clarifying question before one embodied micro-shift.
           </p>
 
           <div className="hero-item-4 flex flex-wrap items-center gap-4">
@@ -90,7 +90,7 @@ export default async function Home() {
                   href="/register"
                   className="inline-flex items-center gap-2.5 bg-[var(--primary)] text-[var(--cream)] text-[15px] font-medium px-7 py-4 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(43,27,53,0.25)]"
                 >
-                  Begin your reflection
+                  Cross the Gate
                   <ArrowRight className="w-[18px] h-[18px]" />
                 </Link>
                 <Link
@@ -120,7 +120,7 @@ export default async function Home() {
             The practice
           </span>
           <h2 className="font-display text-[clamp(36px,4vw,54px)] font-light text-[var(--primary)] mb-20 max-w-xl leading-[1.2]">
-            A quiet space for inner{" "}
+            A bounded council for inner{" "}
             <em className="italic font-normal">clarity</em>
           </h2>
 
@@ -128,18 +128,18 @@ export default async function Home() {
             {[
               {
                 num: "01",
-                title: "Reflect",
-                body: "Write plainly. What is present today — emotions, observations, tensions. No performance required.",
+                title: "Threshold",
+                body: "Write plainly from the threshold. What is present today — emotions, observations, tensions. No performance required.",
               },
               {
                 num: "02",
-                title: "Recognize",
-                body: "Your Avatar notices repeated language, emotional tone, and recurring loops. No clinical labels.",
+                title: "Council",
+                body: "Protector, Conditioned Self, Visionary, and Truth Self reflect through bounded lenses. No diagnosis, channeling, or supernatural authority.",
               },
               {
                 num: "03",
-                title: "Integrate",
-                body: "Leave with one grounded prompt or small action that keeps your agency fully intact.",
+                title: "Embodiment Gate",
+                body: "The guide synthesizes one clarifying question, then you choose one grounded micro-shift that keeps your agency intact.",
               },
             ].map(({ num, title, body }) => (
               <div key={num} className="group">
@@ -170,21 +170,21 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_1fr] gap-16 items-center">
           <div>
             <span className="block text-[11px] font-medium tracking-[0.16em] uppercase text-[var(--clay)] mb-4">
-              Pattern awareness
+              Inner Council
             </span>
             <h2 className="font-display text-[clamp(32px,3.5vw,48px)] font-light text-[var(--primary)] mb-6 leading-[1.25]">
-              Your Avatar evolves with{" "}
-              <em className="italic font-normal">every entry</em>
+              A spiritual guide,{" "}
+              <em className="italic font-normal">not “AI Maria”</em>
             </h2>
             <p className="text-[16px] font-light leading-[1.75] text-[var(--plum-soft)] mb-8">
-              It begins as an Echo — reflecting your language with care. Over time it becomes a Witness, then a Clear Mirror, then an Inner Author. Each stage is earned through the evidence of your own reflection.
+              The experience is grounded in approved source material and Maria-inspired principles, while remaining explicit: it is not Maria, not therapy, not diagnosis, and not crisis monitoring.
             </p>
             <div className="space-y-3">
               {[
-                "Notices emotional signals and recurring language",
-                "Names patterns only after they appear repeatedly",
-                "Offers one grounded next step, never prescriptions",
-                "Safety-aware — crisis entries receive grounded support",
+                "Uses approved source material only when it is eligible",
+                "Shows when no approved source was used",
+                "Keeps the Integrator to one clarifying question",
+                "Safety-aware entries receive grounded support instead of confrontation",
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
                   <span
@@ -230,10 +230,10 @@ export default async function Home() {
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                Avatar reflection
+                Council reflection
               </p>
               <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)] leading-[1.7]">
-                &ldquo;The word &lsquo;performing&rsquo; has come up in your last four entries. There&apos;s something here worth staying with.&rdquo;
+                &ldquo;The council is noticing a tension between the part that performs and the part that wants to soften. What becomes available when you stop proving for one breath?&rdquo;
               </p>
             </div>
           </div>
@@ -286,7 +286,7 @@ export default async function Home() {
         }}
       >
         <span className="font-display text-lg font-light text-[var(--cream)]/50 tracking-wide">
-          Inner Avatar
+          Supraconscious
         </span>
         <div className="flex items-center gap-8">
           <span className="text-[13px] font-light text-[var(--cream)]/35">
@@ -297,7 +297,7 @@ export default async function Home() {
           </span>
         </div>
         <span className="text-[12px] text-[var(--cream)]/25">
-          © {new Date().getFullYear()} Inner Avatar
+          © {new Date().getFullYear()} Supraconscious
         </span>
       </footer>
     </main>

@@ -139,7 +139,7 @@ export default async function JournalEntryPage({
         </p>
       </div>
 
-      {/* Avatar reflection */}
+      {/* Council reflection */}
       {r ? (
         <div
           className="rounded-2xl border overflow-hidden"
@@ -152,7 +152,7 @@ export default async function JournalEntryPage({
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
             <AvatarOrb size="sm" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
-              Avatar reflection
+              Council reflection
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
               Echo · Stage {user.avatarStage ?? 1}

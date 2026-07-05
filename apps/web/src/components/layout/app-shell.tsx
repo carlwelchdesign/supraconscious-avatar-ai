@@ -32,7 +32,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="px-6 py-6 border-b" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
           <Link href="/dashboard" className="font-display text-lg font-medium text-[var(--primary)] tracking-wide">
-            Inner Avatar
+            Supraconscious
           </Link>
         </div>
 
@@ -55,7 +55,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex flex-col items-center text-center mb-4">
             <AvatarOrb size="xs" stage={(user?.avatarStage ?? 1) as 1|2|3|4|5} className="mb-2" />
             <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
-              Your Avatar
+              Inner Council
             </p>
             <p className="text-[12px] font-light text-[var(--plum-soft)]">
               {AVATAR_STAGE_NAMES[(user?.avatarStage ?? 1) - 1]} · Stage {user?.avatarStage ?? 1}
@@ -91,7 +91,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         }}
       >
         <Link href="/dashboard" className="font-display text-lg font-medium text-[var(--primary)]">
-          Inner Avatar
+          Supraconscious
         </Link>
         <form action={logoutAction}>
           <button

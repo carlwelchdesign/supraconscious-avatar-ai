@@ -40,7 +40,7 @@ export default async function AvatarPage() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          Your Avatar
+          Your guide
         </p>
         <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
           An inner presence,
@@ -48,7 +48,7 @@ export default async function AvatarPage() {
           <em className="italic font-normal text-[var(--clay)]">not a chatbot.</em>
         </h1>
         <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          The Avatar adapts through evidence of reflection, not intensity. Each stage is earned gradually — through the accumulated depth of your writing.
+          The guide adapts through evidence of reflection, not intensity. Each stage is earned gradually through the accumulated depth of your writing.
         </p>
       </div>
 

@@ -35,7 +35,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
         <p className="mt-2 text-[13px] font-light text-[var(--plum-soft)]">
           {isRegister
             ? "Start with email and password."
-            : "Sign in to your Inner Avatar account."}
+            : "Sign in to your Supraconscious account."}
         </p>
       </div>
 

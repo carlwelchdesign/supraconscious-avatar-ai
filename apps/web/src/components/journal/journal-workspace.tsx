@@ -784,7 +784,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 <AvatarOrb size="lg" stage={result.progression.newStage as 1|2|3|4|5} className="mx-auto" />
                 <div>
                   <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[var(--clay-light)] mb-1">
-                    Your Avatar has deepened
+                    Your guide has deepened
                   </p>
                   <p className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
                     {AVATAR_STAGES[result.progression.previousStage - 1]} is becoming{" "}

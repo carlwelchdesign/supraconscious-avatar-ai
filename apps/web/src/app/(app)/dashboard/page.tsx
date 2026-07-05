@@ -124,19 +124,19 @@ export default async function DashboardPage() {
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Your Avatar · Stage {user.avatarStage ?? 1}
+            Inner Council guide · Stage {user.avatarStage ?? 1}
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
             {AVATAR_STAGE_NAMES[(user.avatarStage ?? 1) - 1]}
           </h2>
           <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
-            Reflecting your language back with care. Each entry deepens the connection.
+            Reflecting your language back with care while the council practice deepens.
           </p>
           <Link
             href="/avatar"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-[var(--clay-light)] hover:text-[var(--cream)] transition-colors"
           >
-            See your Avatar&apos;s evolution
+            See the guide&apos;s evolution
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
         {[
           { label: "Entries written", value: entryCount, unit: entryCount === 1 ? "entry" : "entries" },
           { label: "Active patterns", value: patternCount, unit: "patterns" },
-          { label: "Avatar stage", value: user.avatarStage ?? 1, unit: "of 5" },
+          { label: "Guide stage", value: user.avatarStage ?? 1, unit: "of 5" },
         ].map(({ label, value, unit }) => (
           <div
             key={label}
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
             Most recent reflection
           </p>
           <p className="font-display italic text-[18px] font-light text-[var(--plum-soft)] leading-[1.8]">
-            &ldquo;{latestEntry.avatarResponse.mirror ?? "Your Avatar is listening."}&rdquo;
+            &ldquo;{latestEntry.avatarResponse.mirror ?? "Your guide is listening."}&rdquo;
           </p>
           <Link
             href="/journal"
@@ -203,10 +203,10 @@ export default async function DashboardPage() {
           style={{ borderColor: "rgba(43,27,53,0.12)" }}
         >
           <p className="font-display text-[20px] font-light text-[var(--plum-soft)] mb-4">
-            Your first entry is waiting.
+            Your first council entry is waiting.
           </p>
           <p className="text-[14px] font-light text-[var(--plum-soft)]/70 max-w-sm mx-auto mb-6">
-            Write what is present today — no structure required. Your Avatar will reflect it back with care.
+            Write what is present today — no structure required. The council will reflect it back with care.
           </p>
           <Link
             href="/journal"

@@ -220,7 +220,7 @@ export default async function SettingsPage({
           ) : null}
           <SettingRow
             label="Plan"
-            description="Your current Inner Avatar subscription plan."
+            description="Your current Supraconscious subscription plan."
             value={
               <span className="font-medium text-[var(--primary)]">
                 {subscription?.plan ?? "free"}

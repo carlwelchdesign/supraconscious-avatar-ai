@@ -38,7 +38,7 @@ export default async function PricingPage({
     <main className="mx-auto max-w-6xl px-4 py-16">
       <div className="mb-10">
         <Link href="/" className="text-sm text-muted-foreground">
-          Inner Avatar
+          Supraconscious
         </Link>
         <h1 className="mt-6 text-4xl font-semibold tracking-normal">Pricing</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
