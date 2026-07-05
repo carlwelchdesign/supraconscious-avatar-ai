@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { isFounderCalibrationUser } from "@inner-avatar/ai"
+import { isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -109,10 +109,14 @@ export default async function JournalEntryPage({
     ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
     : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
   const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
+  const hasUsefulCalibrationFeedbackNote = entry.councilSession?.feedback.some((feedback) => isFounderCalibrationFeedbackNoteUseful(feedback.note)) ?? false
+  const hasAnyCalibrationFeedbackNote = entry.councilSession?.feedback.some((feedback) => feedback.note?.trim()) ?? false
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
-    : entry.councilSession?.feedback.some((feedback) => feedback.note?.trim())
+    : hasUsefulCalibrationFeedbackNote
       ? "Feedback note saved"
+      : hasAnyCalibrationFeedbackNote
+        ? "Feedback note needs more detail"
       : "Feedback note needed"
   const feedbackMessage = readFeedbackMessage(query.feedback)
 
@@ -354,7 +358,11 @@ export default async function JournalEntryPage({
                 {entry.councilSession.feedback.map((feedback) => (
                   <p key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
                     <span className="font-medium text-[var(--primary)]">{feedback.feedbackType}</span>
-                    {feedback.note ? " · note saved" : " · no note"}
+                    {isFounderCalibrationFeedbackNoteUseful(feedback.note)
+                      ? " · note saved"
+                      : feedback.note
+                        ? " · note needs more detail"
+                        : " · no note"}
                   </p>
                 ))}
               </div>
