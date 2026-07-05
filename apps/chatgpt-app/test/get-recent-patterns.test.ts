@@ -13,14 +13,21 @@ test('getRecentPatterns returns mapped pattern list for authenticated user', asy
   const fakeDate = new Date('2026-05-08T12:00:00.000Z')
   const mockPrisma = {
     patternMemory: {
-      findMany: async () => [
+      findMany: async ({ select }: any) => {
+        assert.deepStrictEqual(select, {
+          patternLabel: true,
+          evidenceCount: true,
+          lastSeenAt: true
+        })
+        return [
         {
           patternLabel: 'Cycle of doubt',
           evidenceCount: 3,
           lastSeenAt: fakeDate,
           examples: ['Repeated hesitation before decisions.']
         }
-      ]
+        ]
+      }
     }
   }
 
@@ -32,8 +39,9 @@ test('getRecentPatterns returns mapped pattern list for authenticated user', asy
         label: 'Cycle of doubt',
         evidenceCount: 3,
         lastSeenAt: fakeDate.toISOString(),
-        summary: 'Repeated hesitation before decisions.'
+        summary: 'Cycle of doubt'
       }
     ]
   })
+  assert.equal(JSON.stringify(result).includes('Repeated hesitation'), false)
 })

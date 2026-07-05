@@ -9,7 +9,6 @@ type PatternSummary = {
   patternLabel: string
   evidenceCount: number
   lastSeenAt: Date
-  examples: unknown
 }
 
 export async function getRecentPatterns(input: unknown, userId?: string, deps: { prisma?: typeof prisma } = {}) {
@@ -31,8 +30,7 @@ export async function getRecentPatterns(input: unknown, userId?: string, deps: {
       select: {
         patternLabel: true,
         evidenceCount: true,
-        lastSeenAt: true,
-        examples: true
+        lastSeenAt: true
       }
     })
 
@@ -41,9 +39,7 @@ export async function getRecentPatterns(input: unknown, userId?: string, deps: {
         label: p.patternLabel,
         evidenceCount: p.evidenceCount,
         lastSeenAt: p.lastSeenAt.toISOString(),
-        summary: Array.isArray(p.examples) && typeof p.examples[0] === 'string'
-          ? p.examples[0]
-          : p.patternLabel
+        summary: p.patternLabel
       }))
     }
   } catch (error) {
