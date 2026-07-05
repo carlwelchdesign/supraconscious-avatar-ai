@@ -78,7 +78,7 @@ node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 
 ## Runtime configuration
 
-Set `CHATGPT_APP_PORT` to change the server port (default `3002`).
+Set `CHATGPT_APP_PORT` to change the server port (default `3002`). Hosted, staging, and production deployments should also set `CHATGPT_APP_API_TOKEN` to a long random bearer token. `/health` and MCP tool metadata remain public, but MCP tool execution requires `Authorization: Bearer <CHATGPT_APP_API_TOKEN>` when the token is configured.
 
 The server expects runtime access to dependent workspace packages (`@inner-avatar/ai`, `@inner-avatar/db`) which are compiled during the workspace build.
 

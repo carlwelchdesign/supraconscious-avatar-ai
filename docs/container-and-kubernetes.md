@@ -60,6 +60,7 @@ Expected runtime values:
 - `NEXT_PUBLIC_APP_URL`
 - `INNER_AVATAR_WEB_URL`
 - `NEXT_PUBLIC_ADMIN_URL`
+- `CHATGPT_APP_API_TOKEN` for hosted ChatGPT/MCP tool execution
 - `SUPER_ADMIN_EMAILS` before first admin login
 - `RESEND_API_KEY` and `AUTH_EMAIL_FROM` for email verification and password reset delivery
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` for managed auth bot protection
@@ -68,7 +69,7 @@ Stripe variables are optional only while billing is intentionally disabled. Befo
 
 Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUBLIC_ADMIN_URL`; set both to real public origins in staging or production so copied launch packets do not point at localhost.
 
-The ChatGPT/MCP container also uses `INNER_AVATAR_WEB_URL` / `NEXT_PUBLIC_APP_URL` for widget redirects and CORS. It listens on `CHATGPT_APP_PORT` when set, otherwise on the platform-provided `PORT`, and finally defaults to `3002`.
+The ChatGPT/MCP container also uses `INNER_AVATAR_WEB_URL` / `NEXT_PUBLIC_APP_URL` for widget redirects and CORS. It listens on `CHATGPT_APP_PORT` when set, otherwise on the platform-provided `PORT`, and finally defaults to `3002`. Set `CHATGPT_APP_API_TOKEN` in hosted, staging, and production environments so MCP tool execution requires a bearer token; `/health` and tool metadata can remain public.
 
 Migrations are not run automatically when web, admin, or ChatGPT containers boot. Local Compose uses the explicit `db-push` setup service. Production schema changes should remain a controlled release step.
 
@@ -84,7 +85,7 @@ Do not add Kubernetes manifests until there is real traffic or an explicit infra
 
 - Separate Kubernetes Deployments for `web`, `admin`, and `chatgpt-app`.
 - Managed Postgres for production, not in-cluster Postgres.
-- Kubernetes Secrets for `DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, Stripe values, and admin configuration.
+- Kubernetes Secrets for `DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, `CHATGPT_APP_API_TOKEN`, Stripe values, and admin configuration.
 - Ingress routes for public web, admin, and ChatGPT/MCP hostnames.
 - Readiness and liveness probes:
   - Web readiness: `/api/health`

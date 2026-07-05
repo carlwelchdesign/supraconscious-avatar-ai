@@ -70,6 +70,7 @@ Production environment checklist:
 | `STRIPE_STARTER_PRICE_ID` / `STRIPE_PRO_PRICE_ID` | Required for billing | No | No | Needed before enabling paid plans. |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Required for billing UI | No | No | Public Stripe key for the web app. |
 | `CHATGPT_APP_PORT` / `PORT` | No | No | Optional | Defaults to `3002`; hosted runtimes may set `PORT`, while local scripts can use `CHATGPT_APP_PORT`. |
+| `CHATGPT_APP_API_TOKEN` | No | No | Required for hosted tool execution | Long random bearer token. `/health` and MCP tool metadata stay public, but tool execution requires this token when configured. |
 
 For local/dev scripts, the root `.env.example` includes additional helper variables for founder setup, pilot seeding, RAG smoke tests, and handoff packet generation.
 
