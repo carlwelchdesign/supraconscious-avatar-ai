@@ -8,6 +8,7 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
+import { SavedSessionFeedbackForm } from "./saved-session-feedback-form"
 
 const GUIDE_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 
@@ -381,34 +382,11 @@ export default async function JournalEntryPage({
                 ))}
               </div>
             )}
-            <form action={submitSavedSessionFeedbackAction} className="mt-3 space-y-3">
-              <input type="hidden" name="councilSessionId" value={entry.councilSession.id} />
-              <select name="feedbackType" defaultValue="helpful" className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-                <option value="helpful">Helpful</option>
-                <option value="not_accurate">Not accurate</option>
-                <option value="too_intense">Too intense</option>
-                <option value="unclear">Unclear</option>
-                <option value="unsupported_source">Report source issue</option>
-              </select>
-              <textarea
-                name="note"
-                maxLength={500}
-                required={founderCalibrationMode}
-                placeholder={founderCalibrationMode
-                  ? "Required note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
-                  : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
-                className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
-                style={{ borderColor: "rgba(43,27,53,0.08)" }}
-              />
-              {founderCalibrationMode && (
-                <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
-                  This note stays with the session for calibration and does not automatically retrain the guide.
-                </p>
-              )}
-              <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-                Save feedback
-              </button>
-            </form>
+            <SavedSessionFeedbackForm
+              action={submitSavedSessionFeedbackAction}
+              councilSessionId={entry.councilSession.id}
+              founderCalibrationMode={founderCalibrationMode}
+            />
           </div>
         </div>
       )}
