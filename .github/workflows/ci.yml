@@ -110,6 +110,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Validate Docker Compose config
+        run: docker compose config
+
       - name: Build web image
         run: docker build -f apps/web/Dockerfile -t inner-avatar-web:${{ github.sha }} .
 
