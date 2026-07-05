@@ -541,6 +541,7 @@ export default async function SettingsPage({
                 name="password"
                 type="password"
                 required
+                minLength={1}
                 autoComplete="current-password"
                 className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
                 style={{ borderColor: "rgba(43,27,53,0.12)" }}
@@ -552,6 +553,8 @@ export default async function SettingsPage({
                 name="confirmation"
                 type="text"
                 required
+                pattern="DELETE"
+                title="Type DELETE in all caps to confirm."
                 autoComplete="off"
                 className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
                 style={{ borderColor: "rgba(43,27,53,0.12)" }}
