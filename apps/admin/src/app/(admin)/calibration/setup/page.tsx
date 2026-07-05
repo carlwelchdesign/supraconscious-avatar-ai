@@ -374,8 +374,8 @@ function RequiredRoleStatus({
         <RoleCheck label="onboarding complete" passed={status.onboardingComplete} />
         <RoleCheck label="consent present" passed={status.consentPresent} />
         <RoleCheck label="session present" passed={status.sessionPresent} />
-        <RoleCheck label="feedback note present" passed={status.feedbackNotePresent} />
-        <RoleCheck label="ready/golden review" passed={status.goldenExamplePresent} />
+        <RoleCheck label="feedback note captured (optional)" passed={status.feedbackNotePresent} />
+        <RoleCheck label="ready/golden review (optional)" passed={status.goldenExamplePresent} />
       </div>
     </div>
   )

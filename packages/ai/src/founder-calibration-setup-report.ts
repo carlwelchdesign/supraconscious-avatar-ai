@@ -418,6 +418,14 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
 
   const warnings = [...snapshot.filterWarnings]
   if (snapshot.filterMode !== "db") warnings.push("Founder calibration participant setup is incomplete; DB participants should be configured before relying on reports.")
+  for (const participant of activeParticipants) {
+    if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
+      warnings.push(`${participant.email} has sessions without specific feedback notes; continue development, but collect notes when useful.`)
+    }
+    if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
+      warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
+    }
+  }
 
   return {
     checkedAt: snapshot.checkedAt.toISOString(),
@@ -565,8 +573,6 @@ function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant)
   if (!participant.accountExists) return "/register"
   if (!participant.onboardingComplete || !participant.consentPresent) return "/onboarding"
   if (participant.sessionCount === 0) return "/journal"
-  if (participant.feedbackNoteCount === 0) return participant.nextActionHref ?? "/journal"
-  if (participant.goldenExampleCount === 0) return "/calibration/live"
   return "/journal"
 }
 
@@ -585,10 +591,10 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
     return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. Submit one reflection, select a feedback type, and leave a specific note about voice, source grounding, intensity, embodiment, or what Maria would phrase differently. Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
-    return `Please open the latest calibration session and add feedback with a specific note. The note is required for Carl/Maria calibration and does not automatically retrain the guide. Continue here: ${primaryPath}`
+    return `The first session is captured. Continue development with the next guided journal pass; add a feedback note only when it helps clarify what should change. Continue here: ${primaryPath}`
   }
   if (participant.goldenExampleCount === 0) {
-    return `Your first calibration evidence is captured. The admin review step is next: mark the session ready/golden or assign a voice, source, prompt, intensity, or embodiment issue. Review here: ${primaryPath}`
+    return `The first calibration evidence is captured. Golden examples are optional now; continue with the next useful guided session or mark examples later when one clearly stands out. Continue here: ${primaryPath}`
   }
   return `Founder calibration is ready for another guided session. Open /journal, use the next useful guided scenario, and leave a feedback note after the reflection. Continue here: ${primaryPath}`
 }
@@ -611,8 +617,6 @@ function buildParticipantMissingActions(input: {
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/onboarding" })
   if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/onboarding" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/journal" })
-  if (input.sessionCount > 0 && input.feedbackNoteCount === 0) actions.push({ code: "feedback_note_missing", email: input.email, message: `${input.email} needs at least one specific calibration feedback note.`, href: input.latestSessionHref ?? "/journal" })
-  if (input.sessionCount > 0 && input.goldenExampleCount === 0) actions.push({ code: "golden_example_missing", email: input.email, message: `${input.email} needs at least one ready/golden example review.`, href: "/calibration/live" })
   return actions
 }
 
