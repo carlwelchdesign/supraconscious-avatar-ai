@@ -17,19 +17,28 @@ const VOICE_RATE_LIMITS: Record<VoiceRateLimitScope, RateLimitConfig> = {
 export async function reserveVoiceUsage(scope: VoiceRateLimitScope, userId: string) {
   const config = VOICE_RATE_LIMITS[scope]
   const windowStart = getWindowStart(new Date(), config.windowMs)
-  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
-    INSERT INTO "VoiceUsageBucket" ("id", "userId", "scope", "windowStart", "count", "updatedAt")
-    VALUES (md5(random()::text || clock_timestamp()::text), ${userId}, ${scope}, ${windowStart}, 1, NOW())
-    ON CONFLICT ("userId", "scope", "windowStart")
-    DO UPDATE SET "count" = "VoiceUsageBucket"."count" + 1, "updatedAt" = NOW()
-    RETURNING "count"
-  `
-  const count = rows[0]?.count ?? config.maxAttempts + 1
+  let count = 0
+  let meteringUnavailable = false
+
+  try {
+    const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+      INSERT INTO "VoiceUsageBucket" ("id", "userId", "scope", "windowStart", "count", "updatedAt")
+      VALUES (md5(random()::text || clock_timestamp()::text), ${userId}, ${scope}, ${windowStart}, 1, NOW())
+      ON CONFLICT ("userId", "scope", "windowStart")
+      DO UPDATE SET "count" = "VoiceUsageBucket"."count" + 1, "updatedAt" = NOW()
+      RETURNING "count"
+    `
+    count = rows[0]?.count ?? config.maxAttempts + 1
+  } catch (error) {
+    warnVoiceRateLimitUnavailable(error)
+    meteringUnavailable = true
+  }
 
   return {
-    allowed: count <= config.maxAttempts,
+    allowed: meteringUnavailable || count <= config.maxAttempts,
     count,
     maxAttempts: config.maxAttempts,
+    meteringUnavailable,
     windowStart,
   }
 }
@@ -44,4 +53,15 @@ export function voiceRateLimitMessage(scope: VoiceRateLimitScope) {
 
 function getWindowStart(now: Date, windowMs: number) {
   return new Date(Math.floor(now.getTime() / windowMs) * windowMs)
+}
+
+let warnedVoiceRateLimitUnavailable = false
+
+function warnVoiceRateLimitUnavailable(error: unknown) {
+  if (warnedVoiceRateLimitUnavailable) return
+  warnedVoiceRateLimitUnavailable = true
+  console.warn(
+    "Voice usage metering skipped because VoiceUsageBucket is unavailable. Run prisma generate/migrate and restart the app.",
+    error,
+  )
 }
