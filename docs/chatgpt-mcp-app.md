@@ -15,6 +15,7 @@ This document describes the ChatGPT MCP server added in Phase 5 and finalized in
 - `apps/chatgpt-app/src/tools/*` — tool handlers: `create-journal-entry`, `analyze-journal-entry`, `generate-avatar-reflection`, `generate-personalized-prompt`, `get-recent-patterns`, `save-reflection-session`.
 - `apps/chatgpt-app/src/middleware/*` — `auth` and `safety` middleware helpers.
 - `apps/chatgpt-app/src/widget/*` — static widget assets (HTML/CSS/JS) served as static files.
+- `apps/chatgpt-app/.env.example` — runtime environment template for local and hosted MCP deployments.
 - `apps/chatgpt-app/Dockerfile` — multi-stage Docker build for the MCP app.
 - `.github/workflows/chatgpt-app-deploy.yml` — CI workflow to install dependencies, build, test, and validate the Docker image build.
 
@@ -38,7 +39,7 @@ Run the test suite:
 yarn --cwd apps/chatgpt-app test
 ```
 
-All tests pass in CI: 19 passing tests at the time of writing.
+All tests pass in CI: 32 passing tests at the time of writing.
 
 ## Docker
 
@@ -78,7 +79,7 @@ node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 
 ## Runtime configuration
 
-Set `CHATGPT_APP_PORT` to change the server port (default `3002`). Hosted, staging, and production deployments should also set `CHATGPT_APP_API_TOKEN` to a long random bearer token. `/health` and MCP tool metadata remain public, but MCP tool execution requires `Authorization: Bearer <CHATGPT_APP_API_TOKEN>` when the token is configured.
+Start from `apps/chatgpt-app/.env.example` for local or hosted configuration. Set `CHATGPT_APP_PORT` to change the server port (default `3002`). Hosted, staging, and production deployments should also set `CHATGPT_APP_API_TOKEN` to a long random bearer token. `/health` and MCP tool metadata remain public, but MCP tool execution requires `Authorization: Bearer <CHATGPT_APP_API_TOKEN>` when the token is configured.
 
 The server expects runtime access to dependent workspace packages (`@inner-avatar/ai`, `@inner-avatar/db`) which are compiled during the workspace build.
 

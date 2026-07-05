@@ -6,6 +6,7 @@ Inner Avatar is a guided AI journaling SaaS built as a Yarn workspaces + Turbore
 
 - `apps/web`: public journaling SaaS, auth pages, journal flow, voice APIs, and user settings.
 - `apps/admin`: separate internal admin application with its own login, session cookie, URL, and deployment.
+- `apps/chatgpt-app`: Express-based ChatGPT/MCP server and embeddable widget.
 - `packages/db`: Prisma schema, generated client access, and shared database utilities.
 - `packages/auth`: first-party email/password auth, scoped sessions, and RBAC guards.
 - `packages/ai`: OpenAI schemas, safety checks, analysis, Avatar responses, prompts, pattern memory, and progression logic.

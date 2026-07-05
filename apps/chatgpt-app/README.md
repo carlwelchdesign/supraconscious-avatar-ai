@@ -48,6 +48,7 @@ docker run -p 3002:3002 inner-avatar-chatgpt-app:latest
 
 Environment
 
+- Start from `apps/chatgpt-app/.env.example`.
 - `CHATGPT_APP_PORT` or platform `PORT` — default `3002`.
 - `CHATGPT_APP_API_TOKEN` — optional locally, required for hosted/staging/production tool execution. Use a long random bearer token.
 - `INNER_AVATAR_WEB_URL` or `NEXT_PUBLIC_APP_URL` — public web app origin for widget redirects and CORS.
