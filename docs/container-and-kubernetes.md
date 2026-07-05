@@ -4,6 +4,8 @@ Vercel remains the current production deployment. This Docker setup gives the pr
 
 ## Local Container Commands
 
+Start by copying `.env.example` to `.env` and replacing the placeholder secrets/API keys you intend to test. The Compose defaults can boot Postgres locally, but real AI, email, billing, founder handoff, and ChatGPT/MCP flows need the matching runtime values set.
+
 Build individual images:
 
 ```bash
