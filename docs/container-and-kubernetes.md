@@ -89,7 +89,7 @@ Migrations are not run automatically when web, admin, or ChatGPT containers boot
 
 The web and admin apps use Next.js standalone output so runtime images do not need the full monorepo source. They are designed as stateless app instances: session and application state live in Postgres, which makes horizontal scaling viable once database connection limits are handled.
 
-The ChatGPT/MCP image uses the pinned Yarn 4 launcher with the same immutable install path as CI and Vercel.
+The ChatGPT/MCP image uses the pinned Yarn 4 launcher with the same immutable install path as CI and Vercel. Its runtime command intentionally keeps the `tsx` loader because shared workspace package exports currently point at TypeScript source files. Do not switch that container or `apps/chatgpt-app` start script back to plain `node dist/server.js` until the shared packages emit JavaScript runtime exports.
 
 ## Future Kubernetes Shape
 
