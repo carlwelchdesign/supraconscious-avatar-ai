@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
+import { readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
@@ -16,9 +17,10 @@ const CONSENT_ITEMS = [
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; next?: string }>
 }) {
   const [user, params] = await Promise.all([requireAppUser(), searchParams])
+  const nextPath = readSafeNextPath(params.next)
   const [founderCalibrationMode, latestConsents] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.consentEvent.findMany({
@@ -29,7 +31,7 @@ export default async function OnboardingPage({
       orderBy: { createdAt: "desc" },
     }),
   ])
-  if (user.onboardingComplete && hasRequiredPilotConsents(latestConsents)) redirect("/journal")
+  if (user.onboardingComplete && hasRequiredPilotConsents(latestConsents)) redirect(nextPath || "/journal")
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -63,6 +65,7 @@ export default async function OnboardingPage({
       )}
 
       <form action={acceptPilotOrientationAction} className="rounded-3xl border p-6" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
+        {nextPath && <input type="hidden" name="next" value={nextPath} />}
         <div className="space-y-4">
           {CONSENT_ITEMS.map(([name, label, required]) => (
             <label key={name} className="flex items-start gap-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">

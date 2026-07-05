@@ -30,7 +30,7 @@ const stages = [
 ]
 
 export default async function AvatarPage() {
-  const user = await requireJournalAccessPageUser()
+  const user = await requireJournalAccessPageUser("/avatar")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
   const currentStage = stages[stageIndex] ?? stages[0]

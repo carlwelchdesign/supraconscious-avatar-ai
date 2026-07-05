@@ -4,7 +4,7 @@ import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 export default async function JournalPage() {
-  const user = await requireJournalAccessPageUser()
+  const user = await requireJournalAccessPageUser("/journal")
 
   const today = new Date()
   const month = today.getMonth() + 1

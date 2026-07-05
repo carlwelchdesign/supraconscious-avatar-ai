@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
+import { readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
@@ -10,9 +11,10 @@ export async function acceptPilotOrientationAction(formData: FormData) {
   const user = await requireAppUser()
   const accepted = REQUIRED_PILOT_CONSENTS.every((type) => formData.get(type) === "on")
   const patternMemoryGranted = formData.get("pattern_memory") === "on"
+  const nextPath = readSafeNextPath(formData.get("next"))
 
   if (!accepted) {
-    redirect("/onboarding?error=consent_required")
+    redirect(buildOnboardingErrorRedirect(nextPath))
   }
 
   await prisma.$transaction([
@@ -54,5 +56,11 @@ export async function acceptPilotOrientationAction(formData: FormData) {
     },
   })
 
-  redirect("/journal")
+  redirect(nextPath || "/journal")
+}
+
+function buildOnboardingErrorRedirect(nextPath: string) {
+  const params = new URLSearchParams({ error: "consent_required" })
+  if (nextPath) params.set("next", nextPath)
+  return `/onboarding?${params.toString()}`
 }

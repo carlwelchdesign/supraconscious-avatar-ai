@@ -13,7 +13,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ feedback?: string; delete?: string }>
 }) {
-  const user = await requireJournalAccessPageUser()
+  const user = await requireJournalAccessPageUser("/dashboard")
   const query = await searchParams
 
   const [entryCount, patternCount, recentEntries, founderReadiness] = await Promise.all([

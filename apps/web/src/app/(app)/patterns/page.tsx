@@ -52,7 +52,7 @@ export default async function PatternsPage({
 }: {
   searchParams: Promise<{ feedback?: string }>
 }) {
-  const user = await requireJournalAccessPageUser()
+  const user = await requireJournalAccessPageUser("/patterns")
   const params = await searchParams
   const feedbackMessage = params.feedback ? FEEDBACK_MESSAGES[params.feedback] : null
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({

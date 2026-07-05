@@ -25,7 +25,7 @@ export async function requireJournalAccessUser(): Promise<NonNullable<AuthUser>>
   return user
 }
 
-export async function requireJournalAccessPageUser(): Promise<NonNullable<AuthUser>> {
+export async function requireJournalAccessPageUser(nextPath = ""): Promise<NonNullable<AuthUser>> {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
 
@@ -33,10 +33,24 @@ export async function requireJournalAccessPageUser(): Promise<NonNullable<AuthUs
   const decision = evaluateJournalAccess(user, consentRecords)
 
   if (!decision.allowed) {
-    redirect(decision.code === "onboarding_required" ? "/onboarding" : "/onboarding?error=consent_required")
+    redirect(buildOnboardingRedirect(decision.code === "onboarding_required" ? null : "consent_required", nextPath))
   }
 
   return user
+}
+
+function buildOnboardingRedirect(error: string | null, nextPath: string) {
+  const params = new URLSearchParams()
+  if (error) params.set("error", error)
+  if (isSafeOnboardingNextPath(nextPath)) params.set("next", nextPath)
+  const query = params.toString()
+  return query ? `/onboarding?${query}` : "/onboarding"
+}
+
+function isSafeOnboardingNextPath(value: string) {
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) return false
+  const [path] = value.split(/[?#]/)
+  return path === "/journal" || path.startsWith("/journal/")
 }
 
 export function getJournalAccessError(error: unknown) {

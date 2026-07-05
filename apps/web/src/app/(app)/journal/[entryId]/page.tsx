@@ -19,11 +19,9 @@ export default async function JournalEntryPage({
   params: Promise<{ entryId: string }>
   searchParams: Promise<{ feedback?: string }>
 }) {
-  const [user, resolvedParams, query] = await Promise.all([
-    requireJournalAccessPageUser(),
-    params,
-    searchParams,
-  ])
+  const [resolvedParams, query] = await Promise.all([params, searchParams])
+  const entryNextPath = `/journal/${resolvedParams.entryId}${query.feedback ? `?feedback=${encodeURIComponent(query.feedback)}` : ""}`
+  const user = await requireJournalAccessPageUser(entryNextPath)
   const [founderCalibrationMode, entry] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.journalEntry.findFirst({
