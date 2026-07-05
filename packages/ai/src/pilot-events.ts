@@ -33,7 +33,19 @@ export type PilotEventInput = {
   requestId?: string | null
 }
 
-const FORBIDDEN_PROPERTY_KEYS = new Set(["rawText", "journalText", "text", "entry", "transcript", "audio"])
+const FORBIDDEN_PROPERTY_KEYS = new Set([
+  "audio",
+  "content",
+  "entry",
+  "feedbacknote",
+  "inputtext",
+  "journaltext",
+  "message",
+  "note",
+  "rawtext",
+  "text",
+  "transcript",
+])
 
 export async function emitPilotEvent(input: PilotEventInput) {
   return prisma.pilotEvent.create({
@@ -60,7 +72,7 @@ export function sanitizeProperties(properties: PilotEventInput["properties"]) {
   if (!properties) return undefined
   const safe: Record<string, string | number | boolean | null | string[]> = {}
   for (const [key, value] of Object.entries(properties)) {
-    if (FORBIDDEN_PROPERTY_KEYS.has(key)) continue
+    if (FORBIDDEN_PROPERTY_KEYS.has(normalizePropertyKey(key))) continue
     if (typeof value === "string" && value.length > 500) {
       safe[key] = value.slice(0, 500)
       continue
@@ -68,4 +80,8 @@ export function sanitizeProperties(properties: PilotEventInput["properties"]) {
     safe[key] = value
   }
   return safe
+}
+
+function normalizePropertyKey(key: string) {
+  return key.toLowerCase().replace(/[^a-z0-9]/g, "")
 }

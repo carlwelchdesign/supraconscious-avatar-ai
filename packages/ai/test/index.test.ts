@@ -333,12 +333,19 @@ test("pilot eval runner covers planned fixtures", () => {
 
 test("pilot event properties remove raw journal text keys", () => {
   const sanitized = sanitizeProperties({
+    content: "private",
+    feedbackNote: "private",
+    input_text: "private",
     rawText: "private",
     journalText: "private",
+    message: "private",
+    note: "private",
     text: "private",
+    hasNote: true,
+    entryCount: 3,
     sourceMode: "rag",
   })
-  assert.deepEqual(sanitized, { sourceMode: "rag" })
+  assert.deepEqual(sanitized, { hasNote: true, entryCount: 3, sourceMode: "rag" })
 })
 
 test("pilot launch readiness reports blocking launch conditions", () => {
