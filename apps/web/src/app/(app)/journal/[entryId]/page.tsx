@@ -13,12 +13,15 @@ const GUIDE_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner
 
 export default async function JournalEntryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ entryId: string }>
+  searchParams: Promise<{ feedback?: string }>
 }) {
   const user = await requireJournalAccessPageUser()
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
+  const query = await searchParams
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
     include: {
@@ -99,6 +102,7 @@ export default async function JournalEntryPage({
     : entry.councilSession?.feedback.some((feedback) => feedback.note?.trim())
       ? "Feedback note saved"
       : "Feedback note needed"
+  const feedbackMessage = readFeedbackMessage(query.feedback)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -121,6 +125,20 @@ export default async function JournalEntryPage({
           {dateLabel}
         </h1>
       </div>
+
+      {feedbackMessage && (
+        <div
+          className="rounded-2xl border px-5 py-4"
+          style={{
+            background: feedbackMessage.tone === "error" ? "rgba(147,62,62,0.08)" : "rgba(184,137,90,0.08)",
+            borderColor: feedbackMessage.tone === "error" ? "rgba(147,62,62,0.18)" : "rgba(184,137,90,0.18)",
+          }}
+        >
+          <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {feedbackMessage.text}
+          </p>
+        </div>
+      )}
 
       <form action={deleteJournalEntryAction}>
         <input type="hidden" name="journalEntryId" value={entry.id} />
@@ -410,4 +428,14 @@ function describeCalibrationStatus(label: string, severity: string) {
   if (label === "source_unsupported") return "Source issue"
   if (label === "too_generic" || label === "too_intense") return "Prompt issue"
   return label.replaceAll("_", " ")
+}
+
+function readFeedbackMessage(status?: string) {
+  if (status === "saved") {
+    return { tone: "success", text: "Feedback saved. It stays with this session and does not automatically retrain the guide." } as const
+  }
+  if (status === "note_required") {
+    return { tone: "error", text: "Add one specific detail after the template label before saving founder calibration feedback." } as const
+  }
+  return null
 }

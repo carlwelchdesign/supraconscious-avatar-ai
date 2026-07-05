@@ -15,25 +15,29 @@ const FeedbackSchema = z.object({
 
 export async function submitSavedSessionFeedbackAction(formData: FormData) {
   const user = await requireJournalAccessUser()
-  const parsed = FeedbackSchema.parse(Object.fromEntries(formData))
+  const parsed = FeedbackSchema.safeParse(Object.fromEntries(formData))
+
+  if (!parsed.success) {
+    redirect("/dashboard?feedback=invalid")
+  }
 
   const session = await prisma.councilSession.findFirst({
-    where: { id: parsed.councilSessionId, userId: user.id },
+    where: { id: parsed.data.councilSessionId, userId: user.id },
     select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },
   })
-  if (!session) throw new Error("Council session not found.")
+  if (!session) redirect("/dashboard?feedback=session_missing")
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.note)) {
-    throw new Error("Add one specific detail to the feedback note for Carl/Maria calibration.")
+  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.data.note)) {
+    redirect(`/journal/${session.journalEntryId}?feedback=note_required`)
   }
 
   await prisma.councilSessionFeedback.create({
     data: {
       userId: user.id,
       councilSessionId: session.id,
-      feedbackType: parsed.feedbackType,
-      note: parsed.note || null,
+      feedbackType: parsed.data.feedbackType,
+      note: parsed.data.note || null,
     },
   })
   const safety = session.safetySnapshot as { severity?: string }
@@ -44,22 +48,23 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
     councilSessionId: session.id,
     sourceMode: session.sourceMode,
     safetySeverity: safety.severity ?? "unknown",
-    properties: { feedbackType: parsed.feedbackType, savedEntry: true, hasNote: Boolean(parsed.note) },
+    properties: { feedbackType: parsed.data.feedbackType, savedEntry: true, hasNote: Boolean(parsed.data.note) },
   })
 
   revalidatePath(`/journal/${session.journalEntryId}`)
   revalidatePath("/dashboard")
+  redirect(`/journal/${session.journalEntryId}?feedback=saved`)
 }
 
 export async function deleteJournalEntryAction(formData: FormData) {
   const user = await requireJournalAccessUser()
   const entryId = String(formData.get("journalEntryId") ?? "")
-  if (!entryId) throw new Error("Journal entry is required.")
+  if (!entryId) redirect("/dashboard?delete=invalid")
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
     select: { id: true, rawText: true },
   })
-  if (!entry) throw new Error("Journal entry not found.")
+  if (!entry) redirect("/dashboard?delete=missing")
 
   await prisma.$transaction([
     prisma.auditLog.create({
