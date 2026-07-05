@@ -163,7 +163,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
               <option value="normal">normal</option>
               <option value="pilot_blocker">pilot blocker</option>
             </select>
-            <input name="reason" placeholder="Batch reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+            <input name="reason" placeholder="Batch reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
             <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Review selected</button>
           </form>
         </CardContent>
@@ -263,6 +263,8 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                       <input
                         name="reason"
                         placeholder="Reason required"
+                        required
+                        minLength={10}
                         className="rounded-md border bg-background px-2 py-1 text-xs"
                       />
                       <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">

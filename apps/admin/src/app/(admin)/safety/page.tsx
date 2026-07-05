@@ -63,7 +63,7 @@ export default async function SafetyPage({
                   <option value="resolved">resolved</option>
                   <option value="escalated">escalated</option>
                 </select>
-                <input name="reason" placeholder="Review reason required" className="min-w-64 rounded-md border bg-background px-2 py-1 text-xs" />
+                <input name="reason" placeholder="Review reason required" required minLength={10} className="min-w-64 rounded-md border bg-background px-2 py-1 text-xs" />
                 <button className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                   Save review
                 </button>

@@ -176,7 +176,7 @@ export default async function SourcesPage({
                     <option key={state} value={state}>{state}</option>
                   ))}
                 </select>
-                <input name="reason" placeholder="Reason required" className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
+                <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
                 <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                   Update
                 </button>
@@ -192,7 +192,7 @@ export default async function SourcesPage({
                 ))}
                 <form action={upsertSourceRightsGrantAction} className="mt-3 grid gap-2 md:grid-cols-2">
                   <input type="hidden" name="sourceDocumentId" value={document.id} />
-                  <input name="ownerName" defaultValue="Maria Olon Tsaroucha" className="rounded-md border bg-background px-2 py-1 text-xs" />
+                  <input name="ownerName" defaultValue="Maria Olon Tsaroucha" required minLength={2} className="rounded-md border bg-background px-2 py-1 text-xs" />
                   <select name="status" defaultValue="needs_review" className="rounded-md border bg-background px-2 py-1 text-xs">
                     {["needs_review", "approved", "paraphrase_only", "revoked", "expired", "blocked"].map((state) => (
                       <option key={state} value={state}>{state}</option>
@@ -214,7 +214,7 @@ export default async function SourcesPage({
                     <input type="checkbox" name="attributionRequired" />
                     attribution required
                   </label>
-                  <input name="reason" placeholder="Rights reason required" className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
+                  <input name="reason" placeholder="Rights reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
                   <button type="submit" className="w-fit rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                     Add rights grant
                   </button>
@@ -257,7 +257,7 @@ export default async function SourcesPage({
                 </select>
                 <input name="conceptTags" placeholder="concept tags" defaultValue={arrayText(chunk.conceptTags)} className="rounded-md border bg-background px-2 py-1 text-xs" />
                 <input name="councilRoleTags" placeholder="role tags" defaultValue={arrayText(chunk.councilRoleTags)} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
-                <input name="reason" placeholder="Reason required" className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
+                <input name="reason" placeholder="Reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
                 <button type="submit" className="w-fit rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                   Save chunk
                 </button>
@@ -284,7 +284,7 @@ export default async function SourcesPage({
                     <option key={state} value={state}>{state}</option>
                   ))}
                 </select>
-                <input name="reason" placeholder="Reason required" className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
+                <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
                 <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
                   Save state
                 </button>

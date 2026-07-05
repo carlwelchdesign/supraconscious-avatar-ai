@@ -219,11 +219,14 @@ export default async function PilotReadinessPage({
             <textarea
               name="emails"
               placeholder="3-5 registered user emails, one per line or comma separated"
+              required
               className="min-h-24 rounded-md border bg-background px-3 py-2 text-sm"
             />
             <input
               name="reason"
               placeholder="Expansion reason required"
+              required
+              minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
             />
             <button disabled={!expansion.passed || cohorts.length === 0} className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
@@ -402,7 +405,7 @@ export default async function PilotReadinessPage({
                   <option value="normal">normal</option>
                   <option value="pilot_blocker">pilot blocker</option>
                 </select>
-                <input name="reason" placeholder="Reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
                 <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
               </form>
             </div>
@@ -454,7 +457,7 @@ export default async function PilotReadinessPage({
                   <option value="normal">normal</option>
                   <option value="pilot_blocker">pilot blocker</option>
                 </select>
-                <input name="reason" placeholder="Reason required; no raw journal text" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
                 <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
               </form>
             </div>
@@ -491,9 +494,9 @@ export default async function PilotReadinessPage({
         <CardHeader><CardTitle>Cohorts</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <form action={createPilotCohortAction} className="grid gap-2 md:grid-cols-[1fr_2fr_2fr_auto]">
-            <input name="name" placeholder="Cohort name" className="rounded-md border bg-background px-3 py-2 text-sm" />
+            <input name="name" placeholder="Cohort name" required minLength={2} className="rounded-md border bg-background px-3 py-2 text-sm" />
             <input name="description" placeholder="Description" className="rounded-md border bg-background px-3 py-2 text-sm" />
-            <input name="reason" placeholder="Cohort setup reason" required className="rounded-md border bg-background px-3 py-2 text-sm" />
+            <input name="reason" placeholder="Cohort setup reason" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
             <button disabled={!schemaReady} className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Create cohort</button>
           </form>
           {!schemaReady && (
@@ -509,8 +512,8 @@ export default async function PilotReadinessPage({
               </div>
               <form action={enrollPilotUserAction} className="mt-3 flex flex-wrap gap-2">
                 <input type="hidden" name="pilotCohortId" value={cohort.id} />
-                <input name="email" placeholder="User email" className="rounded-md border bg-background px-3 py-2 text-sm" />
-                <input name="reason" placeholder="Setup reason" className="rounded-md border bg-background px-3 py-2 text-sm" />
+                <input name="email" type="email" placeholder="User email" required className="rounded-md border bg-background px-3 py-2 text-sm" />
+                <input name="reason" placeholder="Setup reason" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
                 <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Enroll user</button>
               </form>
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
