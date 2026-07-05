@@ -41,13 +41,13 @@ export function MicButton({ onTranscribe, disabled }: Props) {
       fd.append("audio", blob, `recording.${extensionForMimeType(blob.type)}`)
       const res = await fetch("/api/voice/transcribe", { method: "POST", body: fd })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Transcription failed")
+      if (!res.ok) throw new Error(userFacingTranscriptionError(data.error, res.status))
       onTranscribe(data.text)
       lastRecordingRef.current = null
       setHasRetryableRecording(false)
       setState("idle")
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Transcription failed"
+      const msg = e instanceof Error ? e.message : "Voice transcription failed. Try again in a moment."
       setErrorMsg(msg)
       setState("error")
     }
@@ -175,4 +175,13 @@ function microphoneErrorMessage(error: unknown) {
   if (error.name === "NotAllowedError") return "Microphone access denied"
   if (error.name === "NotFoundError") return "No microphone found"
   return error.message || "Microphone unavailable"
+}
+
+function userFacingTranscriptionError(error: unknown, status: number) {
+  const message = typeof error === "string" ? error : ""
+  if (status === 401) return "Please sign in again before using voice."
+  if (status === 422) return "No speech was detected. Try recording again."
+  if (status === 429) return message || "Voice is temporarily rate limited. Try again shortly."
+  if (status === 400 && message) return message
+  return "Voice transcription failed. Try again in a moment."
 }

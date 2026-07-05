@@ -48,7 +48,7 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
       })
       if (!res.ok) {
         const data = await readErrorResponse(res)
-        throw new Error(data || "Failed to generate audio")
+        throw new Error(userFacingAudioError(data, res.status))
       }
 
       const blob = await res.blob()
@@ -73,7 +73,7 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
       await audio.play()
       setState("playing")
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to generate audio"
+      const message = error instanceof Error ? error.message : "Audio playback could not start"
       setErrorMsg(`${message}. Retry when ready.`)
       setState("error")
     }
@@ -157,4 +157,11 @@ async function readErrorResponse(response: Response) {
   } catch {
     return ""
   }
+}
+
+function userFacingAudioError(error: string, status: number) {
+  if (status === 401) return "Please sign in again before using voice"
+  if (status === 429) return error || "Voice playback is temporarily rate limited"
+  if (status === 400 && error) return error
+  return "Voice playback is unavailable right now"
 }

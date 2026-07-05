@@ -183,10 +183,10 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
         body: JSON.stringify({ text, calibrationScenario }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? "Reflection failed.")
+      if (!response.ok) throw new Error(userFacingJournalError(payload.error, response.status))
       setResult(payload)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Reflection failed.")
+      setError(e instanceof Error ? e.message : "Reflection could not be completed. Try again in a moment.")
     } finally {
       setIsSubmitting(false)
     }
@@ -225,10 +225,10 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
         }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? "Unable to save your shift.")
+      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "shift"))
       setEmbodimentSaved(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save your shift.")
+      setError(e instanceof Error ? e.message : "Unable to save your shift. Try again in a moment.")
     } finally {
       setIsSavingShift(false)
     }
@@ -249,11 +249,11 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
         }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? "Unable to save feedback.")
+      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "feedback"))
       setFeedbackSaved(feedbackType)
       setFeedbackNote("")
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save feedback.")
+      setError(e instanceof Error ? e.message : "Unable to save feedback. Try again in a moment.")
     } finally {
       setIsSavingFeedback(false)
     }
@@ -909,4 +909,23 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
       </div>
     </div>
   )
+}
+
+function userFacingJournalError(error: unknown, status: number) {
+  const message = typeof error === "string" ? error : ""
+  if (status === 401) return "Please sign in again before starting a reflection."
+  if (status === 429) return "Too many reflection attempts in a short time. Pause for a moment, then try again."
+  if (status === 400 && message) return message
+  if (status >= 500) return "The guide could not complete this reflection right now. Try again in a moment."
+  return "Reflection could not be completed. Try again in a moment."
+}
+
+function userFacingSaveError(error: unknown, status: number, item: "shift" | "feedback") {
+  const message = typeof error === "string" ? error : ""
+  if (status === 401) return "Please sign in again before saving."
+  if (status === 404) return "This council session is no longer available. Refresh the page and try again."
+  if (status === 400 && message) return message
+  return item === "shift"
+    ? "Unable to save your shift. Try again in a moment."
+    : "Unable to save feedback. Try again in a moment."
 }
