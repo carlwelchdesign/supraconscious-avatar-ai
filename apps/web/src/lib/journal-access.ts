@@ -1,8 +1,9 @@
 import "server-only"
 
-import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
+import { REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { getCurrentUser, type AuthUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { evaluateJournalAccess } from "./journal-access-policy"
 
 export class JournalAccessError extends Error {
   constructor(message: string, readonly status: number, readonly code: string) {
@@ -12,10 +13,8 @@ export class JournalAccessError extends Error {
 
 export async function requireJournalAccessUser(): Promise<NonNullable<AuthUser>> {
   const user = await getCurrentUser()
-  if (!user) throw new JournalAccessError("Unauthorized", 401, "unauthorized")
-
-  if (!user.onboardingComplete) {
-    throw new JournalAccessError("Complete onboarding before using the journal.", 403, "onboarding_required")
+  if (!user) {
+    throw new JournalAccessError("Unauthorized", 401, "unauthorized")
   }
 
   const consentRecords = await prisma.consentEvent.findMany({
@@ -32,9 +31,7 @@ export async function requireJournalAccessUser(): Promise<NonNullable<AuthUser>>
     },
   })
 
-  if (!hasRequiredPilotConsents(consentRecords)) {
-    throw new JournalAccessError("Complete consent before using the journal.", 403, "consent_required")
-  }
+  throwAccess(evaluateJournalAccess(user, consentRecords))
 
   return user
 }
@@ -49,4 +46,10 @@ export function getJournalAccessError(error: unknown) {
   }
 
   return null
+}
+
+function throwAccess(decision: ReturnType<typeof evaluateJournalAccess>) {
+  if (!decision.allowed) {
+    throw new JournalAccessError(decision.message, decision.status, decision.code)
+  }
 }
