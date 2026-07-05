@@ -80,11 +80,15 @@ export default async function RagReadinessPage() {
             <input
               name="evalReport"
               placeholder='{"passed":true,"rollbackCriteria":"disable if blocker rate exceeds threshold"}'
+              required
+              minLength={10}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
             <input
               name="reason"
               placeholder="Super-admin activation reason"
+              required
+              minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
             <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
@@ -95,6 +99,8 @@ export default async function RagReadinessPage() {
             <input
               name="reason"
               placeholder="Super-admin rollback reason"
+              required
+              minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
             <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">

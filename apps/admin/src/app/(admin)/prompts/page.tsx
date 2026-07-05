@@ -55,9 +55,9 @@ export default async function PromptsPage({
               <Input name="key" placeholder="template.key" defaultValue={DEFAULT_COUNCIL_PROMPT_KEY} required />
               <Input name="name" placeholder="Display name" defaultValue="Council system prompt" required />
               <Input name="description" placeholder="Description" defaultValue="Versioned Inner Council system prompt for founder calibration tuning." />
-              <Textarea name="content" placeholder="Prompt content" className="min-h-52" defaultValue={DEFAULT_COUNCIL_SYSTEM_PROMPT} required />
+              <Textarea name="content" placeholder="Prompt content" className="min-h-52" defaultValue={DEFAULT_COUNCIL_SYSTEM_PROMPT} required minLength={10} />
               <Input name="relatedCalibrationSessionIds" placeholder="Related calibration session ids, comma or space separated" />
-              <Input name="reason" placeholder="Reason for this prompt update" required />
+              <Input name="reason" placeholder="Reason for this prompt update" required minLength={10} />
               <Button type="submit">Save template</Button>
             </form>
           </CardContent>

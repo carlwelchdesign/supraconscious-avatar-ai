@@ -103,6 +103,7 @@ export default async function FounderCalibrationSetupPage({
               name="reason"
               placeholder="Reason required; no raw journal text"
               required
+              minLength={10}
               className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
             />
             <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted md:col-span-2">
@@ -181,7 +182,7 @@ export default async function FounderCalibrationSetupPage({
                 <option key={role} value={role}>{role}</option>
               ))}
             </select>
-            <input name="reason" placeholder="Reason required; no raw journal text" required className="rounded-md border bg-background px-3 py-2 text-sm" />
+            <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
             <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Add / activate</button>
           </form>
         </CardContent>
@@ -479,7 +480,7 @@ function ParticipantAction({
   return (
     <form action={action} className="flex gap-2">
       <input type="hidden" name="id" value={id} />
-      <input name="reason" placeholder={`${label} reason`} required className="w-44 rounded-md border bg-background px-2 py-1.5 text-xs" />
+      <input name="reason" placeholder={`${label} reason`} required minLength={10} className="w-44 rounded-md border bg-background px-2 py-1.5 text-xs" />
       <button className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>
     </form>
   )

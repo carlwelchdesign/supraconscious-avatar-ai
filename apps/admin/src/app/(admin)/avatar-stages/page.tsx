@@ -42,7 +42,7 @@ export default async function AvatarStagesPage({
             <Input name="stage" type="number" min={1} max={5} placeholder="Stage number" required />
             <Input name="name" placeholder="Stage name" required />
             <Textarea name="description" placeholder="Description" />
-            <Input name="reason" placeholder="Reason required" required />
+            <Input name="reason" placeholder="Reason required" required minLength={10} />
             <Button type="submit">Save stage</Button>
           </form>
         </CardContent>
