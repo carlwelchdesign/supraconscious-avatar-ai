@@ -13,42 +13,46 @@ const PatternFeedbackSchema = z.object({
 
 export async function submitPatternFeedbackAction(formData: FormData) {
   const user = await requireJournalAccessUser()
-  const parsed = PatternFeedbackSchema.parse(Object.fromEntries(formData))
+  const parsed = PatternFeedbackSchema.safeParse(Object.fromEntries(formData))
+
+  if (!parsed.success) {
+    redirect("/patterns?feedback=invalid")
+  }
 
   const pattern = await prisma.patternMemory.findFirst({
     where: {
-      id: parsed.patternMemoryId,
+      id: parsed.data.patternMemoryId,
       userId: user.id,
     },
     select: { id: true },
   })
 
   if (!pattern) {
-    throw new Error("Pattern not found.")
+    redirect("/patterns?feedback=missing")
   }
 
   await prisma.patternMemoryFeedback.create({
     data: {
       userId: user.id,
-      patternMemoryId: parsed.patternMemoryId,
-      feedbackType: parsed.feedbackType,
+      patternMemoryId: parsed.data.patternMemoryId,
+      feedbackType: parsed.data.feedbackType,
     },
   })
 
-  if (parsed.feedbackType === "suppress") {
+  if (parsed.data.feedbackType === "suppress") {
     await prisma.patternMemory.update({
-      where: { id: parsed.patternMemoryId },
+      where: { id: parsed.data.patternMemoryId },
       data: { active: false },
     })
   }
 
-  if (parsed.feedbackType === "restore") {
+  if (parsed.data.feedbackType === "restore") {
     await prisma.patternMemory.update({
-      where: { id: parsed.patternMemoryId },
+      where: { id: parsed.data.patternMemoryId },
       data: { active: true },
     })
   }
 
   revalidatePath("/patterns")
-  redirect(`/patterns?feedback=${parsed.feedbackType}`)
+  redirect(`/patterns?feedback=${parsed.data.feedbackType}`)
 }

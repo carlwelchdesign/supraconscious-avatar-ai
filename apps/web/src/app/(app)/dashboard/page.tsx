@@ -8,8 +8,13 @@ import { requireJournalAccessPageUser } from "@/lib/journal-access"
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ feedback?: string; delete?: string }>
+}) {
   const user = await requireJournalAccessPageUser()
+  const query = await searchParams
 
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const [entryCount, patternCount, recentEntries, setupReport] = await Promise.all([
@@ -51,6 +56,7 @@ export default async function DashboardPage() {
   const founderFeedbackNoteHref = founderParticipant?.latestSessionHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
+  const dashboardMessage = readDashboardMessage(query)
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -84,6 +90,20 @@ export default async function DashboardPage() {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+
+      {dashboardMessage && (
+        <div
+          className="rounded-2xl border px-5 py-4"
+          style={{
+            background: dashboardMessage.tone === "error" ? "rgba(147,62,62,0.08)" : "rgba(184,137,90,0.08)",
+            borderColor: dashboardMessage.tone === "error" ? "rgba(147,62,62,0.18)" : "rgba(184,137,90,0.18)",
+          }}
+        >
+          <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+            {dashboardMessage.text}
+          </p>
+        </div>
+      )}
 
       {founderNeedsFirstSession && (
         <div
@@ -401,4 +421,20 @@ export default async function DashboardPage() {
       )}
     </div>
   )
+}
+
+function readDashboardMessage(query: { feedback?: string; delete?: string }) {
+  if (query.feedback === "invalid") {
+    return { tone: "error", text: "That feedback action was incomplete. Open the saved session and try again." } as const
+  }
+  if (query.feedback === "session_missing") {
+    return { tone: "error", text: "That council session is no longer available on this account." } as const
+  }
+  if (query.delete === "invalid") {
+    return { tone: "error", text: "That delete action was incomplete. Open the session and try again." } as const
+  }
+  if (query.delete === "missing") {
+    return { tone: "error", text: "That journal entry is no longer available on this account." } as const
+  }
+  return null
 }

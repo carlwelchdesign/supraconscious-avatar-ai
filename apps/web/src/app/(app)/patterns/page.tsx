@@ -43,6 +43,8 @@ const FEEDBACK_MESSAGES: Record<string, string> = {
   too_intense: "Marked too intense. This signal was flagged for a gentler review.",
   suppress: "Hidden from active pattern memory.",
   restore: "Restored to active pattern memory.",
+  invalid: "That pattern action was incomplete. Try again from the pattern card.",
+  missing: "That pattern is no longer available on this account.",
 }
 
 export default async function PatternsPage({
