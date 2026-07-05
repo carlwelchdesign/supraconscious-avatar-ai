@@ -156,7 +156,7 @@ export default async function CalibrationPage({
             </div>
           ) : (
             <p className="rounded-md border bg-emerald-500/5 p-3 text-muted-foreground">
-              No calibration blockers found. Ready sessions can be used as examples for the next invite.
+              No calibration blockers found. Keep running guided Carl/Maria sessions; mark examples or issues only when they are useful.
             </p>
           )}
           {report.recommendations.map((recommendation) => (

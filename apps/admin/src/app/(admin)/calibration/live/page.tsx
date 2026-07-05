@@ -105,7 +105,7 @@ export default async function LiveCalibrationPage({
 
       <div className="grid gap-4 md:grid-cols-3">
         <Metric title="Golden examples" value={comparison.goldenExamples.length} />
-        <Metric title="Unresolved issues" value={comparison.unresolvedIssues.length} />
+        <Metric title="Source / prompt issues" value={comparison.unresolvedIssues.length} />
         <Metric title="Prompt versions" value={comparison.promptVersions.length} />
       </div>
 
@@ -118,7 +118,7 @@ export default async function LiveCalibrationPage({
             <div key={item.scenario} className="rounded-md border p-3">
               <p className="font-medium">{formatFounderCalibrationScenario(item.scenario)}</p>
               <p className="text-xs text-muted-foreground">
-                {item.totalSessions} total · {item.reviewedSessions} reviewed · {item.goldenExamples} ready · {item.unresolvedIssues} open
+                {item.totalSessions} total · {item.reviewedSessions} reviewed · {item.goldenExamples} ready · {item.unresolvedIssues} issues
               </p>
             </div>
           ))}

@@ -1058,7 +1058,7 @@ test("founder calibration comparison groups scenarios without raw notes", () => 
 
   assert.equal(readFounderCalibrationScenario("unknown"), "freeform")
   assert.equal(report.goldenExamples.length, 2)
-  assert.equal(report.unresolvedIssues.length, 2)
+  assert.equal(report.unresolvedIssues.length, 1)
   assert.equal(report.unresolvedIssues.some((item) => item.councilSessionId === "resolved_source"), false)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "voice_test")?.goldenExamples, 1)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "source_grounding_test")?.goldenExamples, 1)

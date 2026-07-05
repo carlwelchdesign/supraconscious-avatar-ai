@@ -330,7 +330,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   const recommendations = [
     sessionsWithFeedback.size === 0 ? "Ask Carl and Maria to choose one feedback type on the latest session so review has usable evidence." : null,
     sessionsWithFeedback.size > 0 && feedbackNotes === 0 ? "Written notes are optional detail; add them only when a specific tuning issue needs more context." : null,
-    unreviewedSessions > 0 ? "Review recent Carl/Maria sessions before changing prompts or inviting more users." : null,
+    unreviewedSessions > 0 ? "Continue with the next guided scenario; review sessions only when feedback points to a specific tuning issue or a strong example." : null,
     sourceGroundingIssues.length > 0 ? "Resolve source-grounding issues before expanding retrieval scope." : null,
     promptIssues.length > 0 ? "Group prompt/voice issues before editing prompt templates." : null,
     blockers.length === 0 && readySessions.size > 0 ? "Calibration has ready sessions; use them as examples before the next internal invite." : null,
@@ -469,7 +469,7 @@ function chooseNextRecommendedAction(input: {
   if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
   if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
   if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."
-  if (input.unreviewedSessions > 0) return "Review the newest Carl/Maria sessions and mark ready, blocked, voice, source, prompt, or embodiment issues."
+  if (input.unreviewedSessions > 0) return "Run the next guided Carl/Maria scenario; mark examples or issues only when useful."
   return "Run another Carl/Maria calibration session with a different prompt type."
 }
 

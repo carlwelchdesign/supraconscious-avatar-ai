@@ -133,7 +133,7 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
       continue
     }
 
-    const needsReview = !latestReview || (!READY_LABELS.has(latestReview.label) && session.feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type)))
+    const needsReview = !READY_LABELS.has(latestReview?.label ?? "") && session.feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
     const hasIssueLabel = session.qualityReviews.some((review) => isIssueReview(review.label, review.severity))
     if (needsReview || hasIssueLabel) {
       stats.unresolvedIssues += 1
@@ -179,13 +179,13 @@ function chooseNextAction(session: FounderCalibrationComparisonSession) {
   if (session.feedbackTypes.includes("unsupported_source") || [...labels].some((label) => SOURCE_LABELS.has(label))) return "Review source grounding in /admin/sources."
   if ([...labels].some((label) => PROMPT_LABELS.has(label))) return "Compare against golden examples and tune /admin/prompts manually."
   if ([...labels].some((label) => EMBODIMENT_LABELS.has(label))) return "Review the Embodiment Gate response and retry with a smaller shift."
-  if (session.feedbackTypes.length > 0) return "Review feedback and mark ready or assign a specific issue label."
-  return "Run a human review and choose ready, prompt, source, voice, intensity, or embodiment disposition."
+  if (session.feedbackTypes.length > 0) return "Use feedback to choose the next guided scenario; mark ready only if it is clearly reusable."
+  return "Run the next guided scenario or add a feedback type if this session should inform tuning."
 }
 
 function buildNextActions(totalSessions: number, goldenCount: number, unresolvedIssues: FounderCalibrationComparisonIssue[]) {
   if (totalSessions === 0) return ["Run one Carl/Maria guided calibration session."]
-  if (goldenCount === 0) return ["Mark at least one ready session as a golden example before comparing prompt changes."]
   if (unresolvedIssues.length > 0) return ["Resolve the highest-priority unresolved calibration issue before editing prompt or source material."]
-  return ["Run the next guided scenario that has no golden example yet."]
+  if (goldenCount === 0) return ["Run the next guided scenario; mark a golden example only when one clearly stands out."]
+  return ["Keep running guided scenarios and compare against ready examples when tuning prompts."]
 }
