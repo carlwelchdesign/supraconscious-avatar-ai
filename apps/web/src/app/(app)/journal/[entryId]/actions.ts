@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { requireJournalAccessUser } from "@/lib/journal-access"
 
 const FeedbackSchema = z.object({
   councilSessionId: z.string().min(1),
@@ -14,7 +14,7 @@ const FeedbackSchema = z.object({
 })
 
 export async function submitSavedSessionFeedbackAction(formData: FormData) {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessUser()
   const parsed = FeedbackSchema.parse(Object.fromEntries(formData))
 
   const session = await prisma.councilSession.findFirst({
@@ -52,7 +52,7 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
 }
 
 export async function deleteJournalEntryAction(formData: FormData) {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessUser()
   const entryId = String(formData.get("journalEntryId") ?? "")
   if (!entryId) throw new Error("Journal entry is required.")
   const entry = await prisma.journalEntry.findFirst({

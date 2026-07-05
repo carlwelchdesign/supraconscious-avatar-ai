@@ -1,5 +1,6 @@
 import "server-only"
 
+import { redirect } from "next/navigation"
 import { REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { getCurrentUser, type AuthUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -17,21 +18,23 @@ export async function requireJournalAccessUser(): Promise<NonNullable<AuthUser>>
     throw new JournalAccessError("Unauthorized", 401, "unauthorized")
   }
 
-  const consentRecords = await prisma.consentEvent.findMany({
-    where: {
-      userId: user.id,
-      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      consentType: true,
-      consentVersion: true,
-      granted: true,
-      createdAt: true,
-    },
-  })
+  const consentRecords = await getRequiredConsentRecords(user.id)
 
   throwAccess(evaluateJournalAccess(user, consentRecords))
+
+  return user
+}
+
+export async function requireJournalAccessPageUser(): Promise<NonNullable<AuthUser>> {
+  const user = await getCurrentUser()
+  if (!user) redirect("/login")
+
+  const consentRecords = await getRequiredConsentRecords(user.id)
+  const decision = evaluateJournalAccess(user, consentRecords)
+
+  if (!decision.allowed) {
+    redirect(decision.code === "onboarding_required" ? "/onboarding" : "/onboarding?error=consent_required")
+  }
 
   return user
 }
@@ -52,4 +55,20 @@ function throwAccess(decision: ReturnType<typeof evaluateJournalAccess>) {
   if (!decision.allowed) {
     throw new JournalAccessError(decision.message, decision.status, decision.code)
   }
+}
+
+function getRequiredConsentRecords(userId: string) {
+  return prisma.consentEvent.findMany({
+    where: {
+      userId,
+      consentType: { in: [...REQUIRED_PILOT_CONSENTS] },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      consentType: true,
+      consentVersion: true,
+      granted: true,
+      createdAt: true,
+    },
+  })
 }

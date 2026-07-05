@@ -1,11 +1,11 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { requireAppUser } from "@inner-avatar/auth/session"
 import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 
@@ -16,7 +16,7 @@ export default async function JournalEntryPage({
 }: {
   params: Promise<{ entryId: string }>
 }) {
-  const user = await requireAppUser()
+  const user = await requireJournalAccessPageUser()
   const founderCalibrationMode = await isFounderCalibrationUser(user.email)
   const { entryId } = await params
   const entry = await prisma.journalEntry.findFirst({
