@@ -47,7 +47,12 @@ export async function POST(request: Request) {
       properties: { responseLength: body.text.length },
     })
 
-    return NextResponse.json({ response })
+    return NextResponse.json({
+      response: {
+        id: response.id,
+        saved: true,
+      },
+    })
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {

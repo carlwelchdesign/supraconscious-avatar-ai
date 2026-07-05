@@ -49,7 +49,13 @@ export async function POST(request: Request) {
       properties: { feedbackType: body.feedbackType, hasNote: Boolean(body.note) },
     })
 
-    return NextResponse.json({ feedback })
+    return NextResponse.json({
+      feedback: {
+        id: feedback.id,
+        feedbackType: feedback.feedbackType,
+        hasNote: Boolean(feedback.note),
+      },
+    })
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
