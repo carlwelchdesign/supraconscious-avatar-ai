@@ -55,7 +55,7 @@ export default async function DashboardPage({
   const founderNeedsFirstSession = founderCalibrationMode && founderNeedsSession
   const founderNeedsFeedback = founderCalibrationMode && founderSessionCount > 0 && founderFeedbackEvidenceCount === 0
   const founderCanContinueCalibration = founderCalibrationMode && founderFeedbackEvidenceCount > 0 && founderGoldenExampleCount === 0
-  const founderFeedbackNoteHref = founderReadiness.founderFeedbackNoteHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
+  const founderFeedbackHref = founderReadiness.founderFeedbackHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
   const dashboardMessage = readDashboardMessage(query)
@@ -123,7 +123,7 @@ export default async function DashboardPage({
             Run one guided calibration session.
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Use the suggested guided scenario, submit one reflection, choose a feedback type, and leave one short note about what felt right or what should change.
+            Use the suggested guided scenario, submit one reflection, and choose a feedback type. Add a short note only when something specific felt right or should change.
           </p>
           <Link
             href="/journal"
@@ -154,7 +154,7 @@ export default async function DashboardPage({
             A reflection was saved, but Carl/Maria calibration still needs one feedback type. Add a written note only if there is a specific voice, source, intensity, embodiment, or phrasing detail to capture.
           </p>
           <Link
-            href={founderFeedbackNoteHref}
+            href={founderFeedbackHref}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
             Add feedback
@@ -186,7 +186,7 @@ export default async function DashboardPage({
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <Link
-              href={founderFeedbackNoteHref}
+              href={founderFeedbackHref}
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition-all hover:-translate-y-px"
               style={{ borderColor: "rgba(43,27,53,0.08)" }}
             >

@@ -1273,7 +1273,7 @@ test("founder setup treats freeform founder sessions as captured first-session p
   assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one calibration feedback type")), true)
 })
 
-test("founder journal readiness preserves first-session and feedback-note prompts", () => {
+test("founder journal readiness preserves first-session and feedback prompts", () => {
   const setupReport = buildFounderCalibrationSetupReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
     filterMode: "db",
@@ -1318,8 +1318,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderCalibrationMode: false,
     suggestedCalibrationScenario: null,
     needsFounderFirstSessionGuide: false,
-    needsFounderFeedbackNote: false,
-    founderFeedbackNoteHref: null,
+    needsFounderFeedback: false,
+    founderFeedbackHref: null,
     sessionCount: 0,
     feedbackEvidenceCount: 0,
     feedbackNoteCount: 0,
@@ -1330,8 +1330,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderCalibrationMode: true,
     suggestedCalibrationScenario: "source_grounding_test",
     needsFounderFirstSessionGuide: false,
-    needsFounderFeedbackNote: false,
-    founderFeedbackNoteHref: "/journal/entry_carl",
+    needsFounderFeedback: false,
+    founderFeedbackHref: "/journal/entry_carl",
     sessionCount: 1,
     feedbackEvidenceCount: 1,
     feedbackNoteCount: 0,
@@ -1342,8 +1342,8 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderCalibrationMode: true,
     suggestedCalibrationScenario: "voice_test",
     needsFounderFirstSessionGuide: true,
-    needsFounderFeedbackNote: false,
-    founderFeedbackNoteHref: null,
+    needsFounderFeedback: false,
+    founderFeedbackHref: null,
     sessionCount: 0,
     feedbackEvidenceCount: 0,
     feedbackNoteCount: 0,

@@ -108,8 +108,8 @@ export type FounderCalibrationJournalReadiness = {
   founderCalibrationMode: boolean
   suggestedCalibrationScenario: Exclude<FounderCalibrationScenario, "freeform"> | null
   needsFounderFirstSessionGuide: boolean
-  needsFounderFeedbackNote: boolean
-  founderFeedbackNoteHref: string | null
+  needsFounderFeedback: boolean
+  founderFeedbackHref: string | null
   sessionCount: number
   feedbackEvidenceCount: number
   feedbackNoteCount: number
@@ -372,8 +372,8 @@ export function buildFounderCalibrationJournalReadiness(input: {
       founderCalibrationMode: false,
       suggestedCalibrationScenario: null,
       needsFounderFirstSessionGuide: false,
-      needsFounderFeedbackNote: false,
-      founderFeedbackNoteHref: null,
+      needsFounderFeedback: false,
+      founderFeedbackHref: null,
       sessionCount: 0,
       feedbackEvidenceCount: 0,
       feedbackNoteCount: 0,
@@ -394,8 +394,8 @@ export function buildFounderCalibrationJournalReadiness(input: {
     founderCalibrationMode,
     suggestedCalibrationScenario,
     needsFounderFirstSessionGuide: founderCalibrationMode && Boolean(participant) && sessionCount === 0,
-    needsFounderFeedbackNote: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackEvidenceCount === 0,
-    founderFeedbackNoteHref: participant?.latestSessionHref ?? null,
+    needsFounderFeedback: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackEvidenceCount === 0,
+    founderFeedbackHref: participant?.latestSessionHref ?? null,
     sessionCount,
     feedbackEvidenceCount,
     feedbackNoteCount,

@@ -50,8 +50,8 @@ export default async function JournalPage() {
       founderCalibrationMode={founderReadiness.founderCalibrationMode}
       suggestedCalibrationScenario={founderReadiness.suggestedCalibrationScenario ?? undefined}
       needsFounderFirstSessionGuide={founderReadiness.needsFounderFirstSessionGuide}
-      needsFounderFeedbackNote={founderReadiness.needsFounderFeedbackNote}
-      founderFeedbackNoteHref={founderReadiness.founderFeedbackNoteHref}
+      needsFounderFeedback={founderReadiness.needsFounderFeedback}
+      founderFeedbackHref={founderReadiness.founderFeedbackHref}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,
