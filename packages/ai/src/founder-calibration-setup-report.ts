@@ -78,7 +78,7 @@ export type FounderCalibrationRequiredRoleReadiness = {
   onboardingComplete: boolean
   consentPresent: boolean
   sessionPresent: boolean
-  feedbackNotePresent: boolean
+  feedbackEvidencePresent: boolean
   goldenExamplePresent: boolean
   nextAction: string
   nextActionHref: string | null
@@ -672,7 +672,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       onboardingComplete: false,
       consentPresent: false,
       sessionPresent: false,
-      feedbackNotePresent: false,
+      feedbackEvidencePresent: false,
       goldenExamplePresent: false,
       nextAction,
       nextActionHref: "/calibration/setup",
@@ -692,7 +692,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       onboardingComplete: participant.onboardingComplete,
       consentPresent: participant.consentPresent,
       sessionPresent: participant.sessionCount > 0,
-      feedbackNotePresent: participant.feedbackEvidenceCount > 0,
+      feedbackEvidencePresent: participant.feedbackEvidenceCount > 0,
       goldenExamplePresent: participant.goldenExampleCount > 0,
       nextAction,
       nextActionHref: "/calibration/setup",
@@ -711,7 +711,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
     onboardingComplete: participant.onboardingComplete,
     consentPresent: participant.consentPresent,
     sessionPresent: participant.sessionCount > 0,
-    feedbackNotePresent: participant.feedbackEvidenceCount > 0,
+    feedbackEvidencePresent: participant.feedbackEvidenceCount > 0,
     goldenExamplePresent: participant.goldenExampleCount > 0,
     nextAction: participant.nextAction,
     nextActionHref: participant.nextActionHref,

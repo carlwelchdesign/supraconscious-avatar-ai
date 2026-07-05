@@ -379,7 +379,7 @@ function RequiredRoleStatus({
     onboardingComplete: boolean
     consentPresent: boolean
     sessionPresent: boolean
-    feedbackNotePresent: boolean
+    feedbackEvidencePresent: boolean
     goldenExamplePresent: boolean
     nextAction: string
     nextActionHref: string | null
@@ -405,7 +405,7 @@ function RequiredRoleStatus({
         <RoleCheck label="onboarding complete" passed={status.onboardingComplete} />
         <RoleCheck label="consent present" passed={status.consentPresent} />
         <RoleCheck label="session present" passed={status.sessionPresent} />
-        <RoleCheck label="feedback captured" passed={status.feedbackNotePresent} />
+        <RoleCheck label="feedback captured" passed={status.feedbackEvidencePresent} />
         <RoleCheck label="ready/golden review when available" passed={status.goldenExamplePresent} />
       </div>
     </div>
