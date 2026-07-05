@@ -34,6 +34,7 @@ export type FounderCalibrationSetupParticipant = {
   consentCount: number
   consentPresent: boolean
   sessionCount: number
+  feedbackEvidenceCount: number
   lastSessionAt: string | null
   feedbackNoteCount: number
   reviewedSessionCount: number
@@ -59,6 +60,7 @@ export type FounderCalibrationSetupReadiness = {
   onboardingComplete: number
   participantsWithConsent: number
   participantsWithSessions: number
+  participantsWithFeedbackEvidence: number
   participantsWithFeedbackNotes: number
   participantsWithGoldenExamples: number
   ready: boolean
@@ -154,7 +156,7 @@ export type FounderCalibrationSetupSnapshot = {
       id: string
       journalEntryId: string
       createdAt: Date
-      feedback: Array<{ hasNote: boolean }>
+      feedback: Array<{ hasFeedback?: boolean; hasNote: boolean }>
       qualityReviews: Array<{ label: string; severity: string }>
       generationTraces: Array<{ traceType: string; outputJson: unknown }>
     }>
@@ -257,7 +259,8 @@ export function buildFounderCalibrationLaunchPacket(
   lines.push(
     "## After First Sessions",
     "- Continue with the next useful guided journal pass.",
-    "- Leave one short feedback note for each founder calibration session so review has usable evidence.",
+    "- Choose one feedback type for each founder calibration session so review has usable evidence.",
+    "- Add written notes when a specific voice, source, intensity, embodiment, or phrasing detail matters.",
     "- Mark strong sessions ready/golden when one clearly stands out; golden examples are useful, not blockers for continued development.",
     "- Run: yarn report:founder-calibration",
     "- Run: yarn report:founder-calibration-comparison",
@@ -296,7 +299,7 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
         id: session.id,
         journalEntryId: session.journalEntryId,
         createdAt: session.createdAt,
-        feedback: session.feedback.map((feedback) => ({ hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
+        feedback: session.feedback.map((feedback) => ({ hasFeedback: true, hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
         generationTraces: session.generationTraces,
       })),
@@ -345,7 +348,7 @@ export async function runFounderCalibrationJournalReadiness(input: {
         id: session.id,
         journalEntryId: session.journalEntryId,
         createdAt: session.createdAt,
-        feedback: session.feedback.map((feedback) => ({ hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
+        feedback: session.feedback.map((feedback) => ({ hasFeedback: true, hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
         generationTraces: session.generationTraces,
       })),
@@ -380,6 +383,7 @@ export function buildFounderCalibrationJournalReadiness(input: {
   const suggestedScenario = participant?.scenarioStatus.find((item) => !item.completed)?.scenario
   const suggestedCalibrationScenario = suggestedScenario && suggestedScenario !== "freeform" ? suggestedScenario : null
   const sessionCount = participant?.sessionCount ?? 0
+  const feedbackEvidenceCount = participant?.feedbackEvidenceCount ?? 0
   const feedbackNoteCount = participant?.feedbackNoteCount ?? 0
   const reviewedSessionCount = participant?.reviewedSessionCount ?? 0
   const goldenExampleCount = participant?.goldenExampleCount ?? 0
@@ -388,7 +392,7 @@ export function buildFounderCalibrationJournalReadiness(input: {
     founderCalibrationMode,
     suggestedCalibrationScenario,
     needsFounderFirstSessionGuide: founderCalibrationMode && Boolean(participant) && sessionCount === 0,
-    needsFounderFeedbackNote: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackNoteCount === 0,
+    needsFounderFeedbackNote: founderCalibrationMode && Boolean(participant) && sessionCount > 0 && feedbackEvidenceCount === 0,
     founderFeedbackNoteHref: participant?.latestSessionHref ?? null,
     sessionCount,
     feedbackNoteCount,
@@ -418,7 +422,7 @@ async function readSetupParticipantsSafely() {
                 id: true,
                 journalEntryId: true,
                 createdAt: true,
-                feedback: { select: { note: true } },
+                feedback: { select: { id: true, note: true } },
                 qualityReviews: {
                   orderBy: { reviewedAt: "desc" },
                   take: 5,
@@ -532,6 +536,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     const consentPresent = participant.consentRecords
       ? hasRequiredPilotConsents(participant.consentRecords)
       : participant.consentCount > 0
+    const feedbackEvidenceCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasFeedback !== false).length, 0)
     const feedbackNoteCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasNote).length, 0)
     const reviewedSessionCount = sessions.filter((session) => session.qualityReviews.length > 0).length
     const goldenExampleCount = sessions.filter((session) => session.qualityReviews.some((review) => READY_LABELS.has(review.label))).length
@@ -551,6 +556,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       consentCount: participant.consentCount,
       consentPresent,
       sessionCount: sessions.length,
+      feedbackEvidenceCount,
       feedbackNoteCount,
       reviewedSessionCount,
       goldenExampleCount,
@@ -560,6 +566,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       missingActions,
       scenarioStatus,
       sessionCount: sessions.length,
+      feedbackEvidenceCount,
       feedbackNoteCount,
       latestSessionHref,
     })
@@ -576,6 +583,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       consentCount: participant.consentCount,
       consentPresent,
       sessionCount: sessions.length,
+      feedbackEvidenceCount,
       lastSessionAt: sessions[0]?.createdAt.toISOString() ?? null,
       feedbackNoteCount,
       reviewedSessionCount,
@@ -603,6 +611,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     onboardingComplete: activeParticipants.filter((participant) => participant.onboardingComplete).length,
     participantsWithConsent: activeParticipants.filter((participant) => participant.consentPresent).length,
     participantsWithSessions: activeParticipants.filter((participant) => participant.sessionCount > 0).length,
+    participantsWithFeedbackEvidence: activeParticipants.filter((participant) => participant.feedbackEvidenceCount > 0).length,
     participantsWithFeedbackNotes: activeParticipants.filter((participant) => participant.feedbackNoteCount > 0).length,
     participantsWithGoldenExamples: activeParticipants.filter((participant) => participant.goldenExampleCount > 0).length,
     ready: missingRequiredRoles.length === 0 && missingActions.length === 0,
@@ -611,8 +620,10 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   const warnings = [...snapshot.filterWarnings]
   if (snapshot.filterMode !== "db") warnings.push("Founder calibration participant setup is incomplete; DB participants should be configured before relying on reports.")
   for (const participant of activeParticipants) {
-    if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
-      warnings.push(`${participant.email} has sessions without feedback notes; add one short note from the saved session so review has usable evidence.`)
+    if (participant.sessionCount > 0 && participant.feedbackEvidenceCount === 0) {
+      warnings.push(`${participant.email} has sessions without feedback; choose a feedback type on the saved session so review has usable evidence.`)
+    } else if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
+      warnings.push(`${participant.email} has feedback types but no written notes; continue development, and add notes only when a specific tuning detail matters.`)
     }
     if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
       warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
@@ -678,7 +689,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
       onboardingComplete: participant.onboardingComplete,
       consentPresent: participant.consentPresent,
       sessionPresent: participant.sessionCount > 0,
-      feedbackNotePresent: participant.feedbackNoteCount > 0,
+      feedbackNotePresent: participant.feedbackEvidenceCount > 0,
       goldenExamplePresent: participant.goldenExampleCount > 0,
       nextAction,
       nextActionHref: "/calibration/setup",
@@ -697,7 +708,7 @@ function buildRequiredRoleStatus(role: FounderCalibrationRequiredRole, participa
     onboardingComplete: participant.onboardingComplete,
     consentPresent: participant.consentPresent,
     sessionPresent: participant.sessionCount > 0,
-    feedbackNotePresent: participant.feedbackNoteCount > 0,
+    feedbackNotePresent: participant.feedbackEvidenceCount > 0,
     goldenExamplePresent: participant.goldenExampleCount > 0,
     nextAction: participant.nextAction,
     nextActionHref: participant.nextActionHref,
@@ -744,14 +755,15 @@ function chooseParticipantNextAction(input: {
   missingActions: FounderCalibrationMissingAction[]
   scenarioStatus: FounderCalibrationParticipantScenarioStatus[]
   sessionCount: number
+  feedbackEvidenceCount: number
   feedbackNoteCount: number
   latestSessionHref: string
 }) {
-  const { missingActions, scenarioStatus, sessionCount, feedbackNoteCount, latestSessionHref } = input
+  const { missingActions, scenarioStatus, sessionCount, feedbackEvidenceCount, latestSessionHref } = input
   const primaryMissingAction = missingActions[0]
   if (primaryMissingAction) return { message: primaryMissingAction.message, href: primaryMissingAction.href ?? readFounderLaunchHref(primaryMissingAction.code) }
-  if (sessionCount > 0 && feedbackNoteCount === 0) {
-    return { message: "Add one short feedback note to the latest saved session.", href: latestSessionHref }
+  if (sessionCount > 0 && feedbackEvidenceCount === 0) {
+    return { message: "Choose one feedback type on the latest saved session.", href: latestSessionHref }
   }
   const nextScenario = scenarioStatus.find((item) => !item.completed)
   if (nextScenario) {
@@ -767,7 +779,7 @@ function chooseParticipantNextAction(input: {
 function readFounderLaunchHref(code: string) {
   if (code === "account_missing") return "/register"
   if (code === "onboarding_incomplete" || code === "consent_missing") return "/onboarding"
-  if (code === "session_missing" || code === "feedback_note_missing") return "/journal"
+  if (code === "session_missing" || code === "feedback_missing") return "/journal"
   if (code === "golden_example_missing") return "/calibration/live"
   return null
 }
@@ -776,7 +788,7 @@ function readFounderHandoffHref(participant: FounderCalibrationSetupParticipant)
   if (!participant.accountExists) return "/register"
   if (!participant.onboardingComplete || !participant.consentPresent) return "/onboarding"
   if (participant.sessionCount === 0) return "/journal"
-  if (participant.feedbackNoteCount === 0) return participant.latestSessionHref ?? "/journal"
+  if (participant.feedbackEvidenceCount === 0) return participant.latestSessionHref ?? "/journal"
   return "/journal"
 }
 
@@ -785,7 +797,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
   const suggestedScenarioLabel = formatFounderCalibrationScenario(suggestedScenario)
   const primaryPath = primaryHandoffHref ?? "/journal"
-  const feedbackInstruction = "Submit one reflection, select a feedback type, and leave one short note about what felt right, wrong, unsupported, or unlike Maria's phrasing."
+  const feedbackInstruction = "Submit one reflection and select a feedback type. Add a short note only if there is a specific voice, source, intensity, embodiment, or phrasing detail to capture."
   if (!participant.accountExists) {
     return `Please register for Supraconscious using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
@@ -795,8 +807,8 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   if (participant.sessionCount === 0) {
     return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
-  if (participant.feedbackNoteCount === 0) {
-    return `The first session is captured. Add one short feedback note from the saved session so review has usable evidence. Continue here: ${primaryPath}`
+  if (participant.feedbackEvidenceCount === 0) {
+    return `The first session is captured. Choose one feedback type on the saved session so review has usable evidence. Continue here: ${primaryPath}`
   }
   if (participant.goldenExampleCount === 0) {
     return `The first calibration evidence is captured. Golden examples are optional now; continue with the next useful guided session or mark examples later when one clearly stands out. Continue here: ${primaryPath}`
@@ -812,6 +824,7 @@ function buildParticipantMissingActions(input: {
   consentCount: number
   consentPresent: boolean
   sessionCount: number
+  feedbackEvidenceCount: number
   feedbackNoteCount: number
   reviewedSessionCount: number
   goldenExampleCount: number
@@ -823,20 +836,12 @@ function buildParticipantMissingActions(input: {
   if (input.accountExists && !input.onboardingComplete) actions.push({ code: "onboarding_incomplete", email: input.email, message: `${input.email} needs to complete onboarding.`, href: "/onboarding" })
   if (input.accountExists && !input.consentPresent) actions.push({ code: "consent_missing", email: input.email, message: `${input.email} needs current required pilot consent records.`, href: "/onboarding" })
   if (input.accountExists && input.sessionCount === 0) actions.push({ code: "session_missing", email: input.email, message: `${input.email} needs one guided calibration session.`, href: "/journal" })
-  if (input.accountExists && input.sessionCount > 0 && input.feedbackNoteCount === 0) {
+  if (input.accountExists && input.sessionCount > 0 && input.feedbackEvidenceCount === 0) {
     actions.push({
-      code: "feedback_note_missing",
+      code: "feedback_missing",
       email: input.email,
-      message: `${input.email} needs one specific calibration feedback note.`,
+      message: `${input.email} needs one calibration feedback type on the saved session.`,
       href: input.latestSessionHref ?? "/journal",
-    })
-  }
-  if (input.accountExists && input.sessionCount > 0 && input.reviewedSessionCount === 0) {
-    actions.push({
-      code: "review_missing",
-      email: input.email,
-      message: `${input.email} needs one ready/golden review or a specific issue review.`,
-      href: "/calibration/live",
     })
   }
   return actions

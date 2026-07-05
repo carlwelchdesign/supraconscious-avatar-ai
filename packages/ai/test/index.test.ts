@@ -1185,7 +1185,7 @@ test("founder calibration setup report lists missing actions without raw notes",
           id: "paused_session",
           journalEntryId: "entry_paused",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
-          feedback: [{ hasNote: false }],
+          feedback: [],
           qualityReviews: [],
           generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "source_grounding_test" } } }],
         }],
@@ -1238,7 +1238,7 @@ test("founder setup treats freeform founder sessions as captured first-session p
           id: "session_carl",
           journalEntryId: "entry_carl",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
-          feedback: [{ hasNote: false }],
+          feedback: [],
           qualityReviews: [],
           generationTraces: [{ traceType: "council", outputJson: {} }],
         }],
@@ -1266,12 +1266,11 @@ test("founder setup treats freeform founder sessions as captured first-session p
 
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
   assert.equal(carl?.sessionCount, 1)
-  assert.equal(carl?.nextAction, "carl@example.com needs one specific calibration feedback note.")
+  assert.equal(carl?.nextAction, "carl@example.com needs one calibration feedback type on the saved session.")
   assert.equal(carl?.nextActionHref, "/journal/entry_carl")
-  assert.ok(carl?.missingActions.some((action) => action.code === "feedback_note_missing" && action.href === "/journal/entry_carl"))
-  assert.ok(carl?.missingActions.some((action) => action.code === "review_missing" && action.href === "/calibration/live"))
+  assert.ok(carl?.missingActions.some((action) => action.code === "feedback_missing" && action.href === "/journal/entry_carl"))
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
-  assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one specific calibration feedback note")), true)
+  assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one calibration feedback type")), true)
 })
 
 test("founder journal readiness preserves first-session and feedback-note prompts", () => {
@@ -1330,7 +1329,7 @@ test("founder journal readiness preserves first-session and feedback-note prompt
     founderCalibrationMode: true,
     suggestedCalibrationScenario: "source_grounding_test",
     needsFounderFirstSessionGuide: false,
-    needsFounderFeedbackNote: true,
+    needsFounderFeedbackNote: false,
     founderFeedbackNoteHref: "/journal/entry_carl",
     sessionCount: 1,
     feedbackNoteCount: 0,
@@ -1380,7 +1379,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
           id: "session_maria",
           journalEntryId: "entry_maria",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
-          feedback: [{ hasNote: false }],
+          feedback: [],
           qualityReviews: [],
           generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
         }],
@@ -1394,7 +1393,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
   assert.match(report.requiredRoles.carl.handoffText, /preselected Voice test guided calibration prompt/)
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal/entry_maria")
-  assert.match(report.requiredRoles.maria.handoffText, /Add one short feedback note from the saved session/)
+  assert.match(report.requiredRoles.maria.handoffText, /Choose one feedback type on the saved session/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
 })
@@ -1435,7 +1434,7 @@ test("founder handoff report resolves copyable web and admin links", () => {
           id: "session_maria",
           journalEntryId: "entry_maria",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
-          feedback: [{ hasNote: false }],
+          feedback: [],
           qualityReviews: [],
           generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
         }],

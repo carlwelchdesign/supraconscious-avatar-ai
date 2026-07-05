@@ -316,6 +316,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
     sourceIssueCount: sourceGroundingIssues.length,
     promptIssueCount: promptIssues.length,
     goldenExampleCount: goldenExamples.length,
+    sessionsWithFeedback: sessionsWithFeedback.size,
     feedbackNotes,
     unreviewedSessions,
   })
@@ -327,7 +328,8 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   ].filter((item): item is string => Boolean(item))
 
   const recommendations = [
-    feedbackNotes === 0 ? "Ask Carl and Maria to leave one short note with founder calibration feedback so review has usable evidence." : null,
+    sessionsWithFeedback.size === 0 ? "Ask Carl and Maria to choose one feedback type on the latest session so review has usable evidence." : null,
+    sessionsWithFeedback.size > 0 && feedbackNotes === 0 ? "Written notes are optional detail; add them only when a specific tuning issue needs more context." : null,
     unreviewedSessions > 0 ? "Review recent Carl/Maria sessions before changing prompts or inviting more users." : null,
     sourceGroundingIssues.length > 0 ? "Resolve source-grounding issues before expanding retrieval scope." : null,
     promptIssues.length > 0 ? "Group prompt/voice issues before editing prompt templates." : null,
@@ -458,11 +460,12 @@ function chooseNextRecommendedAction(input: {
   sourceIssueCount: number
   promptIssueCount: number
   goldenExampleCount: number
+  sessionsWithFeedback: number
   feedbackNotes: number
   unreviewedSessions: number
 }) {
   if (input.totalSessions === 0) return "Run one real Carl/Maria calibration session using a guided prompt."
-  if (input.feedbackNotes === 0) return "Collect one short feedback note from the latest Carl/Maria session."
+  if (input.sessionsWithFeedback === 0) return "Choose one feedback type on the latest Carl/Maria session."
   if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
   if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
   if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."

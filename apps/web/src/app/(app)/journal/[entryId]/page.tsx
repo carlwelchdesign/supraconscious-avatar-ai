@@ -159,8 +159,8 @@ export default async function JournalEntryPage({
         <div
           className="rounded-2xl border px-5 py-4"
           style={{
-            background: feedbackMessage.tone === "error" ? "rgba(147,62,62,0.08)" : "rgba(184,137,90,0.08)",
-            borderColor: feedbackMessage.tone === "error" ? "rgba(147,62,62,0.18)" : "rgba(184,137,90,0.18)",
+            background: feedbackMessage.tone === "warning" ? "rgba(147,62,62,0.08)" : "rgba(184,137,90,0.08)",
+            borderColor: feedbackMessage.tone === "warning" ? "rgba(147,62,62,0.18)" : "rgba(184,137,90,0.18)",
           }}
         >
           <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
@@ -358,12 +358,12 @@ export default async function JournalEntryPage({
             )}
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               {founderCalibrationMode
-                ? "Feedback notes are saved for Carl/Maria calibration; they do not automatically retrain the guide."
+                ? "Feedback is saved for Carl/Maria calibration; notes are optional detail and do not automatically retrain the guide."
                 : "Feedback is saved with this session; it does not automatically retrain the guide."}
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                A short note is required for founder calibration so there is something specific to improve from.
+                Choose a feedback type to keep calibration moving. Add a short note only when there is something specific to improve from.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -445,7 +445,7 @@ function readFeedbackMessage(status?: string) {
     return { tone: "success", text: "Feedback saved. It stays with this session and does not automatically retrain the guide." } as const
   }
   if (status === "note_required") {
-    return { tone: "error", text: "Add one specific detail after the template label before saving founder calibration feedback." } as const
+    return { tone: "warning", text: "Feedback notes are optional now. Choose a feedback type to save this calibration pass." } as const
   }
   return null
 }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { requireJournalAccessUser } from "@/lib/journal-access"
 
@@ -26,11 +26,6 @@ export async function submitSavedSessionFeedbackAction(formData: FormData) {
     select: { id: true, journalEntryId: true, sourceMode: true, safetySnapshot: true },
   })
   if (!session) redirect("/dashboard?feedback=session_missing")
-
-  const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-  if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(parsed.data.note)) {
-    redirect(`/journal/${session.journalEntryId}?feedback=note_required`)
-  }
 
   await prisma.councilSessionFeedback.create({
     data: {

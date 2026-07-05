@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
-import { FOUNDER_FEEDBACK_NOTE_TEMPLATES, isFounderCalibrationFeedbackNoteUseful } from "@inner-avatar/ai/founder-feedback-notes"
+import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -275,7 +275,6 @@ export function JournalWorkspace({
   const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
   const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
-  const canSaveFounderFeedback = !founderCalibrationMode || isFounderCalibrationFeedbackNoteUseful(feedbackNote)
   const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
 
   const speakText = result
@@ -318,7 +317,7 @@ export function JournalWorkspace({
                 Founder calibration
               </p>
               <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type and add a short note about voice, source grounding, intensity, embodiment, or whether it is good enough to keep.
+                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type. Add a short note when there is a specific voice, source, intensity, embodiment, or phrasing detail to keep.
               </p>
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
@@ -333,7 +332,7 @@ export function JournalWorkspace({
               {needsFounderFeedbackNote && (
                 <div className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
                   <p>
-                    A first reflection is already saved. Add one specific feedback note to that saved session before starting more calibration runs.
+                    A first reflection is already saved. Choose one feedback type on that saved session before starting more calibration runs. A written note is optional when there is a specific detail to capture.
                   </p>
                   {founderFeedbackNoteHref && (
                     <Link href={founderFeedbackNoteHref} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--primary)] hover:text-[var(--clay)]">
@@ -673,12 +672,12 @@ export function JournalWorkspace({
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 {founderCalibrationMode
-                  ? "Help tune the guide by leaving one short note with your feedback type. Feedback does not automatically retrain the guide or act as a diagnosis."
+                  ? "Help tune the guide by choosing a feedback type. Add a note only when there is a specific detail to capture. Feedback does not automatically retrain the guide or act as a diagnosis."
                   : "Tell us whether this reflection helped. Your feedback stays with this session and does not automatically retrain the guide."}
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  A note is required for Carl/Maria calibration so there is something specific to improve from.
+                  A note is useful for Carl/Maria calibration when something specific should change, but the feedback type is enough to save this pass.
                 </p>
               )}
               <textarea
@@ -686,7 +685,7 @@ export function JournalWorkspace({
                 onChange={(event) => setFeedbackNote(event.target.value)}
                 maxLength={500}
                 placeholder={founderCalibrationMode
-                  ? "Required note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
+                  ? "Optional note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
                   : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
@@ -717,7 +716,7 @@ export function JournalWorkspace({
                   <button
                     key={value}
                     type="button"
-                    disabled={isSavingFeedback || !canSaveFounderFeedback}
+                    disabled={isSavingFeedback}
                     onClick={() => handleSessionFeedback(value)}
                     className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
                     style={{ borderColor: "rgba(43,27,53,0.08)" }}
@@ -726,16 +725,11 @@ export function JournalWorkspace({
                   </button>
                 ))}
               </div>
-              {founderCalibrationMode && !canSaveFounderFeedback && (
-                <p className="mt-2 text-[11px] font-light text-[var(--plum-soft)]/70">
-                  Add one specific detail after the template label to save founder calibration feedback.
-                </p>
-              )}
               {feedbackSaved && (
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
                     {founderCalibrationMode
-                      ? "Feedback saved. This note is for Carl/Maria calibration and does not automatically retrain the guide."
+                      ? "Feedback saved. This is for Carl/Maria calibration review and does not automatically retrain the guide."
                       : "Feedback saved. It can help improve the guide, but it does not automatically retrain it."}
                   </p>
                   {founderCalibrationMode && result.journalEntry?.id && (

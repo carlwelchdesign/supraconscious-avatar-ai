@@ -141,7 +141,7 @@ export default async function CalibrationPage({
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric title="Notes coverage" value={`${Math.round(report.calibrationCoverage.noteCoverageRate * 100)}%`} />
+        <Metric title="Note coverage" value={`${Math.round(report.calibrationCoverage.noteCoverageRate * 100)}%`} />
         <Metric title="Review coverage" value={`${Math.round(report.calibrationCoverage.reviewCoverageRate * 100)}%`} />
         <Metric title="Golden examples" value={report.goldenExamples.length} />
         <Metric title="With feedback" value={report.calibrationCoverage.sessionsWithFeedback} />

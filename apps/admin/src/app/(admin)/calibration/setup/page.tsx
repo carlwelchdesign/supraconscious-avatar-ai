@@ -258,7 +258,7 @@ export default async function FounderCalibrationSetupPage({
                     onboarding {participant.onboardingComplete ? "complete" : "pending"} · consent records {participant.consentCount} · sessions {participant.sessionCount}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    feedback notes {participant.feedbackNoteCount} · reviewed {participant.reviewedSessionCount} · golden {participant.goldenExampleCount}
+                    feedback captured {participant.feedbackEvidenceCount} · notes {participant.feedbackNoteCount} · reviewed {participant.reviewedSessionCount} · golden {participant.goldenExampleCount}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -405,7 +405,7 @@ function RequiredRoleStatus({
         <RoleCheck label="onboarding complete" passed={status.onboardingComplete} />
         <RoleCheck label="consent present" passed={status.consentPresent} />
         <RoleCheck label="session present" passed={status.sessionPresent} />
-        <RoleCheck label="feedback note captured" passed={status.feedbackNotePresent} />
+        <RoleCheck label="feedback captured" passed={status.feedbackNotePresent} />
         <RoleCheck label="ready/golden review when available" passed={status.goldenExamplePresent} />
       </div>
     </div>

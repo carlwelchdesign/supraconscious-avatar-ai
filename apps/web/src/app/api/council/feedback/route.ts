@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { emitPilotEvent, isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 
@@ -22,11 +22,6 @@ export async function POST(request: Request) {
 
     if (!session) {
       return NextResponse.json({ error: "Council session not found." }, { status: 404 })
-    }
-
-    const founderCalibrationMode = await isFounderCalibrationUser(user.email)
-    if (founderCalibrationMode && !isFounderCalibrationFeedbackNoteUseful(body.note)) {
-      return NextResponse.json({ error: "Add one specific detail to the feedback note for Carl/Maria calibration." }, { status: 400 })
     }
 
     const feedback = await prisma.councilSessionFeedback.create({
