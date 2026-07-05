@@ -299,7 +299,7 @@ export default async function JournalEntryPage({
           </div>
           <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
             <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-              {founderCalibrationMode ? "Founder review status" : "Session status"}
+              {founderCalibrationMode ? "Calibration status" : "Session status"}
             </p>
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
               {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
@@ -311,12 +311,12 @@ export default async function JournalEntryPage({
             )}
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               {founderCalibrationMode
-                ? "Feedback notes are reviewed for Carl/Maria calibration; they do not automatically retrain the guide."
+                ? "Feedback notes are saved for Carl/Maria calibration; they do not automatically retrain the guide."
                 : "Feedback is saved with this session; it does not automatically retrain the guide."}
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                A short note is required for founder calibration so the review has something specific to act on.
+                A short note is required for founder calibration so there is something specific to improve from.
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -350,7 +350,7 @@ export default async function JournalEntryPage({
               />
               {founderCalibrationMode && (
                 <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
-                  This note stays with the session for review and does not automatically retrain the guide.
+                  This note stays with the session for calibration and does not automatically retrain the guide.
                 </p>
               )}
               <button className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>

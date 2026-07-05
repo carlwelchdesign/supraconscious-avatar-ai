@@ -653,7 +653,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  A note is required for Carl/Maria calibration so the review has something specific to act on.
+                  A note is required for Carl/Maria calibration so there is something specific to improve from.
                 </p>
               )}
               <textarea
@@ -710,8 +710,8 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
                     {founderCalibrationMode
-                      ? "Feedback saved. This note is for Carl/Maria calibration review and does not automatically retrain the guide."
-                      : "Feedback saved. It will help improve future review of the guide, but it does not automatically retrain the guide."}
+                      ? "Feedback saved. This note is for Carl/Maria calibration and does not automatically retrain the guide."
+                      : "Feedback saved. It can help improve the guide, but it does not automatically retrain it."}
                   </p>
                   {founderCalibrationMode && result.journalEntry?.id && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -720,7 +720,7 @@ export function JournalWorkspace({ avatarStage = 1, voicePrefs, thresholdPrompt 
                         className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
                         style={{ borderColor: "rgba(43,27,53,0.08)" }}
                       >
-                        Review saved session
+                        Open saved session
                       </Link>
                       <Link
                         href="/dashboard"

@@ -317,10 +317,10 @@ export default async function DashboardPage() {
                 entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
                 entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
                 founderCalibrationMode && entry.councilSession && !hasFeedbackNote ? "Feedback note needed" : null,
-                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Under review" : null,
-                review?.severity === "pilot_blocker" ? (founderCalibrationMode ? "Calibration blocker" : "Review blocked") : null,
-                reviewMetadata?.feedbackDisposition === "cleared" ? "Review cleared" : null,
-                reviewMetadata?.feedbackDisposition === "blocked" ? "Review blocked" : null,
+                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Needs follow-up" : null,
+                review?.severity === "pilot_blocker" ? "Needs attention" : null,
+                reviewMetadata?.feedbackDisposition === "cleared" ? "Resolved" : null,
+                reviewMetadata?.feedbackDisposition === "blocked" ? "Needs attention" : null,
                 entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
                 safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
               ].filter(Boolean)
@@ -384,7 +384,7 @@ export default async function DashboardPage() {
                         </p>
                         {founderCalibrationMode && entry.councilSession?.feedback.length ? (
                           <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
-                            Calibration note: feedback helps reviewers improve guidance; it does not automatically retrain the guide.
+                            Calibration note saved. It helps tune the guide; it does not automatically retrain it.
                           </p>
                         ) : null}
                       </div>
