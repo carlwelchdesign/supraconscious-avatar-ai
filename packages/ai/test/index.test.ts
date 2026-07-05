@@ -3,6 +3,7 @@ import test from "node:test"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
 import {
   buildApprovedSourceWhere,
+  buildAccountExportPayload,
   buildPilotLearningReportFromSnapshot,
   buildPilotReviewCoverageReportFromSnapshot,
   buildFounderCalibrationReportFromSnapshot,
@@ -140,6 +141,37 @@ test("inner council feature flags seed with conservative RAG defaults", () => {
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
+})
+
+test("account export payload includes core privacy and billing data", () => {
+  const payload = buildAccountExportPayload({
+    exportedAt: "2026-07-05T00:00:00.000Z",
+    user: {
+      id: "user_1",
+      email: "founder@example.com",
+      name: "Founder",
+      avatarTone: "balanced",
+      intensityLevel: 3,
+      currentLevel: 2,
+      avatarStage: 1,
+      patternMemoryEnabled: true,
+      voiceEnabled: false,
+    },
+    journalEntries: [{ id: "entry_1", rawText: "owned journal text" }],
+    patternMemories: [{ id: "pattern_1" }],
+    councilSessions: [{ id: "session_1", feedback: [{ feedbackType: "helpful", note: "useful" }] }],
+    safetyEvents: [{ id: "safety_1" }],
+    consentEvents: [{ id: "consent_1" }],
+    pilotEvents: [{ id: "event_1", eventName: "journal_submitted", inputHash: "hash" }],
+    subscriptions: [{ id: "sub_1", plan: "pro", status: "active" }],
+  })
+
+  assert.equal(payload.profile.email, "founder@example.com")
+  assert.equal(payload.profile.patternMemoryEnabled, true)
+  assert.equal(payload.journalEntries.length, 1)
+  assert.equal(payload.councilSessions.length, 1)
+  assert.equal(payload.pilotEvents.length, 1)
+  assert.equal(payload.subscriptions.length, 1)
 })
 
 test("council prompt template resolver falls back when no active template exists", async () => {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { emitPilotEvent } from "@inner-avatar/ai"
+import { buildAccountExportPayload, emitPilotEvent } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -12,6 +12,7 @@ export async function GET() {
     safetyEvents,
     consentEvents,
     pilotEvents,
+    subscriptions,
   ] = await Promise.all([
     prisma.journalEntry.findMany({
       where: { userId: user.id },
@@ -77,6 +78,22 @@ export async function GET() {
         requestId: true,
       },
     }),
+    prisma.subscription.findMany({
+      where: { userId: user.id },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        stripeCustomerId: true,
+        stripeSubscriptionId: true,
+        stripePriceId: true,
+        plan: true,
+        status: true,
+        currentPeriodStart: true,
+        currentPeriodEnd: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
   ])
 
   await emitPilotEvent({
@@ -85,24 +102,15 @@ export async function GET() {
     properties: { entryCount: journalEntries.length, councilSessionCount: councilSessions.length },
   })
 
-  return NextResponse.json({
+  return NextResponse.json(buildAccountExportPayload({
     exportedAt: new Date().toISOString(),
-    profile: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatarTone: user.avatarTone,
-      intensityLevel: user.intensityLevel,
-      currentLevel: user.currentLevel,
-      avatarStage: user.avatarStage,
-      patternMemoryEnabled: user.patternMemoryEnabled,
-      voiceEnabled: user.voiceEnabled,
-    },
+    user,
     journalEntries,
     patternMemories,
     councilSessions,
     safetyEvents,
     consentEvents,
     pilotEvents,
-  })
+    subscriptions,
+  }))
 }
