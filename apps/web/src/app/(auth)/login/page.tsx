@@ -1,7 +1,7 @@
 import { AuthForm } from "@/components/auth/auth-form"
 import { loginAction } from "@inner-avatar/auth/actions"
 import { readPostLoginRedirect } from "@inner-avatar/auth/redirects"
-import { readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
+import { choosePostAuthRedirect, readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { redirect } from "next/navigation"
 
@@ -10,9 +10,9 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ email?: string; next?: string }>
 }) {
-  const user = await getCurrentUser()
-  if (user) redirect(await readPostLoginRedirect(user))
   const params = await searchParams
+  const user = await getCurrentUser()
+  if (user) redirect(choosePostAuthRedirect(await readPostLoginRedirect(user), params.next))
   const defaultEmail = readDefaultEmail(params.email)
   const nextPath = readSafeNextPath(params.next)
 
