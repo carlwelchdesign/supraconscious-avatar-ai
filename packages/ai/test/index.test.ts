@@ -36,6 +36,7 @@ import {
   runPilotCouncilEvals,
   readDisposition,
   readFeedbackDisposition,
+  resolvePilotEventInputHash,
   formatFounderCalibrationScenario,
   sanitizeProperties,
   SOURCE_POLICY_VERSION,
@@ -417,6 +418,12 @@ test("pilot event properties remove raw journal text keys", () => {
     sourceMode: "rag",
   })
   assert.deepEqual(sanitized, { hasNote: true, entryCount: 3, sourceMode: "rag" })
+})
+
+test("pilot event input hash accepts precomputed hashes without raw text", () => {
+  assert.equal(resolvePilotEventInputHash({ inputHash: "precomputed", inputText: null }), "precomputed")
+  assert.equal(resolvePilotEventInputHash({ inputHash: null, inputText: "private journal text" })?.length, 64)
+  assert.equal(resolvePilotEventInputHash({ inputHash: null, inputText: null }), null)
 })
 
 test("pilot launch readiness reports blocking launch conditions", () => {

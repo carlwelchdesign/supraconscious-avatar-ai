@@ -65,6 +65,7 @@ export async function deleteJournalEntryAction(formData: FormData) {
     select: { id: true, rawText: true },
   })
   if (!entry) redirect("/dashboard?delete=missing")
+  const inputHash = await hashForAudit(entry.rawText)
 
   await prisma.$transaction([
     prisma.auditLog.create({
@@ -74,7 +75,7 @@ export async function deleteJournalEntryAction(formData: FormData) {
         targetType: "JournalEntry",
         targetId: entry.id,
         reason: "User deleted journal entry.",
-        metadata: { inputHash: await hashForAudit(entry.rawText) },
+        metadata: { inputHash },
       },
     }),
     prisma.journalEntry.delete({ where: { id: entry.id } }),
@@ -82,7 +83,7 @@ export async function deleteJournalEntryAction(formData: FormData) {
   await emitPilotEvent({
     eventName: "journal_entry_deleted",
     userId: user.id,
-    inputText: entry.rawText,
+    inputHash,
     properties: { deletedByUser: true },
   })
 

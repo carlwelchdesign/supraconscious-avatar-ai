@@ -27,6 +27,7 @@ export type PilotEventInput = {
   councilSessionId?: string | null
   properties?: Record<string, string | number | boolean | null | string[]>
   inputText?: string | null
+  inputHash?: string | null
   sourceMode?: string | null
   safetySeverity?: string | null
   featureFlags?: Record<string, boolean>
@@ -55,7 +56,7 @@ export async function emitPilotEvent(input: PilotEventInput) {
       councilSessionId: input.councilSessionId ?? null,
       eventName: input.eventName,
       properties: sanitizeProperties(input.properties),
-      inputHash: input.inputText ? hashPilotInput(input.inputText) : null,
+      inputHash: resolvePilotEventInputHash(input),
       sourceMode: input.sourceMode ?? null,
       safetySeverity: input.safetySeverity ?? null,
       featureFlags: input.featureFlags ?? undefined,
@@ -66,6 +67,10 @@ export async function emitPilotEvent(input: PilotEventInput) {
 
 export function hashPilotInput(value: string) {
   return createHash("sha256").update(value).digest("hex")
+}
+
+export function resolvePilotEventInputHash(input: Pick<PilotEventInput, "inputHash" | "inputText">) {
+  return input.inputHash ?? (input.inputText ? hashPilotInput(input.inputText) : null)
 }
 
 export function sanitizeProperties(properties: PilotEventInput["properties"]) {
