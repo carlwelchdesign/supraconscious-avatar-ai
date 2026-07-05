@@ -5,13 +5,19 @@ import { requireAppUser } from "@inner-avatar/auth/session"
 
 export async function POST() {
   const user = await requireAppUser()
-  const session = await createBillingPortalSession({
-    userId: user.id,
-    origin: await requestOrigin(),
-  })
+  const origin = await requestOrigin()
+  let session
+  try {
+    session = await createBillingPortalSession({
+      userId: user.id,
+      origin,
+    })
+  } catch {
+    return NextResponse.redirect(`${origin}/settings?billing=unavailable`, 303)
+  }
 
   if (!session.url) {
-    return NextResponse.json({ error: "Billing portal is unavailable." }, { status: 503 })
+    return NextResponse.redirect(`${origin}/settings?billing=unavailable`, 303)
   }
 
   return NextResponse.redirect(session.url, 303)

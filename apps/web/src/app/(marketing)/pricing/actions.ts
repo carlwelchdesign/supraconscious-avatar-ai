@@ -15,12 +15,17 @@ export async function startCheckoutAction(formData: FormData) {
 
   const user = await requireAppUser()
   const origin = await requestOrigin()
-  const session = await createSubscriptionCheckoutSession({
-    userId: user.id,
-    email: user.email,
-    plan: plan as BillingPlan,
-    origin,
-  })
+  let session
+  try {
+    session = await createSubscriptionCheckoutSession({
+      userId: user.id,
+      email: user.email,
+      plan: plan as BillingPlan,
+      origin,
+    })
+  } catch {
+    redirect("/pricing?checkout=unavailable")
+  }
 
   if (!session.url) {
     redirect("/pricing?checkout=unavailable")

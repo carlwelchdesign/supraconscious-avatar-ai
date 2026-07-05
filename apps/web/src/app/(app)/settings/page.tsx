@@ -61,7 +61,7 @@ function StatusPill({ on }: { on: boolean }) {
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ accountDelete?: string; password?: string }>
+  searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string }>
 }) {
   const params = await searchParams
   const user = await requireAppUser()
@@ -208,6 +208,16 @@ export default async function SettingsPage({
           </p>
         </div>
         <div className="px-6">
+          {params.checkout === "success" ? (
+            <p className="mt-5 rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
+              Checkout completed. Your billing status will update after Stripe confirms the subscription.
+            </p>
+          ) : null}
+          {params.billing === "unavailable" ? (
+            <p className="mt-5 rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
+              Billing management is not available in this environment yet. Your journal and reflection data are unchanged.
+            </p>
+          ) : null}
           <SettingRow
             label="Plan"
             description="Your current Inner Avatar subscription plan."

@@ -27,7 +27,11 @@ const plans = [
   },
 ] as const
 
-export default async function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>
+}) {
   const user = await getCurrentUser()
 
   return (
@@ -41,6 +45,7 @@ export default async function PricingPage() {
           Choose a reflection plan. Paid plans use Stripe Checkout and can be managed from settings.
         </p>
       </div>
+      <PricingStatus searchParams={searchParams} />
       <div className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (
           <Card key={plan.name} className={plan.name === "Starter" ? "border-primary" : undefined}>
@@ -75,5 +80,28 @@ export default async function PricingPage() {
         ))}
       </div>
     </main>
+  )
+}
+
+async function PricingStatus({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>
+}) {
+  const params = await searchParams
+  if (params.checkout !== "unavailable" && params.checkout !== "invalid-plan" && params.checkout !== "cancelled") {
+    return null
+  }
+
+  const message = params.checkout === "invalid-plan"
+    ? "That plan was not recognized. Please choose one of the plans below."
+    : params.checkout === "cancelled"
+      ? "Checkout was cancelled. Nothing was changed."
+      : "Paid checkout is not available in this environment yet. You can keep using the free reflection flow."
+
+  return (
+    <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      {message}
+    </div>
   )
 }
