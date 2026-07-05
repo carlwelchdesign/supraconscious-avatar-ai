@@ -95,7 +95,7 @@ export async function isFounderCalibrationUser(
   }
 
   if (participantStatus.activeMatch) return true
-  if (participantStatus.activeParticipantCount > 0) return false
+  if (participantStatus.configuredParticipantCount > 0) return false
 
   const envEmails = parseFounderCalibrationEmails(process.env.FOUNDER_CALIBRATION_EMAILS)
   if (envEmails.length > 0) return envEmails.includes(normalizedEmail)
@@ -129,18 +129,16 @@ async function readActiveFounderParticipantEmailsSafely(
 async function readFounderParticipantStatusSafely(
   normalizedEmail: string,
   prismaClient: Pick<typeof prisma, "founderCalibrationParticipant">,
-): Promise<{ activeMatch: boolean; activeParticipantCount: number } | null> {
+): Promise<{ activeMatch: boolean; configuredParticipantCount: number } | null> {
   try {
     const participant = await prismaClient.founderCalibrationParticipant.findFirst({
       where: { email: normalizedEmail, status: "active" },
       select: { id: true },
     })
-    if (participant) return { activeMatch: true, activeParticipantCount: 1 }
+    if (participant) return { activeMatch: true, configuredParticipantCount: 1 }
 
-    const activeParticipantCount = await prismaClient.founderCalibrationParticipant.count({
-      where: { status: "active" },
-    })
-    return { activeMatch: false, activeParticipantCount }
+    const configuredParticipantCount = await prismaClient.founderCalibrationParticipant.count()
+    return { activeMatch: false, configuredParticipantCount }
   } catch (error) {
     if (isMissingFounderParticipantTable(error)) return null
     throw error

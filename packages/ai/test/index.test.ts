@@ -1113,6 +1113,14 @@ test("founder calibration user check uses targeted DB lookup before fallback", a
   }
   assert.equal(await isFounderCalibrationUser("other@example.com", configuredClient), false)
 
+  const pausedOnlyClient = {
+    founderCalibrationParticipant: {
+      findFirst: async () => null,
+      count: async () => 1,
+    },
+  }
+  assert.equal(await isFounderCalibrationUser("paused@example.com", pausedOnlyClient), false)
+
   const emptyClient = {
     founderCalibrationParticipant: {
       findFirst: async () => null,
