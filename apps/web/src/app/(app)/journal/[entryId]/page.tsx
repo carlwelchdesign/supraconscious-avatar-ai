@@ -25,15 +25,27 @@ export default async function JournalEntryPage({
   const entry = await prisma.journalEntry.findFirst({
     where: { id: entryId, userId: user.id },
     include: {
-      analysis: true,
       avatarResponse: true,
-      generatedPrompts: true,
       councilSession: {
         include: {
-          messages: { orderBy: { createdAt: "asc" } },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              displayName: true,
+              abstained: true,
+              content: true,
+            },
+          },
           synthesis: true,
-          feedback: true,
-          embodimentGateResponses: true,
+          feedback: {
+            select: {
+              id: true,
+              feedbackType: true,
+              note: true,
+            },
+          },
+          embodimentGateResponses: { select: { id: true } },
           qualityReviews: {
             orderBy: { reviewedAt: "desc" },
             take: 1,
