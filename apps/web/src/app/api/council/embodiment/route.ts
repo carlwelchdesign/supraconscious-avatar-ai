@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       data: {
         userId: user.id,
         councilSessionId: session.id,
-        journalEntryId: body.journalEntryId ?? session.journalEntryId,
+        journalEntryId: session.journalEntryId,
         text: body.text,
       },
     })
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     await emitPilotEvent({
       eventName: "embodiment_gate_saved",
       userId: user.id,
-      journalEntryId: body.journalEntryId ?? session.journalEntryId,
+      journalEntryId: session.journalEntryId,
       councilSessionId: session.id,
       sourceMode: session.sourceMode,
       safetySeverity: safety.severity ?? "unknown",
