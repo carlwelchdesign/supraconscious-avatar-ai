@@ -28,6 +28,8 @@ type UserRow = {
   createdAt: string
   journalEntryCount: number
   sessionCount: number
+  founderParticipantRole: string | null
+  founderParticipantStatus: string | null
 }
 
 const STATUS_MESSAGES: Record<string, { severity: "success" | "warning" | "error"; message: string }> = {
@@ -53,6 +55,8 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
         user.name ?? "",
         user.email,
         user.role,
+        user.founderParticipantRole ?? "",
+        user.founderParticipantStatus ?? "",
         user.id,
         String(user.journalEntryCount),
         String(user.sessionCount),
@@ -96,6 +100,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
             <TableRow>
               <TableCell>User</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Founder</TableCell>
               <TableCell>Email</TableCell>
               <TableCell align="right">Entries</TableCell>
               <TableCell align="right">Sessions</TableCell>
@@ -119,6 +124,27 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                     size="small"
                     variant={user.role === "user" ? "outlined" : "filled"}
                   />
+                </TableCell>
+                <TableCell>
+                  {user.founderParticipantRole ? (
+                    <Box sx={{ display: "grid", justifyItems: "start", gap: 0.5 }}>
+                      <Chip
+                        label={user.founderParticipantRole.replaceAll("_", " ")}
+                        color={user.founderParticipantStatus === "active" ? "success" : "default"}
+                        size="small"
+                        variant={user.founderParticipantStatus === "active" ? "filled" : "outlined"}
+                      />
+                      {user.founderParticipantStatus !== "active" ? (
+                        <Typography variant="caption" color="text.secondary">
+                          {user.founderParticipantStatus}
+                        </Typography>
+                      ) : null}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      -
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Chip
@@ -178,7 +204,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
             ))}
             {!filteredUsers.length ? (
               <TableRow>
-                <TableCell colSpan={7}>
+                <TableCell colSpan={8}>
                   <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
                     No users match that search.
                   </Typography>
