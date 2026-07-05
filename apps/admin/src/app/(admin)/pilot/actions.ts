@@ -9,6 +9,7 @@ import { prisma } from "@inner-avatar/db"
 const CohortSchema = z.object({
   name: z.string().trim().min(2),
   description: z.string().trim().optional(),
+  reason: z.string().trim().min(10, "A cohort setup reason is required."),
 })
 
 const EnrollmentSchema = z.object({
@@ -49,6 +50,7 @@ export async function createPilotCohortAction(formData: FormData) {
       action: "pilot_cohort.create",
       targetType: "PilotCohort",
       targetId: cohort.id,
+      reason: parsed.reason,
       metadata: { name: cohort.name },
     },
   })

@@ -9,6 +9,7 @@ const AvatarStageSchema = z.object({
   stage: z.coerce.number().int().min(1).max(5),
   name: z.string().trim().min(2).max(80),
   description: z.string().trim().optional(),
+  reason: z.string().trim().min(10, "A guide stage change reason is required."),
 })
 
 export async function upsertAvatarStageAction(formData: FormData) {
@@ -17,7 +18,11 @@ export async function upsertAvatarStageAction(formData: FormData) {
 
   const stage = await prisma.avatarStageConfig.upsert({
     where: { stage: parsed.stage },
-    create: parsed,
+    create: {
+      stage: parsed.stage,
+      name: parsed.name,
+      description: parsed.description,
+    },
     update: {
       name: parsed.name,
       description: parsed.description,
@@ -31,6 +36,7 @@ export async function upsertAvatarStageAction(formData: FormData) {
       action: "avatar_stage_config.upsert",
       targetType: "AvatarStageConfig",
       targetId: stage.id,
+      reason: parsed.reason,
       metadata: { stage: stage.stage },
     },
   })

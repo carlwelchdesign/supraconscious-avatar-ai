@@ -9,6 +9,7 @@ const FeatureFlagSchema = z.object({
   key: z.string().trim().min(2).max(80).regex(/^[a-z0-9._-]+$/),
   description: z.string().trim().optional(),
   enabled: z.union([z.literal("on"), z.null()]).optional(),
+  reason: z.string().trim().min(10, "A feature flag change reason is required."),
 })
 
 export async function upsertFeatureFlagAction(formData: FormData) {
@@ -17,6 +18,7 @@ export async function upsertFeatureFlagAction(formData: FormData) {
     key: formData.get("key"),
     description: formData.get("description"),
     enabled: formData.get("enabled"),
+    reason: formData.get("reason"),
   })
   const requestedEnabled = parsed.enabled === "on"
 
@@ -43,6 +45,7 @@ export async function upsertFeatureFlagAction(formData: FormData) {
       action: "feature_flag.upsert",
       targetType: "FeatureFlag",
       targetId: flag.id,
+      reason: parsed.reason,
       metadata: { key: flag.key, enabled: flag.enabled },
     },
   })

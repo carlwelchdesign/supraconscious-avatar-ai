@@ -22,6 +22,7 @@ export default async function FeatureFlagsPage() {
               <input type="checkbox" name="enabled" />
               Enabled
             </label>
+            <Input name="reason" placeholder="Reason required" required />
             <Button type="submit">Save flag</Button>
           </form>
         </CardContent>
