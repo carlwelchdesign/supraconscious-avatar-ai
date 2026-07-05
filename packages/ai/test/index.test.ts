@@ -1241,7 +1241,7 @@ test("founder calibration setup report gives role-specific handoff links", () =>
   assert.match(report.requiredRoles.carl.handoffText, /complete onboarding\/consent/)
   assert.match(report.requiredRoles.carl.handoffText, /preselected Voice test guided calibration prompt/)
   assert.equal(report.requiredRoles.maria.primaryHandoffHref, "/journal")
-  assert.match(report.requiredRoles.maria.handoffText, /Continue development with the next guided journal pass/)
+  assert.match(report.requiredRoles.maria.handoffText, /Add one short feedback note from the saved session/)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
   assert.equal(JSON.stringify(report).includes("raw note"), false)
 })

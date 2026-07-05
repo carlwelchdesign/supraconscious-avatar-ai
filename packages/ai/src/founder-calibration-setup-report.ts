@@ -243,7 +243,8 @@ export function buildFounderCalibrationLaunchPacket(
   lines.push(
     "## After First Sessions",
     "- Continue with the next useful guided journal pass.",
-    "- Add feedback notes or mark strong sessions ready/golden when the evidence is useful, not as a blocker.",
+    "- Leave one short feedback note for each founder calibration session so review has usable evidence.",
+    "- Mark strong sessions ready/golden when one clearly stands out; golden examples are useful, not blockers for continued development.",
     "- Run: yarn report:founder-calibration",
     "- Run: yarn report:founder-calibration-comparison",
   )
@@ -419,7 +420,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   if (snapshot.filterMode !== "db") warnings.push("Founder calibration participant setup is incomplete; DB participants should be configured before relying on reports.")
   for (const participant of activeParticipants) {
     if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
-      warnings.push(`${participant.email} has sessions without feedback notes; continue development, and collect notes only when they clarify what should change.`)
+      warnings.push(`${participant.email} has sessions without feedback notes; add one short note from the saved session so review has usable evidence.`)
     }
     if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
       warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
@@ -585,7 +586,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const suggestedScenario = firstIncompleteScenario?.scenario ?? "voice_test"
   const suggestedScenarioLabel = formatFounderCalibrationScenario(suggestedScenario)
   const primaryPath = primaryHandoffHref ?? "/journal"
-  const feedbackInstruction = "Submit one reflection and select a feedback type. Add a note only when it helps explain what felt right, wrong, unsupported, or unlike Maria's phrasing."
+  const feedbackInstruction = "Submit one reflection, select a feedback type, and leave one short note about what felt right, wrong, unsupported, or unlike Maria's phrasing."
   if (!participant.accountExists) {
     return `Please register for Supraconscious using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
@@ -596,7 +597,7 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
     return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
   if (participant.feedbackNoteCount === 0) {
-    return `The first session is captured. Continue development with the next guided journal pass; add a feedback note only when it helps clarify what should change. Continue here: ${primaryPath}`
+    return `The first session is captured. Add one short feedback note from the saved session so review has usable evidence. Continue here: ${primaryPath}`
   }
   if (participant.goldenExampleCount === 0) {
     return `The first calibration evidence is captured. Golden examples are optional now; continue with the next useful guided session or mark examples later when one clearly stands out. Continue here: ${primaryPath}`
