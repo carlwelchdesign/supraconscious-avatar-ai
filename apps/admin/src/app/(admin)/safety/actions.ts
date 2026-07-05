@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { requireAdminUser } from "@inner-avatar/auth/session"
@@ -57,15 +58,18 @@ export async function revealFlaggedEntryAction(_state: RevealState, formData: Fo
 
 export async function resolveSafetyEventAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = ResolveSchema.parse(Object.fromEntries(formData))
-  const resolved = parsed.reviewStatus === "resolved"
+  const parsed = ResolveSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/safety?status=invalid")
+  }
+  const resolved = parsed.data.reviewStatus === "resolved"
 
   await prisma.safetyEvent.update({
-    where: { id: parsed.safetyEventId },
+    where: { id: parsed.data.safetyEventId },
     data: {
-      reviewStatus: parsed.reviewStatus,
+      reviewStatus: parsed.data.reviewStatus,
       reviewerId: actor.id,
-      reviewReason: parsed.reason,
+      reviewReason: parsed.data.reason,
       resolved,
       resolvedAt: resolved ? new Date() : null,
     },
@@ -76,11 +80,12 @@ export async function resolveSafetyEventAction(formData: FormData) {
       actorId: actor.id,
       action: "safety_event.review.update",
       targetType: "SafetyEvent",
-      targetId: parsed.safetyEventId,
-      reason: parsed.reason,
-      metadata: { reviewStatus: parsed.reviewStatus, resolved },
+      targetId: parsed.data.safetyEventId,
+      reason: parsed.data.reason,
+      metadata: { reviewStatus: parsed.data.reviewStatus, resolved },
     },
   })
 
   revalidatePath("/safety")
+  redirect("/safety?status=saved")
 }

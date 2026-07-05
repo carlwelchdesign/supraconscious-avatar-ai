@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -17,34 +18,38 @@ const PromptTemplateSchema = z.object({
 
 export async function createPromptTemplateAction(formData: FormData) {
   const actor = await requireAdminUser()
-  const parsed = PromptTemplateSchema.parse(Object.fromEntries(formData))
-  const relatedCalibrationSessionIds = parseRelatedSessionIds(parsed.relatedCalibrationSessionIds)
+  const parsed = PromptTemplateSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    redirect("/prompts?status=invalid")
+  }
+  const input = parsed.data
+  const relatedCalibrationSessionIds = parseRelatedSessionIds(input.relatedCalibrationSessionIds)
 
-  if (isCouncilPromptTemplateKey(parsed.key)) {
-    const guardrails = validateCouncilPromptTemplate(parsed.content)
+  if (isCouncilPromptTemplateKey(input.key)) {
+    const guardrails = validateCouncilPromptTemplate(input.content)
     if (!guardrails.valid) {
-      throw new Error(`Council prompt is missing required guardrails: ${guardrails.missing.join(", ")}`)
+      redirect("/prompts?status=guardrails_missing")
     }
   }
 
   const existing = await prisma.promptTemplate.findUnique({
-    where: { key: parsed.key },
+    where: { key: input.key },
     select: { id: true, version: true },
   })
 
   const template = await prisma.promptTemplate.upsert({
-    where: { key: parsed.key },
+    where: { key: input.key },
     create: {
-      key: parsed.key,
-      name: parsed.name,
-      description: parsed.description,
-      content: parsed.content,
+      key: input.key,
+      name: input.name,
+      description: input.description,
+      content: input.content,
       createdById: actor.id,
     },
     update: {
-      name: parsed.name,
-      description: parsed.description,
-      content: parsed.content,
+      name: input.name,
+      description: input.description,
+      content: input.content,
       version: { increment: 1 },
       active: true,
     },
@@ -56,7 +61,7 @@ export async function createPromptTemplateAction(formData: FormData) {
       action: "prompt_template.upsert",
       targetType: "PromptTemplate",
       targetId: template.id,
-      reason: parsed.reason,
+      reason: input.reason,
       metadata: {
         key: template.key,
         oldVersion: existing?.version ?? null,
@@ -68,6 +73,7 @@ export async function createPromptTemplateAction(formData: FormData) {
 
   revalidatePath("/prompts")
   revalidatePath("/calibration")
+  redirect("/prompts?status=saved")
 }
 
 function parseRelatedSessionIds(value: string | undefined) {

@@ -6,7 +6,22 @@ import { prisma } from "@inner-avatar/db"
 import { DEFAULT_COUNCIL_PROMPT_KEY, DEFAULT_COUNCIL_SYSTEM_PROMPT, runFounderCalibrationReport } from "@inner-avatar/ai"
 import { createPromptTemplateAction } from "./actions"
 
-export default async function PromptsPage() {
+const PROMPT_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  saved: { tone: "success", message: "Prompt template saved." },
+  invalid: { tone: "error", message: "Prompt template needs a valid key, name, content, and reason." },
+  guardrails_missing: {
+    tone: "error",
+    message: "Council prompts must keep the required safety and identity guardrails before they can be saved.",
+  },
+}
+
+export default async function PromptsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? PROMPT_STATUS_MESSAGES[status] : null
   const [templates, calibration] = await Promise.all([
     prisma.promptTemplate.findMany({
       orderBy: { updatedAt: "desc" },
@@ -19,6 +34,17 @@ export default async function PromptsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Prompt Templates</h1>
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>

@@ -3,7 +3,18 @@ import { prisma } from "@inner-avatar/db"
 import { resolveSafetyEventAction } from "./actions"
 import { RevealEntryForm } from "./reveal-entry-form"
 
-export default async function SafetyPage() {
+const SAFETY_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
+  saved: { tone: "success", message: "Safety review saved." },
+  invalid: { tone: "error", message: "Safety review needs a valid event, status, and reason." },
+}
+
+export default async function SafetyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status } = await searchParams
+  const statusMessage = status ? SAFETY_STATUS_MESSAGES[status] : null
   const events = await prisma.safetyEvent.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -19,6 +30,17 @@ export default async function SafetyPage() {
         <h1 className="text-2xl font-semibold">Safety Events</h1>
         <p className="mt-2 text-sm text-muted-foreground">Raw journal content is hidden by default. Reveals require a reason and create an audit log.</p>
       </div>
+      {statusMessage ? (
+        <div
+          className={[
+            "rounded-md border p-3 text-sm",
+            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {statusMessage.message}
+        </div>
+      ) : null}
       <div className="space-y-4">
         {events.map((event) => (
           <Card key={event.id}>
