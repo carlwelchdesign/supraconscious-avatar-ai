@@ -57,6 +57,7 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
   if (!session) {
     redirect(`${calibrationReturnPath(parsed.data.returnTo)}?status=review_missing`)
   }
+  const calibrationIssueType = resolveCalibrationIssueType(parsed.data.label, parsed.data.calibrationIssueType)
 
   const review = await prisma.qualityReview.create({
     data: {
@@ -68,7 +69,7 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
       reason: parsed.data.reason,
       metadata: {
         reviewedFrom: "admin_calibration",
-        calibrationIssueType: parsed.data.calibrationIssueType === "none" ? null : parsed.data.calibrationIssueType,
+        calibrationIssueType,
         goldenExample: parsed.data.label === "ready",
         relatedPromptVersion: parsed.data.relatedPromptVersion || null,
         relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
@@ -87,7 +88,7 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
         qualityReviewId: review.id,
         label: parsed.data.label,
         severity: parsed.data.severity,
-        calibrationIssueType: parsed.data.calibrationIssueType,
+        calibrationIssueType,
         relatedPromptVersion: parsed.data.relatedPromptVersion || null,
         relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
       },
@@ -278,4 +279,16 @@ function calibrationReturnPath(returnTo: "calibration" | "calibration_live" | "c
   if (returnTo === "calibration_live") return "/calibration/live"
   if (returnTo === "council") return "/council"
   return "/calibration"
+}
+
+function resolveCalibrationIssueType(
+  label: z.infer<typeof CalibrationReviewSchema>["label"],
+  requestedIssueType: z.infer<typeof CalibrationReviewSchema>["calibrationIssueType"],
+) {
+  if (requestedIssueType !== "none") return requestedIssueType
+  if (label === "voice_wrong") return "voice_mismatch"
+  if (label === "source_unsupported") return "source_issue"
+  if (label === "too_generic" || label === "too_intense" || label === "prompt_regression") return "prompt_issue"
+  if (label === "embodiment_weak") return "embodiment_weak"
+  return null
 }
