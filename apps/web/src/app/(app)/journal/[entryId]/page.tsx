@@ -150,7 +150,7 @@ export default async function JournalEntryPage({
         >
           {/* Header */}
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
-            <AvatarOrb size="sm" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="mb-3" />
+            <AvatarOrb size="sm" stage={(user.avatarStage ?? 1) as 1|2|3|4|5} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
               Avatar reflection
             </p>

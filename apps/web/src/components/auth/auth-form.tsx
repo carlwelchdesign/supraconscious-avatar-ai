@@ -24,7 +24,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
 
       {/* Brand mark */}
       <div className="text-center">
-        <AvatarOrb size="md" className="mx-auto mb-5" />
+        <AvatarOrb size="md" className="mx-auto mb-5" priority />
         <h1 className="font-display text-[32px] font-light text-[var(--primary)] leading-tight">
           {isRegister ? (
             <>Begin your<br /><em className="italic font-normal text-[var(--clay)]">reflection</em></>

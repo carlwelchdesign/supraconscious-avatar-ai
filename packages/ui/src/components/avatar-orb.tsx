@@ -21,9 +21,10 @@ type AvatarOrbProps = {
   stage?: 1 | 2 | 3 | 4 | 5
   size?: "xs" | "sm" | "md" | "lg" | "xl"
   className?: string
+  priority?: boolean
 }
 
-export function AvatarOrb({ stage = 1, size = "md", className }: AvatarOrbProps) {
+export function AvatarOrb({ stage = 1, size = "md", className, priority }: AvatarOrbProps) {
   const px = SIZES[size]
   const src = STAGE_IMAGES[stage] ?? STAGE_IMAGES[1]
 
@@ -38,7 +39,7 @@ export function AvatarOrb({ stage = 1, size = "md", className }: AvatarOrbProps)
         fill
         sizes={`${px}px`}
         className="object-contain"
-        priority={size === "lg" || size === "xl"}
+        priority={priority ?? (size === "lg" || size === "xl")}
       />
     </div>
   )
