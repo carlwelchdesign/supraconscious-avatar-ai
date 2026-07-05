@@ -7,33 +7,21 @@ const CreateJournalEntrySchema = z.object({
   save: z.boolean().default(false)
 })
 
-export async function createJournalEntry(input: unknown, deps: { prisma?: typeof prisma } = {}) {
+export async function createJournalEntry(input: unknown, userIdOrDeps?: string | { prisma?: typeof prisma }, maybeDeps: { prisma?: typeof prisma } = {}) {
+  const userId = typeof userIdOrDeps === "string" ? userIdOrDeps : undefined
+  const deps = typeof userIdOrDeps === "string" ? maybeDeps : userIdOrDeps ?? {}
   const { prisma: prismaClient = prisma } = deps
 
   try {
     const validatedInput = CreateJournalEntrySchema.parse(input)
 
-    // For demo purposes, ensure we have a demo user
-    let demoUser = await prismaClient.user.findUnique({
-      where: { email: "demo@inner-avatar.ai" }
-    })
-
-    if (!demoUser) {
-      demoUser = await prismaClient.user.create({
-        data: {
-          email: "demo@inner-avatar.ai",
-          name: "Demo User",
-          role: "user",
-          emailVerified: true,
-          onboardingComplete: true
-        }
-      })
+    if (!userId) {
+      throw new Error("Authentication required to create journal entries")
     }
 
-    // Create journal entry
     const journalEntry = await prismaClient.journalEntry.create({
       data: {
-        userId: demoUser.id,
+        userId,
         rawText: validatedInput.text,
         inputMode: "text",
         isDraft: !validatedInput.save
@@ -48,6 +36,9 @@ export async function createJournalEntry(input: unknown, deps: { prisma?: typeof
     const message = error instanceof Error ? error.message : String(error)
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
+      throw error
     }
     throw new Error(`Failed to create journal entry: ${message}`)
   }

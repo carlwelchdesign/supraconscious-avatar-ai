@@ -1,4 +1,4 @@
-// Inner Avatar ChatGPT Widget
+// Supraconscious ChatGPT Widget
 class InnerAvatarWidget {
     constructor() {
         this.apiBase = window.location.origin;
@@ -79,7 +79,7 @@ class InnerAvatarWidget {
                 generatedPrompt: prompt
             });
 
-            this.setStatus('Reflection saved. You can continue working with it in the full Inner Avatar app.', 'success');
+            this.setStatus('Reflection saved. You can continue working with it in the full Supraconscious app.', 'success');
         } catch (error) {
             console.error('Save failed:', error);
             this.setStatus('Sorry, there was an error saving your reflection. You can still continue in the full app.', 'error');
@@ -89,7 +89,7 @@ class InnerAvatarWidget {
     }
 
     handleContinue() {
-        // Open the full Inner Avatar web app
+        // Open the full Supraconscious web app
         window.open(`${this.webAppUrl}/dashboard`, '_blank', 'noopener,noreferrer');
     }
 
@@ -167,7 +167,7 @@ class InnerAvatarWidget {
 
     setSaveState(isSaving) {
         this.saveBtn.disabled = isSaving;
-        this.saveBtn.textContent = isSaving ? 'Saving...' : 'Save to Inner Avatar';
+        this.saveBtn.textContent = isSaving ? 'Saving...' : 'Save to Supraconscious';
     }
 
     setStatus(message, type) {

@@ -32,3 +32,14 @@ test('widget renders generated text through DOM text nodes', async () => {
   assert.match(script, /replaceChildren\(/)
   assert.match(script, /INNER_AVATAR_WIDGET_CONFIG/)
 })
+
+test('widget copy uses Supraconscious product naming', async () => {
+  const html = await readFile(new URL('../src/widget/index.html', import.meta.url), 'utf8')
+  const script = await readFile(new URL('../src/widget/widget.js', import.meta.url), 'utf8')
+
+  assert.match(html, /Supraconscious/)
+  assert.match(html, /Guide Reflection/)
+  assert.match(script, /full Supraconscious app/)
+  assert.doesNotMatch(html, /Inner Avatar/)
+  assert.doesNotMatch(script, /Save to Inner Avatar/)
+})

@@ -11,12 +11,19 @@ const GeneratePersonalizedPromptSchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function generatePersonalizedPrompt(input: unknown, deps: {
+export async function generatePersonalizedPrompt(input: unknown, userIdOrDeps: string | {
+  prisma?: typeof prisma,
+  classifyJournalSafety?: typeof classifyJournalSafety,
+  analyzeEntry?: typeof analyzeEntry,
+  generateSymbolicPrompt?: typeof generateSymbolicPrompt
+} = {}, maybeDeps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   analyzeEntry?: typeof analyzeEntry,
   generateSymbolicPrompt?: typeof generateSymbolicPrompt
 } = {}) {
+  const userId = typeof userIdOrDeps === "string" ? userIdOrDeps : undefined
+  const deps = typeof userIdOrDeps === "string" ? maybeDeps : userIdOrDeps
   const {
     prisma: prismaClient = prisma,
     classifyJournalSafety: classifyFn = classifyJournalSafety,
@@ -29,9 +36,11 @@ export async function generatePersonalizedPrompt(input: unknown, deps: {
 
     let text: string
     if (validatedInput.entryId) {
-      // Fetch text from database
-      const entry = await prismaClient.journalEntry.findUnique({
-        where: { id: validatedInput.entryId }
+      if (!userId) {
+        throw new Error("Authentication required to read saved journal entries")
+      }
+      const entry = await prismaClient.journalEntry.findFirst({
+        where: { id: validatedInput.entryId, userId }
       })
       if (!entry) {
         throw new Error("Journal entry not found")
@@ -41,10 +50,8 @@ export async function generatePersonalizedPrompt(input: unknown, deps: {
       text = validatedInput.text!
     }
 
-    // Run safety classification
     const safety = await classifyFn(text)
 
-    // If crisis, return grounding prompt only
     if (safety.severity === "high") {
       return {
         title: "Return to the Room",
@@ -55,10 +62,8 @@ export async function generatePersonalizedPrompt(input: unknown, deps: {
       }
     }
 
-    // Analyze the entry to get patterns
     const analysis = await analyzeFn(text, safety)
 
-    // Generate symbolic prompt
     const prompt = await promptFn(analysis, safety)
 
     return {
@@ -71,6 +76,9 @@ export async function generatePersonalizedPrompt(input: unknown, deps: {
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
+      throw error
     }
     throw new Error("Failed to generate personalized prompt")
   }

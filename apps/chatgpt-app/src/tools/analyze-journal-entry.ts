@@ -9,11 +9,17 @@ const AnalyzeJournalEntrySchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function analyzeJournalEntry(input: unknown, deps: {
+export async function analyzeJournalEntry(input: unknown, userIdOrDeps: string | {
+  prisma?: typeof prisma,
+  classifyJournalSafety?: typeof classifyJournalSafety,
+  analyzeEntry?: typeof analyzeEntry
+} = {}, maybeDeps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   analyzeEntry?: typeof analyzeEntry
 } = {}) {
+  const userId = typeof userIdOrDeps === "string" ? userIdOrDeps : undefined
+  const deps = typeof userIdOrDeps === "string" ? maybeDeps : userIdOrDeps
   const {
     prisma: prismaClient = prisma,
     classifyJournalSafety: classifyFn = classifyJournalSafety,
@@ -25,9 +31,11 @@ export async function analyzeJournalEntry(input: unknown, deps: {
 
     let text: string
     if (validatedInput.entryId) {
-      // Fetch text from database
-      const entry = await prismaClient.journalEntry.findUnique({
-        where: { id: validatedInput.entryId }
+      if (!userId) {
+        throw new Error("Authentication required to read saved journal entries")
+      }
+      const entry = await prismaClient.journalEntry.findFirst({
+        where: { id: validatedInput.entryId, userId }
       })
       if (!entry) {
         throw new Error("Journal entry not found")
@@ -37,10 +45,8 @@ export async function analyzeJournalEntry(input: unknown, deps: {
       text = validatedInput.text!
     }
 
-    // Run safety classification first
     const safety = await classifyFn(text)
 
-    // Analyze the entry
     const analysis = await analyzeFn(text, safety)
 
     return {
@@ -64,6 +70,9 @@ export async function analyzeJournalEntry(input: unknown, deps: {
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
+      throw error
     }
     throw new Error("Failed to analyze journal entry")
   }

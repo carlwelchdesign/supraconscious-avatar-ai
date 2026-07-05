@@ -68,3 +68,39 @@ test('analyzeJournalEntry returns mapped results for valid text input', async ()
     pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.'
   })
 })
+
+test('analyzeJournalEntry requires authentication for saved entry reads', async () => {
+  await assert.rejects(
+    async () => analyzeJournalEntry({ entryId: 'entry-1' }, {
+      classifyJournalSafety: async () => clearSafety,
+      analyzeEntry: async () => mappedAnalysis
+    }),
+    { message: /Authentication required/ }
+  )
+})
+
+test('analyzeJournalEntry reads only entries owned by the authenticated user', async () => {
+  const mockPrisma = {
+    journalEntry: {
+      findFirst: async ({ where }: any) => {
+        assert.deepStrictEqual(where, { id: 'entry-1', userId: 'user-123' })
+        return { id: 'entry-1', userId: 'user-123', rawText: 'Owned entry text' }
+      }
+    }
+  }
+
+  const output = await analyzeJournalEntry(
+    { entryId: 'entry-1' },
+    'user-123',
+    {
+      prisma: mockPrisma as any,
+      classifyJournalSafety: async (text: string) => {
+        assert.strictEqual(text, 'Owned entry text')
+        return clearSafety
+      },
+      analyzeEntry: async () => mappedAnalysis
+    } as any
+  )
+
+  assert.strictEqual(output.summary, mappedAnalysis.summary)
+})

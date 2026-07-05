@@ -10,11 +10,17 @@ const GenerateAvatarReflectionSchema = z.object({
   message: "Either entryId or text must be provided"
 })
 
-export async function generateAvatarReflection(input: unknown, deps: {
+export async function generateAvatarReflection(input: unknown, userIdOrDeps: string | {
+  prisma?: typeof prisma,
+  classifyJournalSafety?: typeof classifyJournalSafety,
+  generateAvatarResponse?: typeof generateAvatarResponse
+} = {}, maybeDeps: {
   prisma?: typeof prisma,
   classifyJournalSafety?: typeof classifyJournalSafety,
   generateAvatarResponse?: typeof generateAvatarResponse
 } = {}) {
+  const userId = typeof userIdOrDeps === "string" ? userIdOrDeps : undefined
+  const deps = typeof userIdOrDeps === "string" ? maybeDeps : userIdOrDeps
   const {
     prisma: prismaClient = prisma,
     classifyJournalSafety: classifyFn = classifyJournalSafety,
@@ -26,9 +32,11 @@ export async function generateAvatarReflection(input: unknown, deps: {
 
     let text: string
     if (validatedInput.entryId) {
-      // Fetch text from database
-      const entry = await prismaClient.journalEntry.findUnique({
-        where: { id: validatedInput.entryId }
+      if (!userId) {
+        throw new Error("Authentication required to read saved journal entries")
+      }
+      const entry = await prismaClient.journalEntry.findFirst({
+        where: { id: validatedInput.entryId, userId }
       })
       if (!entry) {
         throw new Error("Journal entry not found")
@@ -38,10 +46,8 @@ export async function generateAvatarReflection(input: unknown, deps: {
       text = validatedInput.text!
     }
 
-    // Run safety classification
     const safety = await classifyFn(text)
 
-    // Check if we should block reflection generation
     if (safety.severity === "high") {
       return {
         pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
@@ -54,7 +60,6 @@ export async function generateAvatarReflection(input: unknown, deps: {
       }
     }
 
-    // Generate avatar response
     const avatar = await generateFn(text, {
       emotionalSignals: { primary: [], secondary: [], intensity: 5 },
       languageMarkers: {
@@ -89,6 +94,9 @@ export async function generateAvatarReflection(input: unknown, deps: {
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input: ${error.message}`)
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
+      throw error
     }
     throw new Error("Failed to generate avatar reflection")
   }

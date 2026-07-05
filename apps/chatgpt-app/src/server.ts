@@ -84,7 +84,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'generate_avatar_reflection',
-        description: 'Generates a short Inner Avatar reflection for a journal entry.',
+        description: 'Generates a short Supraconscious guide reflection for a journal entry.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -119,7 +119,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'save_reflection_session',
-        description: 'Saves the journal entry, analysis, Avatar response, and generated prompt as one reflection session.',
+        description: 'Saves the journal entry, analysis, guide response, and generated prompt as one reflection session.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -148,16 +148,16 @@ app.post('/mcp/tools/:toolName',
 
     switch (toolName) {
       case 'create_journal_entry':
-        result = await createJournalEntry(input)
+        result = await createJournalEntry(input, (req as AuthenticatedRequest).userId)
         break
       case 'analyze_journal_entry':
-        result = await analyzeJournalEntry(input)
+        result = await analyzeJournalEntry(input, (req as AuthenticatedRequest).userId)
         break
       case 'generate_avatar_reflection':
-        result = await generateAvatarReflection(input)
+        result = await generateAvatarReflection(input, (req as AuthenticatedRequest).userId)
         break
       case 'generate_personalized_prompt':
-        result = await generatePersonalizedPrompt(input)
+        result = await generatePersonalizedPrompt(input, (req as AuthenticatedRequest).userId)
         break
       case 'get_recent_patterns':
         result = await getRecentPatterns(input, (req as AuthenticatedRequest).userId)

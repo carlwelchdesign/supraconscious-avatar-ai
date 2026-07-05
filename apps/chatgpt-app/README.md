@@ -1,6 +1,6 @@
 # ChatGPT MCP App
 
-Small Express-based MCP server used by Inner Avatar for journal analysis and Avatar reflections.
+Small Express-based MCP server used by Supraconscious for legacy journal analysis and guide reflections.
 
 Quick commands
 

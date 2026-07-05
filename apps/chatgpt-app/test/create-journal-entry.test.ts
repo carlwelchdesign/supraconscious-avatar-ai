@@ -11,10 +11,6 @@ test('createJournalEntry throws invalid input for missing fields', async () => {
 
 test('createJournalEntry creates entry and returns saved flag', async () => {
   const mockPrisma = {
-    user: {
-      findUnique: async () => null,
-      create: async ({ data }: any) => ({ id: 'demo-user-id', ...data })
-    },
     journalEntry: {
       create: async ({ data }: any) => ({ id: 'entry-1', ...data })
     }
@@ -22,8 +18,16 @@ test('createJournalEntry creates entry and returns saved flag', async () => {
 
   const result = await createJournalEntry(
     { text: 'Testing journal entry', source: 'chatgpt', save: true },
+    'user-123',
     { prisma: mockPrisma as any }
   )
 
   assert.deepStrictEqual(result, { entryId: 'entry-1', saved: true })
+})
+
+test('createJournalEntry requires authentication before writing', async () => {
+  await assert.rejects(
+    async () => createJournalEntry({ text: 'Testing journal entry', source: 'chatgpt', save: true }, undefined, { prisma: {} as any }),
+    { message: /Authentication required/ }
+  )
 })
