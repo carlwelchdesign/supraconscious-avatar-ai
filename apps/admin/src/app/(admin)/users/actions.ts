@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { hashPassword, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { hashEmailForAudit } from "@/lib/audit-metadata"
 
 const ResetUserPasswordSchema = z.object({
   userId: z.string().min(1),
@@ -48,7 +49,7 @@ export async function resetUserPasswordAction(formData: FormData) {
         targetId: targetUser.id,
         reason: parsed.data.reason,
         metadata: {
-          email: targetUser.email,
+          emailHash: hashEmailForAudit(targetUser.email),
           role: targetUser.role,
           revokedExistingSessions: true,
           passwordStored: false,
@@ -67,7 +68,7 @@ export async function resetUserPasswordAction(formData: FormData) {
         targetId: targetUser.id,
         reason: parsed.data.reason,
         metadata: {
-          email: targetUser.email,
+          emailHash: hashEmailForAudit(targetUser.email),
           revokedSessionCount: revokedSessions.count,
         },
       },
@@ -107,7 +108,7 @@ export async function updateEmailVerificationAction(formData: FormData) {
         targetId: targetUser.id,
         reason: parsed.data.reason,
         metadata: {
-          email: targetUser.email,
+          emailHash: hashEmailForAudit(targetUser.email),
           role: targetUser.role,
           previousEmailVerified: targetUser.emailVerified,
           emailVerified: verified,

@@ -6,6 +6,7 @@ import { z } from "zod"
 import { expandPilotCohort } from "@inner-avatar/ai"
 import { requireAdminUser, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { hashEmailForAudit } from "@/lib/audit-metadata"
 
 const CohortSchema = z.object({
   name: z.string().trim().min(2),
@@ -98,7 +99,7 @@ export async function enrollPilotUserAction(formData: FormData) {
       targetType: "PilotEnrollment",
       targetId: enrollment.id,
       reason: parsed.data.reason,
-      metadata: { userEmail: user.email, pilotCohortId: parsed.data.pilotCohortId, mode: "setup_one_off" },
+      metadata: { userEmailHash: hashEmailForAudit(user.email), pilotCohortId: parsed.data.pilotCohortId, mode: "setup_one_off" },
     },
   })
 
