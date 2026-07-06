@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation"
 import { hasRequiredPilotConsents, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
 import { readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
-import { requireAppUser } from "@inner-avatar/auth/session"
+import { getCurrentUser } from "@inner-avatar/auth/session"
 import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { buildOnboardingLoginRedirect } from "@/lib/onboarding-redirect"
 import { acceptPilotOrientationAction } from "./actions"
 
 const CONSENT_ITEMS = [
@@ -19,8 +20,11 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ error?: string; next?: string }>
 }) {
-  const [user, params] = await Promise.all([requireAppUser(), searchParams])
+  const params = await searchParams
   const nextPath = readSafeNextPath(params.next)
+  const user = await getCurrentUser()
+  if (!user) redirect(buildOnboardingLoginRedirect(nextPath))
+
   const [founderCalibrationMode, latestConsents] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.consentEvent.findMany({
