@@ -133,6 +133,14 @@ node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
 
 This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
 
+To mirror CI locally, including the Docker image job, run:
+
+```bash
+node .yarn/releases/yarn-4.cjs verify:ci
+```
+
+`verify:ci` validates Prisma, applies migrations to the configured database, runs the founder calibration verifier, validates the Docker Compose config, and builds production Docker images for web, admin, and ChatGPT/MCP. Use `verify:founder-calibration-code` when Docker is not installed or when you only need the app-level checks.
+
 Before asking Carl and Maria to start live sessions, print the current launch packet:
 
 ```bash
@@ -193,12 +201,15 @@ The repository includes production Dockerfiles for web, admin, and ChatGPT/MCP p
 
 ```bash
 cp .env.example .env
+node .yarn/releases/yarn-4.cjs verify:docker
 node .yarn/releases/yarn-4.cjs docker:build:web
 node .yarn/releases/yarn-4.cjs docker:build:admin
 node .yarn/releases/yarn-4.cjs docker:build:chatgpt
 node .yarn/releases/yarn-4.cjs docker:compose:migrate
 node .yarn/releases/yarn-4.cjs docker:compose:up
 ```
+
+`verify:docker` is the Docker-only CI parity check. It validates Compose and builds all three runtime images without running application tests.
 
 Compose exposes:
 

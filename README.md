@@ -121,11 +121,17 @@ node .yarn/releases/yarn-4.cjs test:chatgpt
 node .yarn/releases/yarn-4.cjs build:web
 node .yarn/releases/yarn-4.cjs build:admin
 node .yarn/releases/yarn-4.cjs build:chatgpt
+
+node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
+node .yarn/releases/yarn-4.cjs verify:ci
 ```
+
+`verify:founder-calibration-code` runs the full application code path used by CI. `verify:ci` adds Docker Compose validation and production image builds for web, admin, and ChatGPT/MCP.
 
 ## Docker
 
 ```bash
+node .yarn/releases/yarn-4.cjs verify:docker
 node .yarn/releases/yarn-4.cjs docker:build:web
 node .yarn/releases/yarn-4.cjs docker:build:admin
 node .yarn/releases/yarn-4.cjs docker:build:chatgpt
