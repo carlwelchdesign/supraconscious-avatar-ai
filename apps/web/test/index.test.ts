@@ -1,3 +1,4 @@
+import "./account-export-download.test"
 import "./app-date.test"
 import "./journal-access-policy.test"
 import "./billing-webhook-policy.test"

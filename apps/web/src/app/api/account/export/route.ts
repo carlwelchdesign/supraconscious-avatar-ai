@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { buildAccountExportPayload, emitPilotEvent } from "@inner-avatar/ai"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { buildAccountExportHeaders } from "@/lib/account-export-download"
 
 export async function GET() {
   const user = await requireAppUser()
@@ -119,8 +120,10 @@ export async function GET() {
     properties: { entryCount: journalEntries.length, councilSessionCount: councilSessions.length },
   })
 
+  const exportedAt = new Date().toISOString()
+
   return NextResponse.json(buildAccountExportPayload({
-    exportedAt: new Date().toISOString(),
+    exportedAt,
     user: exportProfile,
     journalEntries,
     patternMemories,
@@ -143,5 +146,7 @@ export async function GET() {
       ...pilotEvents,
     ],
     subscriptions,
-  }))
+  }), {
+    headers: buildAccountExportHeaders(user.email, exportedAt),
+  })
 }
