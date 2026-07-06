@@ -5,6 +5,7 @@ import { isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { formatWebLongDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
@@ -83,13 +84,7 @@ export default async function JournalEntryPage({
 
   if (!entry) notFound()
 
-  const date = new Date(entry.createdAt)
-  const dateLabel = date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  const dateLabel = formatWebLongDate(entry.createdAt)
   const r = entry.avatarResponse
   const speakText = r ? buildSpeakText(r) : ""
   const voicePrefs = {

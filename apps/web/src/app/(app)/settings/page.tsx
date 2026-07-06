@@ -1,6 +1,8 @@
 import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
 import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
+import { formatWebDateTime } from "@/lib/date-format"
+import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 import {
   changePasswordAction,
   clearPatternMemoryAction,
@@ -9,7 +11,6 @@ import {
   revokeSessionsAction,
   updateReflectionPreferences,
 } from "./actions"
-import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 
 function SettingRow({
   label,
@@ -481,10 +482,10 @@ export default async function SettingsPage({
                         {isCurrent ? " · current" : ""}
                       </p>
                       <p className="mt-0.5 text-[12px] font-light text-[var(--plum-soft)]">
-                        Last seen {formatSettingsDate(session.lastSeenAt)} · Expires {formatSettingsDate(session.expiresAt)}
+                        Last seen {formatWebDateTime(session.lastSeenAt)} · Expires {formatWebDateTime(session.expiresAt)}
                       </p>
                       <p className="mt-0.5 text-[11px] font-light text-[var(--plum-soft)]/70">
-                        Created {formatSettingsDate(session.createdAt)}
+                        Created {formatWebDateTime(session.createdAt)}
                       </p>
                     </div>
                     <form action={revokeSessionAction}>
@@ -571,11 +572,4 @@ export default async function SettingsPage({
       </div>
     </div>
   )
-}
-
-function formatSettingsDate(date: Date) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date)
 }

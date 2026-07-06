@@ -1,4 +1,5 @@
 import { prisma } from "@inner-avatar/db"
+import { formatWebShortMonthDay } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { submitPatternFeedbackAction } from "./actions"
 
@@ -122,7 +123,7 @@ export default async function PatternsPage({
                 <p className="text-[13px] font-light text-[var(--plum-soft)]/70">
                   Seen {pattern.evidenceCount}{" "}
                   {pattern.evidenceCount === 1 ? "time" : "times"} across your entries · last seen{" "}
-                  {pattern.lastSeenAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {formatWebShortMonthDay(pattern.lastSeenAt)}
                 </p>
                 {Array.isArray(pattern.examples) && pattern.examples.length > 0 && (
                   <div

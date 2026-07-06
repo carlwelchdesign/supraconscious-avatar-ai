@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen } from "lucide-react"
 import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
+import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
@@ -322,8 +323,7 @@ export default async function DashboardPage({
 
           <div className="space-y-3">
             {recentEntries.map((entry) => {
-              const date = new Date(entry.createdAt)
-              const label = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+              const label = formatWebMonthDay(entry.createdAt)
               const excerpt = entry.rawText.length > 140
                 ? entry.rawText.slice(0, 140).trimEnd() + "…"
                 : entry.rawText
@@ -359,10 +359,10 @@ export default async function DashboardPage({
                   {/* Date column */}
                   <div className="flex-shrink-0 w-14 pt-0.5 text-center">
                     <p className="font-display text-[28px] font-light leading-none text-[var(--clay)]">
-                      {date.getDate()}
+                      {formatWebDayOfMonth(entry.createdAt)}
                     </p>
                     <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--plum-soft)] mt-0.5">
-                      {date.toLocaleDateString("en-US", { month: "short" })}
+                      {formatWebShortMonth(entry.createdAt)}
                     </p>
                   </div>
 
