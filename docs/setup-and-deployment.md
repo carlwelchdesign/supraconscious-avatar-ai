@@ -50,7 +50,7 @@ STRIPE_SECRET_KEY="sk_test_..."
 
 `RESEND_API_KEY` and `AUTH_EMAIL_FROM` enable email-delivered account verification and password reset links. Leave them blank for local development if you want to rely on manual super-admin verification and temporary password resets.
 
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` enable Cloudflare Turnstile on registration, login, email verification, and password reset forms. Leave them blank for local development.
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` enable Cloudflare Turnstile on registration, login, email verification, and password reset forms. Leave them both blank for local development. Do not configure only the public site key: the server treats that as a misconfigured challenge and rejects auth submissions until the matching secret is set.
 
 Production environment checklist:
 

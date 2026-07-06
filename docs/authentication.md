@@ -79,7 +79,7 @@ Auth rate-limit counters are stored in `AuthRateLimitBucket` rows keyed by scope
 
 The public and admin auth forms also include a hidden honeypot field. Submissions that fill that field are rejected and counted as failed auth attempts.
 
-When `TURNSTILE_SECRET_KEY` is configured, auth actions require a valid Cloudflare Turnstile token from the form. Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the matching web/admin environment so the widget renders. Leave both values blank for local development.
+When `TURNSTILE_SECRET_KEY` is configured, auth actions require a valid Cloudflare Turnstile token from the form. Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the matching web/admin environment so the widget renders. Leave both values blank for local development. If the public site key is configured without `TURNSTILE_SECRET_KEY`, auth submissions fail closed until the server secret is added.
 
 ## Sessions
 

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { headers } from "next/headers"
+import { readBotChallengeMode } from "./bot-challenge-config"
 
 export type BotChallengeResult = {
   ok: boolean
@@ -8,12 +9,16 @@ export type BotChallengeResult = {
 }
 
 export function isBotChallengeConfigured() {
-  return Boolean(process.env.TURNSTILE_SECRET_KEY)
+  return readBotChallengeMode() === "enforced"
 }
 
 export async function verifyBotChallenge(token: string | undefined | null): Promise<BotChallengeResult> {
+  const mode = readBotChallengeMode()
+  if (mode === "disabled") return { ok: true }
+  if (mode === "misconfigured") return { ok: false, reason: "turnstile_secret_missing" }
+
   const secret = process.env.TURNSTILE_SECRET_KEY
-  if (!secret) return { ok: true }
+  if (!secret) return { ok: false, reason: "turnstile_secret_missing" }
 
   const trimmedToken = token?.trim()
   if (!trimmedToken) return { ok: false, reason: "missing_turnstile_token" }
