@@ -21,18 +21,18 @@ The product is reflective journaling. It is not Maria, not therapy, not diagnosi
 
 ```bash
 node .yarn/releases/yarn-4.cjs install --immutable
-yarn db:generate
-yarn dev:web
-yarn dev:admin
-yarn dev:founder-calibration
-yarn typecheck
-yarn lint
-yarn verify:founder-calibration-code
-yarn build:web
-yarn build:admin
-yarn docker:build:web
-yarn docker:build:admin
-yarn docker:build:chatgpt
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs dev:web
+node .yarn/releases/yarn-4.cjs dev:admin
+node .yarn/releases/yarn-4.cjs dev:founder-calibration
+node .yarn/releases/yarn-4.cjs typecheck
+node .yarn/releases/yarn-4.cjs lint
+node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
+node .yarn/releases/yarn-4.cjs build:web
+node .yarn/releases/yarn-4.cjs build:admin
+node .yarn/releases/yarn-4.cjs docker:build:web
+node .yarn/releases/yarn-4.cjs docker:build:admin
+node .yarn/releases/yarn-4.cjs docker:build:chatgpt
 ```
 
 ## Deployment
@@ -58,9 +58,9 @@ The repo-side launch path is founder calibration with Carl and Maria. The code a
 Use:
 
 ```bash
-yarn verify:founder-calibration-code
-yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
-yarn check:founder-calibration-launch
+node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
+node .yarn/releases/yarn-4.cjs packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+node .yarn/releases/yarn-4.cjs check:founder-calibration-launch
 ```
 
 In admin, use `/calibration/setup` for the copyable launch packet, `/calibration/live` for review, and `/health` for runtime configuration and launch-gate status.

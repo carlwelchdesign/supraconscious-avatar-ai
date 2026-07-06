@@ -83,9 +83,9 @@ For local/dev scripts, the root `.env.example` includes additional helper variab
 
 ```bash
 node .yarn/releases/yarn-4.cjs install --immutable
-yarn db:generate
-yarn dev:web
-yarn dev:admin
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs dev:web
+node .yarn/releases/yarn-4.cjs dev:admin
 ```
 
 Do not use ambient Yarn 1 for installation. This workspace uses `workspace:*` dependencies and the repository-pinned Yarn 4 launcher avoids registry lookup failures for internal packages.
@@ -101,15 +101,15 @@ If the admin app runs somewhere other than `http://localhost:3001`, update `NEXT
 For local schema sync against disposable development data:
 
 ```bash
-yarn db:generate
-yarn db:push
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs db:push
 ```
 
 For CI, staging, production, or any shared database, apply checked-in migrations instead:
 
 ```bash
-yarn db:generate
-yarn db:migrate:deploy
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs db:migrate:deploy
 ```
 
 Use destructive Prisma flags only when intentionally dropping or replacing data.
@@ -119,16 +119,16 @@ Use destructive Prisma flags only when intentionally dropping or replacing data.
 Run:
 
 ```bash
-yarn lint
-yarn typecheck
-yarn build:web
-yarn build:admin
+node .yarn/releases/yarn-4.cjs lint
+node .yarn/releases/yarn-4.cjs typecheck
+node .yarn/releases/yarn-4.cjs build:web
+node .yarn/releases/yarn-4.cjs build:admin
 ```
 
 For the founder calibration code path, run the full verifier:
 
 ```bash
-yarn verify:founder-calibration-code
+node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
 ```
 
 This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
@@ -136,7 +136,7 @@ This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG a
 Before asking Carl and Maria to start live sessions, print the current launch packet:
 
 ```bash
-yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+node .yarn/releases/yarn-4.cjs packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 ```
 
 Founder reports are operational visibility. A feedback type is enough to keep Carl/Maria calibration moving; notes and ready/golden reviews are useful only when they capture a specific tuning detail or strong example.
@@ -193,11 +193,11 @@ The repository includes production Dockerfiles for web, admin, and ChatGPT/MCP p
 
 ```bash
 cp .env.example .env
-yarn docker:build:web
-yarn docker:build:admin
-yarn docker:build:chatgpt
-yarn docker:compose:migrate
-yarn docker:compose:up
+node .yarn/releases/yarn-4.cjs docker:build:web
+node .yarn/releases/yarn-4.cjs docker:build:admin
+node .yarn/releases/yarn-4.cjs docker:build:chatgpt
+node .yarn/releases/yarn-4.cjs docker:compose:migrate
+node .yarn/releases/yarn-4.cjs docker:compose:up
 ```
 
 Compose exposes:
@@ -231,8 +231,8 @@ The repository intentionally does not use an install lifecycle hook to invoke Ya
 Set production database schema before using the apps:
 
 ```bash
-yarn db:generate
-yarn db:migrate:deploy
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs db:migrate:deploy
 ```
 
 Configure the Stripe webhook endpoint for the web deployment:

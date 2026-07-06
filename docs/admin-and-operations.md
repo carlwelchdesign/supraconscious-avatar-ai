@@ -98,10 +98,10 @@ Do not paste raw journal text into prompt update reasons or related-session meta
 Before deploy:
 
 ```bash
-yarn lint
-yarn typecheck
-yarn build:web
-yarn build:admin
+node .yarn/releases/yarn-4.cjs lint
+node .yarn/releases/yarn-4.cjs typecheck
+node .yarn/releases/yarn-4.cjs build:web
+node .yarn/releases/yarn-4.cjs build:admin
 ```
 
 After deploy:
@@ -119,8 +119,8 @@ After deploy:
 If login throws database errors about missing columns, regenerate the Prisma client and apply checked-in migrations to the active database:
 
 ```bash
-yarn db:generate
-yarn db:migrate:deploy
+node .yarn/releases/yarn-4.cjs db:generate
+node .yarn/releases/yarn-4.cjs db:migrate:deploy
 ```
 
-Use `yarn db:push` only for local throwaway databases when you intentionally want Prisma to sync the schema without creating or applying migrations. If production uses a different database than local development, run migrations against the production `DATABASE_URL` as a controlled release step.
+Use `node .yarn/releases/yarn-4.cjs db:push` only for local throwaway databases when you intentionally want Prisma to sync the schema without creating or applying migrations. If production uses a different database than local development, run migrations against the production `DATABASE_URL` as a controlled release step.

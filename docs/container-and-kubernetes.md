@@ -17,23 +17,23 @@ The Docker build and Compose scripts run this preflight first. If Docker Desktop
 Build individual images:
 
 ```bash
-yarn docker:build:web
-yarn docker:build:admin
-yarn docker:build:chatgpt
+node .yarn/releases/yarn-4.cjs docker:build:web
+node .yarn/releases/yarn-4.cjs docker:build:admin
+node .yarn/releases/yarn-4.cjs docker:build:chatgpt
 ```
 
 Prepare the local Compose database schema explicitly:
 
 ```bash
-yarn docker:compose:migrate
+node .yarn/releases/yarn-4.cjs docker:compose:migrate
 ```
 
-For local-only schema experiments that intentionally use Prisma `db push`, run `yarn docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
+For local-only schema experiments that intentionally use Prisma `db push`, run `node .yarn/releases/yarn-4.cjs docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
 
 Validate the Compose file without expanding local secrets:
 
 ```bash
-yarn docker:compose:config
+node .yarn/releases/yarn-4.cjs docker:compose:config
 ```
 
 Do not paste normal `docker compose config` output into tickets or logs when `.env` contains real API keys. The safe script above keeps variable placeholders visible instead of printing secret values.
@@ -41,13 +41,13 @@ Do not paste normal `docker compose config` output into tickets or logs when `.e
 Run the local container stack:
 
 ```bash
-yarn docker:compose:up
+node .yarn/releases/yarn-4.cjs docker:compose:up
 ```
 
 Stop the stack:
 
 ```bash
-yarn docker:compose:down
+node .yarn/releases/yarn-4.cjs docker:compose:down
 ```
 
 The Compose stack exposes:

@@ -20,13 +20,13 @@ Quick commands
 - Dev (live):
 
 ```bash
-yarn --cwd apps/chatgpt-app dev
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app dev
 ```
 
 - Build (TypeScript):
 
 ```bash
-yarn --cwd apps/chatgpt-app build
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
 ```
 
 - Run compiled app:
@@ -38,7 +38,7 @@ node apps/chatgpt-app/dist/server.js
 - Tests:
 
 ```bash
-yarn --cwd apps/chatgpt-app test
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 ```
 
 Widget
