@@ -19,11 +19,18 @@ This documentation describes the current monorepo. Update it whenever auth, data
 
 Pull requests run CI for Prisma validation, typecheck, lint, auth/web/AI/RAG/pilot/founder checks, web/admin/ChatGPT builds, and Docker image builds. Vercel remains the current production deployment path.
 
-## Current Product
+## Current System
 
-Supraconscious is a private guided journaling SaaS centered on Maria-grounded Inner Council reflection. A registered user writes or dictates an entry, the backend runs a safety check, analyzes the entry into structured data, generates a bounded council reflection with a guide synthesis, creates an embodiment prompt, updates pattern memory when consent allows it, and may advance the user's reflection level or guide stage.
+Supraconscious Avatar AI is a multi-app AI journaling platform with a public web app, a separate admin/CMS console, a ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, and Docker-ready deployment.
 
-The product positioning is reflective journaling, not therapy, diagnosis, or treatment.
+Core runtime capabilities include:
+
+- bounded Inner Council generation through shared AI services
+- safety classification before reflection
+- reviewed source-document, section, and chunk records for RAG
+- vector-DB-ready provenance contracts for future embeddings/search work
+- MCP-compatible tool execution through `apps/chatgpt-app`
+- admin/CMS workflows for source review, prompt templates, feature flags, guide-stage metadata, RAG readiness, safety review, calibration, users, and subscriptions
 
 ## Runtime Defaults
 

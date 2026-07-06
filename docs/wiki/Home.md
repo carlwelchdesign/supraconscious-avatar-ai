@@ -4,30 +4,34 @@ This folder mirrors the shape of a GitHub Wiki. It can be copied into the reposi
 
 ## Pages
 
+- [Repository About](../../ABOUT.md)
+- [Technical README](../../README.md)
 - [Architecture](../architecture.md)
 - [Local Setup and Deployment](../setup-and-deployment.md)
 - [Authentication](../authentication.md)
 - [AI Journaling Pipeline](../ai-pipeline.md)
 - [Voice Features](../voice.md)
 - [Admin and Operations](../admin-and-operations.md)
+- [ChatGPT MCP App](../chatgpt-mcp-app.md)
+- [Container and Kubernetes Readiness](../container-and-kubernetes.md)
 
-## Product Summary
+## System Summary
 
-Supraconscious is a guided journaling app centered on Inner Council reflection. Users create an account, write or dictate journal entries, receive structured reflective responses, and build pattern memory over time when consent allows it. The product must stay positioned as reflective journaling, not therapy or diagnosis.
+Supraconscious Avatar AI is a production-oriented AI journaling monorepo. It combines a Next.js web app, a separate internal admin/CMS console, an Express ChatGPT/MCP server, shared AI orchestration packages, PostgreSQL persistence, policy-first RAG, prompt governance, and Docker/Kubernetes-ready service boundaries.
 
-## Core Flow
+## Core Runtime Flow
 
 1. User registers or logs in.
 2. User writes or dictates a journal entry.
 3. Safety classifier runs first.
-4. Safe entries go through structured analysis.
-5. Guide response and symbolic prompt are generated.
-6. Pattern memory and progression are updated.
-7. User sees a short reflection, a grounded integration step, and a prompt.
+4. Structured analysis and optional retrieval context are generated.
+5. Bounded council voices and the integrator response are generated.
+6. Source provenance, generation traces, feedback, and review metadata are persisted.
+7. Admin reviews source readiness, prompt versions, quality labels, calibration sessions, and operational health.
 
 ## Maintainer Notes
 
 - Keep `packages/db/prisma/schema.prisma` and docs in sync.
 - Keep auth docs updated when session, password, or admin logic changes.
-- Keep AI docs updated when model names, schemas, safety behavior, or prompt rules change.
+- Keep AI docs updated when model names, schemas, safety behavior, RAG policy, MCP tools, or prompt rules change.
 - Run `node .yarn/releases/yarn-4.cjs build:web` and `node .yarn/releases/yarn-4.cjs build:admin` before deploying.
