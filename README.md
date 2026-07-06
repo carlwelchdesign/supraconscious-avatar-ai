@@ -4,6 +4,16 @@ Supraconscious Avatar AI is a multi-app AI journaling platform for guided Inner 
 
 The system combines a Next.js user app, a separate internal admin/CMS console, an Express-based ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, and Docker-ready deployment.
 
+## Repository Details
+
+**GitHub About / description**
+
+Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis to transform journaling into a structured reflection system, surfacing patterns, contradictions, and behavioral insights over time.
+
+**Suggested topics**
+
+`ai` `journaling` `reflection` `saas` `nextjs` `react` `typescript` `postgresql` `prisma` `openai` `rag` `vector-database` `mcp` `cms` `admin-dashboard` `docker` `kubernetes-ready`
+
 ## Technical Highlights
 
 - **Agentic Inner Council flow**: journal input is classified, analyzed, routed through bounded council roles, synthesized into one integrator question, and saved with trace metadata.

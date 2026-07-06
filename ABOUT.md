@@ -4,6 +4,16 @@ Supraconscious Avatar AI is a full-stack AI reflection platform built around gui
 
 The project is organized as a production-oriented monorepo with a public web app, a separate admin/CMS console, a ChatGPT/MCP integration server, shared AI orchestration packages, and PostgreSQL-backed persistence.
 
+## Repository Details
+
+**GitHub About / description**
+
+Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis to transform journaling into a structured reflection system, surfacing patterns, contradictions, and behavioral insights over time.
+
+**Suggested topics**
+
+`ai` `journaling` `reflection` `saas` `nextjs` `react` `typescript` `postgresql` `prisma` `openai` `rag` `vector-database` `mcp` `cms` `admin-dashboard` `docker` `kubernetes-ready`
+
 ## What It Does
 
 - Captures journal entries through a private web experience.
