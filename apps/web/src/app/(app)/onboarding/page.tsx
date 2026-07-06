@@ -4,16 +4,9 @@ import { readSafeNextPath } from "@inner-avatar/auth/safe-redirect"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { ONBOARDING_CONSENT_ITEMS, readOnboardingConsentRequirementLabel } from "@/lib/onboarding-consent-copy"
 import { buildOnboardingLoginRedirect } from "@/lib/onboarding-redirect"
 import { acceptPilotOrientationAction } from "./actions"
-
-const CONSENT_ITEMS = [
-  ["privacy_terms", "I understand what is stored and processed.", true],
-  ["ai_processing", "I consent to AI processing for reflective responses.", true],
-  ["pattern_memory", "Remember recurring signals unless I turn this on or off later.", false],
-  ["pilot_participation", "I understand this is an early guided reflection experience.", true],
-  ["safety_limits", "I understand this is not therapy, diagnosis, crisis care, or emergency monitoring.", true],
-] as const
 
 export default async function OnboardingPage({
   searchParams,
@@ -71,13 +64,13 @@ export default async function OnboardingPage({
       <form action={acceptPilotOrientationAction} className="rounded-3xl border p-6" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
         {nextPath && <input type="hidden" name="next" value={nextPath} />}
         <div className="space-y-4">
-          {CONSENT_ITEMS.map(([name, label, required]) => (
+          {ONBOARDING_CONSENT_ITEMS.map(([name, label, required]) => (
             <label key={name} className="flex items-start gap-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
               <input name={name} type="checkbox" className="mt-1 h-4 w-4 accent-[var(--clay)]" />
               <span>
                 {label}{" "}
                 <span className="text-[12px] text-[var(--plum-soft)]/60">
-                  {required ? "Required" : "Optional"}
+                  {readOnboardingConsentRequirementLabel(required)}
                 </span>
               </span>
             </label>
