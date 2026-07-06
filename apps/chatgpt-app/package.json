@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && node scripts/copy-widget-assets.mjs",
+    "build": "../../node_modules/.bin/tsc && node scripts/copy-widget-assets.mjs",
     "start": "node --import tsx dist/server.js",
     "test": "tsx test/index.test.ts",
     "lint": "../../node_modules/.bin/eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "../../node_modules/.bin/tsc --noEmit"
   },
   "dependencies": {
     "@inner-avatar/ai": "workspace:*",

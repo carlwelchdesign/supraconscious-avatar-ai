@@ -8,9 +8,9 @@
     "./pilot-consent": "./src/pilot-consent.ts"
   },
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "../../node_modules/.bin/tsc --noEmit",
     "lint": "../../node_modules/.bin/eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "../../node_modules/.bin/tsc --noEmit"
   },
   "devDependencies": {
     "@inner-avatar/config": "workspace:*"

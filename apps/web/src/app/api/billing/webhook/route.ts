@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import {
   getStripe,
   markStripeSubscriptionDeleted,
@@ -6,6 +6,7 @@ import {
   syncStripeSubscription,
 } from "@inner-avatar/billing"
 import { evaluateStripeWebhookReadiness } from "@/lib/billing-webhook-policy"
+import { privateJson } from "@/lib/private-json"
 
 export const runtime = "nodejs"
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   const readiness = evaluateStripeWebhookReadiness({ signature })
 
   if (!readiness.ready) {
-    return NextResponse.json({ error: readiness.error }, { status: readiness.status })
+    return privateJson({ error: readiness.error }, { status: readiness.status })
   }
 
   let event
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   try {
     event = getStripe().webhooks.constructEvent(await req.text(), readiness.signature, readiness.webhookSecret)
   } catch {
-    return NextResponse.json({ error: "Invalid Stripe webhook signature." }, { status: 400 })
+    return privateJson({ error: "Invalid Stripe webhook signature." }, { status: 400 })
   }
 
   switch (event.type) {
@@ -40,5 +41,5 @@ export async function POST(req: NextRequest) {
       break
   }
 
-  return NextResponse.json({ received: true })
+  return privateJson({ received: true })
 }

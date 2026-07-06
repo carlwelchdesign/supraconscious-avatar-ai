@@ -8,7 +8,7 @@
     "start": "next start",
     "test": "tsx test/index.test.ts",
     "lint": "../../node_modules/.bin/eslint .",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && ../../node_modules/.bin/tsc --noEmit"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
