@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { prisma } from "@inner-avatar/db"
 import { runPilotLaunchReadiness, type PilotLaunchReadinessReport } from "./pilot-launch-readiness.js"
 import { runPilotLearningReport, type PilotLearningReport } from "./pilot-learning-report.js"
@@ -245,10 +246,13 @@ export async function expandPilotCohort(input: {
       metadata: {
         batchId,
         cohortName: cohort.name,
-        emails: uniqueEmails,
+        emailHashes: uniqueEmails.map(hashEmailForAudit),
         batchSize: uniqueEmails.length,
         readiness: summarizeReadiness(readiness),
-        enrollments,
+        enrollments: enrollments.map((enrollment) => ({
+          id: enrollment.id,
+          emailHash: hashEmailForAudit(enrollment.email),
+        })),
       },
     },
   })
@@ -264,7 +268,7 @@ export async function expandPilotCohort(input: {
         metadata: {
           batchId,
           pilotCohortId: cohort.id,
-          userEmail: enrollment.email,
+          userEmailHash: hashEmailForAudit(enrollment.email),
         },
       },
     })
@@ -276,6 +280,10 @@ export async function expandPilotCohort(input: {
     enrolled: enrollments,
     readiness,
   }
+}
+
+export function hashEmailForAudit(email: string) {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex")
 }
 
 function summarizeReadiness(readiness: PilotExpansionReadinessReport) {

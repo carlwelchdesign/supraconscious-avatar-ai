@@ -15,6 +15,7 @@ import {
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
+  hashEmailForAudit,
   buildCouncilPromptVersion,
   classifySourcePath,
   DEFAULT_COUNCIL_PROMPT_KEY,
@@ -744,6 +745,14 @@ test("pilot expansion readiness passes with conservative gates satisfied", () =>
   assert.equal(report.passed, true)
   assert.deepEqual(report.recommendedBatchSize, { min: 3, max: 5 })
   assert.equal(report.metrics.reviewCoverageRate, 80)
+})
+
+test("pilot expansion audit email hash is stable and non-identifying", () => {
+  const hash = hashEmailForAudit(" Pilot+Founder@Example.com ")
+
+  assert.equal(hash, hashEmailForAudit("pilot+founder@example.com"))
+  assert.equal(hash.includes("pilot"), false)
+  assert.equal(hash.includes("example"), false)
 })
 
 test("pilot expansion readiness does not block review coverage when no source sessions exist", () => {
