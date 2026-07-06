@@ -1,6 +1,6 @@
 import { prisma } from "@inner-avatar/db"
 import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
-import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import { readFounderCalibrationScenarioFromTraceOrText, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
 import { isFounderCalibrationFeedbackNoteUseful } from "./founder-feedback-notes.js"
 
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
@@ -115,6 +115,7 @@ export type FounderCalibrationSessionSnapshot = {
   userEmail: string
   userName: string | null
   sourceMode: string
+  journalText?: string | null
   feedback: Array<{ feedbackType: string; note: string | null }>
   qualityReviews: Array<{ label: string; severity: string; reason: string | null; metadata: unknown }>
   generationTraces: Array<{
@@ -143,6 +144,7 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
       sourceMode: true,
       userId: true,
       user: { select: { email: true, name: true } },
+      journalEntry: { select: { rawText: true } },
       feedback: { select: { feedbackType: true, note: true } },
       qualityReviews: {
         orderBy: { reviewedAt: "desc" },
@@ -180,6 +182,7 @@ export async function runFounderCalibrationReport(now = new Date()): Promise<Fou
       userEmail: session.user.email,
       userName: session.user.name,
       sourceMode: session.sourceMode,
+      journalText: session.journalEntry?.rawText ?? null,
       feedback: session.feedback,
       qualityReviews: session.qualityReviews,
       generationTraces: session.generationTraces.map((trace) => ({
@@ -394,12 +397,7 @@ function getScenarioStats(
 }
 
 function readSessionScenario(session: FounderCalibrationSessionSnapshot) {
-  const councilTrace = session.generationTraces.find((trace) => trace.traceType === "council")
-  const output = councilTrace?.outputJson
-  if (!output || typeof output !== "object" || !("calibration" in output)) return "freeform"
-  const calibration = (output as { calibration?: unknown }).calibration
-  if (!calibration || typeof calibration !== "object" || !("scenario" in calibration)) return "freeform"
-  return readFounderCalibrationScenario((calibration as { scenario?: unknown }).scenario)
+  return readFounderCalibrationScenarioFromTraceOrText(session)
 }
 
 function addTheme(themes: Map<string, Set<string>>, theme: string, sessionId: string) {
