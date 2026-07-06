@@ -12,6 +12,7 @@ import {
   buildFounderCalibrationLaunchPacket,
   buildFounderCalibrationJournalReadiness,
   buildJournalEntryCreateArgs,
+  buildSourceProvenanceMessage,
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -189,6 +190,13 @@ test("source rights helper rejects unusable grants", () => {
       revokedAt: null,
     }],
   }, "paraphrase_generation", { now }), false)
+})
+
+test("source provenance copy distinguishes disabled retrieval from no eligible source", () => {
+  assert.match(buildSourceProvenanceMessage("rag"), /used approved source material/)
+  assert.match(buildSourceProvenanceMessage("no_eligible_source"), /No approved source material matched/)
+  assert.match(buildSourceProvenanceMessage("none"), /No source retrieval was used/)
+  assert.match(buildSourceProvenanceMessage("grounding"), /grounding and safety guidance/)
 })
 
 test("inner council feature flags seed with conservative RAG defaults", () => {

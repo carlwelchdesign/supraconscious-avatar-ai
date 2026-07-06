@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { isFounderCalibrationUser } from "@inner-avatar/ai"
+import { buildSourceProvenanceMessage, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -114,9 +114,7 @@ export default async function JournalEntryPage({
       }
     })
   const sourceMode = entry.councilSession?.sourceMode ?? "none"
-  const sourceMessage = sourceMode === "rag"
-    ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
-    : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules."
+  const sourceMessage = buildSourceProvenanceMessage(sourceMode)
   const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
   const hasCalibrationFeedback = (entry.councilSession?.feedback.length ?? 0) > 0
   const calibrationStatus = latestCalibrationReview

@@ -5,6 +5,7 @@ import { generateAvatarResponse } from "./generate-avatar-response.js"
 import { generateCouncilRun } from "./generate-council-run.js"
 import { generateSymbolicPrompt } from "./generate-symbolic-prompt.js"
 import { retrieveCouncilContext } from "./source-context.js"
+import { buildSourceProvenanceMessage, SOURCE_PROVENANCE_PILOT_SCOPE } from "./source-provenance.js"
 import { shouldWritePatternMemory, updatePatternMemory } from "./pattern-memory.js"
 import { checkAndAdvanceProgression } from "./progression.js"
 import { classifyJournalSafety } from "./safety-classifier.js"
@@ -412,9 +413,7 @@ async function runCouncilMode(
     pilotValidation: validation,
     sourceProvenance: {
       sourceMode,
-      message: sourceMode === "rag"
-        ? "This reflection used approved source material as background. The response is paraphrased unless a quoted excerpt is shown."
-        : "No approved source material matched this entry. Your reflection used only your journal text and the app's guidance rules.",
+      message: buildSourceProvenanceMessage(sourceMode),
       sources: sourceContext.map((chunk) => ({
         id: chunk.id,
         title: chunk.title,
@@ -425,7 +424,7 @@ async function runCouncilMode(
         allowedUse: chunk.allowedUse,
         displayExcerpt: chunk.displayExcerpt,
       })),
-      pilotScope: "This guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority.",
+      pilotScope: SOURCE_PROVENANCE_PILOT_SCOPE,
     },
   }
 }
