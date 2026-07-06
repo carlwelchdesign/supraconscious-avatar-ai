@@ -6,6 +6,14 @@ Vercel remains the current production deployment. This Docker setup gives the pr
 
 Start by copying `.env.example` to `.env` and replacing the placeholder secrets/API keys you intend to test. The Compose defaults can boot Postgres locally, but real AI, email, billing, founder handoff, and ChatGPT/MCP flows need the matching runtime values set.
 
+Check Docker Desktop / daemon readiness:
+
+```bash
+yarn docker:check
+```
+
+The Docker build and Compose scripts run this preflight first. If Docker Desktop is closed, stuck, or the socket is not responding, the script fails quickly with a daemon-readiness message instead of leaving the build command hanging.
+
 Build individual images:
 
 ```bash
