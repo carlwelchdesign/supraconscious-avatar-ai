@@ -1,5 +1,6 @@
 import "./founder-calibration-review-priority.test"
 import "./founder-calibration-source-traces.test"
+import "./founder-web-links.test"
 import "./health-response.test"
 import "./runtime-readiness.test"
 import "./safety-audit.test"

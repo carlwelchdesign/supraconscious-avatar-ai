@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { readFounderCalibrationReviewPriority } from "@/lib/founder-calibration-review-priority"
 import { summarizeFounderCalibrationSourceTraces } from "@/lib/founder-calibration-source-traces"
+import { resolveFounderWebHref } from "@/lib/founder-web-links"
 import { reviewCalibrationSessionAction } from "../actions"
 
 const QUICK_LABELS = [
@@ -42,6 +43,7 @@ export default async function LiveCalibrationPage({
     take: 20,
     select: {
       id: true,
+      journalEntryId: true,
       sourceMode: true,
       createdAt: true,
       observerSignal: true,
@@ -193,6 +195,12 @@ export default async function LiveCalibrationPage({
                     <span className="rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground">
                       {reviewPriority.label}
                     </span>
+                    <Link
+                      href={resolveFounderWebHref(`/journal/${session.journalEntryId}`, webAppBaseUrl, session.user.email)}
+                      className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                    >
+                      Saved session
+                    </Link>
                     <Link href={`/council?sessionId=${session.id}`} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Workbench</Link>
                     {nextAction.href ? (
                       <Link href={nextAction.href} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">{nextAction.label}</Link>
@@ -320,31 +328,12 @@ function chooseNextAction(label: string | null, feedbackTypes: string[]) {
   return { label: "Review", href: null }
 }
 
-const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
-const PROTECTED_FOUNDER_WEB_PATHS = new Set(["/onboarding", "/journal"])
-
 function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
 function resolveFounderHref(href: string, webAppBaseUrl: string, email?: string | null) {
-  if (href.startsWith("http://") || href.startsWith("https://")) return href
-  if (isFounderWebPath(href)) {
-    if (email && isProtectedFounderWebPath(href)) {
-      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
-    }
-    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
-    return `${webAppBaseUrl}${href}${suffix}`
-  }
-  return href
-}
-
-function isFounderWebPath(href: string) {
-  return FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
-}
-
-function isProtectedFounderWebPath(href: string) {
-  return PROTECTED_FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
+  return resolveFounderWebHref(href, webAppBaseUrl, email)
 }
 
 function InlineSafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl: string; email?: string | null }) {
