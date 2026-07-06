@@ -370,7 +370,7 @@ export default async function PilotReadinessPage({
                     feedback: {item.feedbackTypes.length ? item.feedbackTypes.join(", ") : "none"} · review: {item.latestReviewLabel ?? "unreviewed"}{item.latestReviewSeverity === "pilot_blocker" ? " · pilot blocker" : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    raw journal text hidden: {item.rawJournalTextHidden ? "yes" : "no"}{item.latestReviewReason ? ` · reason: ${item.latestReviewReason}` : ""}
+                    raw journal text hidden: {item.rawJournalTextHidden ? "yes" : "no"}{item.hasLatestReviewReason ? " · review reason saved" : ""}
                   </p>
                 </div>
                 <Link href={item.reviewHref} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">

@@ -28,7 +28,7 @@ export type PilotLearningQueueItem = {
   feedbackTypes: string[]
   latestReviewLabel: string | null
   latestReviewSeverity: string | null
-  latestReviewReason: string | null
+  hasLatestReviewReason: boolean
   disposition: "needs_review" | "reviewed" | "blocked" | "cleared"
   selectedSourceTitles: string[]
   selectedChunkIds: string[]
@@ -246,7 +246,7 @@ function toLearningQueueItem(session: PilotLearningSessionSnapshot): PilotLearni
     feedbackTypes: Array.from(new Set(session.feedbackTypes)),
     latestReviewLabel: latestReview?.label ?? null,
     latestReviewSeverity: latestReview?.severity ?? null,
-    latestReviewReason: latestReview?.reason ?? null,
+    hasLatestReviewReason: Boolean(latestReview?.reason?.trim()),
     disposition: feedbackDisposition,
     selectedSourceTitles: Array.from(new Set(selectedTraces.map((trace) => readTraceTitle(trace)).filter(isString))),
     selectedChunkIds: selectedTraces.map((trace) => trace.sourceChunkId).filter((id): id is string => Boolean(id)),

@@ -587,7 +587,12 @@ test("pilot learning report queues RAG and source feedback without raw journal t
         createdAt: new Date("2026-07-03T12:02:00.000Z"),
         sourceMode: "no_eligible_source",
         feedbackTypes: [],
-        qualityReviews: [{ label: "grounded", severity: "normal", metadata: { feedbackDisposition: "reviewed" } }],
+        qualityReviews: [{
+          label: "grounded",
+          severity: "normal",
+          reason: "Reviewed with private detail about the session.",
+          metadata: { feedbackDisposition: "reviewed" },
+        }],
         generationTraces: [
           {
             traceType: "retrieval",
@@ -610,7 +615,9 @@ test("pilot learning report queues RAG and source feedback without raw journal t
   assert.equal(report.sourceGroundingMetrics.paraphraseOnlySelections, 1)
   assert.equal(report.sourceGroundingMetrics.displayExcerptCount, 0)
   assert.equal(report.ragLearningQueue[0]?.disposition, "needs_review")
+  assert.equal(report.ragLearningQueue.some((item) => item.hasLatestReviewReason), true)
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(JSON.stringify(report).includes("private detail"), false)
 })
 
 test("pilot learning feedback disposition derives review state", () => {
@@ -660,7 +667,7 @@ test("pilot expansion readiness blocks low review coverage and unresolved source
         feedbackTypes: ["unsupported_source"],
       latestReviewLabel: null,
       latestReviewSeverity: null,
-      latestReviewReason: null,
+      hasLatestReviewReason: false,
         disposition: "needs_review",
         selectedSourceTitles: [],
         selectedChunkIds: [],
@@ -833,7 +840,7 @@ test("pilot review coverage report prioritizes validation and source feedback wi
           feedbackTypes: [],
           latestReviewLabel: null,
           latestReviewSeverity: null,
-          latestReviewReason: null,
+          hasLatestReviewReason: false,
           disposition: "reviewed",
           selectedSourceTitles: ["The Inner Council_"],
           selectedChunkIds: ["chunk_1"],
@@ -854,7 +861,7 @@ test("pilot review coverage report prioritizes validation and source feedback wi
           feedbackTypes: ["unsupported_source"],
           latestReviewLabel: null,
           latestReviewSeverity: null,
-          latestReviewReason: null,
+          hasLatestReviewReason: false,
           disposition: "needs_review",
           selectedSourceTitles: ["Embodiment Gate"],
           selectedChunkIds: ["chunk_2"],
@@ -875,7 +882,7 @@ test("pilot review coverage report prioritizes validation and source feedback wi
           feedbackTypes: [],
           latestReviewLabel: null,
           latestReviewSeverity: null,
-          latestReviewReason: null,
+          hasLatestReviewReason: false,
           disposition: "needs_review",
           selectedSourceTitles: [],
           selectedChunkIds: [],
