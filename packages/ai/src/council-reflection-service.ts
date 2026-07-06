@@ -39,13 +39,7 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
     rag_enabled: input.ragEnabled,
   }
   const inputMode = input.inputMode ?? "text"
-  const journalEntry = await prisma.journalEntry.create({
-    data: {
-      userId: user.id,
-      rawText: input.text,
-      inputMode,
-    },
-  })
+  const journalEntry = await prisma.journalEntry.create(buildJournalEntryCreateArgs(user.id, input.text, inputMode))
 
   await emitPilotEvent({
     eventName: "journal_submitted",
@@ -191,6 +185,17 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
   const progression = await checkAndAdvanceProgression(user.id, user.currentLevel, user.avatarStage)
 
   return { journalEntry, safety, analysis: storedAnalysis, avatarResponse, prompt: generatedPrompt, progression }
+}
+
+export function buildJournalEntryCreateArgs(userId: string, rawText: string, inputMode: "text" | "voice") {
+  return {
+    data: {
+      userId,
+      rawText,
+      inputMode,
+    },
+    select: { id: true },
+  } as const
 }
 
 function unchangedProgression(user: CouncilReflectionUser) {

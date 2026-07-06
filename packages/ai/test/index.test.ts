@@ -11,6 +11,7 @@ import {
   buildFounderCalibrationHandoffReport,
   buildFounderCalibrationLaunchPacket,
   buildFounderCalibrationJournalReadiness,
+  buildJournalEntryCreateArgs,
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -129,6 +130,19 @@ test("pattern memory opt-out blocks writes", () => {
   assert.equal(shouldWritePatternMemory(null), false)
   assert.equal(shouldWritePatternMemory(undefined), false)
   assert.equal(shouldWritePatternMemory(true), true)
+})
+
+test("council reflection stores journal text while returning only entry id", () => {
+  const args = buildJournalEntryCreateArgs("user-1", "private journal text", "text")
+
+  assert.deepEqual(args, {
+    data: {
+      userId: "user-1",
+      rawText: "private journal text",
+      inputMode: "text",
+    },
+    select: { id: true },
+  })
 })
 
 test("approved source filter never retrieves unapproved chunks", () => {
