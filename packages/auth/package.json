@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "../../node_modules/.bin/eslint .",
     "test": "node --test --import tsx test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

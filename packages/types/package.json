@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "../../node_modules/.bin/eslint .",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

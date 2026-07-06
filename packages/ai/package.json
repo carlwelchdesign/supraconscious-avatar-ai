@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "import:sources": "tsx scripts/import-sources.ts",
-    "lint": "eslint .",
+    "lint": "../../node_modules/.bin/eslint .",
     "seed:pilot": "tsx scripts/seed-internal-pilot.ts",
     "setup:founder-calibration": "tsx scripts/setup-founder-calibration.ts",
     "activate:rag": "tsx scripts/activate-internal-rag.ts",
