@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { formatAdminDateTime } from "@/lib/date-format"
 
 type AiQualityRow = {
   id: string
@@ -92,7 +93,7 @@ export function AiQualityTable({ responses }: { responses: AiQualityRow[] }) {
                     {response.journalEntryId}
                   </Typography>
                 </TableCell>
-                <TableCell>{new Date(response.createdAt).toLocaleString()}</TableCell>
+                <TableCell>{formatAdminDateTime(response.createdAt)}</TableCell>
               </TableRow>
             ))}
             {!filteredResponses.length ? (

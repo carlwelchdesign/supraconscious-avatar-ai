@@ -17,6 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { formatAdminDate } from "@/lib/date-format"
 import { resetUserPasswordAction, updateEmailVerificationAction } from "./actions"
 
 type UserRow = {
@@ -156,7 +157,7 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                 </TableCell>
                 <TableCell align="right">{user.journalEntryCount}</TableCell>
                 <TableCell align="right">{user.sessionCount}</TableCell>
-                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>{formatAdminDate(user.createdAt)}</TableCell>
                 <TableCell>
                   <Box component="form" action={resetUserPasswordAction} sx={{ display: "grid", gap: 1, minWidth: 240 }}>
                     <input type="hidden" name="userId" value={user.id} />

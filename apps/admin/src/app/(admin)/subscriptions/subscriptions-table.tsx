@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { formatAdminDate } from "@/lib/date-format"
 
 type SubscriptionRow = {
   id: string
@@ -107,9 +108,7 @@ export function SubscriptionsTable({ subscriptions }: { subscriptions: Subscript
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  {subscription.currentPeriodEnd
-                    ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
-                    : "—"}
+                  {subscription.currentPeriodEnd ? formatAdminDate(subscription.currentPeriodEnd) : "—"}
                 </TableCell>
               </TableRow>
             ))}
