@@ -14,7 +14,7 @@ Current admin routes:
 - `/safety`: safety events and flagged entry metadata.
 - `/health`: database, runtime configuration, founder calibration status, auth abuse pressure, and voice usage checks.
 - `/prompts`: prompt template create/list/edit.
-- `/avatar-stages`: editable guide stage metadata. The route keeps its legacy name for compatibility.
+- `/guide-stages`: editable guide stage metadata. `/avatar-stages` redirects here for older admin links.
 - `/feature-flags`: feature flag create/list/update.
 - `/ai-quality`: metadata-only AI output review.
 - `/calibration/setup`: Carl/Maria founder participant setup, readiness checklist, safe handoff links, and scenario coverage.

@@ -31,7 +31,7 @@ The admin app owns internal operations routes:
 
 - `/login`: admin login.
 - `/`: admin dashboard.
-- `/users`, `/subscriptions`, `/safety`, `/health`, `/prompts`, `/avatar-stages`, `/feature-flags`, `/ai-quality`.
+- `/users`, `/subscriptions`, `/safety`, `/health`, `/prompts`, `/guide-stages`, `/feature-flags`, `/ai-quality`. `/avatar-stages` redirects to `/guide-stages` for older admin links.
 
 The web app must not contain `/admin` routes. Admin functionality is not bundled into the public app.
 

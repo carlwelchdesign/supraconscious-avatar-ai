@@ -17,7 +17,7 @@ export async function upsertAvatarStageAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = AvatarStageSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
-    redirect("/avatar-stages?status=invalid")
+    redirect("/guide-stages?status=invalid")
   }
 
   const stage = await prisma.avatarStageConfig.upsert({
@@ -45,6 +45,7 @@ export async function upsertAvatarStageAction(formData: FormData) {
     },
   })
 
+  revalidatePath("/guide-stages")
   revalidatePath("/avatar-stages")
-  redirect("/avatar-stages?status=saved")
+  redirect("/guide-stages?status=saved")
 }

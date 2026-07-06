@@ -15,7 +15,7 @@ const nav = [
   { href: "/sources", label: "Sources", icon: BookOpen },
   { href: "/sources/readiness", label: "RAG Readiness", icon: Shield },
   { href: "/council", label: "Council Review", icon: Sparkles },
-  { href: "/avatar-stages", label: "Guide Stages", icon: BarChart3 },
+  { href: "/guide-stages", label: "Guide Stages", icon: BarChart3 },
   { href: "/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/ai-quality", label: "AI Quality", icon: MessageSquareText },
 ]
