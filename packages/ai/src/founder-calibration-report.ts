@@ -49,7 +49,7 @@ export type FounderCalibrationSourceIssue = {
   selectedSourceTitles: string[]
   selectedChunkIds: string[]
   latestReviewLabel: string | null
-  latestReviewReason: string | null
+  hasReviewReason: boolean
   hasFeedbackNote: boolean
 }
 
@@ -57,7 +57,7 @@ export type FounderCalibrationPromptIssue = {
   councilSessionId: string
   userEmail: string
   label: string
-  reason: string | null
+  hasReviewReason: boolean
   issueType: string | null
 }
 
@@ -279,7 +279,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
           councilSessionId: session.id,
           userEmail: session.userEmail,
           label: review.label,
-          reason: review.reason,
+          hasReviewReason: Boolean(review.reason?.trim()),
           issueType,
         })
         addQueue(actionQueueSessionIds, issueType === "voice_mismatch" || VOICE_ISSUE_LABELS.has(review.label) ? "voice_fixes" : "prompt_fixes", session.id)
@@ -301,7 +301,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
         councilSessionId: session.id,
         userEmail: session.userEmail,
         label: "user_feedback",
-        reason: null,
+        hasReviewReason: false,
         issueType: "prompt_issue",
       })
     }
@@ -483,7 +483,7 @@ function toSourceIssue(session: FounderCalibrationSessionSnapshot, review: Found
     selectedSourceTitles: Array.from(new Set(selectedTraces.map((trace) => readTraceTitle(trace)).filter(isString))),
     selectedChunkIds: selectedTraces.map((trace) => trace.sourceChunkId).filter(isString),
     latestReviewLabel: review?.label ?? null,
-    latestReviewReason: review?.reason ?? null,
+    hasReviewReason: Boolean(review?.reason?.trim()),
     hasFeedbackNote: session.feedback.some((feedback) => Boolean(feedback.note?.trim())),
   }
 }

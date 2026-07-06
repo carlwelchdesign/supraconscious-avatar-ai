@@ -915,20 +915,20 @@ test("founder calibration report groups feedback and review issues without raw j
         userName: "Carl",
         sourceMode: "rag",
         feedback: [
-          { feedbackType: "unsupported_source", note: "The source felt off." },
+          { feedbackType: "unsupported_source", note: "The source felt off with private detail." },
           { feedbackType: "not_accurate", note: null },
         ],
         qualityReviews: [
           {
             label: "source_unsupported",
             severity: "normal",
-            reason: "Selected source did not support the claim.",
+            reason: "Selected source did not support the private detail claim.",
             metadata: { calibrationIssueType: "source_issue" },
           },
           {
             label: "voice_wrong",
             severity: "normal",
-            reason: "Voice was too generic.",
+            reason: "Voice was too generic about the private detail.",
             metadata: { calibrationIssueType: "voice_mismatch" },
           },
         ],
@@ -986,6 +986,9 @@ test("founder calibration report groups feedback and review issues without raw j
   assert.match(report.nextRecommendedAction, /source-grounding/)
   assert.ok(report.feedbackThemes.some((theme) => theme.theme === "note_provided"))
   assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(JSON.stringify(report).includes("private detail"), false)
+  assert.equal(report.sourceGroundingIssues.some((issue) => issue.hasReviewReason), true)
+  assert.equal(report.promptIssues.some((issue) => issue.hasReviewReason), true)
 })
 
 test("founder calibration feedback notes require detail beyond templates", () => {
