@@ -4,11 +4,47 @@ import { prisma } from "@inner-avatar/db"
 import { runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 
 export default async function AdminHomePage() {
-  const [users, entries, subscriptions, safetyEvents, founderSetup] = await Promise.all([
+  const [
+    users,
+    entries,
+    subscriptions,
+    safetyEvents,
+    unresolvedSafetyEvents,
+    pilotBlockers,
+    sourceDocumentsNeedingReview,
+    sourceChunksNeedingReview,
+    negativeFeedback,
+    activePrompts,
+    enabledFlags,
+    founderSetup,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.journalEntry.count(),
     prisma.subscription.count(),
     prisma.safetyEvent.count(),
+    prisma.safetyEvent.count({
+      where: {
+        OR: [
+          { resolved: false },
+          { reviewStatus: { in: ["unreviewed", "reviewing", "escalated"] } },
+        ],
+      },
+    }),
+    prisma.qualityReview.count({ where: { severity: "pilot_blocker" } }),
+    prisma.sourceDocument.count({
+      where: {
+        OR: [
+          { reviewState: { in: ["imported", "parsed", "needs_review"] } },
+          { rightsStatus: { in: ["needs_review", "blocked"] } },
+        ],
+      },
+    }),
+    prisma.sourceChunk.count({ where: { reviewState: { in: ["parsed", "needs_review"] } } }),
+    prisma.councilSessionFeedback.count({
+      where: { feedbackType: { in: ["not_accurate", "too_intense", "unclear", "unsupported_source"] } },
+    }),
+    prisma.promptTemplate.count({ where: { active: true } }),
+    prisma.featureFlag.count({ where: { enabled: true } }),
     runFounderCalibrationSetupReport(),
   ])
 
@@ -24,6 +60,71 @@ export default async function AdminHomePage() {
         <Metric title="Subscriptions" value={subscriptions} />
         <Metric title="Safety Events" value={safetyEvents} />
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Operational Queue</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <QueueMetric
+              title="Unresolved safety"
+              value={unresolvedSafetyEvents}
+              href="/safety"
+              description="Safety events needing review or resolution."
+              tone={unresolvedSafetyEvents > 0 ? "urgent" : "quiet"}
+            />
+            <QueueMetric
+              title="Pilot blockers"
+              value={pilotBlockers}
+              href="/council?reviewStatus=pilot_blocker"
+              description="Quality reviews currently blocking pilot expansion."
+              tone={pilotBlockers > 0 ? "urgent" : "quiet"}
+            />
+            <QueueMetric
+              title="Source documents"
+              value={sourceDocumentsNeedingReview}
+              href="/sources"
+              description="Documents with review or rights work remaining."
+              tone={sourceDocumentsNeedingReview > 0 ? "review" : "quiet"}
+            />
+            <QueueMetric
+              title="Source chunks"
+              value={sourceChunksNeedingReview}
+              href="/sources"
+              description="Parsed chunks waiting for retrieval approval."
+              tone={sourceChunksNeedingReview > 0 ? "review" : "quiet"}
+            />
+            <QueueMetric
+              title="Negative feedback"
+              value={negativeFeedback}
+              href="/council?feedbackType=not_accurate"
+              description="Not accurate, too intense, unclear, or unsupported-source feedback."
+              tone={negativeFeedback > 0 ? "review" : "quiet"}
+            />
+            <QueueMetric
+              title="Active prompts"
+              value={activePrompts}
+              href="/prompts"
+              description="Prompt templates currently active."
+              tone="info"
+            />
+            <QueueMetric
+              title="Enabled flags"
+              value={enabledFlags}
+              href="/feature-flags"
+              description="Feature gates enabled in this environment."
+              tone="info"
+            />
+            <QueueMetric
+              title="Runtime health"
+              value={unresolvedSafetyEvents + pilotBlockers}
+              href="/health"
+              description="Open operational blockers surfaced on the health page."
+              tone={unresolvedSafetyEvents + pilotBlockers > 0 ? "urgent" : "quiet"}
+            />
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Privacy Default</CardTitle>
@@ -82,5 +183,34 @@ function Metric({ title, value }: { title: string; value: number }) {
       </CardHeader>
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
+  )
+}
+
+function QueueMetric({
+  title,
+  value,
+  href,
+  description,
+  tone,
+}: {
+  title: string
+  value: number
+  href: string
+  description: string
+  tone: "quiet" | "review" | "urgent" | "info"
+}) {
+  const toneClass = {
+    quiet: "border-emerald-500/20 bg-emerald-500/5",
+    review: "border-amber-500/20 bg-amber-500/5",
+    urgent: "border-destructive/20 bg-destructive/5",
+    info: "border-muted bg-muted/30",
+  }[tone]
+
+  return (
+    <Link href={href} className={`rounded-md border p-4 transition hover:bg-muted ${toneClass}`}>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
+      <p className="mt-2 text-3xl font-semibold">{value}</p>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">{description}</p>
+    </Link>
   )
 }
