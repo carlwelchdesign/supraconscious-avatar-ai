@@ -16,6 +16,7 @@ export default async function HealthPage() {
 
   const checks = [
     { label: "Database", value: database },
+    { label: "Database URL", value: runtime.databaseConfigured ? `configured · SSL ${runtime.databaseSslMode}` : "missing" },
     { label: "Auth secret", value: runtime.authSecretConfigured ? "configured" : "missing" },
     { label: "OpenAI API key", value: runtime.openAiConfigured ? "configured" : "missing" },
     { label: "Super admin allowlist", value: runtime.superAdminConfigured ? "configured" : "missing" },

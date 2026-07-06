@@ -1,5 +1,6 @@
 export type RuntimeReadinessEnv = {
   NODE_ENV?: string
+  DATABASE_URL?: string
   AUTH_SECRET?: string
   OPENAI_API_KEY?: string
   SUPER_ADMIN_EMAILS?: string
@@ -17,6 +18,8 @@ export type RuntimeReadinessEnv = {
 }
 
 export type RuntimeReadiness = {
+  databaseConfigured: boolean
+  databaseSslMode: "verify-full" | "weaker" | "disabled" | "missing" | "unknown"
   authSecretConfigured: boolean
   openAiConfigured: boolean
   superAdminConfigured: boolean
@@ -29,6 +32,8 @@ export type RuntimeReadiness = {
 }
 
 export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadiness {
+  const databaseConfigured = hasValue(env.DATABASE_URL)
+  const databaseSslMode = readDatabaseSslMode(env.DATABASE_URL)
   const authSecretConfigured = hasValue(env.AUTH_SECRET)
   const openAiConfigured = hasValue(env.OPENAI_API_KEY)
   const superAdminConfigured = hasValue(env.SUPER_ADMIN_EMAILS)
@@ -45,6 +50,9 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
   const production = env.NODE_ENV === "production"
 
   const productionBlockers = [
+    production && !databaseConfigured ? "DATABASE_URL is required for production database access." : null,
+    production && databaseSslMode === "weaker" ? "DATABASE_URL uses a weaker SSL mode; use sslmode=verify-full for production managed Postgres." : null,
+    production && databaseSslMode === "disabled" ? "DATABASE_URL disables SSL; use sslmode=verify-full for production managed Postgres." : null,
     production && !authSecretConfigured ? "AUTH_SECRET is required for production session security." : null,
     production && !openAiConfigured ? "OPENAI_API_KEY is required for production AI and voice behavior." : null,
     production && !superAdminConfigured ? "SUPER_ADMIN_EMAILS is required before the first admin login." : null,
@@ -54,6 +62,8 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
   ].filter((message): message is string => Boolean(message))
 
   const notes = [
+    databaseConfigured && databaseSslMode === "missing" ? "DATABASE_URL does not specify sslmode; managed production Postgres should use sslmode=verify-full when TLS is required." : null,
+    databaseConfigured && databaseSslMode === "unknown" ? "DATABASE_URL sslmode could not be read; confirm managed production Postgres uses sslmode=verify-full when TLS is required." : null,
     authEmailConfigured ? null : "Auth email delivery is not configured; verification and reset links require manual/admin fallback.",
     turnstileMode === "configured" ? null : turnstileMode === "misconfigured"
       ? "Turnstile is misconfigured; set both public site key and server secret or leave both blank."
@@ -63,6 +73,8 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
   ].filter((message): message is string => Boolean(message))
 
   return {
+    databaseConfigured,
+    databaseSslMode,
     authSecretConfigured,
     openAiConfigured,
     superAdminConfigured,
@@ -72,6 +84,22 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
     handoffUrlsConfigured,
     productionBlockers,
     notes,
+  }
+}
+
+function readDatabaseSslMode(databaseUrl: string | undefined): RuntimeReadiness["databaseSslMode"] {
+  const value = databaseUrl?.trim()
+  if (!value) return "missing"
+  try {
+    const parsed = new URL(value)
+    const sslMode = parsed.searchParams.get("sslmode")?.trim().toLowerCase()
+    if (!sslMode) return "missing"
+    if (sslMode === "verify-full") return "verify-full"
+    if (sslMode === "disable") return "disabled"
+    if (["prefer", "require", "verify-ca", "allow"].includes(sslMode)) return "weaker"
+    return "unknown"
+  } catch {
+    return "unknown"
   }
 }
 
