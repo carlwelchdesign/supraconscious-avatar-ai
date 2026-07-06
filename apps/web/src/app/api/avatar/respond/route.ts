@@ -6,6 +6,7 @@ import {
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
+import { buildLegacyAvatarResponse } from "@/lib/legacy-reflection-response"
 import { privateJson } from "@/lib/private-json"
 
 const AvatarRespondSchema = z.object({
@@ -45,13 +46,12 @@ export async function POST(request: Request) {
       },
     })
 
-    return privateJson({
+    return privateJson(buildLegacyAvatarResponse({
       journalEntryId: journalEntry.id,
       safety,
       analysis,
       avatarResponse: saved,
-      legacyNotice: "For the full Inner Council flow, use /api/journal/analyze.",
-    })
+    }))
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {

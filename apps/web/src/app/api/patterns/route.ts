@@ -1,5 +1,6 @@
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { buildPatternsResponse } from "@/lib/patterns-response"
 import { privateJson } from "@/lib/private-json"
 
 export async function GET() {
@@ -23,7 +24,7 @@ export async function GET() {
       }),
     ])
 
-    return privateJson({ patterns, recentEntries })
+    return privateJson(buildPatternsResponse({ patterns, recentEntries }))
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {

@@ -6,6 +6,7 @@ import {
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
+import { buildLegacyPromptResponse } from "@/lib/legacy-reflection-response"
 import { privateJson } from "@/lib/private-json"
 
 const GeneratePromptSchema = z.object({
@@ -44,13 +45,12 @@ export async function POST(request: Request) {
       },
     })
 
-    return privateJson({
+    return privateJson(buildLegacyPromptResponse({
       journalEntryId: journalEntry.id,
       safety,
       analysis,
       prompt: saved,
-      legacyNotice: "For the full Inner Council flow, use /api/journal/analyze.",
-    })
+    }))
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
