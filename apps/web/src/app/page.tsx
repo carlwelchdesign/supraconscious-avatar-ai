@@ -134,7 +134,7 @@ export default async function Home() {
               {
                 num: "02",
                 title: "Council",
-                body: "Protector, Conditioned Self, Visionary, and Truth Self reflect through bounded lenses. No diagnosis, channeling, or supernatural authority.",
+                body: "Protector, Conditioned Self, Visionary, and Truth Self reflect through distinct inner lenses so the entry becomes easier to observe.",
               },
               {
                 num: "03",
@@ -173,11 +173,11 @@ export default async function Home() {
               Inner Council
             </span>
             <h2 className="font-display text-[clamp(32px,3.5vw,48px)] font-light text-[var(--primary)] mb-6 leading-[1.25]">
-              A spiritual guide,{" "}
-              <em className="italic font-normal">not “AI Maria”</em>
+              Source-aware reflection,{" "}
+              <em className="italic font-normal">kept in your hands</em>
             </h2>
             <p className="text-[16px] font-light leading-[1.75] text-[var(--plum-soft)] mb-8">
-              The experience is grounded in approved source material and Maria-inspired principles, while remaining explicit: it is not Maria, not therapy, not diagnosis, and not crisis monitoring.
+              The experience can draw from approved source material and Maria-inspired principles when eligible, then clearly shows whether source context was used or the reflection came only from your entry.
             </p>
             <div className="space-y-3">
               {[

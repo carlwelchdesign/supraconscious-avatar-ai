@@ -309,7 +309,7 @@ export function JournalWorkspace({
           What is present today?
         </h1>
         <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-          Inspired by Maria Olon Tsaroucha&apos;s teachings. This guide is not Maria, not therapy, and not a spiritual authority.
+          Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.
         </p>
       </div>
 

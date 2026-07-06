@@ -21,7 +21,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Supraconscious Inner Council — Write. See clearly. Choose consciously.",
   description:
-    "A Maria-inspired spiritual reflection journal where a bounded Inner Council helps you notice patterns, ask one clarifying question, and choose one embodied next step.",
+    "A guided AI journaling system where a bounded Inner Council helps surface patterns, contradictions, source-grounded context, and one embodied next step.",
 }
 
 export default function RootLayout({
