@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { requireJournalAccessUser } from "@/lib/journal-access"
+import { buildPatternMemoryVisibilityUpdate } from "@/lib/pattern-memory-feedback"
 
 const PatternFeedbackSchema = z.object({
   patternMemoryId: z.string().min(1),
@@ -39,18 +40,14 @@ export async function submitPatternFeedbackAction(formData: FormData) {
     },
   })
 
-  if (parsed.data.feedbackType === "suppress") {
-    await prisma.patternMemory.update({
-      where: { id: parsed.data.patternMemoryId },
-      data: { active: false },
-    })
-  }
+  const visibilityUpdate = buildPatternMemoryVisibilityUpdate({
+    feedbackType: parsed.data.feedbackType,
+    patternMemoryId: parsed.data.patternMemoryId,
+    userId: user.id,
+  })
 
-  if (parsed.data.feedbackType === "restore") {
-    await prisma.patternMemory.update({
-      where: { id: parsed.data.patternMemoryId },
-      data: { active: true },
-    })
+  if (visibilityUpdate) {
+    await prisma.patternMemory.updateMany(visibilityUpdate)
   }
 
   revalidatePath("/patterns")
