@@ -87,7 +87,7 @@ The server expects runtime access to dependent workspace packages (`@inner-avata
 
 ## Troubleshooting
 
-- If Docker build fails due to Yarn lockfile/p2p peer issues, run `yarn install` locally to update the lockfile, commit it, and retry the Docker build.
+- If Docker build fails due to Yarn lockfile or peer issues, run `node .yarn/releases/yarn-4.cjs install --immutable` locally. If the lockfile truly needs to change after dependency edits, run the same pinned launcher without `--immutable`, review and commit the lockfile, then retry the Docker build.
 - ESM resolution required explicit `.js` extensions in internal package exports; the workspace packages include `type: "module"` and imports use `.js` extensions for Node16+ resolution.
 
 ## Next steps

@@ -82,11 +82,13 @@ For local/dev scripts, the root `.env.example` includes additional helper variab
 ## Install and Run
 
 ```bash
-yarn install
+node .yarn/releases/yarn-4.cjs install --immutable
 yarn db:generate
 yarn dev:web
 yarn dev:admin
 ```
+
+Do not use ambient Yarn 1 for installation. This workspace uses `workspace:*` dependencies and the repository-pinned Yarn 4 launcher avoids registry lookup failures for internal packages.
 
 The web app runs on port `3000`. The admin app runs on port `3001`.
 

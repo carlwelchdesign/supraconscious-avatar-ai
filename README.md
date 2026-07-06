@@ -20,7 +20,7 @@ The product is reflective journaling. It is not Maria, not therapy, not diagnosi
 ## Commands
 
 ```bash
-yarn install
+node .yarn/releases/yarn-4.cjs install --immutable
 yarn db:generate
 yarn dev:web
 yarn dev:admin
@@ -38,6 +38,8 @@ yarn docker:build:chatgpt
 ## Deployment
 
 The current Vercel deployment uses the root `vercel.json` with the pinned Yarn 4 launcher and builds the web app from `apps/web`.
+
+Do not use ambient Yarn 1 for installs. This monorepo uses `workspace:*` dependencies and should be installed with the bundled Yarn 4 launcher or a Corepack-managed Yarn 4 runtime.
 
 If you split admin into its own Vercel project later, keep the install command on the repository Yarn launcher:
 
