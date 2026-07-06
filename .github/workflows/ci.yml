@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: node .yarn/releases/yarn-4.cjs install --immutable
 
+      - name: Validate environment template
+        run: node .yarn/releases/yarn-4.cjs check:env
+
       - name: Validate Prisma schema
         run: node .yarn/releases/yarn-4.cjs prisma validate
 
