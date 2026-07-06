@@ -80,6 +80,17 @@ export function getAppCalendarDate(value: string | Date = new Date(), timeZone =
   }
 }
 
+export function getAppHour(value: string | Date = new Date(), timeZone = resolveAppTimeZone()) {
+  const date = new Date(value)
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    hour12: false,
+  })
+  const hour = Number(formatter.formatToParts(date).find((part) => part.type === "hour")?.value)
+  return hour === 24 ? 0 : hour
+}
+
 export function formatWebLongDate(value: string | Date | null | undefined) {
   if (!value) return "-"
   return LONG_DATE_FORMATTER.format(new Date(value))

@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert"
-import { getAppCalendarDate, resolveAppTimeZone } from "../src/lib/date-format"
+import { getAppCalendarDate, getAppHour, resolveAppTimeZone } from "../src/lib/date-format"
 
 test("app calendar date uses the configured timezone for daily curriculum lookup", () => {
   const instant = new Date("2026-07-06T06:30:00.000Z")
@@ -19,4 +19,11 @@ test("app calendar date uses the configured timezone for daily curriculum lookup
 test("app timezone falls back to Los Angeles when unset or invalid", () => {
   assert.equal(resolveAppTimeZone(""), "America/Los_Angeles")
   assert.equal(resolveAppTimeZone("Not/A_Timezone"), "America/Los_Angeles")
+})
+
+test("app hour uses the configured timezone for dashboard greetings", () => {
+  const instant = new Date("2026-07-06T06:30:00.000Z")
+
+  assert.equal(getAppHour(instant, "America/Los_Angeles"), 23)
+  assert.equal(getAppHour(instant, "UTC"), 6)
 })

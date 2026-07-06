@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen } from "lucide-react"
 import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
-import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth } from "@/lib/date-format"
+import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
@@ -62,7 +62,7 @@ export default async function DashboardPage({
   const dashboardMessage = readDashboardMessage(query)
 
   const greeting = (() => {
-    const h = new Date().getHours()
+    const h = getAppHour()
     if (h < 12) return "Good morning"
     if (h < 17) return "Good afternoon"
     return "Good evening"
