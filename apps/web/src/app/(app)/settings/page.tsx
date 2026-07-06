@@ -3,6 +3,7 @@ import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { formatWebDateTime } from "@/lib/date-format"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
+import { ClearPatternMemoryButton } from "./clear-pattern-memory-button"
 import {
   changePasswordAction,
   clearPatternMemoryAction,
@@ -171,14 +172,7 @@ export default async function SettingsPage({
             }
           />
           <div className="pb-5">
-            <button
-              type="submit"
-              formAction={clearPatternMemoryAction}
-              className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]"
-              style={{ borderColor: "rgba(43,27,53,0.08)" }}
-            >
-              Clear remembered signals
-            </button>
+            <ClearPatternMemoryButton action={clearPatternMemoryAction} />
           </div>
           <SettingRow
             label="Safety mode"
