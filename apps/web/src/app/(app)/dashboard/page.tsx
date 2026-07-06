@@ -5,6 +5,7 @@ import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
 import { readFounderFeedbackSummary } from "@/lib/founder-feedback-summary"
+import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
@@ -338,6 +339,9 @@ export default async function DashboardPage({
                 ? readFounderFeedbackSummary({ hasFeedback, hasFeedbackNote })
                 : null
               const review = entry.councilSession?.qualityReviews[0]
+              const founderReviewSummary = founderCalibrationMode
+                ? readFounderReviewSummary({ reviewLabel: review?.label, reviewSeverity: review?.severity })
+                : null
               const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
               const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
               const statuses = [
@@ -412,6 +416,11 @@ export default async function DashboardPage({
                         {founderFeedbackSummary ? (
                           <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
                             {founderFeedbackSummary}
+                          </p>
+                        ) : null}
+                        {founderReviewSummary ? (
+                          <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
+                            {founderReviewSummary}
                           </p>
                         ) : null}
                       </div>
