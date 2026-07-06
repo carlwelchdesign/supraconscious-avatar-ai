@@ -19,8 +19,10 @@ test('server health endpoint responds with ok status', async () => {
     const body = await response.json()
 
     assert.strictEqual(response.status, 200)
-    assert.strictEqual(response.headers.get('cache-control'), 'no-store')
+    assert.strictEqual(response.headers.get('cache-control'), 'no-store, max-age=0')
+    assert.strictEqual(response.headers.get('x-content-type-options'), 'nosniff')
     assert.strictEqual(body.status, 'ok')
+    assert.strictEqual(body.service, 'inner-avatar-chatgpt-app')
     assert.ok(body.timestamp)
     assert.ok(logs.some((line) => line.includes(`port ${port}`)))
     assert.ok(logs.some((line) => line.includes(`localhost:${port}/health`)))
