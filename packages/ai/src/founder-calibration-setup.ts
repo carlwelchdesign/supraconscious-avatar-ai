@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { prisma } from "@inner-avatar/db"
 import {
   normalizeFounderCalibrationEmail,
@@ -83,12 +84,12 @@ export async function setupFounderCalibrationParticipants(input: FounderCalibrat
           targetType: "FounderCalibrationParticipant",
           targetId: participant.id,
           reason,
-          metadata: {
+          metadata: buildFounderParticipantAuditMetadata({
             email: request.email,
             participantRole: request.participantRole,
             linkedUser: Boolean(user),
             source: "setup_founder_calibration_command",
-          },
+          }),
         },
       })
       result.auditLogged += 1
@@ -96,6 +97,26 @@ export async function setupFounderCalibrationParticipants(input: FounderCalibrat
   }
 
   return result
+}
+
+export function buildFounderParticipantAuditMetadata(input: {
+  email: string
+  participantRole: FounderCalibrationParticipantRole
+  linkedUser?: boolean
+  status?: string
+  source?: string
+}) {
+  return {
+    emailHash: hashFounderParticipantEmailForAudit(input.email),
+    participantRole: input.participantRole,
+    ...(typeof input.linkedUser === "boolean" ? { linkedUser: input.linkedUser } : {}),
+    ...(input.status ? { status: input.status } : {}),
+    ...(input.source ? { source: input.source } : {}),
+  }
+}
+
+export function hashFounderParticipantEmailForAudit(email: string) {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex")
 }
 
 export function buildFounderCalibrationSetupInputFromEnv(env: NodeJS.ProcessEnv = process.env): FounderCalibrationSetupInput {

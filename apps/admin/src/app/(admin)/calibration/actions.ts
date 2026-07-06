@@ -12,6 +12,7 @@ import {
   resolveFounderCalibrationUserFilter,
   setupFounderCalibrationParticipants,
 } from "@inner-avatar/ai"
+import { hashEmailForAudit } from "@/lib/audit-metadata"
 
 const CalibrationReviewSchema = z.object({
   councilSessionId: z.string().min(1),
@@ -134,7 +135,7 @@ export async function addFounderCalibrationParticipantAction(formData: FormData)
   })
 
   await auditFounderParticipant(actor.id, "founder_calibration_participant.upsert", participant.id, parsed.data.reason, {
-    email: parsed.data.email,
+    emailHash: hashEmailForAudit(parsed.data.email),
     participantRole: parsed.data.participantRole,
     status: "active",
     linkedUser: Boolean(user),
@@ -179,7 +180,7 @@ export async function pauseFounderCalibrationParticipantAction(formData: FormDat
   })
 
   await auditFounderParticipant(actor.id, "founder_calibration_participant.pause", updated.id, parsed.data.reason, {
-    email: updated.email,
+    emailHash: hashEmailForAudit(updated.email),
     participantRole: updated.participantRole,
     status: "paused",
   })
@@ -209,7 +210,7 @@ export async function activateFounderCalibrationParticipantAction(formData: Form
   })
 
   await auditFounderParticipant(actor.id, "founder_calibration_participant.activate", participant.id, parsed.data.reason, {
-    email: participant.email,
+    emailHash: hashEmailForAudit(participant.email),
     participantRole: participant.participantRole,
     status: "active",
     linkedUser: Boolean(user ?? participant.userId),
@@ -240,7 +241,7 @@ export async function syncFounderCalibrationParticipantAction(formData: FormData
   })
 
   await auditFounderParticipant(actor.id, "founder_calibration_participant.sync", participant.id, parsed.data.reason, {
-    email: participant.email,
+    emailHash: hashEmailForAudit(participant.email),
     participantRole: updated.participantRole,
     linkedUser: Boolean(user),
   })

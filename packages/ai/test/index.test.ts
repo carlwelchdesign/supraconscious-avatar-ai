@@ -15,6 +15,8 @@ import {
   buildFounderCalibrationSetupReportFromSnapshot,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
+  buildFounderParticipantAuditMetadata,
+  hashFounderParticipantEmailForAudit,
   hashEmailForAudit,
   buildCouncilPromptVersion,
   classifySourcePath,
@@ -1619,4 +1621,22 @@ test("founder calibration setup input parses env without creating account state"
     { email: "maria@example.com", participantRole: "maria" },
     { email: "reviewer@example.com", participantRole: "reviewer" },
   ])
+})
+
+test("founder participant audit metadata hashes emails", () => {
+  const metadata = buildFounderParticipantAuditMetadata({
+    email: " Carl@Example.com ",
+    participantRole: "carl",
+    linkedUser: true,
+    status: "active",
+    source: "test",
+  })
+
+  assert.equal(metadata.emailHash, hashFounderParticipantEmailForAudit("carl@example.com"))
+  assert.equal(metadata.participantRole, "carl")
+  assert.equal(metadata.linkedUser, true)
+  assert.equal(metadata.status, "active")
+  assert.equal(metadata.source, "test")
+  assert.equal(JSON.stringify(metadata).includes("Carl@Example.com"), false)
+  assert.equal(JSON.stringify(metadata).includes("carl@example.com"), false)
 })
