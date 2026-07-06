@@ -219,8 +219,8 @@ export function buildFounderCalibrationLaunchPacket(
   if (options.includeLocalCommands ?? true) {
     lines.push(
       "## Start Local Apps",
-      "Run: yarn dev:founder-calibration",
-      "Smoke check: yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3",
+      "Run: node .yarn/releases/yarn-4.cjs dev:founder-calibration",
+      "Smoke check: node .yarn/releases/yarn-4.cjs smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3",
       `Admin setup: ${adminAppBaseUrl}/calibration/setup`,
       `Admin live review: ${adminAppBaseUrl}/calibration/live`,
       "",

@@ -27,10 +27,10 @@ Founder calibration is for Carl and Maria while the product is still being shape
 Use this sequence:
 
 ```bash
-yarn verify:founder-calibration-code
-yarn dev:founder-calibration
-yarn smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3
-yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
+node .yarn/releases/yarn-4.cjs dev:founder-calibration
+node .yarn/releases/yarn-4.cjs smoke:founder-local --web-url http://localhost:3000 --admin-url http://localhost:3001 --passes 3
+node .yarn/releases/yarn-4.cjs packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 ```
 
 Then:
