@@ -12,6 +12,7 @@
 Web app (`apps/web/.env.example`):
 
 ```bash
+# Production managed Postgres URLs should use sslmode=verify-full when TLS is required.
 DATABASE_URL="postgres://..."
 OPENAI_API_KEY="sk-..."
 OPENAI_MODEL="gpt-5-mini"
@@ -31,6 +32,7 @@ STRIPE_PRO_PRICE_ID="price_..."
 Admin app (`apps/admin/.env.example`):
 
 ```bash
+# Production managed Postgres URLs should use sslmode=verify-full when TLS is required.
 DATABASE_URL="postgres://..."
 AUTH_SECRET="replace-with-a-long-random-secret"
 SUPER_ADMIN_EMAILS="you@example.com"
@@ -53,7 +55,7 @@ Production environment checklist:
 
 | Variable | Web | Admin | ChatGPT/MCP | Notes |
 | --- | --- | --- | --- | --- |
-| `DATABASE_URL` | Required | Required | Required | Use the production Postgres URL; run schema changes as a controlled release step. |
+| `DATABASE_URL` | Required | Required | Required | Use the production Postgres URL; use `sslmode=verify-full` when TLS is required, and run schema changes as a controlled release step. |
 | `PRISMA_QUERY_LOGGING` | Optional | Optional | Optional | Set to `true` only for short local debugging. Leave off for founder testing and production so raw query parameters stay out of logs. |
 | `AUTH_SECRET` | Required | Required | Required | Use the same long random value anywhere session/auth helpers run. |
 | `SUPER_ADMIN_EMAILS` | Required | Required | Optional | Required before the first admin login. |
