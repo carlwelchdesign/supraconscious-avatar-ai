@@ -1,4 +1,5 @@
 import "./founder-calibration-review-priority.test"
+import "./health-response.test"
 import "./runtime-readiness.test"
 import "./safety-audit.test"
 import "./user-admin-audit.test"

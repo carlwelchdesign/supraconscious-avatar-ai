@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@inner-avatar/db"
+import { buildHealthPayload, HEALTH_RESPONSE_HEADERS } from "@/lib/health-response"
 
 export async function GET() {
   try {
     await prisma.user.count()
-    return NextResponse.json({
-      ok: true,
-      service: "inner-avatar-web",
-      database: "ok",
-    }, { headers: { "Cache-Control": "no-store" } })
+    return NextResponse.json(buildHealthPayload("inner-avatar-web", "ok"), { headers: HEALTH_RESPONSE_HEADERS })
   } catch {
     return NextResponse.json(
-      {
-        ok: false,
-        service: "inner-avatar-web",
-        database: "error",
-      },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
+      buildHealthPayload("inner-avatar-web", "error"),
+      { status: 503, headers: HEALTH_RESPONSE_HEADERS },
     )
   }
 }
