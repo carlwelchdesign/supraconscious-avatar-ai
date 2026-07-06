@@ -263,8 +263,8 @@ export function buildFounderCalibrationLaunchPacket(
     "- Choose one feedback type for each founder calibration session so review has usable evidence.",
     "- Add written notes when a specific voice, source, intensity, embodiment, or phrasing detail matters.",
     "- Mark strong sessions ready/golden when one clearly stands out; golden examples are useful, not blockers for continued development.",
-    "- Run: yarn report:founder-calibration",
-    "- Run: yarn report:founder-calibration-comparison",
+    "- Run: node .yarn/releases/yarn-4.cjs report:founder-calibration",
+    "- Run: node .yarn/releases/yarn-4.cjs report:founder-calibration-comparison",
   )
 
   return lines.join("\n")
