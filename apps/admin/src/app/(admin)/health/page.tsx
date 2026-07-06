@@ -245,6 +245,10 @@ function Metric({ label, value }: { label: string; value: number }) {
 }
 
 function redactAuthBucketKey(bucketKey: string) {
+  if (bucketKey.includes(":email_hash:")) {
+    const [prefix, hash] = bucketKey.split(":email_hash:")
+    return `${prefix}:email_hash:${redactHash(hash ?? "")}`
+  }
   if (bucketKey.includes(":email:")) {
     const [prefix, email] = bucketKey.split(":email:")
     return `${prefix}:email:${redactEmail(email ?? "")}`
@@ -254,6 +258,10 @@ function redactAuthBucketKey(bucketKey: string) {
     return `${prefix}:ip:${redactIp(ip ?? "")}`
   }
   return bucketKey
+}
+
+function redactHash(hash: string) {
+  return hash.length > 12 ? `${hash.slice(0, 12)}...` : "redacted"
 }
 
 function redactEmail(email: string) {

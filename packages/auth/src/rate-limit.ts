@@ -6,6 +6,7 @@ import {
   getUsableAuthRateLimitBucketDelegate,
   hasUsableAuthRateLimitWriteClient,
 } from "./rate-limit-delegate"
+import { buildAuthRateLimitEmailKey } from "./rate-limit-keys"
 
 export type AuthRateLimitScope = "web_login" | "admin_login" | "register" | "email_verification" | "password_reset"
 
@@ -95,7 +96,7 @@ async function getRateLimitKeys(scope: AuthRateLimitScope, email?: string | null
   const normalizedEmail = email?.trim().toLowerCase()
 
   if (normalizedEmail) {
-    keys.push(`${scope}:email:${normalizedEmail}`)
+    keys.push(buildAuthRateLimitEmailKey(scope, normalizedEmail))
   }
 
   return keys
