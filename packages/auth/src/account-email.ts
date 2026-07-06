@@ -3,6 +3,7 @@ import "server-only"
 import { headers } from "next/headers"
 import { randomBytes } from "node:crypto"
 import { prisma } from "@inner-avatar/db"
+import { buildAccountEmailAuditMetadata } from "./account-audit"
 import { resolveAccountEmailBaseUrl } from "./account-email-url"
 import { sendTransactionalEmail } from "./email"
 import { hashPassword, hashSessionToken } from "./session"
@@ -63,12 +64,12 @@ export async function requestEmailVerificationForUser(user: UserEmailTarget): Pr
       action: "user.email.verification_requested",
       targetType: "User",
       targetId: user.id,
-      metadata: {
+      metadata: buildAccountEmailAuditMetadata({
         email: user.email,
         delivered: email.delivered,
         provider: email.provider,
         reason: email.reason,
-      },
+      }),
     },
   })
 
@@ -121,10 +122,10 @@ export async function verifyEmailWithToken(rawToken: string) {
         action: "user.email.verified",
         targetType: "User",
         targetId: token.userId,
-        metadata: {
+        metadata: buildAccountEmailAuditMetadata({
           email: token.user.email,
           sentToEmail: token.sentToEmail,
-        },
+        }),
       },
     }),
   ])
@@ -178,11 +179,12 @@ export async function requestPasswordResetByEmail(email: string): Promise<Accoun
       action: "user.password.reset_requested",
       targetType: "User",
       targetId: user.id,
-      metadata: {
+      metadata: buildAccountEmailAuditMetadata({
+        email: user.email,
         delivered: emailResult.delivered,
         provider: emailResult.provider,
         reason: emailResult.reason,
-      },
+      }),
     },
   })
 
