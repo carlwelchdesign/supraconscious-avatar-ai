@@ -2,6 +2,7 @@ import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { buildCreatedJournalEntryResponse, CREATED_JOURNAL_ENTRY_SELECT } from "@/lib/journal-entry-response"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 
 const CreateJournalEntrySchema = z.object({
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     if (accessError) {
       return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
-    const message = error instanceof Error ? error.message : "Unable to create journal entry."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    const apiError = readPrivateApiError(error, { fallback: "Unable to create journal entry." })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }

@@ -2,6 +2,7 @@ import { JournalAnalyzeRequestSchema, runCouncilReflection } from "@inner-avatar
 import { prisma } from "@inner-avatar/db"
 import { buildJournalAnalyzeResponse } from "@/lib/journal-analyze-response"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 
 export async function POST(request: Request) {
@@ -35,8 +36,8 @@ export async function POST(request: Request) {
     if (accessError) {
       return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
-    const message = error instanceof Error ? error.message : "Unable to analyze journal entry."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    const apiError = readPrivateApiError(error, { fallback: "Unable to analyze journal entry." })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }
 

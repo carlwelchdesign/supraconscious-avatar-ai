@@ -3,6 +3,7 @@ import { emitPilotEvent } from "@inner-avatar/ai"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 import { PUBLIC_USER_PREFERENCES_SELECT } from "@/lib/public-user-preferences"
 
@@ -56,7 +57,7 @@ export async function PATCH(request: Request) {
 
     return privateJson({ user: updated })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to update preferences."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    const apiError = readPrivateApiError(error, { fallback: "Unable to update preferences." })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }

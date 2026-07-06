@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { synthesizeSpeech } from "@/lib/voice/speak"
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     if (accessError) {
       return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
-    const message = error instanceof Error ? error.message : "Speech synthesis failed."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
+    const apiError = readPrivateApiError(error, { fallback: "Speech synthesis failed.", status: 500 })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }

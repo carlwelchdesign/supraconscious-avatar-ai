@@ -2,6 +2,7 @@ import { z } from "zod"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 import { PUBLIC_USER_PREFERENCES_SELECT } from "@/lib/public-user-preferences"
 
@@ -26,7 +27,7 @@ export async function PATCH(request: Request) {
     return privateJson({ user: updated })
   } catch (error) {
     if (isRedirectError(error)) throw error
-    const message = error instanceof Error ? error.message : "Unable to update voice preferences."
-    return privateJson({ error: message }, { status: 400 })
+    const apiError = readPrivateApiError(error, { fallback: "Unable to update voice preferences." })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }

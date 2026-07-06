@@ -7,6 +7,7 @@ import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
 import { buildLegacyAvatarResponse } from "@/lib/legacy-reflection-response"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
 
 const AvatarRespondSchema = z.object({
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     if (accessError) {
       return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
-    const message = error instanceof Error ? error.message : "Unable to generate avatar response."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    const apiError = readPrivateApiError(error, { fallback: "Unable to generate avatar response." })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }

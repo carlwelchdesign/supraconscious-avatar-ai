@@ -1,4 +1,5 @@
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { readPrivateApiError } from "@/lib/private-api-error"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { transcribeAudio } from "@/lib/voice/transcribe"
 import { privateJson } from "@/lib/private-json"
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     if (accessError) {
       return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
-    const message = error instanceof Error ? error.message : "Transcription failed."
-    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
+    const apiError = readPrivateApiError(error, { fallback: "Transcription failed.", status: 500 })
+    return privateJson({ error: apiError.error }, { status: apiError.status })
   }
 }
