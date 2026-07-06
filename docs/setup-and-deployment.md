@@ -19,6 +19,7 @@ OPENAI_MODEL="gpt-5-mini"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 INNER_AVATAR_WEB_URL="http://localhost:3000"
 NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
+APP_TIME_ZONE="America/Los_Angeles"
 RESEND_API_KEY=""
 AUTH_EMAIL_FROM="Supraconscious <no-reply@example.com>"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
@@ -64,6 +65,7 @@ Production environment checklist:
 | `NEXT_PUBLIC_APP_URL` | Required | Required | Required | Public web origin. |
 | `INNER_AVATAR_WEB_URL` | Required | Required | Required | Public web origin for founder handoff links, auth verification/reset emails, ChatGPT widget redirects, and CORS. |
 | `NEXT_PUBLIC_ADMIN_URL` | Required | Required | Required | Used for admin review links. |
+| `APP_TIME_ZONE` | Recommended | No | No | IANA timezone used by the web app for daily journal curriculum selection and "today" labels. Defaults to `America/Los_Angeles`. |
 | `RESEND_API_KEY` | Required for production auth email | Optional | No | Enables verification and password reset delivery. |
 | `AUTH_EMAIL_FROM` | Required with Resend | Optional | No | Must be an approved sender domain/address. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Recommended | No | Enables visible Turnstile widgets. |

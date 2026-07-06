@@ -1,16 +1,11 @@
+const DEFAULT_APP_TIME_ZONE = "America/Los_Angeles"
+
 const LONG_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
   weekday: "long",
   month: "long",
   day: "numeric",
   year: "numeric",
-})
-
-const JOURNAL_TODAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  timeZone: "UTC",
-  weekday: "long",
-  month: "long",
-  day: "numeric",
 })
 
 const MONTH_DAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
@@ -42,14 +37,52 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
 })
 
+export type AppCalendarDate = {
+  year: number
+  month: number
+  day: number
+  label: string
+  timeZone: string
+}
+
+export function resolveAppTimeZone(value = process.env.APP_TIME_ZONE) {
+  const timeZone = value?.trim() || DEFAULT_APP_TIME_ZONE
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone }).format(new Date())
+    return timeZone
+  } catch {
+    return DEFAULT_APP_TIME_ZONE
+  }
+}
+
+export function getAppCalendarDate(value: string | Date = new Date(), timeZone = resolveAppTimeZone()): AppCalendarDate {
+  const date = new Date(value)
+  const labelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
+  const partsFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+  const parts = Object.fromEntries(partsFormatter.formatToParts(date).map((part) => [part.type, part.value]))
+
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    label: labelFormatter.format(date),
+    timeZone,
+  }
+}
+
 export function formatWebLongDate(value: string | Date | null | undefined) {
   if (!value) return "-"
   return LONG_DATE_FORMATTER.format(new Date(value))
-}
-
-export function formatWebJournalToday(value: string | Date | null | undefined) {
-  if (!value) return "-"
-  return JOURNAL_TODAY_FORMATTER.format(new Date(value))
 }
 
 export function formatWebMonthDay(value: string | Date | null | undefined) {

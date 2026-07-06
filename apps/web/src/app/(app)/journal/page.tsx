@@ -1,16 +1,16 @@
 import { prisma } from "@inner-avatar/db"
 import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
-import { formatWebJournalToday } from "@/lib/date-format"
+import { getAppCalendarDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 export default async function JournalPage() {
   const user = await requireJournalAccessPageUser("/journal")
 
-  const today = new Date()
-  const month = today.getMonth() + 1
-  const day = today.getDate()
-  const todayLabel = formatWebJournalToday(today)
+  const today = getAppCalendarDate()
+  const month = today.month
+  const day = today.day
+  const todayLabel = today.label
   const promptSelect = {
     id: true,
     month: true,

@@ -80,6 +80,7 @@ Expected runtime values:
 - `NEXT_PUBLIC_APP_URL`
 - `INNER_AVATAR_WEB_URL`
 - `NEXT_PUBLIC_ADMIN_URL`
+- `APP_TIME_ZONE` for daily journal curriculum selection and "today" labels; defaults to `America/Los_Angeles`
 - `CHATGPT_APP_API_TOKEN` for hosted ChatGPT/MCP tool execution
 - `SUPER_ADMIN_EMAILS` before first admin login
 - `RESEND_API_KEY` and `AUTH_EMAIL_FROM` for email verification and password reset delivery
@@ -89,7 +90,7 @@ For managed production Postgres, use a URL with `sslmode=verify-full` when TLS i
 
 Stripe variables are optional only while billing is intentionally disabled. Before testing or enabling paid plans, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_STARTER_PRICE_ID`, `STRIPE_PRO_PRICE_ID`, and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` for the web app. Admin needs `STRIPE_SECRET_KEY` to inspect or clean up subscription/customer state.
 
-Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUBLIC_ADMIN_URL`; set both to real public origins in staging or production so copied launch packets do not point at localhost.
+Founder calibration handoff links depend on `INNER_AVATAR_WEB_URL` and `NEXT_PUBLIC_ADMIN_URL`; set both to real public origins in staging or production so copied launch packets do not point at localhost. Set `APP_TIME_ZONE` to the IANA timezone that should define the daily journal curriculum boundary.
 
 The ChatGPT/MCP container also uses `INNER_AVATAR_WEB_URL` / `NEXT_PUBLIC_APP_URL` for widget redirects and CORS. It listens on `CHATGPT_APP_PORT` when set, otherwise on the platform-provided `PORT`, and finally defaults to `3002`. Set `CHATGPT_APP_API_TOKEN` in hosted, staging, and production environments so MCP tool execution requires a bearer token; `/health` and tool metadata can remain public.
 
