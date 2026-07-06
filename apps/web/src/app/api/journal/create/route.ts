@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
+import { buildCreatedJournalEntryResponse, CREATED_JOURNAL_ENTRY_SELECT } from "@/lib/journal-entry-response"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { privateJson } from "@/lib/private-json"
 
@@ -21,9 +22,10 @@ export async function POST(request: Request) {
         inputMode: body.inputMode,
         isDraft: body.isDraft,
       },
+      select: CREATED_JOURNAL_ENTRY_SELECT,
     })
 
-    return privateJson({ journalEntry })
+    return privateJson(buildCreatedJournalEntryResponse(journalEntry))
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
