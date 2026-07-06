@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { resolveFounderWebHref } from "../src/lib/founder-web-links"
+import { resolveFounderHandoffHref, resolveFounderHandoffText, resolveFounderWebHref } from "../src/lib/founder-web-links"
 
 test("founder web links send protected journal paths through login with next destination", () => {
   assert.equal(
@@ -22,4 +22,25 @@ test("founder web links prefill email for public auth links and leave admin path
     "https://app.example.com/register?email=maria%40example.com",
   )
   assert.equal(resolveFounderWebHref("/calibration/live", "https://app.example.com", "maria@example.com"), "/calibration/live")
+})
+
+test("founder handoff links can resolve admin review links with the admin origin", () => {
+  assert.equal(
+    resolveFounderHandoffHref(
+      "/calibration/live",
+      "https://app.example.com",
+      "maria@example.com",
+      "https://admin.example.com",
+    ),
+    "https://admin.example.com/calibration/live",
+  )
+})
+
+test("founder handoff text resolves web and admin paths in copyable instructions", () => {
+  const text = "Register at /register, complete /onboarding, then review at /calibration/live."
+
+  assert.equal(
+    resolveFounderHandoffText(text, "https://app.example.com", "carl@example.com", "https://admin.example.com"),
+    "Register at https://app.example.com/register?email=carl%40example.com, complete https://app.example.com/login?email=carl%40example.com&next=%2Fonboarding%3Fnext%3D%252Fjournal, then review at https://admin.example.com/calibration/live.",
+  )
 })

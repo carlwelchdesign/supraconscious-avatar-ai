@@ -7,6 +7,7 @@ import {
   FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
 } from "@inner-avatar/ai"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { resolveFounderHandoffHref, resolveFounderHandoffText } from "@/lib/founder-web-links"
 import {
   activateFounderCalibrationParticipantAction,
   addFounderCalibrationParticipantAction,
@@ -142,7 +143,7 @@ export default async function FounderCalibrationSetupPage({
             <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} />
             <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} />
             <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} />
-            <SafeLink href="/calibration/live" label="Live review" />
+            <SafeLink href="/calibration/live" label="Live review" webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
           </div>
         </CardContent>
       </Card>
@@ -310,10 +311,6 @@ function Metric({ title, value }: { title: string; value: string | number }) {
   )
 }
 
-const FOUNDER_WEB_PATHS = new Set(["/register", "/login", "/onboarding", "/journal"])
-const PROTECTED_FOUNDER_WEB_PATHS = new Set(["/onboarding", "/journal"])
-const FOUNDER_ADMIN_PATHS = new Set(["/calibration/live", "/calibration/setup"])
-
 function readWebAppBaseUrl() {
   return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
@@ -322,42 +319,20 @@ function readAdminAppBaseUrl() {
   return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001").replace(/\/+$/, "")
 }
 
-function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: string | null, adminAppBaseUrl?: string) {
-  if (!href) return null
-  if (href.startsWith("http://") || href.startsWith("https://")) return href
-  if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) return `${adminAppBaseUrl}${href}`
-  if (isFounderWebPath(href)) {
-    if (email && isProtectedFounderWebPath(href)) {
-      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(buildProtectedFounderNextPath(href))}`
-    }
-    const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
-    return `${webAppBaseUrl}${href}${suffix}`
-  }
-  return href
-}
-
-function buildProtectedFounderNextPath(href: string) {
-  if (href === "/onboarding") return `/onboarding?next=${encodeURIComponent("/journal")}`
-  return href
-}
-
-function resolveHandoffText(text: string, webAppBaseUrl: string, email?: string | null, adminAppBaseUrl?: string) {
-  return text.replace(/(^|[\s:])\/(register|login|onboarding|journal(?:\/[A-Za-z0-9_-]+)?|calibration\/live|calibration\/setup)(?=$|[\s.,)])/g, (_match, prefix: string, path: string) => {
-    const href = `/${path}`
-    return `${prefix}${resolveHandoffHref(href, webAppBaseUrl, email, adminAppBaseUrl) ?? href}`
-  })
-}
-
-function isFounderWebPath(href: string) {
-  return FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
-}
-
-function isProtectedFounderWebPath(href: string) {
-  return PROTECTED_FOUNDER_WEB_PATHS.has(href) || href.startsWith("/journal/")
-}
-
-function SafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl?: string; email?: string | null }) {
-  const resolvedHref = webAppBaseUrl ? resolveHandoffHref(href, webAppBaseUrl, email) : href
+function SafeLink({
+  href,
+  label,
+  webAppBaseUrl,
+  email,
+  adminAppBaseUrl,
+}: {
+  href: string
+  label: string
+  webAppBaseUrl?: string
+  email?: string | null
+  adminAppBaseUrl?: string
+}) {
+  const resolvedHref = webAppBaseUrl ? resolveFounderHandoffHref(href, webAppBaseUrl, email, adminAppBaseUrl) : href
   return (
     <Link href={resolvedHref ?? href} className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">
       {label}
@@ -366,7 +341,7 @@ function SafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: 
 }
 
 function InlineSafeLink({ href, label, webAppBaseUrl, email }: { href: string; label: string; webAppBaseUrl: string; email?: string | null }) {
-  const resolvedHref = resolveHandoffHref(href, webAppBaseUrl, email) ?? href
+  const resolvedHref = resolveFounderHandoffHref(href, webAppBaseUrl, email) ?? href
   return <Link href={resolvedHref} className="underline">{label}</Link>
 }
 
@@ -433,8 +408,8 @@ function FounderHandoff({
   webAppBaseUrl: string
   adminAppBaseUrl: string
 }) {
-  const primaryHandoffHref = resolveHandoffHref(status.primaryHandoffHref, webAppBaseUrl, status.email, adminAppBaseUrl)
-  const handoffText = resolveHandoffText(status.handoffText, webAppBaseUrl, status.email, adminAppBaseUrl)
+  const primaryHandoffHref = resolveFounderHandoffHref(status.primaryHandoffHref, webAppBaseUrl, status.email, adminAppBaseUrl)
+  const handoffText = resolveFounderHandoffText(status.handoffText, webAppBaseUrl, status.email, adminAppBaseUrl)
 
   return (
     <div className="rounded-md border p-4 text-sm">
@@ -443,7 +418,7 @@ function FounderHandoff({
           <p className="font-medium">Send this to {role}</p>
           <p className="mt-1 text-xs text-muted-foreground">{status.email ?? "Participant not configured"}</p>
         </div>
-        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" webAppBaseUrl={webAppBaseUrl} email={status.email} /> : null}
+        {primaryHandoffHref ? <SafeLink href={primaryHandoffHref} label="Primary link" webAppBaseUrl={webAppBaseUrl} email={status.email} adminAppBaseUrl={adminAppBaseUrl} /> : null}
         <CopyHandoffButton text={handoffText} />
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Next: {status.nextAction}</p>
@@ -457,7 +432,7 @@ function FounderHandoff({
         <SafeLink href="/login" label="Login" webAppBaseUrl={webAppBaseUrl} email={status.email} />
         <SafeLink href="/onboarding" label="Onboarding" webAppBaseUrl={webAppBaseUrl} email={status.email} />
         <SafeLink href="/journal" label="Journal" webAppBaseUrl={webAppBaseUrl} email={status.email} />
-        <SafeLink href="/calibration/live" label="Live review" />
+        <SafeLink href="/calibration/live" label="Live review" webAppBaseUrl={webAppBaseUrl} adminAppBaseUrl={adminAppBaseUrl} />
       </div>
     </div>
   )
