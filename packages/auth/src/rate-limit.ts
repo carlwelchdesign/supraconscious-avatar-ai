@@ -1,7 +1,7 @@
 import "server-only"
 
-import { headers } from "next/headers"
 import { prisma } from "@inner-avatar/db"
+import { readClientIp } from "./client-ip"
 import {
   getUsableAuthRateLimitBucketDelegate,
   hasUsableAuthRateLimitWriteClient,
@@ -104,14 +104,4 @@ async function getRateLimitKeys(scope: AuthRateLimitScope, email?: string | null
 
 function getWindowStart(now: Date, windowMs: number) {
   return new Date(Math.floor(now.getTime() / windowMs) * windowMs)
-}
-
-async function readClientIp() {
-  try {
-    const headerStore = await headers()
-    const forwardedFor = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim()
-    return forwardedFor || headerStore.get("x-real-ip") || headerStore.get("cf-connecting-ip") || null
-  } catch {
-    return null
-  }
 }

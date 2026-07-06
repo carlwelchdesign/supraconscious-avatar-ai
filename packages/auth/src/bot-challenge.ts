@@ -1,7 +1,7 @@
 import "server-only"
 
-import { headers } from "next/headers"
 import { readBotChallengeMode } from "./bot-challenge-config"
+import { readClientIp } from "./client-ip"
 
 export type BotChallengeResult = {
   ok: boolean
@@ -49,14 +49,4 @@ export async function verifyBotChallenge(token: string | undefined | null): Prom
   }
 
   return { ok: true }
-}
-
-async function readClientIp() {
-  try {
-    const headerStore = await headers()
-    const forwardedFor = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim()
-    return forwardedFor || headerStore.get("x-real-ip") || headerStore.get("cf-connecting-ip") || null
-  } catch {
-    return null
-  }
 }
