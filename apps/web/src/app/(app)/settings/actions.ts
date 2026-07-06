@@ -9,6 +9,7 @@ import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { destroySession, getCurrentSession, hashPassword, requireAppUser, verifyPassword } from "@inner-avatar/auth/session"
 import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
+import { buildAccountDeletionAuditMetadata } from "@/lib/account-deletion-audit"
 
 export type VoiceActionState = { ok: boolean } | null
 
@@ -254,11 +255,10 @@ export async function deleteAccountAction(formData: FormData) {
         targetType: "User",
         targetId: user.id,
         reason: "User deleted account from settings.",
-        metadata: {
+        metadata: buildAccountDeletionAuditMetadata({
           email: currentUser.email,
-          selfService: true,
           stripeCleanup,
-        },
+        }),
       },
     }),
     prisma.user.delete({

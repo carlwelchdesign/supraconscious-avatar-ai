@@ -1,3 +1,4 @@
+import "./account-deletion-audit.test"
 import "./account-export-download.test"
 import "./app-origin.test"
 import "./app-date.test"
