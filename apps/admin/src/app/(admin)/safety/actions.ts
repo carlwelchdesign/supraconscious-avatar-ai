@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { requireAdminUser } from "@inner-avatar/auth/session"
+import { buildSafetyRevealAuditMetadata } from "@/lib/safety-audit"
 
 const RevealSchema = z.object({
   safetyEventId: z.string().min(1),
@@ -47,7 +48,11 @@ export async function revealFlaggedEntryAction(_state: RevealState, formData: Fo
       targetType: "JournalEntry",
       targetId: safetyEvent.journalEntry.id,
       reason: parsed.data.reason,
-      metadata: { safetyEventId: safetyEvent.id, severity: safetyEvent.severity },
+      metadata: buildSafetyRevealAuditMetadata({
+        safetyEventId: safetyEvent.id,
+        severity: safetyEvent.severity,
+        rawText: safetyEvent.journalEntry.rawText,
+      }),
       ipAddress: requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim(),
       userAgent: requestHeaders.get("user-agent"),
     },
