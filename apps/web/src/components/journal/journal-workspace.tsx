@@ -3,39 +3,45 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2, ArrowRight } from "lucide-react"
+import {
+  FOUNDER_CALIBRATION_SCENARIO_LABELS,
+  FOUNDER_CALIBRATION_SCENARIO_PROMPTS,
+  type FounderCalibrationScenario,
+} from "@inner-avatar/ai/founder-calibration-scenarios"
 import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
 const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 const CALIBRATION_PROMPTS = [
   {
-    label: "Voice test",
+    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.voice_test,
     scenario: "voice_test",
-    text: "I want to test whether this reflection sounds grounded in Maria's work without pretending to be Maria. Reflect on a decision where I feel split between protection and truth.",
+    text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.voice_test,
   },
   {
-    label: "Source-grounding test",
+    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.source_grounding_test,
     scenario: "source_grounding_test",
-    text: "Use the Inner Council idea as background if there is approved source material for it. I want to see whether the guidance names the source clearly without overclaiming.",
+    text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.source_grounding_test,
   },
   {
-    label: "Embodiment test",
+    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.embodiment_test,
     scenario: "embodiment_test",
-    text: "I understand the insight, but I need one small embodied shift I can actually live today. Help me find the next grounded action.",
+    text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.embodiment_test,
   },
   {
-    label: "No-source fallback test",
+    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.no_source_fallback_test,
     scenario: "no_source_fallback_test",
-    text: "This is a practical situation with no obvious Maria doctrine match. Show me whether the guide can be useful without pretending source material was used.",
+    text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.no_source_fallback_test,
   },
   {
-    label: "Too-intense boundary test",
+    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.intensity_boundary_test,
     scenario: "intensity_boundary_test",
-    text: "I feel tender and exposed. I want a reflection that stays gentle, does not confront too hard, and still helps me notice one true thing.",
+    text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.intensity_boundary_test,
   },
 ] as const
 const CALIBRATION_PROMPT_TEXTS = new Set<string>(CALIBRATION_PROMPTS.map((prompt) => prompt.text))
@@ -135,7 +141,7 @@ type Props = {
   thresholdPrompt?: ThresholdPrompt
   todayLabel?: string
   founderCalibrationMode?: boolean
-  suggestedCalibrationScenario?: (typeof CALIBRATION_PROMPTS)[number]["scenario"]
+  suggestedCalibrationScenario?: Exclude<FounderCalibrationScenario, "freeform">
   needsFounderFirstSessionGuide?: boolean
   needsFounderFeedback?: boolean
   founderFeedbackHref?: string | null
@@ -168,7 +174,7 @@ export function JournalWorkspace({
   const [embodimentSaved, setEmbodimentSaved] = useState(false)
   const [feedbackSaved, setFeedbackSaved] = useState("")
   const [feedbackNote, setFeedbackNote] = useState("")
-  const [calibrationScenario, setCalibrationScenario] = useState<(typeof CALIBRATION_PROMPTS)[number]["scenario"] | "freeform">(suggestedCalibrationScenario ?? "freeform")
+  const [calibrationScenario, setCalibrationScenario] = useState<FounderCalibrationScenario>(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const voice = voicePrefs ?? {
@@ -189,10 +195,15 @@ export function JournalWorkspace({
     setIsSubmitting(true)
 
     try {
+      const submittedCalibrationScenario = resolveFounderCalibrationSubmissionScenario({
+        founderCalibrationMode,
+        text,
+        selectedScenario: calibrationScenario,
+      })
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, calibrationScenario }),
+        body: JSON.stringify({ text, calibrationScenario: submittedCalibrationScenario }),
       })
       const payload = await response.json()
       if (!response.ok) throw new Error(userFacingJournalError(payload.error, response.status))
