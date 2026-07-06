@@ -800,10 +800,10 @@ function buildFounderHandoffText(participant: FounderCalibrationSetupParticipant
   const primaryPath = primaryHandoffHref ?? "/journal"
   const feedbackInstruction = "Submit one reflection and select a feedback type. Add a short note only if there is a specific voice, source, intensity, embodiment, or phrasing detail to capture."
   if (!participant.accountExists) {
-    return `Please register for Supraconscious using ${participant.email}, then complete onboarding. After onboarding, open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
+    return `Please register for Supraconscious using ${participant.email}, then complete onboarding. After onboarding, the journal will open with the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
   }
   if (!participant.onboardingComplete || !participant.consentPresent) {
-    return `Please log in as ${participant.email} and complete onboarding/consent. Then open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Continue here: ${primaryPath}`
+    return `Please log in as ${participant.email} and complete onboarding/consent. After onboarding, the journal will open with the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Continue here: ${primaryPath}`
   }
   if (participant.sessionCount === 0) {
     return `Please open /journal and use the preselected ${suggestedScenarioLabel} guided calibration prompt. ${feedbackInstruction} Start here: ${primaryPath}`
@@ -879,12 +879,17 @@ function resolveFounderHandoffHref(
   if (href.startsWith("http://") || href.startsWith("https://")) return href
   if (href === "/calibration/live" || href === "/calibration/setup") return `${adminAppBaseUrl}${href}`
   if ((href === "/onboarding" || href.startsWith("/journal")) && email) {
-    return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+    return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(buildProtectedFounderNextPath(href))}`
   }
   if ((href === "/register" || href === "/login") && email) {
     return `${webAppBaseUrl}${href}?email=${encodeURIComponent(email)}`
   }
   if (href.startsWith("/")) return `${webAppBaseUrl}${href}`
+  return href
+}
+
+function buildProtectedFounderNextPath(href: string) {
+  if (href === "/onboarding") return `/onboarding?next=${encodeURIComponent("/journal")}`
   return href
 }
 

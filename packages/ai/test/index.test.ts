@@ -1465,8 +1465,8 @@ test("founder handoff report resolves copyable web and admin links", () => {
   const carl = handoff.items.find((item) => item.role === "carl")
   const maria = handoff.items.find((item) => item.role === "maria")
 
-  assert.equal(carl?.primaryHref, "https://web.example/login?email=carl%40example.com&next=%2Fonboarding")
-  assert.match(carl?.handoffText ?? "", /https:\/\/web\.example\/login\?email=carl%40example\.com&next=%2Fonboarding/)
+  assert.equal(carl?.primaryHref, "https://web.example/login?email=carl%40example.com&next=%2Fonboarding%3Fnext%3D%252Fjournal")
+  assert.match(carl?.handoffText ?? "", /https:\/\/web\.example\/login\?email=carl%40example\.com&next=%2Fonboarding%3Fnext%3D%252Fjournal/)
   assert.equal(carl?.readyForFirstSession, false)
   assert.equal(maria?.primaryHref, "https://web.example/login?email=maria%40example.com&next=%2Fjournal%2Fentry_maria")
   assert.match(maria?.handoffText ?? "", /https:\/\/web\.example\/login\?email=maria%40example\.com&next=%2Fjournal%2Fentry_maria/)

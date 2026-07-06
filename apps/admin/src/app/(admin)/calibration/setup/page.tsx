@@ -328,11 +328,16 @@ function resolveHandoffHref(href: string | null, webAppBaseUrl: string, email?: 
   if (adminAppBaseUrl && FOUNDER_ADMIN_PATHS.has(href)) return `${adminAppBaseUrl}${href}`
   if (isFounderWebPath(href)) {
     if (email && isProtectedFounderWebPath(href)) {
-      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(href)}`
+      return `${webAppBaseUrl}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(buildProtectedFounderNextPath(href))}`
     }
     const suffix = email && (href === "/register" || href === "/login") ? `?email=${encodeURIComponent(email)}` : ""
     return `${webAppBaseUrl}${href}${suffix}`
   }
+  return href
+}
+
+function buildProtectedFounderNextPath(href: string) {
+  if (href === "/onboarding") return `/onboarding?next=${encodeURIComponent("/journal")}`
   return href
 }
 
