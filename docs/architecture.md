@@ -23,7 +23,7 @@ The web app owns user-facing routes:
 - `/`: public landing page.
 - `/pricing`: public pricing page.
 - `/login` and `/register`: web account entry points.
-- `/dashboard`, `/journal`, `/journal/[entryId]`, `/patterns`, `/guide`, `/settings`: authenticated product routes. `/avatar` remains as a compatibility route for older links.
+- `/dashboard`, `/journal`, `/journal/[entryId]`, `/patterns`, `/guide`, `/settings`: authenticated product routes. `/avatar` redirects to `/guide` for older links.
 - `/api/journal/*`, `/api/avatar/*`, `/api/prompts/*`, `/api/patterns`, `/api/voice/*`: user-facing backend routes.
 - `/api/billing/portal` and `/api/billing/webhook`: Stripe billing portal and webhook sync routes.
 

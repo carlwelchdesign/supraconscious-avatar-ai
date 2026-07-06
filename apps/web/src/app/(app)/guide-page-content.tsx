@@ -29,12 +29,8 @@ const stages = [
   },
 ]
 
-type Props = {
-  currentPath: "/guide" | "/avatar"
-}
-
-export async function GuidePageContent({ currentPath }: Props) {
-  const user = await requireJournalAccessPageUser(currentPath)
+export async function GuidePageContent() {
+  const user = await requireJournalAccessPageUser("/guide")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
   const currentStage = stages[stageIndex] ?? stages[0]
