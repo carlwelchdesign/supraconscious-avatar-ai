@@ -16,7 +16,7 @@ import {
 } from "./tools/index.js"
 import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
 import { logOperationalError, readPublicErrorMessage } from "./lib/errors.js"
-import { buildHealthPayload, HEALTH_RESPONSE_HEADERS } from "./lib/health-response.js"
+import { buildHealthPayload, PUBLIC_NO_STORE_HEADERS } from "./lib/health-response.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -47,6 +47,7 @@ app.get('/widget/config.js', (req, res) => {
   void req
   const webAppUrl = normalizeBaseUrl(process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
   res
+    .set(PUBLIC_NO_STORE_HEADERS)
     .type('application/javascript')
     .send(`window.INNER_AVATAR_WIDGET_CONFIG = ${JSON.stringify({ webAppUrl })};`)
 })
@@ -55,7 +56,7 @@ app.use('/widget', express.static(path.join(__dirname, 'widget')))
 // Health check
 app.get('/health', (req, res) => {
   void req
-  res.set(HEALTH_RESPONSE_HEADERS)
+  res.set(PUBLIC_NO_STORE_HEADERS)
   res.json(buildHealthPayload())
 })
 

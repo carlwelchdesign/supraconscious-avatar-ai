@@ -61,6 +61,8 @@ test('server exposes widget config with normalized web app URL', async () => {
 
     assert.strictEqual(response.status, 200)
     assert.match(response.headers.get('content-type') ?? '', /javascript/)
+    assert.strictEqual(response.headers.get('cache-control'), 'no-store, max-age=0')
+    assert.strictEqual(response.headers.get('x-content-type-options'), 'nosniff')
     assert.match(body, /INNER_AVATAR_WIDGET_CONFIG/)
     assert.match(body, /"webAppUrl":"https:\/\/web\.example"/)
     assert.doesNotMatch(body, /web\.example\//)
