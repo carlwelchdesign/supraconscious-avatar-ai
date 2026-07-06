@@ -196,7 +196,7 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* ── Avatar hero ──────────────────────────────────────── */}
+      {/* ── Guide hero ───────────────────────────────────────── */}
       <div
         className="rounded-3xl border p-8 flex items-center gap-8 overflow-hidden relative"
         style={{
