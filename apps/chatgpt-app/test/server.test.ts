@@ -124,6 +124,52 @@ test('server uses host PORT when CHATGPT_APP_PORT is not set', async () => {
   }
 })
 
+test('server redacts tool errors in production responses', async () => {
+  const previousToken = process.env.CHATGPT_APP_API_TOKEN
+  const previousNodeEnv = process.env.NODE_ENV
+  const previousError = console.error
+  const errors: string[] = []
+
+  process.env.CHATGPT_APP_API_TOKEN = 'secret-token'
+  process.env.NODE_ENV = 'production'
+  console.error = (...args: unknown[]) => {
+    errors.push(args.map((value) => typeof value === 'string' ? value : JSON.stringify(value)).join(' '))
+  }
+
+  server = startChatGptApp(0)
+  try {
+    const address = server.address()
+    const port = typeof address === 'string' ? 0 : address.port
+    const response = await fetch(`http://127.0.0.1:${port}/mcp/tools/create_journal_entry`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer secret-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ text: 'This should not be saved without an authenticated user.' }),
+    })
+    const body = await response.json()
+
+    assert.strictEqual(response.status, 400)
+    assert.deepStrictEqual(body, { error: 'Tool execution failed' })
+    assert.ok(errors.some((line) => line.includes('Tool execution error')))
+    assert.equal(JSON.stringify(body).includes('Authentication required'), false)
+  } finally {
+    console.error = previousError
+    server.close()
+    if (previousToken === undefined) {
+      delete process.env.CHATGPT_APP_API_TOKEN
+    } else {
+      process.env.CHATGPT_APP_API_TOKEN = previousToken
+    }
+    if (previousNodeEnv === undefined) {
+      delete process.env.NODE_ENV
+    } else {
+      process.env.NODE_ENV = previousNodeEnv
+    }
+  }
+})
+
 function getAvailablePort() {
   return new Promise<number>((resolve, reject) => {
     const probe = net.createServer()

@@ -15,6 +15,7 @@ import {
   saveReflectionSession
 } from "./tools/index.js"
 import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
+import { logOperationalError, readPublicErrorMessage } from "./lib/errors.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -199,9 +200,8 @@ app.post('/mcp/tools/:toolName',
 
     res.json(result)
   } catch (error) {
-    console.error('Tool execution error:', error)
-    const message = error instanceof Error ? error.message : 'Tool execution failed'
-    res.status(400).json({ error: message })
+    logOperationalError('Tool execution error', error)
+    res.status(400).json({ error: readPublicErrorMessage(error) })
   }
 })
 
@@ -209,7 +209,7 @@ app.post('/mcp/tools/:toolName',
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   void req
   void next
-  console.error('Server error:', err)
+  logOperationalError('Server error', err)
   res.status(500).json({ error: 'Internal server error' })
 })
 

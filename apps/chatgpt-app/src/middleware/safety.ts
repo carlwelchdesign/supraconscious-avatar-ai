@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import { classifyJournalSafety } from "@inner-avatar/ai"
+import { logOperationalError } from "../lib/errors.js"
 
 type ClassifyJournalSafetyFn = (text: string) => Promise<unknown>
 
@@ -33,7 +34,7 @@ export function createSafetyMiddleware(classifyFn: ClassifyJournalSafetyFn = cla
 
       next()
     } catch (error) {
-      console.error('Safety middleware error:', error)
+      logOperationalError('Safety middleware error', error)
       // Don't fail the request, just log and continue
       next()
     }
