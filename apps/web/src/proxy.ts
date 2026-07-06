@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { isProtectedAppPath } from "@/lib/protected-routes"
+import { privateProxyJsonInit } from "@/lib/proxy-response"
 
 export default function proxy(req: NextRequest) {
   const isProtected = isProtectedAppPath(req.nextUrl.pathname)
@@ -9,7 +10,7 @@ export default function proxy(req: NextRequest) {
   }
 
   if (req.nextUrl.pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, privateProxyJsonInit(401))
   }
 
   const loginUrl = new URL("/login", req.url)

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { privateProxyJsonInit } from "@/lib/proxy-response"
 
 export default function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
@@ -9,7 +10,7 @@ export default function proxy(req: NextRequest) {
   }
 
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Admin authorization required." }, { status: 401 })
+    return NextResponse.json({ error: "Admin authorization required." }, privateProxyJsonInit(401))
   }
 
   return NextResponse.redirect(new URL("/login", req.url))
