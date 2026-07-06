@@ -110,6 +110,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: node .yarn/releases/yarn-4.cjs install --immutable
+
       - name: Validate Docker Compose config
         run: node .yarn/releases/yarn-4.cjs docker:compose:config
 
