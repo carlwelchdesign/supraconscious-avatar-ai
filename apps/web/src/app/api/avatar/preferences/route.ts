@@ -4,6 +4,7 @@ import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { privateJson } from "@/lib/private-json"
+import { PUBLIC_USER_PREFERENCES_SELECT } from "@/lib/public-user-preferences"
 
 const PreferencesSchema = z.object({
   avatarTone: z.enum(["gentle", "balanced", "direct"]).optional(),
@@ -22,6 +23,7 @@ export async function PATCH(request: Request) {
       const savedUser = await tx.user.update({
         where: { id: user.id },
         data: body,
+        select: PUBLIC_USER_PREFERENCES_SELECT,
       })
 
       if (patternMemoryChanged) {
