@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 
 const EmbodimentRequestSchema = z.object({
   councilSessionId: z.string().min(1),
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     })
 
     if (!session) {
-      return NextResponse.json({ error: "Council session not found." }, { status: 404 })
+      return privateJson({ error: "Council session not found." }, { status: 404 })
     }
 
     const response = await prisma.embodimentGateResponse.create({
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       properties: { responseLength: body.text.length },
     })
 
-    return NextResponse.json({
+    return privateJson({
       response: {
         id: response.id,
         saved: true,
@@ -56,9 +56,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to save embodiment response."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

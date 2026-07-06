@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server"
 import { JournalAnalyzeRequestSchema, runCouncilReflection } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 
 export async function POST(request: Request) {
   try {
@@ -28,14 +28,14 @@ export async function POST(request: Request) {
       requestId: request.headers.get("x-request-id") ?? undefined,
     })
 
-    return NextResponse.json(result)
+    return privateJson(result)
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to analyze journal entry."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }
 

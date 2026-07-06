@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import {
   classifyJournalSafety,
@@ -7,6 +6,7 @@ import {
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
+import { privateJson } from "@/lib/private-json"
 
 const GeneratePromptSchema = z.object({
   journalEntryId: z.string().min(1).optional(),
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({
+    return privateJson({
       journalEntryId: journalEntry.id,
       safety,
       analysis,
@@ -54,9 +54,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to generate personalized prompt."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 
 export async function GET() {
   try {
@@ -23,13 +23,13 @@ export async function GET() {
       }),
     ])
 
-    return NextResponse.json({ patterns, recentEntries })
+    return privateJson({ patterns, recentEntries })
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to load patterns."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

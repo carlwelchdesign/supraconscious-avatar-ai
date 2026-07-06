@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { synthesizeSpeech } from "@/lib/voice/speak"
 
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const usage = await reserveVoiceUsage("voice_speak", user.id)
     if (!usage.allowed) {
-      return NextResponse.json({ error: voiceRateLimitMessage("voice_speak") }, { status: 429 })
+      return privateJson({ error: voiceRateLimitMessage("voice_speak") }, { status: 429 })
     }
 
     const audio = await synthesizeSpeech(body.text, body.gender, body.style, body.speed)
@@ -33,9 +33,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Speech synthesis failed."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 500 })
   }
 }

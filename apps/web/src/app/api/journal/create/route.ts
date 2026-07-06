@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 
 const CreateJournalEntrySchema = z.object({
   text: z.string().trim().min(1),
@@ -23,13 +23,13 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ journalEntry })
+    return privateJson({ journalEntry })
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to create journal entry."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

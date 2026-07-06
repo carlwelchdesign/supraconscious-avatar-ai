@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { privateJson } from "@/lib/private-json"
 
 const VoicePrefsSchema = z.object({
   voiceEnabled: z.boolean().optional(),
@@ -18,10 +18,10 @@ export async function PATCH(request: Request) {
     const user = await requireAppUser()
     const body = VoicePrefsSchema.parse(await request.json())
     const updated = await prisma.user.update({ where: { id: user.id }, data: body })
-    return NextResponse.json({ user: updated })
+    return privateJson({ user: updated })
   } catch (error) {
     if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : "Unable to update voice preferences."
-    return NextResponse.json({ error: message }, { status: 400 })
+    return privateJson({ error: message }, { status: 400 })
   }
 }

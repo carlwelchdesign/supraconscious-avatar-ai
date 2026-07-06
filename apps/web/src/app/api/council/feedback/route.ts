@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { privateJson } from "@/lib/private-json"
 
 const FeedbackRequestSchema = z.object({
   councilSessionId: z.string().min(1),
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     })
 
     if (!session) {
-      return NextResponse.json({ error: "Council session not found." }, { status: 404 })
+      return privateJson({ error: "Council session not found." }, { status: 404 })
     }
 
     const feedback = await prisma.councilSessionFeedback.create({
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       properties: { feedbackType: body.feedbackType, hasNote: Boolean(body.note) },
     })
 
-    return NextResponse.json({
+    return privateJson({
       feedback: {
         id: feedback.id,
         feedbackType: feedback.feedbackType,
@@ -54,9 +54,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
-      return NextResponse.json({ error: accessError.error, code: accessError.code }, { status: accessError.status })
+      return privateJson({ error: accessError.error, code: accessError.code }, { status: accessError.status })
     }
     const message = error instanceof Error ? error.message : "Unable to save feedback."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }

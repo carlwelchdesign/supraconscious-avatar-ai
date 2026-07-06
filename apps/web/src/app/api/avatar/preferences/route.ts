@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/auth/consent"
 import { requireAppUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
+import { privateJson } from "@/lib/private-json"
 
 const PreferencesSchema = z.object({
   avatarTone: z.enum(["gentle", "balanced", "direct"]).optional(),
@@ -52,9 +52,9 @@ export async function PATCH(request: Request) {
       })
     }
 
-    return NextResponse.json({ user: updated })
+    return privateJson({ user: updated })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update preferences."
-    return NextResponse.json({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
+    return privateJson({ error: message }, { status: message === "Unauthorized" ? 401 : 400 })
   }
 }
