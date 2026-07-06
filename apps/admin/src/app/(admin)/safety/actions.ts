@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
+import { readClientIp } from "@inner-avatar/auth/client-ip"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { buildSafetyRevealAuditMetadata } from "@/lib/safety-audit"
 
@@ -40,7 +41,7 @@ export async function revealFlaggedEntryAction(_state: RevealState, formData: Fo
     return { error: "No journal entry is attached to this safety event." }
   }
 
-  const requestHeaders = await headers()
+  const [requestHeaders, ipAddress] = await Promise.all([headers(), readClientIp()])
   await prisma.auditLog.create({
     data: {
       actorId: actor.id,
@@ -53,7 +54,7 @@ export async function revealFlaggedEntryAction(_state: RevealState, formData: Fo
         severity: safetyEvent.severity,
         rawText: safetyEvent.journalEntry.rawText,
       }),
-      ipAddress: requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim(),
+      ipAddress,
       userAgent: requestHeaders.get("user-agent"),
     },
   })

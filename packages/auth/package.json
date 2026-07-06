@@ -8,6 +8,7 @@
     "./account-email-url": "./src/account-email-url.ts",
     "./account-email": "./src/account-email.ts",
     "./actions": "./src/actions.ts",
+    "./client-ip": "./src/client-ip.ts",
     "./consent": "./src/consent.ts",
     "./email": "./src/email.ts",
     "./redirects": "./src/redirects.ts",
