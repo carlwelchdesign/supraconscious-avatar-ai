@@ -6,6 +6,7 @@ import { z } from "zod"
 import { hashPassword, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { hashEmailForAudit } from "@/lib/audit-metadata"
+import { buildAdminSessionRevocationMetadata } from "@/lib/user-admin-audit"
 
 const ResetUserPasswordSchema = z.object({
   userId: z.string().min(1),
@@ -31,6 +32,16 @@ export async function resetUserPasswordAction(formData: FormData) {
     select: { id: true, email: true, role: true },
   })
   if (!targetUser) redirect("/users?status=user_missing")
+  const targetUserEmailHash = hashEmailForAudit(targetUser.email)
+  const targetSessions = await prisma.session.findMany({
+    where: { userId: targetUser.id },
+    select: { scope: true },
+  })
+  const sessionRevocationMetadata = buildAdminSessionRevocationMetadata({
+    emailHash: targetUserEmailHash,
+    revokedSessionCount: targetSessions.length,
+    scopes: targetSessions.map((session) => session.scope),
+  })
 
   const [updatedUser, revokedSessions] = await prisma.$transaction([
     prisma.user.update({
@@ -49,9 +60,11 @@ export async function resetUserPasswordAction(formData: FormData) {
         targetId: targetUser.id,
         reason: parsed.data.reason,
         metadata: {
-          emailHash: hashEmailForAudit(targetUser.email),
+          emailHash: targetUserEmailHash,
           role: targetUser.role,
           revokedExistingSessions: true,
+          revokedSessionCount: targetSessions.length,
+          sessionScopes: sessionRevocationMetadata.sessionScopes,
           passwordStored: false,
         },
       },
@@ -68,7 +81,7 @@ export async function resetUserPasswordAction(formData: FormData) {
         targetId: targetUser.id,
         reason: parsed.data.reason,
         metadata: {
-          emailHash: hashEmailForAudit(targetUser.email),
+          ...sessionRevocationMetadata,
           revokedSessionCount: revokedSessions.count,
         },
       },
