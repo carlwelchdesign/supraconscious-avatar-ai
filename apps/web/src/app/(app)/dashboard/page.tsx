@@ -4,6 +4,7 @@ import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
+import { readFounderFeedbackSummary } from "@/lib/founder-feedback-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
@@ -331,13 +332,18 @@ export default async function DashboardPage({
               const pattern = entry.avatarResponse?.patternName
               const safety = entry.councilSession?.safetySnapshot as { severity?: string } | undefined
               const feedbackTypes = entry.councilSession?.feedback.map((item) => item.feedbackType) ?? []
+              const hasFeedback = Boolean(entry.councilSession?.feedback.length)
+              const hasFeedbackNote = Boolean(entry.councilSession?.feedback.some((item) => item.note?.trim()))
+              const founderFeedbackSummary = founderCalibrationMode
+                ? readFounderFeedbackSummary({ hasFeedback, hasFeedbackNote })
+                : null
               const review = entry.councilSession?.qualityReviews[0]
               const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
               const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
               const statuses = [
                 entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
-                entry.councilSession?.feedback.length ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
-                founderCalibrationMode && entry.councilSession?.feedback.some((item) => item.note?.trim()) ? "Note added" : null,
+                hasFeedback ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
+                founderCalibrationMode && hasFeedbackNote ? "Note added" : null,
                 reportedForReview && !reviewMetadata?.feedbackDisposition ? "Needs follow-up" : null,
                 review?.severity === "pilot_blocker" ? "Needs attention" : null,
                 reviewMetadata?.feedbackDisposition === "cleared" ? "Resolved" : null,
@@ -403,9 +409,9 @@ export default async function DashboardPage({
                         <p className="text-[11px] font-light text-[var(--plum-soft)]/70">
                           {statuses.join(" · ")}
                         </p>
-                        {founderCalibrationMode && entry.councilSession?.feedback.length ? (
+                        {founderFeedbackSummary ? (
                           <p className="text-[11px] font-light text-[var(--plum-soft)]/60">
-                            Calibration note saved. It helps tune the guide; it does not automatically retrain it.
+                            {founderFeedbackSummary}
                           </p>
                         ) : null}
                       </div>
