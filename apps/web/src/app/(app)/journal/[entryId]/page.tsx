@@ -9,6 +9,7 @@ import { formatWebLongDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
+import { DeleteJournalEntryForm } from "./delete-journal-entry-form"
 import { SavedSessionFeedbackForm } from "./saved-session-feedback-form"
 
 const GUIDE_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
@@ -161,12 +162,7 @@ export default async function JournalEntryPage({
         </div>
       )}
 
-      <form action={deleteJournalEntryAction}>
-        <input type="hidden" name="journalEntryId" value={entry.id} />
-        <button className="rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-          Delete this entry
-        </button>
-      </form>
+      <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} />
 
       {/* Entry text */}
       <div
