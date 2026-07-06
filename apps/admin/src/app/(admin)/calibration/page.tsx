@@ -3,6 +3,7 @@ import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFi
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { formatAdminDateTime } from "@/lib/date-format"
+import { resolveFounderWebHref } from "@/lib/founder-web-links"
 import { reviewCalibrationSessionAction } from "./actions"
 
 const LABELS = [
@@ -43,12 +44,14 @@ export default async function CalibrationPage({
     runFounderCalibrationReport(),
     resolveFounderCalibrationUserFilter(),
   ])
+  const webAppBaseUrl = readWebAppBaseUrl()
   const sessions = await prisma.councilSession.findMany({
     where: { user: founderFilter.where },
     orderBy: { createdAt: "desc" },
     take: 30,
     select: {
       id: true,
+      journalEntryId: true,
       sourceMode: true,
       createdAt: true,
       observerSignal: true,
@@ -231,9 +234,17 @@ export default async function CalibrationPage({
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">session: {session.id}</p>
                   </div>
-                  <Link href={`/council?sessionId=${session.id}`} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
-                    Council workbench
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={resolveFounderWebHref(`/journal/${session.journalEntryId}`, webAppBaseUrl, session.user.email)}
+                      className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                    >
+                      Saved session
+                    </Link>
+                    <Link href={`/council?sessionId=${session.id}`} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">
+                      Council workbench
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -365,6 +376,10 @@ function Metric({ title, value }: { title: string; value: string | number }) {
       <CardContent className="text-3xl font-semibold">{value}</CardContent>
     </Card>
   )
+}
+
+function readWebAppBaseUrl() {
+  return (process.env.INNER_AVATAR_WEB_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 }
 
 function PresetReviewButton({
