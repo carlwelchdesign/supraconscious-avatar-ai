@@ -11,6 +11,7 @@ test("runtime readiness treats local optional services as notes", () => {
   })
 
   assert.equal(readiness.openAiConfigured, false)
+  assert.equal(readiness.authSecretConfigured, false)
   assert.equal(readiness.superAdminConfigured, false)
   assert.equal(readiness.turnstileMode, "disabled")
   assert.deepEqual(readiness.productionBlockers, [])
@@ -24,6 +25,7 @@ test("runtime readiness blocks production without required launch configuration"
   })
 
   assert.equal(readiness.turnstileMode, "misconfigured")
+  assert.ok(readiness.productionBlockers.some((blocker) => blocker.includes("AUTH_SECRET")))
   assert.ok(readiness.productionBlockers.some((blocker) => blocker.includes("OPENAI_API_KEY")))
   assert.ok(readiness.productionBlockers.some((blocker) => blocker.includes("SUPER_ADMIN_EMAILS")))
   assert.ok(readiness.productionBlockers.some((blocker) => blocker.includes("Turnstile")))
@@ -33,6 +35,7 @@ test("runtime readiness blocks production without required launch configuration"
 test("runtime readiness passes production core requirements when configured", () => {
   const readiness = evaluateRuntimeReadiness({
     NODE_ENV: "production",
+    AUTH_SECRET: "long-random-secret",
     OPENAI_API_KEY: "sk-live",
     SUPER_ADMIN_EMAILS: "admin@example.com",
     RESEND_API_KEY: "resend",
@@ -44,6 +47,7 @@ test("runtime readiness passes production core requirements when configured", ()
   })
 
   assert.equal(readiness.openAiConfigured, true)
+  assert.equal(readiness.authSecretConfigured, true)
   assert.equal(readiness.superAdminConfigured, true)
   assert.equal(readiness.authEmailConfigured, true)
   assert.equal(readiness.turnstileMode, "configured")

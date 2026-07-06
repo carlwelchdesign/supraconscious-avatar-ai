@@ -1,5 +1,6 @@
 export type RuntimeReadinessEnv = {
   NODE_ENV?: string
+  AUTH_SECRET?: string
   OPENAI_API_KEY?: string
   SUPER_ADMIN_EMAILS?: string
   RESEND_API_KEY?: string
@@ -16,6 +17,7 @@ export type RuntimeReadinessEnv = {
 }
 
 export type RuntimeReadiness = {
+  authSecretConfigured: boolean
   openAiConfigured: boolean
   superAdminConfigured: boolean
   authEmailConfigured: boolean
@@ -27,6 +29,7 @@ export type RuntimeReadiness = {
 }
 
 export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadiness {
+  const authSecretConfigured = hasValue(env.AUTH_SECRET)
   const openAiConfigured = hasValue(env.OPENAI_API_KEY)
   const superAdminConfigured = hasValue(env.SUPER_ADMIN_EMAILS)
   const authEmailConfigured = hasValue(env.RESEND_API_KEY) && hasValue(env.AUTH_EMAIL_FROM)
@@ -42,6 +45,7 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
   const production = env.NODE_ENV === "production"
 
   const productionBlockers = [
+    production && !authSecretConfigured ? "AUTH_SECRET is required for production session security." : null,
     production && !openAiConfigured ? "OPENAI_API_KEY is required for production AI and voice behavior." : null,
     production && !superAdminConfigured ? "SUPER_ADMIN_EMAILS is required before the first admin login." : null,
     production && !authEmailConfigured ? "RESEND_API_KEY and AUTH_EMAIL_FROM are required for production verification and password reset email." : null,
@@ -59,6 +63,7 @@ export function evaluateRuntimeReadiness(env: RuntimeReadinessEnv): RuntimeReadi
   ].filter((message): message is string => Boolean(message))
 
   return {
+    authSecretConfigured,
     openAiConfigured,
     superAdminConfigured,
     authEmailConfigured,
