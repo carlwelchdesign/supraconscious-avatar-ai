@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { createBillingPortalSession } from "@inner-avatar/billing"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { resolveFirstPartyAppOrigin } from "@/lib/app-origin"
 
 export async function POST() {
   const user = await requireAppUser()
@@ -25,10 +26,8 @@ export async function POST() {
 
 async function requestOrigin() {
   const headerStore = await headers()
-  const origin = headerStore.get("origin")
-  if (origin) return origin
-
-  const host = headerStore.get("host")
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  return host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  return resolveFirstPartyAppOrigin({
+    requestOrigin: headerStore.get("origin"),
+    requestHost: headerStore.get("host"),
+  })
 }

@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createSubscriptionCheckoutSession, type BillingPlan } from "@inner-avatar/billing"
 import { requireAppUser } from "@inner-avatar/auth/session"
+import { resolveFirstPartyAppOrigin } from "@/lib/app-origin"
 
 const validPlans = new Set<BillingPlan>(["starter", "pro"])
 
@@ -36,10 +37,8 @@ export async function startCheckoutAction(formData: FormData) {
 
 async function requestOrigin() {
   const headerStore = await headers()
-  const origin = headerStore.get("origin")
-  if (origin) return origin
-
-  const host = headerStore.get("host")
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  return host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  return resolveFirstPartyAppOrigin({
+    requestOrigin: headerStore.get("origin"),
+    requestHost: headerStore.get("host"),
+  })
 }

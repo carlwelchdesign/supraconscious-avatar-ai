@@ -1,4 +1,5 @@
 import "./account-export-download.test"
+import "./app-origin.test"
 import "./app-date.test"
 import "./journal-access-policy.test"
 import "./private-json.test"
