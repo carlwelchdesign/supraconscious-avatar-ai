@@ -4,6 +4,7 @@ import { prisma } from "@inner-avatar/db"
 import { formatWebDateTime } from "@/lib/date-format"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 import { ClearPatternMemoryButton } from "./clear-pattern-memory-button"
+import { RevokeSessionsButton } from "./revoke-sessions-button"
 import {
   changePasswordAction,
   clearPatternMemoryAction,
@@ -427,9 +428,7 @@ export default async function SettingsPage({
             description="Signs out this account across current app sessions."
             value={
               <form action={revokeSessionsAction}>
-                <button type="submit" className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)]">
-                  Revoke
-                </button>
+                <RevokeSessionsButton action={revokeSessionsAction} />
               </form>
             }
           />
