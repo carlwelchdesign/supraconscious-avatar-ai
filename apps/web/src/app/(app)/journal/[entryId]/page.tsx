@@ -7,6 +7,7 @@ import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { formatWebLongDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { readSavedSessionCalibrationGuidance } from "@/lib/saved-session-calibration"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 import { DeleteJournalEntryForm } from "./delete-journal-entry-form"
@@ -117,11 +118,20 @@ export default async function JournalEntryPage({
   const sourceMessage = buildSourceProvenanceMessage(sourceMode)
   const latestCalibrationReview = entry.councilSession?.qualityReviews[0]
   const hasCalibrationFeedback = (entry.councilSession?.feedback.length ?? 0) > 0
+  const hasCalibrationFeedbackNote = Boolean(entry.councilSession?.feedback.some((feedback) => feedback.note?.trim()))
   const calibrationStatus = latestCalibrationReview
     ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
     : hasCalibrationFeedback
       ? "Feedback saved"
       : "Feedback needed"
+  const calibrationGuidance = founderCalibrationMode
+    ? readSavedSessionCalibrationGuidance({
+        hasFeedback: hasCalibrationFeedback,
+        hasFeedbackNote: hasCalibrationFeedbackNote,
+        latestReviewLabel: latestCalibrationReview?.label,
+        latestReviewSeverity: latestCalibrationReview?.severity,
+      })
+    : null
   const feedbackMessage = readFeedbackMessage(query.feedback)
 
   return (
@@ -341,6 +351,13 @@ export default async function JournalEntryPage({
               <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
                 Calibration: {calibrationStatus}
               </p>
+            )}
+            {calibrationGuidance && (
+              <div className="mt-3 rounded-xl border px-3 py-2" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
+                <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {calibrationGuidance}
+                </p>
+              </div>
             )}
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               {founderCalibrationMode
