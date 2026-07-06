@@ -1,5 +1,6 @@
 import { JournalAnalyzeRequestSchema, runCouncilReflection } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { buildJournalAnalyzeResponse } from "@/lib/journal-analyze-response"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { privateJson } from "@/lib/private-json"
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       requestId: request.headers.get("x-request-id") ?? undefined,
     })
 
-    return privateJson(result)
+    return privateJson(buildJournalAnalyzeResponse(result))
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
