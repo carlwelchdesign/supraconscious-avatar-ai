@@ -62,6 +62,8 @@ app.get('/health', (req, res) => {
 
 // MCP tools endpoint
 app.get('/mcp/tools', (req, res) => {
+  void req
+  res.set(PUBLIC_NO_STORE_HEADERS)
   res.json({
     tools: [
       {

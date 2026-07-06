@@ -41,6 +41,8 @@ test('server exposes MCP tools metadata', async () => {
   const body = await response.json()
 
   assert.strictEqual(response.status, 200)
+  assert.strictEqual(response.headers.get('cache-control'), 'no-store, max-age=0')
+  assert.strictEqual(response.headers.get('x-content-type-options'), 'nosniff')
   assert.ok(Array.isArray(body.tools))
   assert.strictEqual(body.tools.length, 7)
   assert.ok(body.tools.some((tool: any) => tool.name === 'analyze_journal_entry'))
