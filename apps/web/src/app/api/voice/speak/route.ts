@@ -2,6 +2,7 @@ import { z } from "zod"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { readPrivateApiError } from "@/lib/private-api-error"
 import { privateJson } from "@/lib/private-json"
+import { buildPrivateAudioResponse } from "@/lib/voice/audio-response"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { synthesizeSpeech } from "@/lib/voice/speak"
 
@@ -24,13 +25,7 @@ export async function POST(request: Request) {
 
     const audio = await synthesizeSpeech(body.text, body.gender, body.style, body.speed)
 
-    return new Response(new Uint8Array(audio), {
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Content-Length": String(audio.length),
-        "Cache-Control": "no-store",
-      },
-    })
+    return buildPrivateAudioResponse(audio)
   } catch (error) {
     const accessError = getJournalAccessError(error)
     if (accessError) {
