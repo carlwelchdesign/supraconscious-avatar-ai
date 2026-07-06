@@ -10,6 +10,7 @@ import { destroySession, getCurrentSession, hashPassword, requireAppUser, verify
 import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { buildAccountDeletionAuditMetadata } from "@/lib/account-deletion-audit"
+import { buildAllSessionsRevocationAuditMetadata, buildSessionRevocationAuditMetadata } from "@/lib/session-audit"
 
 export type VoiceActionState = { ok: boolean } | null
 
@@ -144,6 +145,11 @@ export async function clearPatternMemoryAction() {
 
 export async function revokeSessionsAction() {
   const user = await requireAppUser()
+  const sessions = await prisma.session.findMany({
+    where: { userId: user.id },
+    select: { id: true, scope: true },
+  })
+
   await prisma.$transaction([
     prisma.session.deleteMany({ where: { userId: user.id } }),
     prisma.auditLog.create({
@@ -153,6 +159,10 @@ export async function revokeSessionsAction() {
         targetType: "User",
         targetId: user.id,
         reason: "User revoked all sessions.",
+        metadata: buildAllSessionsRevocationAuditMetadata({
+          revokedCount: sessions.length,
+          scopes: sessions.map((session) => session.scope),
+        }),
       },
     }),
   ])
@@ -175,6 +185,13 @@ export async function revokeSessionAction(formData: FormData) {
   }
   const currentSession = await getCurrentSession("web")
   const isCurrentSession = currentSession?.id === parsed.data.sessionId
+  const targetSession = await prisma.session.findFirst({
+    where: {
+      id: parsed.data.sessionId,
+      userId: user.id,
+    },
+    select: { id: true, scope: true },
+  })
 
   const deleted = await prisma.session.deleteMany({
     where: {
@@ -191,9 +208,11 @@ export async function revokeSessionAction(formData: FormData) {
         targetType: "Session",
         targetId: parsed.data.sessionId,
         reason: isCurrentSession ? "User revoked current session." : "User revoked one session.",
-        metadata: {
+        metadata: buildSessionRevocationAuditMetadata({
+          sessionId: parsed.data.sessionId,
+          scope: targetSession?.scope,
           currentSession: isCurrentSession,
-        },
+        }),
       },
     })
     await emitPilotEvent({
