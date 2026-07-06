@@ -119,11 +119,14 @@ Use destructive Prisma flags only when intentionally dropping or replacing data.
 Run:
 
 ```bash
+node .yarn/releases/yarn-4.cjs check:env
 node .yarn/releases/yarn-4.cjs lint
 node .yarn/releases/yarn-4.cjs typecheck
 node .yarn/releases/yarn-4.cjs build:web
 node .yarn/releases/yarn-4.cjs build:admin
 ```
+
+`check:env` verifies that `.env.example` lists the direct runtime environment variables used by app, package, and script code.
 
 For the founder calibration code path, run the full verifier:
 
@@ -210,6 +213,8 @@ node .yarn/releases/yarn-4.cjs docker:compose:up
 ```
 
 `verify:docker` is the Docker-only CI parity check. It validates Compose and builds all three runtime images without running application tests.
+
+If Docker Desktop is slow to respond locally, increase `DOCKER_PREFLIGHT_TIMEOUT_MS` in `.env` before running Docker scripts.
 
 Compose exposes:
 

@@ -110,6 +110,7 @@ node .yarn/releases/yarn-4.cjs dev:admin
 node .yarn/releases/yarn-4.cjs dev:chatgpt
 node .yarn/releases/yarn-4.cjs dev:founder-calibration
 
+node .yarn/releases/yarn-4.cjs check:env
 node .yarn/releases/yarn-4.cjs typecheck
 node .yarn/releases/yarn-4.cjs lint
 node .yarn/releases/yarn-4.cjs test:web
