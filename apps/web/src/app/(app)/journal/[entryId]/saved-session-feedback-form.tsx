@@ -2,6 +2,11 @@
 
 import { useState } from "react"
 import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
+import {
+  readInitialSavedSessionFeedbackType,
+  SAVED_SESSION_FEEDBACK_TYPES,
+  type SavedSessionFeedbackType,
+} from "@/lib/saved-session-feedback"
 
 type FeedbackAction = (formData: FormData) => void | Promise<void>
 
@@ -11,16 +16,12 @@ type Props = {
   founderCalibrationMode: boolean
 }
 
-const FEEDBACK_TYPES = [
-  ["helpful", "Helpful"],
-  ["not_accurate", "Not accurate"],
-  ["too_intense", "Too intense"],
-  ["unclear", "Unclear"],
-  ["unsupported_source", "Report source issue"],
-] as const
-
 export function SavedSessionFeedbackForm({ action, councilSessionId, founderCalibrationMode }: Props) {
   const [note, setNote] = useState("")
+  const [feedbackType, setFeedbackType] = useState<SavedSessionFeedbackType | "">(
+    readInitialSavedSessionFeedbackType(founderCalibrationMode),
+  )
+  const canSubmit = Boolean(feedbackType)
 
   const applyTemplate = (template: string) => {
     setNote((current) => (current.trim() ? `${current.trim()}\n${template}` : template))
@@ -29,11 +30,25 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
   return (
     <form action={action} className="mt-3 space-y-3">
       <input type="hidden" name="councilSessionId" value={councilSessionId} />
-      <select name="feedbackType" defaultValue="helpful" className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-        {FEEDBACK_TYPES.map(([value, label]) => (
-          <option key={value} value={value}>{label}</option>
+      <input type="hidden" name="feedbackType" value={feedbackType} />
+      <div className="flex flex-wrap gap-2">
+        {SAVED_SESSION_FEEDBACK_TYPES.map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={feedbackType === value}
+            onClick={() => setFeedbackType(value)}
+            className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)]"
+            style={{
+              borderColor: feedbackType === value ? "rgba(184,137,90,0.42)" : "rgba(43,27,53,0.08)",
+              background: feedbackType === value ? "rgba(184,137,90,0.1)" : "transparent",
+              color: feedbackType === value ? "var(--primary)" : "var(--plum-soft)",
+            }}
+          >
+            {label}
+          </button>
         ))}
-      </select>
+      </div>
       <textarea
         name="note"
         value={note}
@@ -63,10 +78,17 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
           <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
             Choose a feedback type to keep calibration moving. Add a note only when there is a specific detail to capture; it stays with the session and does not automatically retrain the guide.
           </p>
+          {!feedbackType && (
+            <p className="text-[11px] font-light leading-relaxed text-[var(--clay)]">
+              Choose one feedback type before saving this calibration pass.
+            </p>
+          )}
         </>
       )}
       <button
-        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
+        type="submit"
+        disabled={!canSubmit}
+        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)] disabled:cursor-not-allowed disabled:opacity-40"
         style={{ borderColor: "rgba(43,27,53,0.08)" }}
       >
         Save feedback
