@@ -14,8 +14,10 @@ export function buildAccountExportHeaders(email: string, exportedAt: string) {
   const filename = buildAccountExportFilename(email, exportedAt)
 
   return {
-    "Cache-Control": "no-store, max-age=0",
+    "Cache-Control": "private, no-store, max-age=0",
     "Content-Disposition": `attachment; filename="${filename}"`,
     "Content-Type": "application/json; charset=utf-8",
+    "Pragma": "no-cache",
+    "X-Content-Type-Options": "nosniff",
   }
 }
