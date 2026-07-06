@@ -64,6 +64,37 @@ test('authMiddleware rejects invalid bearer token when token auth is configured'
   }
 })
 
+test('authMiddleware fails closed in production when token auth is missing', async () => {
+  const previousToken = process.env.CHATGPT_APP_API_TOKEN
+  const previousNodeEnv = process.env.NODE_ENV
+  delete process.env.CHATGPT_APP_API_TOKEN
+  process.env.NODE_ENV = 'production'
+  const req = { headers: {}, body: {} } as AuthenticatedRequest
+  const res = new MockResponse()
+
+  try {
+    let nextCalled = false
+    await authMiddleware(req, res as any, () => {
+      nextCalled = true
+    })
+
+    assert.strictEqual(nextCalled, false)
+    assert.strictEqual(res.statusCode, 503)
+    assert.deepStrictEqual(res.body, { error: 'Tool authentication is not configured' })
+  } finally {
+    if (previousToken === undefined) {
+      delete process.env.CHATGPT_APP_API_TOKEN
+    } else {
+      process.env.CHATGPT_APP_API_TOKEN = previousToken
+    }
+    if (previousNodeEnv === undefined) {
+      delete process.env.NODE_ENV
+    } else {
+      process.env.NODE_ENV = previousNodeEnv
+    }
+  }
+})
+
 test('authMiddleware accepts bearer token and trusted user id header', async () => {
   const previousToken = process.env.CHATGPT_APP_API_TOKEN
   process.env.CHATGPT_APP_API_TOKEN = 'secret-token'

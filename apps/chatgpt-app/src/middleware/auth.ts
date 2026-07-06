@@ -9,6 +9,10 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     req.userId = undefined
     const configuredToken = process.env.CHATGPT_APP_API_TOKEN
 
+    if (!configuredToken && process.env.NODE_ENV === "production") {
+      return res.status(503).json({ error: "Tool authentication is not configured" })
+    }
+
     if (configuredToken) {
       const providedToken = readBearerToken(req.headers.authorization)
       if (providedToken !== configuredToken) {
