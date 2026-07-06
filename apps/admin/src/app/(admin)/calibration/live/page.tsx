@@ -4,6 +4,7 @@ import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { readFounderCalibrationReviewPriority } from "@/lib/founder-calibration-review-priority"
+import { summarizeFounderCalibrationSourceTraces } from "@/lib/founder-calibration-source-traces"
 import { reviewCalibrationSessionAction } from "../actions"
 
 const QUICK_LABELS = [
@@ -56,10 +57,22 @@ export default async function LiveCalibrationPage({
         select: { label: true, severity: true, reason: true, metadata: true },
       },
       generationTraces: {
-        where: { traceType: "council" },
+        where: { traceType: { in: ["council", "retrieval"] } },
         orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { promptVersion: true, outputJson: true, validationStatus: true },
+        take: 8,
+        select: {
+          traceType: true,
+          promptVersion: true,
+          outputJson: true,
+          validationStatus: true,
+          fallbackReason: true,
+          sourceChunkId: true,
+          sourceChunk: {
+            select: {
+              sourceDocument: { select: { title: true } },
+            },
+          },
+        },
       },
     },
   })
@@ -151,12 +164,16 @@ export default async function LiveCalibrationPage({
           {sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No Carl/Maria sessions yet.</p>
           ) : prioritizedSessions.map(({ session, reviewPriority }) => {
-            const trace = session.generationTraces[0]
+            const trace = session.generationTraces.find((item) => item.traceType === "council")
+            const sourceSummary = summarizeFounderCalibrationSourceTraces(session.generationTraces)
             const scenario = readScenario(trace?.outputJson)
             const promptVersion = trace?.promptVersion ?? "missing"
             const latestReview = session.qualityReviews[0]
             const feedbackTypes = session.feedback.map((feedback) => feedback.feedbackType)
             const hasFeedbackNote = session.feedback.some((feedback) => isFounderCalibrationFeedbackNoteUseful(feedback.note))
+            const validationIssues = sourceSummary.validationIssues.length
+              ? sourceSummary.validationIssues
+              : readPilotValidation(trace?.outputJson)
             const nextAction = chooseNextAction(latestReview?.label ?? null, feedbackTypes)
             const observer = session.observerSignal as { coreTension?: string } | null
 
@@ -185,6 +202,43 @@ export default async function LiveCalibrationPage({
                 <p className="mt-3 rounded-md border bg-muted/30 p-2 text-xs text-muted-foreground">
                   Review priority: {reviewPriority.reason}
                 </p>
+                <div className="mt-3 rounded-md border p-3">
+                  <p className="font-medium">Source grounding</p>
+                  {sourceSummary.selectedSources.length === 0 ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {sourceSummary.fallbackReasons[0] ?? "No source chunks were selected for this session."}
+                    </p>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      {sourceSummary.selectedSources.map((source) => (
+                        <div key={source.chunkId} className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+                          <p className="font-medium text-foreground">{source.title}</p>
+                          <p className="mt-1">
+                            chunk {source.chunkId}
+                            {source.rank ? ` · rank ${source.rank}` : ""}
+                            {source.score !== null ? ` · score ${source.score}` : ""}
+                          </p>
+                          {source.matchReason ? <p className="mt-1">{source.matchReason}</p> : null}
+                          {source.displayExcerptSuppressed ? (
+                            <p className="mt-1 text-amber-700">Display excerpt suppressed; source is paraphrase-only or not quote-safe.</p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {sourceSummary.fallbackReasons.length > 0 && sourceSummary.selectedSources.length > 0 ? (
+                    <div className="mt-2 space-y-1">
+                      {sourceSummary.fallbackReasons.map((reason) => (
+                        <p key={reason} className="text-xs text-muted-foreground">Fallback: {reason}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                  {validationIssues.length > 0 ? (
+                    <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 p-2 text-xs text-amber-700">
+                      Validation: {validationIssues.join(", ")}
+                    </div>
+                  ) : null}
+                </div>
 
                 <div className="mt-3 rounded-md bg-muted/40 p-3">
                   <p className="font-medium">Council signal</p>
