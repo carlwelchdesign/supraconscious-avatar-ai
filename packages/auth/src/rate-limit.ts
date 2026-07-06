@@ -2,6 +2,10 @@ import "server-only"
 
 import { headers } from "next/headers"
 import { prisma } from "@inner-avatar/db"
+import {
+  getUsableAuthRateLimitBucketDelegate,
+  hasUsableAuthRateLimitWriteClient,
+} from "./rate-limit-delegate"
 
 export type AuthRateLimitScope = "web_login" | "admin_login" | "register" | "email_verification" | "password_reset"
 
@@ -46,7 +50,7 @@ export async function isAuthRateLimited(scope: AuthRateLimitScope, email?: strin
 }
 
 export async function recordAuthFailure(scope: AuthRateLimitScope, email?: string | null) {
-  if (!getAuthRateLimitBucketDelegate()) {
+  if (!hasUsableAuthRateLimitWriteClient(prisma)) {
     warnAuthRateLimitUnavailable("write")
     return
   }
@@ -70,19 +74,8 @@ export async function recordAuthFailure(scope: AuthRateLimitScope, email?: strin
   }
 }
 
-type AuthRateLimitBucketDelegate = {
-  findMany(args: {
-    where: {
-      scope: string
-      bucketKey: { in: string[] }
-      windowStart: Date
-    }
-    select: { count: true }
-  }): Promise<Array<{ count: number }>>
-}
-
 function getAuthRateLimitBucketDelegate() {
-  return (prisma as unknown as { authRateLimitBucket?: AuthRateLimitBucketDelegate }).authRateLimitBucket
+  return getUsableAuthRateLimitBucketDelegate(prisma)
 }
 
 let warnedAuthRateLimitUnavailable = false
