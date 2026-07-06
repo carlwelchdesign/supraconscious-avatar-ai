@@ -625,8 +625,6 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
   for (const participant of activeParticipants) {
     if (participant.sessionCount > 0 && participant.feedbackEvidenceCount === 0) {
       warnings.push(`${participant.email} has sessions without feedback; choose a feedback type on the saved session so review has usable evidence.`)
-    } else if (participant.sessionCount > 0 && participant.feedbackNoteCount === 0) {
-      warnings.push(`${participant.email} has feedback types but no written notes; continue development, and add notes only when a specific tuning detail matters.`)
     }
     if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
       warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
