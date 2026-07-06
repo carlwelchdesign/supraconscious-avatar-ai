@@ -40,5 +40,8 @@ jobs:
       - name: Run chatgpt app tests
         run: node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 
+      - name: Validate Docker Compose config
+        run: node .yarn/releases/yarn-4.cjs docker:compose:config
+
       - name: Build Docker image
         run: docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:${{ github.sha }} .
