@@ -114,6 +114,7 @@ Web protected routes:
 - `/dashboard`
 - `/journal`
 - `/patterns`
+- `/guide`
 - `/avatar`
 - `/settings`
 - `/api/journal`

@@ -1,23 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-
-const protectedRoutePrefixes = [
-  "/dashboard(.*)",
-  "/journal(.*)",
-  "/patterns(.*)",
-  "/avatar(.*)",
-  "/settings(.*)",
-  "/api/journal(.*)",
-  "/api/avatar(.*)",
-  "/api/prompts(.*)",
-  "/api/patterns(.*)",
-  "/api/voice(.*)",
-]
+import { isProtectedAppPath } from "@/lib/protected-routes"
 
 export default function proxy(req: NextRequest) {
-  const isProtected = protectedRoutePrefixes.some((pattern) => {
-    const prefix = pattern.replace("(.*)", "")
-    return req.nextUrl.pathname === prefix || req.nextUrl.pathname.startsWith(`${prefix}/`)
-  })
+  const isProtected = isProtectedAppPath(req.nextUrl.pathname)
 
   if (!isProtected || req.cookies.has("ia_web_session")) {
     return NextResponse.next()

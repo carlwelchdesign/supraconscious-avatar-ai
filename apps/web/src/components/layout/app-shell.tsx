@@ -11,7 +11,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/patterns", label: "Patterns", icon: BarChart2 },
-  { href: "/avatar", label: "Guide", icon: Sparkles },
+  { href: "/guide", label: "Guide", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 

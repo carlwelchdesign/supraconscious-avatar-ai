@@ -223,7 +223,7 @@ export default async function DashboardPage({
             Reflecting your language back with care while the council practice deepens.
           </p>
           <Link
-            href="/avatar"
+            href="/guide"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-[var(--clay-light)] hover:text-[var(--cream)] transition-colors"
           >
             See the guide&apos;s evolution
