@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { isFounderCalibrationFeedbackNoteUseful, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -360,16 +360,22 @@ export default async function JournalEntryPage({
             )}
             {entry.councilSession.feedback.length > 0 && (
               <div className="mt-3 space-y-2">
-                {entry.councilSession.feedback.map((feedback) => (
-                  <p key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
-                    <span className="font-medium text-[var(--primary)]">{feedback.feedbackType}</span>
-                    {isFounderCalibrationFeedbackNoteUseful(feedback.note)
-                      ? " · note saved"
-                      : feedback.note
-                        ? " · note saved"
-                        : " · no note"}
-                  </p>
-                ))}
+                {entry.councilSession.feedback.map((feedback) => {
+                  const note = feedback.note?.trim()
+                  return (
+                    <div key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+                      <p>
+                        <span className="font-medium text-[var(--primary)]">{formatFeedbackType(feedback.feedbackType)}</span>
+                        {note ? " · note saved" : " · no note"}
+                      </p>
+                      {note && (
+                        <p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-[var(--plum-soft)]/80">
+                          Note: {note}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
             <SavedSessionFeedbackForm
@@ -440,4 +446,10 @@ function readFeedbackMessage(status?: string) {
     return { tone: "warning", text: "Feedback notes are optional now. Choose a feedback type to save this calibration pass." } as const
   }
   return null
+}
+
+function formatFeedbackType(value: string) {
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
