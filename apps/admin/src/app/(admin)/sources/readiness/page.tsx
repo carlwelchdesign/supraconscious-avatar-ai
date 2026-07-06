@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
 import { readRagActivationMetadata } from "@inner-avatar/ai"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { activateRagAction, getRagReadinessCounts, rollbackRagAction } from "./actions"
 
 export default async function RagReadinessPage() {
@@ -121,7 +122,7 @@ export default async function RagReadinessPage() {
               <div key={trace.id} className="rounded-md border p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{trace.validationStatus}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(trace.createdAt).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{formatAdminDateTime(trace.createdAt)}</p>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {output?.title ?? trace.sourceChunk?.sourceDocument.title ?? trace.fallbackReason ?? "Retrieval trace"}

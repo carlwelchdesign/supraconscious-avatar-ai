@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
 import { readRagActivationMetadata, runPilotExpansionReadiness, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport, runPilotReviewCoverageReport } from "@inner-avatar/ai"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { createPilotCohortAction, enrollPilotUserAction, expandPilotCohortAction, reviewPilotSessionAction } from "./actions"
 
 const QUALITY_LABELS = [
@@ -87,7 +88,7 @@ export default async function PilotReadinessPage({
           Daily pilot operations, launch readiness, feedback review, source readiness, eval status, and quality blockers.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Last checked {new Date(iteration.checkedAt).toLocaleString()}
+          Last checked {formatAdminDateTime(iteration.checkedAt)}
         </p>
       </div>
 
@@ -333,7 +334,7 @@ export default async function PilotReadinessPage({
           <p>Retrieval traces: {readiness.metrics.sourceModeCounts.rag ?? 0} source-grounded sessions · {readiness.metrics.sourceModeCounts.no_eligible_source ?? 0} no-source sessions.</p>
           <p>Unsupported-source reports: {iteration.feedbackMetrics.unsupportedSource}</p>
           <p>Selected retrieval traces: {learning.sourceGroundingMetrics.selectedTraceCount} · paraphrase-only selections: {learning.sourceGroundingMetrics.paraphraseOnlySelections} · quote excerpts shown: {learning.sourceGroundingMetrics.displayExcerptCount}</p>
-          <p>Activation: {ragFlag?.enabled ? "enabled" : "disabled"}{ragActivation.activatedAt ? ` · ${new Date(ragActivation.activatedAt).toLocaleString()}` : ""}</p>
+          <p>Activation: {ragFlag?.enabled ? "enabled" : "disabled"}{ragActivation.activatedAt ? ` · ${formatAdminDateTime(ragActivation.activatedAt)}` : ""}</p>
           <div>
             <p className="font-medium text-foreground">Recent selected source titles</p>
             {recentRetrievalTitles.length ? (
@@ -361,7 +362,7 @@ export default async function PilotReadinessPage({
             <div key={item.councilSessionId} className="rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <p className="font-medium">{item.userEmail} · {new Date(item.createdAt).toLocaleString()}</p>
+                  <p className="font-medium">{item.userEmail} · {formatAdminDateTime(item.createdAt)}</p>
                   <p className="text-xs text-muted-foreground">
                     priority: {item.priority} · source: {item.sourceMode} · disposition: {item.disposition} · validation: {item.validationStatus ?? "unknown"}
                   </p>
@@ -431,7 +432,7 @@ export default async function PilotReadinessPage({
             <div key={item.councilSessionId} className="rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{item.userEmail} · {new Date(item.createdAt).toLocaleString()}</p>
+                  <p className="font-medium">{item.userEmail} · {formatAdminDateTime(item.createdAt)}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     feedback: {item.feedbackTypes.join(", ")} · disposition: {item.disposition} · source: {item.sourceMode}
                   </p>
@@ -472,7 +473,7 @@ export default async function PilotReadinessPage({
             <p className="text-muted-foreground">No active safety items in the pilot queue.</p>
           ) : iteration.safetyQueue.map((item) => (
             <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
-              <p>{item.severity} · {item.reviewStatus} · {new Date(item.createdAt).toLocaleString()}</p>
+              <p>{item.severity} · {item.reviewStatus} · {formatAdminDateTime(item.createdAt)}</p>
               <Link href="/safety" className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Safety review</Link>
             </div>
           ))}

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { reviewCalibrationSessionAction } from "./actions"
 
 const LABELS = [
@@ -224,7 +225,7 @@ export default async function CalibrationPage({
               <div key={session.id} className="rounded-md border p-4 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium">{session.user.email} · {new Date(session.createdAt).toLocaleString()}</p>
+                    <p className="font-medium">{session.user.email} · {formatAdminDateTime(session.createdAt)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       source: {session.sourceMode} · review: {latestReview?.label ?? "unreviewed"}{latestReview?.severity === "pilot_blocker" ? " · pilot blocker" : ""}
                     </p>

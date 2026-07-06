@@ -2,6 +2,7 @@ import Link from "next/link"
 import { formatFounderCalibrationScenario, isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { reviewCalibrationSessionAction } from "../actions"
 
 const QUICK_LABELS = [
@@ -144,7 +145,7 @@ export default async function LiveCalibrationPage({
               <div key={session.id} className="rounded-md border p-4 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium">{session.user.email} · {new Date(session.createdAt).toLocaleString()}</p>
+                    <p className="font-medium">{session.user.email} · {formatAdminDateTime(session.createdAt)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       scenario: {formatFounderCalibrationScenario(scenario)} · source: {session.sourceMode} · prompt: {promptVersion}
                     </p>

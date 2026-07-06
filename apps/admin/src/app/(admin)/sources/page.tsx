@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { formatAdminDateTime } from "@/lib/date-format"
 import {
   updateCurriculumDayStateAction,
   updateSourceChunkStateAction,
@@ -137,7 +138,7 @@ export default async function SourcesPage({
             <div key={batch.id} className="rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">{batch.status}</p>
-                <p className="text-xs text-muted-foreground">{new Date(batch.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{formatAdminDateTime(batch.createdAt)}</p>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {batch.importedCount} imported · {batch.skippedCount} skipped · {batch.failedCount} failed

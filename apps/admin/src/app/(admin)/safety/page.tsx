@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { resolveSafetyEventAction } from "./actions"
 import { RevealEntryForm } from "./reveal-entry-form"
 
@@ -50,7 +51,7 @@ export default async function SafetyPage({
             <CardContent className="space-y-4 text-sm">
               <div className="grid gap-2 md:grid-cols-2">
                 <p>User: {event.user.email}</p>
-                <p>Created: {event.createdAt.toLocaleString()}</p>
+                <p>Created: {formatAdminDateTime(event.createdAt)}</p>
                 <p>Journal entry: {event.journalEntry?.id ?? "none"}</p>
                 <p>Review: {event.reviewStatus}</p>
               </div>

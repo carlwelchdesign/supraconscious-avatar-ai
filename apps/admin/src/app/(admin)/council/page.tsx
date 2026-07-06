@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { resolveFounderCalibrationUserFilter } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { formatAdminDateTime } from "@/lib/date-format"
 import { batchReviewPilotSessionsAction, reviewPilotSessionFromCouncilAction } from "./actions"
 import { reviewCalibrationSessionAction } from "../calibration/actions"
 
@@ -183,7 +184,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
             <Card key={session.id}>
               <CardHeader>
                 <CardTitle className="text-base">
-                  {session.user.email} · {new Date(session.createdAt).toLocaleString()}
+                  {session.user.email} · {formatAdminDateTime(session.createdAt)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
