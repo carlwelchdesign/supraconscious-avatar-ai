@@ -21,7 +21,7 @@
     "docker:build:chatgpt": "node .yarn/releases/yarn-4.cjs docker:check && docker build -f apps/chatgpt-app/Dockerfile -t inner-avatar-chatgpt-app:latest .",
     "docker:compose:migrate": "node .yarn/releases/yarn-4.cjs docker:check && docker compose --profile setup run --rm db-migrate",
     "docker:compose:db-push": "node .yarn/releases/yarn-4.cjs docker:check && docker compose --profile setup run --rm db-push",
-    "docker:compose:config": "node .yarn/releases/yarn-4.cjs docker:check && docker compose config --no-interpolate",
+    "docker:compose:config": "docker compose config --no-interpolate",
     "docker:compose:up": "node .yarn/releases/yarn-4.cjs docker:check && docker compose up --build",
     "docker:compose:down": "node .yarn/releases/yarn-4.cjs docker:check && docker compose down",
     "build": "turbo build",

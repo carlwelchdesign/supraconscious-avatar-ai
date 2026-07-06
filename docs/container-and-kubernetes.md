@@ -30,7 +30,7 @@ node .yarn/releases/yarn-4.cjs docker:compose:migrate
 
 For local-only schema experiments that intentionally use Prisma `db push`, run `node .yarn/releases/yarn-4.cjs docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
 
-Validate the Compose file without expanding local secrets:
+Validate the Compose file without expanding local secrets. This check does not require the Docker daemon to be running:
 
 ```bash
 node .yarn/releases/yarn-4.cjs docker:compose:config
