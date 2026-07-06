@@ -12,8 +12,8 @@
 Web app (`apps/web/.env.example`):
 
 ```bash
-# Production managed Postgres URLs should use sslmode=verify-full when TLS is required.
-DATABASE_URL="postgres://..."
+# Local development can use sslmode=disable. Production managed Postgres should use sslmode=verify-full.
+DATABASE_URL="postgres://user:password@localhost:5432/inner_avatar?sslmode=disable"
 OPENAI_API_KEY="sk-..."
 OPENAI_MODEL="gpt-5-mini"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -33,8 +33,8 @@ STRIPE_PRO_PRICE_ID="price_..."
 Admin app (`apps/admin/.env.example`):
 
 ```bash
-# Production managed Postgres URLs should use sslmode=verify-full when TLS is required.
-DATABASE_URL="postgres://..."
+# Local development can use sslmode=disable. Production managed Postgres should use sslmode=verify-full.
+DATABASE_URL="postgres://user:password@localhost:5432/inner_avatar?sslmode=disable"
 AUTH_SECRET="replace-with-a-long-random-secret"
 SUPER_ADMIN_EMAILS="you@example.com"
 NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
