@@ -6,6 +6,7 @@ import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { formatWebLongDate } from "@/lib/date-format"
+import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { readSavedSessionCalibrationGuidance } from "@/lib/saved-session-calibration"
 import { buildSpeakText } from "@/lib/voice/voice-config"
@@ -130,6 +131,12 @@ export default async function JournalEntryPage({
         hasFeedbackNote: hasCalibrationFeedbackNote,
         latestReviewLabel: latestCalibrationReview?.label,
         latestReviewSeverity: latestCalibrationReview?.severity,
+      })
+    : null
+  const founderReviewSummary = founderCalibrationMode
+    ? readFounderReviewSummary({
+        reviewLabel: latestCalibrationReview?.label,
+        reviewSeverity: latestCalibrationReview?.severity,
       })
     : null
   const feedbackMessage = readFeedbackMessage(query.feedback)
@@ -356,6 +363,13 @@ export default async function JournalEntryPage({
               <div className="mt-3 rounded-xl border px-3 py-2" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                 <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
                   {calibrationGuidance}
+                </p>
+              </div>
+            )}
+            {founderReviewSummary && (
+              <div className="mt-3 rounded-xl border px-3 py-2" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(255,255,255,0.36)" }}>
+                <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
+                  {founderReviewSummary}
                 </p>
               </div>
             )}
