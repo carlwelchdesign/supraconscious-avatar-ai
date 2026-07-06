@@ -9,7 +9,7 @@ Start by copying `.env.example` to `.env` and replacing the placeholder secrets/
 Check Docker Desktop / daemon readiness:
 
 ```bash
-yarn docker:check
+node .yarn/releases/yarn-4.cjs docker:check
 ```
 
 The Docker build and Compose scripts run this preflight first. If Docker Desktop is closed, stuck, or the socket is not responding, the script fails quickly with a daemon-readiness message instead of leaving the build command hanging.

@@ -26,22 +26,22 @@ This document describes the ChatGPT MCP server added in Phase 5 and finalized in
 Run the app locally in development mode (uses `tsx`):
 
 ```bash
-yarn --cwd apps/chatgpt-app dev
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app dev
 ```
 
 To compile TypeScript and produce a production artifact:
 
 ```bash
-yarn --cwd apps/chatgpt-app build
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
 ```
 
 Run the test suite:
 
 ```bash
-yarn --cwd apps/chatgpt-app test
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 ```
 
-All tests pass locally: 35 passing tests at the time of writing.
+All tests pass locally: 36 passing tests at the time of writing.
 
 ## Docker
 

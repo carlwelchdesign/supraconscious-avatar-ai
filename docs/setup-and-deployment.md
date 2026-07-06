@@ -144,8 +144,8 @@ Founder reports are operational visibility. A feedback type is enough to keep Ca
 To build and test the ChatGPT MCP server package locally:
 
 ```bash
-yarn --cwd apps/chatgpt-app build
-yarn --cwd apps/chatgpt-app test
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
+node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
 ```
 
 The current preferred MCP tool is `run_inner_council_reflection`; it uses the same Inner Council service as the web journal. The older analysis/avatar/prompt tools remain available for compatibility.
