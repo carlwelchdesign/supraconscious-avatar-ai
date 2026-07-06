@@ -3,6 +3,7 @@ import { formatFounderCalibrationScenario, isFounderCalibrationFeedbackNoteUsefu
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { formatAdminDateTime } from "@/lib/date-format"
+import { readFounderCalibrationReviewPriority } from "@/lib/founder-calibration-review-priority"
 import { reviewCalibrationSessionAction } from "../actions"
 
 const QUICK_LABELS = [
@@ -62,6 +63,24 @@ export default async function LiveCalibrationPage({
       },
     },
   })
+  const prioritizedSessions = sessions
+    .map((session) => {
+      const trace = session.generationTraces[0]
+      const latestReview = session.qualityReviews[0]
+      const feedbackTypes = session.feedback.map((feedback) => feedback.feedbackType)
+      const validationIssues = readPilotValidation(trace?.outputJson)
+      return {
+        session,
+        reviewPriority: readFounderCalibrationReviewPriority({
+          feedbackTypes,
+          latestReviewLabel: latestReview?.label ?? null,
+          latestReviewSeverity: latestReview?.severity ?? null,
+          validationStatus: trace?.validationStatus ?? null,
+          validationIssues,
+        }),
+      }
+    })
+    .sort((a, b) => a.reviewPriority.rank - b.reviewPriority.rank || b.session.createdAt.getTime() - a.session.createdAt.getTime())
 
   return (
     <div className="space-y-6">
@@ -131,7 +150,7 @@ export default async function LiveCalibrationPage({
         <CardContent className="space-y-4">
           {sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No Carl/Maria sessions yet.</p>
-          ) : sessions.map((session) => {
+          ) : prioritizedSessions.map(({ session, reviewPriority }) => {
             const trace = session.generationTraces[0]
             const scenario = readScenario(trace?.outputJson)
             const promptVersion = trace?.promptVersion ?? "missing"
@@ -153,13 +172,19 @@ export default async function LiveCalibrationPage({
                       feedback: {feedbackTypes.join(", ") || "none"} · note: {hasFeedbackNote ? "yes" : "no"} · review: {latestReview?.label ?? "unreviewed"}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <span className="rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                      {reviewPriority.label}
+                    </span>
                     <Link href={`/council?sessionId=${session.id}`} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">Workbench</Link>
                     {nextAction.href ? (
                       <Link href={nextAction.href} className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted">{nextAction.label}</Link>
                     ) : null}
                   </div>
                 </div>
+                <p className="mt-3 rounded-md border bg-muted/30 p-2 text-xs text-muted-foreground">
+                  Review priority: {reviewPriority.reason}
+                </p>
 
                 <div className="mt-3 rounded-md bg-muted/40 p-3">
                   <p className="font-medium">Council signal</p>
@@ -223,6 +248,16 @@ function readScenario(outputJson: unknown) {
   if (!calibration || typeof calibration !== "object" || !("scenario" in calibration)) return "freeform"
   const value = (calibration as { scenario?: unknown }).scenario
   return typeof value === "string" ? value : "freeform"
+}
+
+function readPilotValidation(value: unknown) {
+  if (!value || typeof value !== "object" || !("pilotValidation" in value)) return []
+  const validation = (value as { pilotValidation?: unknown }).pilotValidation
+  if (!validation || typeof validation !== "object") return []
+  const record = validation as { warnings?: unknown; failedRules?: unknown }
+  const warnings = Array.isArray(record.warnings) ? record.warnings.filter((item): item is string => typeof item === "string") : []
+  const failedRules = Array.isArray(record.failedRules) ? record.failedRules.filter((item): item is string => typeof item === "string") : []
+  return [...warnings, ...failedRules]
 }
 
 function chooseNextAction(label: string | null, feedbackTypes: string[]) {
