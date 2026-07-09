@@ -4,6 +4,8 @@ Supraconscious Avatar AI is a multi-app AI journaling platform for guided Inner 
 
 The system combines a Next.js user app, a separate internal admin/CMS console, an Express-based ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, and Docker-ready deployment.
 
+A Flutter mobile client is scaffolded under `apps/mobile` for future Apple App Store and Google Play release while keeping the existing backend, admin/CMS, and RAG governance surfaces as the system of record.
+
 ## Repository Details
 
 **GitHub About / description**
@@ -30,6 +32,7 @@ Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis 
 - `apps/web`: Next.js journaling app, auth, onboarding, dashboard, journal flow, saved sessions, voice APIs, billing entry points, and user settings.
 - `apps/admin`: separate Next.js internal admin/CMS console with its own login, session cookie, RBAC, review workflows, source governance, prompt management, and operational dashboards.
 - `apps/chatgpt-app`: Express-based ChatGPT/MCP server, Inner Council MCP tool, compatibility tools, static widget, and container entrypoint.
+- `apps/mobile`: Flutter client scaffold for iOS, Android, phones, and tablets.
 - `packages/ai`: OpenAI adapters, safety checks, council orchestration, RAG retrieval policy, source provenance, prompt resolution, eval runners, calibration reports, and pattern-memory logic.
 - `packages/db`: Prisma schema, generated client access, migrations, and shared database utilities.
 - `packages/auth`: first-party auth, password hashing, scoped sessions, RBAC guards, and auth throttling.
@@ -133,6 +136,12 @@ node .yarn/releases/yarn-4.cjs build:web
 node .yarn/releases/yarn-4.cjs build:admin
 node .yarn/releases/yarn-4.cjs build:chatgpt
 
+node .yarn/releases/yarn-4.cjs mobile:check
+node .yarn/releases/yarn-4.cjs mobile:doctor
+node .yarn/releases/yarn-4.cjs mobile:analyze
+node .yarn/releases/yarn-4.cjs mobile:test
+node .yarn/releases/yarn-4.cjs mobile:build:android
+
 node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
 node .yarn/releases/yarn-4.cjs verify:ci
 ```
@@ -174,3 +183,4 @@ The repo also supports standalone Docker images for web, admin, and ChatGPT/MCP.
 - [Admin and Operations](docs/admin-and-operations.md)
 - [ChatGPT MCP App](docs/chatgpt-mcp-app.md)
 - [Container and Kubernetes Readiness](docs/container-and-kubernetes.md)
+- [Flutter Mobile App](docs/mobile-flutter.md)

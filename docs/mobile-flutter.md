@@ -1,0 +1,109 @@
+# Flutter Mobile App
+
+The mobile path adds a Flutter client for Apple App Store and Google Play while keeping the existing web, admin/CMS, ChatGPT/MCP, PostgreSQL, and AI/RAG services as the system of record.
+
+## Product Direction
+
+- First mobile release: iPhone, Android phones, iPad, and Android tablets.
+- Deferred: Apple Watch, Wear OS, and other wearables.
+- Dictation default: use native keyboard dictation first; add in-app speech-to-text only after mobile usage proves the need.
+- Admin/CMS, source review, prompt tuning, RAG governance, founder calibration, and operational dashboards stay in the existing web/admin apps.
+
+## Local Tooling
+
+Flutter is installed outside the repository. Use the root scripts below before working on `apps/mobile`.
+
+Recommended local checks:
+
+```bash
+node .yarn/releases/yarn-4.cjs mobile:check
+node .yarn/releases/yarn-4.cjs mobile:doctor
+node .yarn/releases/yarn-4.cjs mobile:pub-get
+node .yarn/releases/yarn-4.cjs mobile:analyze
+node .yarn/releases/yarn-4.cjs mobile:test
+node .yarn/releases/yarn-4.cjs mobile:build:android
+```
+
+`mobile:check` verifies that `flutter` is available on `PATH`. `mobile:doctor` runs Flutter's own environment diagnostics after that preflight passes.
+
+## Workspace
+
+The mobile app lives at `apps/mobile`.
+
+It was scaffolded with:
+
+```bash
+flutter create apps/mobile \
+  --org co.supraconscious \
+  --project-name inner_council_mobile \
+  --platforms=ios,android
+```
+
+After scaffolding, keep generated iOS and Android project files committed unless they contain local machine state. Do not commit secrets, provisioning profiles, signing certificates, keystores, or generated build outputs.
+
+Current local setup note:
+
+- Flutter and Android command-line tools are installed.
+- Android SDK packages and licenses are accepted.
+- Xcode exists, but iOS validation may require completing Xcode first-launch setup in the Xcode app or through Apple's interactive tooling.
+
+## Architecture
+
+Flutter should act as a stateless user client over explicit backend APIs:
+
+- Auth/session state
+- Current user and onboarding state
+- Journal submission and Inner Council response
+- Source/no-source provenance
+- Council feedback and feedback notes
+- Embodiment Gate save
+- Saved session detail
+- Pattern memory and privacy settings
+
+The backend remains responsible for durable state, AI orchestration, safety checks, RAG eligibility, source provenance, prompt resolution, privacy rules, and audit-sensitive admin workflows.
+
+## First MVP Screens
+
+- Login/register
+- Onboarding and consent gate
+- Dashboard
+- Journal entry with native keyboard dictation support
+- Inner Council result
+- Feedback type and optional note
+- Embodiment Gate save
+- Saved session detail
+- Patterns
+- Settings and privacy controls
+
+## Release Path
+
+1. Complete Xcode first-launch setup for iOS validation.
+2. Add mobile-safe API contracts in the backend where server-rendered web actions are not suitable.
+3. Build the MVP screens against the backend.
+4. Add release signing and CI for iOS and Android.
+5. Run TestFlight and Google Play internal testing with Carl and Maria before any public release.
+
+## Store Readiness
+
+Before public App Store or Google Play release, prepare:
+
+- App icons, splash screen, screenshots, and preview copy.
+- Privacy policy and support URLs.
+- Apple privacy nutrition labels.
+- Google Play Data Safety form.
+- AI-generated content and wellness/safety review notes.
+- iOS archive/TestFlight workflow.
+- Android App Bundle/internal testing workflow.
+
+## Wearables
+
+Do not include wearables in the first mobile milestone.
+
+Future wearable scope should be a companion experience only:
+
+- daily prompt glance
+- short voice reflection capture
+- reminder/notification controls
+- saved micro-shift review
+
+The full Inner Council reading and review experience should remain phone/tablet-first.
