@@ -3,6 +3,13 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google"
 import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://supraconscious.co"
+const title = "Supraconscious Inner Council — Write. See clearly. Choose consciously."
+const description =
+  "A guided AI journaling system where a bounded Inner Council helps surface patterns, contradictions, source-grounded context, and one embodied next step."
+const openGraphImage = "/opengraph-image.png"
+const twitterImage = "/twitter-image.png"
+
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
@@ -19,9 +26,37 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Supraconscious Inner Council — Write. See clearly. Choose consciously.",
-  description:
-    "A guided AI journaling system where a bounded Inner Council helps surface patterns, contradictions, source-grounded context, and one embodied next step.",
+  metadataBase: new URL(appUrl),
+  title,
+  description,
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+  },
+  openGraph: {
+    title,
+    description,
+    url: appUrl,
+    siteName: "The Inner Council",
+    images: [
+      {
+        url: openGraphImage,
+        width: 1200,
+        height: 630,
+        alt: "The Inner Council cosmic eye artwork",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [twitterImage],
+  },
 }
 
 export default function RootLayout({
