@@ -12,6 +12,7 @@
     "./consent": "./src/consent.ts",
     "./email": "./src/email.ts",
     "./redirects": "./src/redirects.ts",
+    "./rate-limit": "./src/rate-limit.ts",
     "./safe-redirect": "./src/safe-redirect.ts",
     "./session": "./src/session.ts",
     "./user": "./src/user.ts"
