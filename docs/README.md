@@ -7,7 +7,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Architecture](architecture.md): workspace structure, app boundaries, data flow, and major packages.
 - [Local Setup and Deployment](setup-and-deployment.md): environment variables, Yarn commands, Prisma setup, and Vercel notes.
 - [Authentication](authentication.md): first-party login, scoped sessions, route protection, and admin RBAC.
-- [AI Journaling Pipeline](ai-pipeline.md): safety, analysis, Inner Council response generation, embodiment prompts, pattern memory, and progression.
+- [AI Journaling Pipeline](ai-pipeline.md): safety, analysis, Inner Council response generation, RAG, LangSmith observability, embodiment prompts, pattern memory, and progression.
 - [Voice Features](voice.md): microphone transcription, text-to-speech playback, preferences, and API routes.
 - [Voice Browser Troubleshooting](voice-browser-troubleshooting.md): browser and device-specific microphone/playback support notes.
 - [Admin and Operations](admin-and-operations.md): separate admin app, privacy controls, audit logging, users, subscriptions, safety, prompt templates, feature flags, and operational checks.
@@ -22,7 +22,7 @@ Pull requests run CI for Prisma validation, typecheck, lint, auth/web/AI/RAG/pil
 
 ## Current System
 
-Supraconscious Avatar AI is a multi-app AI journaling platform with a public web app, a separate admin/CMS console, a ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, and Docker-ready deployment.
+Supraconscious Avatar AI is a multi-app AI journaling platform with a public web app, a separate admin/CMS console, a ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, optional metadata-only LangSmith observability, and Docker-ready deployment.
 
 Core runtime capabilities include:
 
@@ -32,6 +32,8 @@ Core runtime capabilities include:
 - vector-DB-ready provenance contracts for future embeddings/search work
 - MCP-compatible tool execution through `apps/chatgpt-app`
 - admin/CMS workflows for source review, prompt templates, feature flags, guide-stage metadata, RAG readiness, safety review, calibration, users, and subscriptions
+- metadata-only LangSmith tracing around the Inner Council service boundary
+- LangGraph intentionally deferred until graph-native orchestration is needed
 
 ## Runtime Defaults
 

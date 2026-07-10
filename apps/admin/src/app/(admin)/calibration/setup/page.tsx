@@ -7,6 +7,8 @@ import {
   FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
 } from "@inner-avatar/ai"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { resolveFounderHandoffHref, resolveFounderHandoffText } from "@/lib/founder-web-links"
 import {
   activateFounderCalibrationParticipantAction,
@@ -55,18 +57,7 @@ export default async function FounderCalibrationSetupPage({
         </p>
       </div>
 
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "warning" ? "border-amber-500/20 bg-amber-500/5 text-amber-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric title="Active" value={report.readiness.activeParticipants} />
@@ -107,9 +98,9 @@ export default async function FounderCalibrationSetupPage({
               minLength={10}
               className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
             />
-            <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted md:col-span-2">
+            <SubmitButton pendingLabel="Configuring..." className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 md:col-span-2">
               Configure Carl and Maria
-            </button>
+            </SubmitButton>
           </form>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -184,7 +175,7 @@ export default async function FounderCalibrationSetupPage({
               ))}
             </select>
             <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
-            <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Add / activate</button>
+            <SubmitButton pendingLabel="Saving..." className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Add / activate</SubmitButton>
           </form>
         </CardContent>
       </Card>
@@ -461,7 +452,7 @@ function ParticipantAction({
     <form action={action} className="flex gap-2">
       <input type="hidden" name="id" value={id} />
       <input name="reason" placeholder={`${label} reason`} required minLength={10} className="w-44 rounded-md border bg-background px-2 py-1.5 text-xs" />
-      <button className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>
+      <SubmitButton pendingLabel="Saving..." className="rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">{label}</SubmitButton>
     </form>
   )
 }

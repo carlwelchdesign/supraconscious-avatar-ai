@@ -35,11 +35,13 @@
     "test:pilot": "tsx scripts/run-pilot-evals.ts",
     "test:founder-calibration": "tsx scripts/run-founder-calibration-fixtures.ts",
     "test:founder-calibration-regression": "tsx scripts/run-founder-calibration-regression.ts",
+    "test:langsmith": "tsx scripts/run-langsmith-observability-check.ts",
     "typecheck": "../../node_modules/.bin/tsc --noEmit"
   },
   "dependencies": {
     "@inner-avatar/db": "workspace:*",
     "@inner-avatar/types": "workspace:*",
+    "langsmith": "^0.8.1",
     "openai": "^6.35.0",
     "zod": "^4.3.6"
   },

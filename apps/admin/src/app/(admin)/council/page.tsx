@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { resolveFounderCalibrationUserFilter } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { batchReviewPilotSessionsAction, reviewPilotSessionFromCouncilAction } from "./actions"
 import { reviewCalibrationSessionAction } from "../calibration/actions"
@@ -106,17 +108,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
         </p>
       </div>
 
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
 
       <Card>
         <CardHeader><CardTitle>Review filters</CardTitle></CardHeader>
@@ -165,7 +157,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
               <option value="pilot_blocker">pilot blocker</option>
             </select>
             <input name="reason" placeholder="Batch reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
-            <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Review selected</button>
+            <SubmitButton pendingLabel="Reviewing..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Review selected</SubmitButton>
           </form>
         </CardContent>
       </Card>
@@ -268,9 +260,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                         minLength={10}
                         className="rounded-md border bg-background px-2 py-1 text-xs"
                       />
-                      <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                        Save label
-                      </button>
+                      <SubmitButton pendingLabel="Saving label...">Save label</SubmitButton>
                     </form>
                   </div>
                   {founderEmails.has(session.user.email.toLowerCase()) && (
@@ -293,9 +283,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                         minLength={10}
                         className="rounded-md border bg-background px-2 py-1 text-xs"
                       />
-                      <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                        Save founder review
-                      </button>
+                      <SubmitButton pendingLabel="Saving review...">Save founder review</SubmitButton>
                       <p className="text-xs text-muted-foreground md:col-span-4">
                         Use this for Carl/Maria calibration outcomes and golden examples. Raw journal text stays hidden.
                       </p>
@@ -320,6 +308,16 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                           failedRules?: string[]
                           citationCoverage?: number
                           evidenceCoverage?: number
+                        }
+                        langsmith?: {
+                          enabled?: boolean
+                          sampled?: boolean
+                          runId?: string | null
+                          traceId?: string | null
+                          runUrl?: string | null
+                          projectName?: string
+                          metadataOnly?: boolean
+                          policyVersion?: string
                         }
                       } | null
                       const displayExcerptSuppressed = trace.traceType === "retrieval" &&
@@ -347,6 +345,21 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                             <p className="mt-1">
                               terms: {output.matchedTerms.join(", ")} · fields: {(output.matchedFields ?? []).join(", ") || "none"}
                             </p>
+                          )}
+                          {output?.langsmith && (
+                            <div className="mt-1 space-y-1 rounded-sm border border-dashed bg-background/50 p-2">
+                              <p>
+                                LangSmith observability: {output.langsmith.enabled ? "enabled" : "disabled"} · sampled: {output.langsmith.sampled ? "yes" : "no"} · project: {output.langsmith.projectName ?? "unknown"}
+                              </p>
+                              <p>
+                                policy: {output.langsmith.policyVersion ?? "unknown"} · metadata-only: {output.langsmith.metadataOnly === false ? "no" : "yes"} · run: {output.langsmith.runId ?? "none"}
+                              </p>
+                              {output.langsmith.runUrl ? (
+                                <a className="underline" href={output.langsmith.runUrl} target="_blank" rel="noreferrer">
+                                  Open LangSmith trace
+                                </a>
+                              ) : null}
+                            </div>
                           )}
                           {output?.pilotValidation && (
                             <div className="mt-1 space-y-1">

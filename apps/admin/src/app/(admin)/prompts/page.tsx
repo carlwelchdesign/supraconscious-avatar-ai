@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
-import { Button } from "@inner-avatar/ui/button"
 import { Input } from "@inner-avatar/ui/input"
 import { Textarea } from "@inner-avatar/ui/textarea"
 import { prisma } from "@inner-avatar/db"
 import { DEFAULT_COUNCIL_PROMPT_KEY, DEFAULT_COUNCIL_SYSTEM_PROMPT, runFounderCalibrationReport } from "@inner-avatar/ai"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { createPromptTemplateAction } from "./actions"
 
 const PROMPT_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
@@ -34,17 +35,7 @@ export default async function PromptsPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Prompt Templates</h1>
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
@@ -58,7 +49,9 @@ export default async function PromptsPage({
               <Textarea name="content" placeholder="Prompt content" className="min-h-52" defaultValue={DEFAULT_COUNCIL_SYSTEM_PROMPT} required minLength={10} />
               <Input name="relatedCalibrationSessionIds" placeholder="Related calibration session ids, comma or space separated" />
               <Input name="reason" placeholder="Reason for this prompt update" required minLength={10} />
-              <Button type="submit">Save template</Button>
+              <SubmitButton className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50" pendingLabel="Saving template...">
+                Save template
+              </SubmitButton>
             </form>
           </CardContent>
         </Card>

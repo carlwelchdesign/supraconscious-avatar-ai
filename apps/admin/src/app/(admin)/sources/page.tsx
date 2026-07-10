@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { AdminStatusBanner, InlineActionHelp } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import {
   updateCurriculumDayStateAction,
@@ -35,10 +37,11 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
 export default async function SourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; actionStatus?: string }>
 }) {
-  const { status } = await searchParams
-  const statusMessage = status ? SOURCE_STATUS_MESSAGES[status] : null
+  const { status, actionStatus } = await searchParams
+  const statusCode = actionStatus ?? status
+  const statusMessage = statusCode ? SOURCE_STATUS_MESSAGES[statusCode] : null
   const [documents, curriculumDays, chunks, reviewChunks, batches] = await Promise.all([
     prisma.sourceDocument.findMany({
       orderBy: { updatedAt: "desc" },
@@ -53,7 +56,7 @@ export default async function SourcesPage({
         rightsGrants: {
           orderBy: { createdAt: "desc" },
           take: 2,
-          select: { id: true, ownerName: true, status: true, allowedUses: true, quoteAllowed: true, reason: true },
+          select: { id: true, ownerName: true, status: true, allowedUses: true, quoteAllowed: true, attributionRequired: true, reason: true, reviewedAt: true },
         },
         _count: { select: { chunks: true, sections: true, curriculumDays: true } },
       },
@@ -102,17 +105,7 @@ export default async function SourcesPage({
         </p>
       </div>
 
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -155,7 +148,7 @@ export default async function SourcesPage({
           {documents.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source documents imported yet.</p>
           ) : documents.map((document) => (
-            <div key={document.id} className="rounded-md border p-3 text-sm">
+            <div id={`source-${document.id}`} key={document.id} className="scroll-mt-6 rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">{document.title}</p>
                 <p className="text-xs text-muted-foreground">
@@ -178,18 +171,30 @@ export default async function SourcesPage({
                   ))}
                 </select>
                 <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
-                <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                  Update
-                </button>
+                <SubmitButton pendingLabel="Updating...">Update</SubmitButton>
               </form>
               <div className="mt-3 rounded-md bg-muted/40 p-3">
                 <p className="text-xs font-medium">Rights grants</p>
+                {statusCode && statusCode.startsWith("rights_") ? (
+                  <p className={[
+                    "mt-2 rounded-md border px-3 py-2 text-xs",
+                    statusMessage?.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
+                    statusMessage?.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
+                  ].filter(Boolean).join(" ")}>
+                    {statusMessage?.message}
+                  </p>
+                ) : null}
                 {document.rightsGrants.length === 0 ? (
                   <p className="mt-1 text-xs text-muted-foreground">No structured rights grant yet.</p>
                 ) : document.rightsGrants.map((grant) => (
-                  <p key={grant.id} className="mt-1 text-xs text-muted-foreground">
-                    {grant.ownerName} · {grant.status} · quote {grant.quoteAllowed ? "allowed" : "not allowed"}
-                  </p>
+                  <div key={grant.id} className="mt-2 rounded-md border bg-background/60 p-2 text-xs text-muted-foreground">
+                    <p className="font-medium text-foreground">{grant.ownerName} · {grant.status}</p>
+                    <p className="mt-1">
+                      uses: {arrayText(grant.allowedUses) || "none"} · quote {grant.quoteAllowed ? "allowed" : "not allowed"} · attribution {grant.attributionRequired ? "required" : "not required"}
+                    </p>
+                    <p className="mt-1">reviewed {grant.reviewedAt ? formatAdminDateTime(grant.reviewedAt) : "not reviewed"}</p>
+                    {grant.reason ? <p className="mt-1">reason: {grant.reason.slice(0, 140)}{grant.reason.length > 140 ? "..." : ""}</p> : null}
+                  </div>
                 ))}
                 <form action={upsertSourceRightsGrantAction} className="mt-3 grid gap-2 md:grid-cols-2">
                   <input type="hidden" name="sourceDocumentId" value={document.id} />
@@ -202,11 +207,14 @@ export default async function SourcesPage({
                   <div className="flex flex-wrap gap-2 md:col-span-2">
                     {ALLOWED_USES.map((use) => (
                       <label key={use} className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <input type="checkbox" name="allowedUses" value={use} />
+                        <input type="checkbox" name="allowedUses" value={use} defaultChecked={use === "paraphrase_generation"} />
                         {use}
                       </label>
                     ))}
                   </div>
+                  <InlineActionHelp>
+                    Rights grants require at least one allowed use. `paraphrase_generation` is selected by default because it is required before source material can support RAG reflections.
+                  </InlineActionHelp>
                   <label className="flex items-center gap-1 text-xs text-muted-foreground">
                     <input type="checkbox" name="quoteAllowed" />
                     quote allowed
@@ -216,9 +224,7 @@ export default async function SourcesPage({
                     attribution required
                   </label>
                   <input name="reason" placeholder="Rights reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
-                  <button type="submit" className="w-fit rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                    Add rights grant
-                  </button>
+                  <SubmitButton pendingLabel="Adding grant...">Add rights grant</SubmitButton>
                 </form>
               </div>
             </div>
@@ -226,13 +232,13 @@ export default async function SourcesPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="chunk-review" className="scroll-mt-6">
         <CardHeader><CardTitle>Chunk Review</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {reviewChunks.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source chunks parsed yet.</p>
           ) : reviewChunks.map((chunk) => (
-            <div key={chunk.id} className="rounded-md border p-3 text-sm">
+            <div id={`chunk-${chunk.id}`} key={chunk.id} className="scroll-mt-6 rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">{chunk.sourceDocument.title}</p>
                 <p className="text-xs text-muted-foreground">
@@ -259,16 +265,14 @@ export default async function SourcesPage({
                 <input name="conceptTags" placeholder="concept tags" defaultValue={arrayText(chunk.conceptTags)} className="rounded-md border bg-background px-2 py-1 text-xs" />
                 <input name="councilRoleTags" placeholder="role tags" defaultValue={arrayText(chunk.councilRoleTags)} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
                 <input name="reason" placeholder="Reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
-                <button type="submit" className="w-fit rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                  Save chunk
-                </button>
+                <SubmitButton pendingLabel="Saving chunk...">Save chunk</SubmitButton>
               </form>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="curriculum-preview" className="scroll-mt-6">
         <CardHeader><CardTitle>Curriculum Preview</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {curriculumDays.length === 0 ? (
@@ -286,9 +290,7 @@ export default async function SourcesPage({
                   ))}
                 </select>
                 <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
-                <button type="submit" className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                  Save state
-                </button>
+                <SubmitButton pendingLabel="Saving state...">Save state</SubmitButton>
               </form>
             </div>
           ))}

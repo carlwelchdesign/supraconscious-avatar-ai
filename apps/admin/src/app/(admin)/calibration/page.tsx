@@ -2,6 +2,8 @@ import Link from "next/link"
 import { isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { resolveFounderWebHref } from "@/lib/founder-web-links"
 import { reviewCalibrationSessionAction } from "./actions"
@@ -102,17 +104,7 @@ export default async function CalibrationPage({
         </div>
       </div>
 
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric title="Sessions" value={report.sessionMetrics.totalSessions} />
@@ -358,7 +350,7 @@ export default async function CalibrationPage({
                     <option value="pilot_blocker">pilot blocker</option>
                   </select>
                   <input name="reason" placeholder="Calibration reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
-                  <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+                  <SubmitButton pendingLabel="Saving review..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Save review</SubmitButton>
                 </form>
               </div>
             )
@@ -405,7 +397,8 @@ function PresetReviewButton({
       <input type="hidden" name="calibrationIssueType" value={issueType} />
       <input type="hidden" name="severity" value="normal" />
       <input type="hidden" name="reason" value={reason} />
-      <button
+      <SubmitButton
+        pendingLabel="Saving..."
         className={
           tone === "ready"
             ? "w-full rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
@@ -413,7 +406,7 @@ function PresetReviewButton({
         }
       >
         {buttonText}
-      </button>
+      </SubmitButton>
     </form>
   )
 }

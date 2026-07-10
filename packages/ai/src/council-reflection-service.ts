@@ -12,6 +12,12 @@ import { classifyJournalSafety } from "./safety-classifier.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import {
+  buildGenerationTraceLangSmithMetadata,
+  recordLangSmithEvent,
+  withLangSmithRun,
+  type LangSmithTraceContext,
+} from "./langsmith-observability.js"
 import { emitPilotEvent, hashPilotInput } from "./pilot-events.js"
 import { prisma } from "@inner-avatar/db"
 
@@ -34,6 +40,20 @@ export type CouncilReflectionInput = {
 }
 
 export async function runCouncilReflection(user: CouncilReflectionUser, input: CouncilReflectionInput) {
+  const { value } = await withLangSmithRun("inner-council.reflection", {
+    requestId: input.requestId,
+    userId: user.id,
+    inputHash: hashPilotInput(input.text),
+    inputMode: input.inputMode ?? "text",
+    councilModeEnabled: input.councilModeEnabled,
+    ragEnabled: input.ragEnabled,
+    calibrationScenario: readFounderCalibrationScenario(input.calibrationScenario),
+  }, async (langsmith) => runCouncilReflectionInternal(user, input, langsmith))
+
+  return value
+}
+
+async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: CouncilReflectionInput, langsmith: LangSmithTraceContext) {
   const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const featureFlags = {
     council_mode: input.councilModeEnabled,
@@ -41,6 +61,15 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
   }
   const inputMode = input.inputMode ?? "text"
   const journalEntry = await prisma.journalEntry.create(buildJournalEntryCreateArgs(user.id, input.text, inputMode))
+  recordLangSmithEvent(langsmith, "journal_submitted", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    inputHash: hashPilotInput(input.text),
+    inputMode,
+    wordCount: input.text.trim().split(/\s+/).filter(Boolean).length,
+    calibrationScenario,
+  })
 
   await emitPilotEvent({
     eventName: "journal_submitted",
@@ -55,6 +84,17 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
   const safetyStart = Date.now()
   const safety = await classifyJournalSafety(input.text)
   const safetyLatencyMs = Date.now() - safetyStart
+  recordLangSmithEvent(langsmith, "safety_classified", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    inputHash: hashPilotInput(input.text),
+    safetySeverity: safety.severity,
+    flags: safety.flags,
+    allowReflectiveFlow: safety.allowReflectiveFlow,
+    latencyMs: safetyLatencyMs,
+    calibrationScenario,
+  })
   await emitPilotEvent({
     eventName: "safety_classified",
     userId: user.id,
@@ -111,7 +151,16 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
         userId: user.id,
         traceType: "safety",
         inputHash: hashPilotInput(input.text),
-        outputJson: safety,
+        outputJson: {
+          ...safety,
+          langsmith: buildGenerationTraceLangSmithMetadata(langsmith, {
+            step: "safety_bypass",
+            requestId: input.requestId,
+            journalEntryId: journalEntry.id,
+            safetySeverity: safety.severity,
+            latencyMs: safetyLatencyMs,
+          }),
+        },
         validationStatus: "safety_bypass",
         latencyMs: safetyLatencyMs,
       },
@@ -142,12 +191,24 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
   const analysisStart = Date.now()
   const analysis = await analyzeEntry(input.text, safety)
   const analysisLatencyMs = Date.now() - analysisStart
+  recordLangSmithEvent(langsmith, "entry_analyzed", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    inputHash: hashPilotInput(input.text),
+    safetySeverity: safety.severity,
+    suggestedLevel: analysis.suggestedLevel,
+    intensityScore: analysis.emotionalSignals.intensity,
+    patternCount: analysis.behavioralPatterns.length,
+    latencyMs: analysisLatencyMs,
+    calibrationScenario,
+  })
 
   if (input.councilModeEnabled) {
     return runCouncilMode(user, input, journalEntry, safety, analysis, featureFlags, {
       safetyLatencyMs,
       analysisLatencyMs,
-    })
+    }, langsmith)
   }
 
   const [storedAnalysis, avatar, prompt] = await Promise.all([
@@ -218,6 +279,7 @@ async function runCouncilMode(
   analysis: Awaited<ReturnType<typeof analyzeEntry>>,
   featureFlags: Record<string, boolean>,
   timings: { safetyLatencyMs: number; analysisLatencyMs: number },
+  langsmith: LangSmithTraceContext,
 ) {
   const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const retrievalStart = Date.now()
@@ -228,6 +290,27 @@ async function runCouncilMode(
   const sourceMode = input.ragEnabled
     ? sourceContext.length > 0 ? "rag" : "no_eligible_source"
     : "none"
+  recordLangSmithEvent(langsmith, "rag_retrieved", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    inputHash: hashPilotInput(input.text),
+    sourceMode,
+    safetySeverity: safety.severity,
+    selectedCount: sourceContext.length,
+    selectedSources: sourceContext.map((chunk) => ({
+      id: chunk.id,
+      sourceDocumentId: chunk.sourceDocumentId,
+      title: chunk.title,
+      rank: chunk.rank,
+      score: chunk.score,
+      matchedTerms: chunk.matchedTerms,
+      matchedFields: chunk.matchedFields,
+      sourcePolicyVersion: chunk.sourcePolicyVersion,
+    })),
+    latencyMs: retrievalLatencyMs,
+    calibrationScenario,
+  })
 
   if (input.ragEnabled) {
     await emitPilotEvent({
@@ -257,6 +340,15 @@ async function runCouncilMode(
 
   const councilPromptTemplate = await resolveCouncilPromptTemplate()
   const councilPromptVersion = buildCouncilPromptVersion(councilPromptTemplate)
+  recordLangSmithEvent(langsmith, "prompt_resolved", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    promptKey: councilPromptTemplate.key,
+    promptVersion: councilPromptVersion,
+    promptSource: councilPromptTemplate.source,
+    calibrationScenario,
+  })
   const councilStart = Date.now()
   const councilRun = await generateCouncilRun(input.text, analysis, safety, {
     tone: user.avatarTone,
@@ -268,11 +360,27 @@ async function runCouncilMode(
   })
   const councilLatencyMs = Date.now() - councilStart
   const validation = validateCouncilRunForPilot(councilRun, { sourceContext, safety, sourceMode })
+  recordLangSmithEvent(langsmith, "council_validated", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    sourceMode,
+    safetySeverity: safety.severity,
+    model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+    promptVersion: councilPromptVersion,
+    validationStatus: validation.passed ? "validated" : "pilot_validation_failed",
+    failedRules: validation.failedRules,
+    warnings: validation.warnings,
+    citationCoverage: validation.citationCoverage,
+    evidenceCoverage: validation.evidenceCoverage,
+    latencyMs: councilLatencyMs,
+    calibrationScenario,
+  })
   const prompt = await generateSymbolicPrompt(analysis, safety)
   const storedAnalysis = await prisma.entryAnalysis.create({
     data: buildAnalysisData(user.id, journalEntry.id, analysis),
   })
-  const retrievalTraceCreates = buildRetrievalTraceCreates(user.id, input.text, sourceContext, input.ragEnabled, retrievalLatencyMs)
+  const retrievalTraceCreates = buildRetrievalTraceCreates(user.id, input.text, sourceContext, input.ragEnabled, retrievalLatencyMs, langsmith, input.requestId)
 
   const councilSession = await prisma.councilSession.create({
     data: {
@@ -313,7 +421,16 @@ async function runCouncilMode(
             userId: user.id,
             traceType: "safety",
             inputHash: hashPilotInput(input.text),
-            outputJson: safety,
+            outputJson: {
+              ...safety,
+              langsmith: buildGenerationTraceLangSmithMetadata(langsmith, {
+                step: "safety",
+                requestId: input.requestId,
+                journalEntryId: journalEntry.id,
+                safetySeverity: safety.severity,
+                latencyMs: timings.safetyLatencyMs,
+              }),
+            },
             validationStatus: "validated",
             latencyMs: timings.safetyLatencyMs,
           },
@@ -321,7 +438,19 @@ async function runCouncilMode(
             userId: user.id,
             traceType: "analysis",
             inputHash: hashPilotInput(input.text),
-            outputJson: { summary: analysis.summary, suggestedLevel: analysis.suggestedLevel },
+            outputJson: {
+              summary: analysis.summary,
+              suggestedLevel: analysis.suggestedLevel,
+              langsmith: buildGenerationTraceLangSmithMetadata(langsmith, {
+                step: "analysis",
+                requestId: input.requestId,
+                journalEntryId: journalEntry.id,
+                suggestedLevel: analysis.suggestedLevel,
+                intensityScore: analysis.emotionalSignals.intensity,
+                patternCount: analysis.behavioralPatterns.length,
+                latencyMs: timings.analysisLatencyMs,
+              }),
+            },
             validationStatus: "validated",
             latencyMs: timings.analysisLatencyMs,
           },
@@ -336,6 +465,25 @@ async function runCouncilMode(
               pilotValidation: validation,
               promptTemplate: { key: councilPromptTemplate.key, version: councilPromptTemplate.version, source: councilPromptTemplate.source },
               calibration: { scenario: calibrationScenario },
+              langsmith: buildGenerationTraceLangSmithMetadata(langsmith, {
+                step: "council",
+                requestId: input.requestId,
+                journalEntryId: journalEntry.id,
+                sourceMode,
+                safetySeverity: safety.severity,
+                promptKey: councilPromptTemplate.key,
+                promptVersion: councilPromptVersion,
+                promptSource: councilPromptTemplate.source,
+                model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+                validationStatus: validation.passed ? "validated" : "pilot_validation_failed",
+                failedRules: validation.failedRules,
+                warnings: validation.warnings,
+                citationCoverage: validation.citationCoverage,
+                evidenceCoverage: validation.evidenceCoverage,
+                selectedSourceIds: sourceContext.map((chunk) => chunk.id),
+                latencyMs: councilLatencyMs,
+                calibrationScenario,
+              }),
             },
             validationStatus: validation.passed ? "validated" : "pilot_validation_failed",
             latencyMs: councilLatencyMs,
@@ -465,7 +613,15 @@ async function maybeUpdateMemory(user: CouncilReflectionUser, journalEntryId: st
     : Promise.resolve()
 }
 
-function buildRetrievalTraceCreates(userId: string, text: string, sourceContext: Awaited<ReturnType<typeof retrieveCouncilContext>>, ragEnabled: boolean, latencyMs: number) {
+function buildRetrievalTraceCreates(
+  userId: string,
+  text: string,
+  sourceContext: Awaited<ReturnType<typeof retrieveCouncilContext>>,
+  ragEnabled: boolean,
+  latencyMs: number,
+  langsmith?: LangSmithTraceContext,
+  requestId?: string,
+) {
   return sourceContext.length > 0
     ? sourceContext.map((chunk) => ({
       userId,
@@ -485,6 +641,22 @@ function buildRetrievalTraceCreates(userId: string, text: string, sourceContext:
         quotePermission: chunk.quotePermission,
         sourcePolicyVersion: chunk.sourcePolicyVersion,
         displayExcerpt: chunk.displayExcerpt,
+        langsmith: langsmith
+          ? buildGenerationTraceLangSmithMetadata(langsmith, {
+            step: "retrieval",
+            requestId,
+            sourceMode: "rag",
+            sourceChunkId: chunk.id,
+            sourceDocumentId: chunk.sourceDocumentId,
+            title: chunk.title,
+            rank: chunk.rank,
+            score: chunk.score,
+            matchedTerms: chunk.matchedTerms,
+            matchedFields: chunk.matchedFields,
+            sourcePolicyVersion: chunk.sourcePolicyVersion,
+            latencyMs,
+          })
+          : undefined,
       },
       validationStatus: "selected",
       latencyMs,
@@ -494,7 +666,20 @@ function buildRetrievalTraceCreates(userId: string, text: string, sourceContext:
       userId,
       traceType: "retrieval",
       inputHash: hashPilotInput(text),
-        outputJson: { sourcePolicyVersion: "source-policy-v1", selected: [] },
+        outputJson: {
+          sourcePolicyVersion: "source-policy-v1",
+          selected: [],
+          langsmith: langsmith
+            ? buildGenerationTraceLangSmithMetadata(langsmith, {
+              step: "retrieval",
+              requestId,
+              sourceMode: "no_eligible_source",
+              selectedCount: 0,
+              sourcePolicyVersion: "source-policy-v1",
+              latencyMs,
+            })
+            : undefined,
+        },
         validationStatus: "no_eligible_source",
         fallbackReason: "No approved rights-compatible source chunks matched the entry.",
         latencyMs,

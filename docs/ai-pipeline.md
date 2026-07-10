@@ -17,7 +17,8 @@ The client submits text from `JournalWorkspace`. The route:
 9. Stores `EntryAnalysis`, `AvatarResponse`, and `GeneratedPrompt` for compatibility.
 10. Updates `PatternMemory`.
 11. Checks level/stage progression.
-12. Returns all data to the journal UI.
+12. Optionally records metadata-only LangSmith observability when enabled.
+13. Returns all data to the journal UI.
 
 ## OpenAI Model Configuration
 
@@ -30,6 +31,50 @@ export const reflectiveModel = process.env.OPENAI_MODEL ?? "gpt-5-mini"
 If `OPENAI_MODEL` is not set, the app uses `gpt-5-mini`.
 
 When `OPENAI_API_KEY` is missing or placeholder-like, several AI helpers return deterministic local fallback output so the app remains usable for local demos.
+
+## LangSmith Observability
+
+LangSmith integration is optional and disabled by default. It lives in `packages/ai/src/langsmith-observability.ts` and wraps the Inner Council service boundary in `runCouncilReflection()`.
+
+When enabled, the app sends metadata-only traces:
+
+- request id, user/session ids, input hash, input mode, and feature flags
+- safety severity, flags, and classification latency
+- analysis level, intensity, pattern count, and latency
+- RAG source mode, selected source ids/titles, rank, score, matched terms/fields, and source policy version
+- prompt key/version/source and model
+- pilot validation status, failed rules, warnings, citation coverage, and evidence coverage
+
+The sanitizer blocks raw journal text, raw feedback notes, source chunk text, display excerpts, prompt content, full council output, messages, synthesis, and observer payloads from leaving the application.
+
+LangSmith linkage is stored under `GenerationTrace.outputJson.langsmith`; no schema columns are required. Internal `GenerationTrace` records remain the canonical trace source.
+
+Environment:
+
+```env
+LANGSMITH_TRACING="false"
+LANGSMITH_API_KEY=""
+LANGSMITH_PROJECT="inner-avatar-dev"
+LANGSMITH_ENDPOINT=""
+LANGSMITH_SAMPLE_RATE="1"
+LANGSMITH_METADATA_ONLY="true"
+LANGCHAIN_API_KEY=""
+LANGCHAIN_TRACING_V2="false"
+LANGCHAIN_PROJECT="inner-avatar-dev"
+```
+
+Use `node .yarn/releases/yarn-4.cjs test:langsmith` to verify no-op behavior and sanitizer coverage without calling the external service.
+
+## LangGraph Decision
+
+LangGraph is not part of the current runtime. The Inner Council pipeline is still a typed service orchestration with explicit persistence, validation, audit, and review boundaries.
+
+Revisit LangGraph when the product needs graph-native capabilities such as:
+
+- resumable multi-step agent state across independent user/admin turns
+- durable retries and branch-specific tool execution
+- explicit human-in-the-loop graph nodes beyond the current admin review queues
+- long-running autonomous workflows that should not live inside a single request/response path
 
 ## Safety Classifier
 

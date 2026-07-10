@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
-import { Button } from "@inner-avatar/ui/button"
 import { Input } from "@inner-avatar/ui/input"
 import { prisma } from "@inner-avatar/db"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { upsertFeatureFlagAction } from "./actions"
 
 const FLAG_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
@@ -22,17 +23,7 @@ export default async function FeatureFlagsPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Feature Flags</h1>
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
       <Card>
         <CardHeader>
           <CardTitle>Create or Update Flag</CardTitle>
@@ -46,7 +37,9 @@ export default async function FeatureFlagsPage({
               Enabled
             </label>
             <Input name="reason" placeholder="Reason required" required minLength={10} />
-            <Button type="submit">Save flag</Button>
+            <SubmitButton className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50" pendingLabel="Saving flag...">
+              Save flag
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>
