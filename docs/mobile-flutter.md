@@ -44,6 +44,8 @@ flutter emulators --launch inner_avatar_android_35
 flutter run -d emulator-5554 --dart-define=INNER_COUNCIL_API_BASE_URL=http://10.0.2.2:3000
 ```
 
+When `INNER_COUNCIL_API_BASE_URL` is omitted, the app automatically uses `http://10.0.2.2:3000` on Android emulator and `http://localhost:3000` on iOS Simulator/macOS. A connection-refused message on iOS Simulator or macOS usually means the web backend is not running on port 3000.
+
 macOS desktop preview is configured for fast local UI checks:
 
 ```bash

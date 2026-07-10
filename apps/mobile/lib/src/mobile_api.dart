@@ -134,11 +134,24 @@ class InnerCouncilApiClient {
       request.body = jsonEncode(body);
     }
 
-    final streamed = await _httpClient
-        .send(request)
-        .timeout(const Duration(seconds: 30));
-    final response = await http.Response.fromStream(streamed);
-    _storeCookies(response.headers['set-cookie']);
+    late http.Response response;
+    try {
+      final streamed = await _httpClient
+          .send(request)
+          .timeout(const Duration(seconds: 30));
+      response = await http.Response.fromStream(streamed);
+      _storeCookies(response.headers['set-cookie']);
+    } on TimeoutException {
+      throw MobileApiException(
+        'Could not reach the backend at $baseUrl. Start the web app and try again.',
+        0,
+      );
+    } on http.ClientException catch (error) {
+      throw MobileApiException(
+        'Could not reach the backend at $baseUrl. Start the web app and check the mobile preview URL. ${error.message}',
+        0,
+      );
+    }
 
     final decoded = response.body.isEmpty
         ? <String, dynamic>{}

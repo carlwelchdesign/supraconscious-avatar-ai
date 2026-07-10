@@ -1,11 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'mobile_api.dart';
 
-const apiBaseUrl = String.fromEnvironment(
+const _configuredApiBaseUrl = String.fromEnvironment(
   'INNER_COUNCIL_API_BASE_URL',
-  defaultValue: 'http://localhost:3000',
+  defaultValue: '',
 );
+
+String get apiBaseUrl {
+  if (_configuredApiBaseUrl.isNotEmpty) return _configuredApiBaseUrl;
+  if (Platform.isAndroid) return 'http://10.0.2.2:3000';
+  return 'http://localhost:3000';
+}
 
 final apiClientProvider = Provider<InnerCouncilApiClient>((ref) {
   return InnerCouncilApiClient(baseUrl: apiBaseUrl);
