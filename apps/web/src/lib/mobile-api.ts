@@ -159,6 +159,102 @@ export function buildMobileSavedSessionResponse(session: {
   }
 }
 
+export function buildMobileDashboardResponse(input: {
+  user: {
+    name: string | null
+    currentLevel: number
+    avatarStage: number
+    patternMemoryEnabled: boolean
+  }
+  entryCount: number
+  activePatternCount: number
+  recentSessions: Array<MobileSavedSessionSummaryInput>
+}) {
+  return {
+    dashboard: {
+      greetingName: input.user.name,
+      currentLevel: input.user.currentLevel,
+      avatarStage: input.user.avatarStage,
+      patternMemoryEnabled: input.user.patternMemoryEnabled,
+      entryCount: input.entryCount,
+      activePatternCount: input.activePatternCount,
+      recentSessions: input.recentSessions.map(buildMobileSavedSessionSummary),
+    },
+  }
+}
+
+type MobileSavedSessionSummaryInput = {
+  id: string
+  status: string
+  sourceMode: string
+  createdAt: Date | string
+  journalEntry: {
+    id: string
+    rawText: string
+    inputMode: string
+    createdAt: Date | string
+  }
+  synthesis: {
+    integratorQuestion: string
+    integrationStep: string
+  } | null
+  feedback?: Array<{ id: string; feedbackType: string }>
+  embodimentGateResponses?: Array<{ id: string }>
+}
+
+export function buildMobileSavedSessionsResponse(sessions: MobileSavedSessionSummaryInput[]) {
+  return {
+    sessions: sessions.map(buildMobileSavedSessionSummary),
+  }
+}
+
+export function buildMobileSavedSessionSummary(session: MobileSavedSessionSummaryInput) {
+  return {
+    id: session.id,
+    status: session.status,
+    sourceMode: session.sourceMode,
+    createdAt: serializeDate(session.createdAt),
+    journalEntry: {
+      id: session.journalEntry.id,
+      excerpt: truncateForMobile(session.journalEntry.rawText, 180),
+      inputMode: session.journalEntry.inputMode,
+      createdAt: serializeDate(session.journalEntry.createdAt),
+    },
+    synthesis: session.synthesis
+      ? {
+          integratorQuestion: session.synthesis.integratorQuestion,
+          integrationStep: session.synthesis.integrationStep,
+        }
+      : null,
+    hasFeedback: (session.feedback?.length ?? 0) > 0,
+    hasEmbodiment: (session.embodimentGateResponses?.length ?? 0) > 0,
+  }
+}
+
+export function buildMobilePatternsResponse(patterns: Array<{
+  id: string
+  patternLabel: string
+  evidenceCount: number
+  confidence: number
+  examples: unknown
+  lastSeenAt: Date | string
+  active: boolean
+}>) {
+  return {
+    patterns: patterns.map((pattern) => ({
+      id: pattern.id,
+      patternLabel: pattern.patternLabel,
+      evidenceCount: pattern.evidenceCount,
+      confidence: pattern.confidence,
+      examples: Array.isArray(pattern.examples)
+        ? pattern.examples.map((example) => String(example)).slice(0, 3)
+        : [],
+      lastSeenAt: serializeDate(pattern.lastSeenAt),
+      active: pattern.active,
+    })),
+  }
+}
+
 function readLatestConsentGrant(records: ConsentRecord[], type: string) {
   const latest = records.find((record) => record.consentType === type)
   return latest?.granted ?? false
@@ -166,4 +262,10 @@ function readLatestConsentGrant(records: ConsentRecord[], type: string) {
 
 function serializeDate(value: Date | string) {
   return value instanceof Date ? value.toISOString() : value
+}
+
+function truncateForMobile(value: string, maxLength: number) {
+  const normalized = value.replace(/\s+/g, " ").trim()
+  if (normalized.length <= maxLength) return normalized
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
 }

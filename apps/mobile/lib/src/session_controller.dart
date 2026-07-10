@@ -24,6 +24,20 @@ final sessionControllerProvider =
       return SessionController(ref.watch(apiClientProvider))..load();
     });
 
+final dashboardProvider = FutureProvider<MobileDashboard>((ref) {
+  return ref.watch(apiClientProvider).getDashboard();
+});
+
+final savedSessionsProvider = FutureProvider<List<MobileSavedSessionSummary>>((
+  ref,
+) {
+  return ref.watch(apiClientProvider).getSavedSessions();
+});
+
+final patternsProvider = FutureProvider<List<MobilePattern>>((ref) {
+  return ref.watch(apiClientProvider).getPatterns();
+});
+
 class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
   SessionController(this._apiClient) : super(const AsyncValue.loading());
 
@@ -53,6 +67,17 @@ class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
     state = await AsyncValue.guard(
       () =>
           _apiClient.acceptConsent(patternMemoryGranted: patternMemoryGranted),
+    );
+  }
+
+  Future<void> updateReflectionPreferences({
+    required bool patternMemoryEnabled,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => _apiClient.updateReflectionPreferences(
+        patternMemoryEnabled: patternMemoryEnabled,
+      ),
     );
   }
 

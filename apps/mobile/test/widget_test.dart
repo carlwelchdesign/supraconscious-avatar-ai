@@ -14,13 +14,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('The Inner Council'), findsOneWidget);
-    expect(
-      find.text('Write. See clearly. Choose consciously.'),
-      findsOneWidget,
-    );
+    expect(find.text('This is not a journal.'), findsOneWidget);
+    expect(find.text('Start Your First Reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
-    expect(find.text('Create account'), findsOneWidget);
     expect(find.text('API: http://localhost:3000'), findsOneWidget);
+  });
+
+  testWidgets('landing create account opens register form', (tester) async {
+    await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Start Your First Reflection').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Name'), findsOneWidget);
+    expect(find.text('Create account'), findsOneWidget);
+    expect(find.text('Use existing account'), findsOneWidget);
+  });
+
+  testWidgets('landing sign in opens login form', (tester) async {
+    await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+    expect(find.text('Sign in'), findsOneWidget);
   });
 
   testWidgets('bootstrap shows consent gate when onboarding is required', (
@@ -33,15 +54,15 @@ void main() {
     expect(find.byType(CheckboxListTile), findsNWidgets(4));
   });
 
-  testWidgets('bootstrap shows journal path when session is ready', (
+  testWidgets('bootstrap shows product shell when session is ready', (
     tester,
   ) async {
     await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome, Carl'), findsOneWidget);
-    expect(find.text('Reflection'), findsOneWidget);
-    expect(find.text('Ask the Council'), findsOneWidget);
+    expect(find.text('Entries'), findsOneWidget);
+    expect(find.text('Journal'), findsOneWidget);
   });
 
   test('journal analyze result parses council synthesis fallback', () {
@@ -110,6 +131,23 @@ class _FakeApiClient extends InnerCouncilApiClient {
 
   @override
   Future<MobileSession> getSession() async => _session;
+
+  @override
+  Future<MobileDashboard> getDashboard() async => const MobileDashboard(
+    greetingName: 'Carl',
+    currentLevel: 1,
+    avatarStage: 1,
+    patternMemoryEnabled: true,
+    entryCount: 2,
+    activePatternCount: 1,
+    recentSessions: [],
+  );
+
+  @override
+  Future<List<MobileSavedSessionSummary>> getSavedSessions() async => const [];
+
+  @override
+  Future<List<MobilePattern>> getPatterns() async => const [];
 }
 
 MobileSession _unauthenticated() {
