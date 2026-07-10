@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
-import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
+import { getGuideStageConfigs, readGuideStageConfig, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
@@ -8,7 +8,6 @@ import { readFounderFeedbackSummary } from "@/lib/founder-feedback-summary"
 import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
-const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
 
 export default async function DashboardPage({
@@ -19,7 +18,7 @@ export default async function DashboardPage({
   const user = await requireJournalAccessPageUser("/dashboard")
   const query = await searchParams
 
-  const [entryCount, patternCount, recentEntries, founderReadiness] = await Promise.all([
+  const [entryCount, patternCount, recentEntries, founderReadiness, guideStages] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
@@ -47,6 +46,7 @@ export default async function DashboardPage({
       userId: user.id,
       email: user.email,
     }),
+    getGuideStageConfigs(prisma),
   ])
 
   const latestEntry = recentEntries[0] ?? null
@@ -60,7 +60,7 @@ export default async function DashboardPage({
   const founderCanContinueCalibration = founderCalibrationMode && founderFeedbackEvidenceCount > 0 && founderGoldenExampleCount === 0
   const founderFeedbackHref = founderReadiness.founderFeedbackHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
+  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
   const dashboardMessage = readDashboardMessage(query)
 
   const greeting = (() => {

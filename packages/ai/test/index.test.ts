@@ -18,6 +18,8 @@ import {
   buildParticipantRequests,
   buildFounderParticipantAuditMetadata,
   buildGenerationTraceLangSmithMetadata,
+  DEFAULT_GUIDE_STAGE_CONFIGS,
+  mergeGuideStageConfigs,
   hashFounderParticipantEmailForAudit,
   hashEmailForAudit,
   buildCouncilPromptVersion,
@@ -46,7 +48,10 @@ import {
   runPilotCouncilEvals,
   readDisposition,
   readFeedbackDisposition,
+  readGuideStageConfig,
+  readGuideStageNames,
   resolvePilotEventInputHash,
+  normalizeGuideStage,
   formatFounderCalibrationScenario,
   sanitizeProperties,
   sanitizeLangSmithMetadata,
@@ -212,6 +217,69 @@ test("inner council feature flags seed with conservative RAG defaults", () => {
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
+})
+
+test("guide stage config falls back to five defaults", () => {
+  const configs = mergeGuideStageConfigs([])
+
+  assert.equal(configs.length, 5)
+  assert.deepEqual(readGuideStageNames(configs), ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"])
+  assert.equal(readGuideStageConfig(configs, 99).name, "Inner Author")
+  assert.equal(readGuideStageConfig(configs, -4).name, "Echo")
+})
+
+test("guide stage config merges active metadata and ignores inactive rows", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 2,
+      name: "Observer",
+      description: "A custom stage description.",
+      active: true,
+      metadata: {
+        trait: "Discernment",
+        guideTitle: "A tuned guide,",
+        guideTitleEmphasis: "not a generic flow.",
+        completedLabel: "Integrated",
+      },
+    },
+    {
+      stage: 3,
+      name: "Should Not Render",
+      description: "Inactive config.",
+      active: false,
+      metadata: { trait: "Hidden" },
+    },
+  ])
+
+  assert.equal(readGuideStageConfig(configs, 2).name, "Observer")
+  assert.equal(readGuideStageConfig(configs, 2).trait, "Discernment")
+  assert.equal(readGuideStageConfig(configs, 2).guideTitle, "A tuned guide,")
+  assert.equal(readGuideStageConfig(configs, 2).guideTitleEmphasis, "not a generic flow.")
+  assert.equal(readGuideStageConfig(configs, 2).completedLabel, "Integrated")
+  assert.equal(readGuideStageConfig(configs, 3).name, DEFAULT_GUIDE_STAGE_CONFIGS[2].name)
+})
+
+test("guide stage config falls back per missing or blank metadata field", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 1,
+      name: "  ",
+      description: null,
+      active: true,
+      metadata: {
+        trait: "",
+        guideIntro: "A custom guide intro.",
+      },
+    },
+  ])
+
+  const stage = readGuideStageConfig(configs, 1)
+  assert.equal(stage.name, "Echo")
+  assert.equal(stage.description, DEFAULT_GUIDE_STAGE_CONFIGS[0].description)
+  assert.equal(stage.trait, "Listening")
+  assert.equal(stage.guideIntro, "A custom guide intro.")
+  assert.equal(normalizeGuideStage(3.4), 3)
+  assert.equal(normalizeGuideStage(undefined), 1)
 })
 
 test("account export payload includes core privacy and billing data", () => {

@@ -1,11 +1,11 @@
 import Link from "next/link"
 import { BookOpen, BarChart2, Sparkles, Settings, LogOut, LayoutDashboard } from "lucide-react"
+import { getGuideStageConfigs, readGuideStageConfig } from "@inner-avatar/ai"
 import { logoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
+import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
-
-const AVATAR_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -16,9 +16,12 @@ const navItems = [
 ]
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser()
+  const [user, guideStages] = await Promise.all([
+    getCurrentUser(),
+    getGuideStageConfigs(prisma),
+  ])
   const guideStage = Math.min(Math.max(user?.avatarStage ?? 1, 1), 5)
-  const guideStageName = AVATAR_STAGE_NAMES[guideStage - 1] ?? AVATAR_STAGE_NAMES[0]
+  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--background)" }}>

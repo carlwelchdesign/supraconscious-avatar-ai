@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { Input } from "@inner-avatar/ui/input"
 import { Textarea } from "@inner-avatar/ui/textarea"
+import { getGuideStageConfigs } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AdminStatusBanner } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
@@ -18,34 +19,77 @@ export default async function GuideStagesPage({
 }) {
   const { status } = await searchParams
   const statusMessage = status ? STAGE_STATUS_MESSAGES[status] : null
-  const stages = await prisma.avatarStageConfig.findMany({ orderBy: { stage: "asc" } })
+  const stages = await getGuideStageConfigs(prisma)
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Guide Stages</h1>
+      <div>
+        <h1 className="text-2xl font-semibold">Guide Stages</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          CMS copy for the five visible guide stages used across the web app. Missing or inactive database records fall back to the built-in defaults shown here.
+        </p>
+      </div>
       <AdminStatusBanner message={statusMessage} />
-      <Card>
-        <CardHeader>
-          <CardTitle>Create or Update Stage</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={upsertAvatarStageAction} className="grid gap-3">
-            <Input name="stage" type="number" min={1} max={5} placeholder="Stage number" required />
-            <Input name="name" placeholder="Stage name" required />
-            <Textarea name="description" placeholder="Description" />
-            <Input name="reason" placeholder="Reason required" required minLength={10} />
-            <SubmitButton className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50" pendingLabel="Saving stage...">
-              Save stage
-            </SubmitButton>
-          </form>
-        </CardContent>
-      </Card>
       <div className="space-y-3">
         {stages.map((stage) => (
-          <Card key={stage.id}>
-            <CardContent className="p-4 text-sm">
-              <p className="font-medium">Stage {stage.stage}: {stage.name}</p>
-              <p className="mt-1 text-muted-foreground">{stage.description ?? "No description"}</p>
+          <Card key={stage.stage}>
+            <CardHeader>
+              <CardTitle>Stage {stage.stage}: {stage.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                This copy appears wherever the app labels stage {stage.stage}, including the guide page, dashboard, sidebar, and journal views.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form action={upsertAvatarStageAction} className="grid gap-3 md:grid-cols-2">
+                <input type="hidden" name="stage" value={stage.stage} />
+                <label className="grid gap-1 text-xs font-medium">
+                  Stage name
+                  <Input name="name" defaultValue={stage.name} required />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Trait label
+                  <Input name="trait" defaultValue={stage.trait} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium md:col-span-2">
+                  Stage description
+                  <Textarea name="description" defaultValue={stage.description} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Guide eyebrow
+                  <Input name="guideEyebrow" defaultValue={stage.guideEyebrow} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Timeline title
+                  <Input name="timelineTitle" defaultValue={stage.timelineTitle} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Guide title
+                  <Input name="guideTitle" defaultValue={stage.guideTitle} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Guide title emphasis
+                  <Input name="guideTitleEmphasis" defaultValue={stage.guideTitleEmphasis} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Current stage label
+                  <Input name="currentLabel" defaultValue={stage.currentLabel} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Completed stage label
+                  <Input name="completedLabel" defaultValue={stage.completedLabel} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium md:col-span-2">
+                  Guide intro
+                  <Textarea name="guideIntro" defaultValue={stage.guideIntro} />
+                </label>
+                <label className="grid gap-1 text-xs font-medium md:col-span-2">
+                  Reason
+                  <Input name="reason" placeholder="Reason required" required minLength={10} />
+                </label>
+                <SubmitButton className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50" pendingLabel="Saving stage...">
+                  Save stage {stage.stage}
+                </SubmitButton>
+              </form>
             </CardContent>
           </Card>
         ))}

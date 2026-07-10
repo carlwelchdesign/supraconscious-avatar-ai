@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { buildSourceProvenanceMessage, isFounderCalibrationUser } from "@inner-avatar/ai"
+import { buildSourceProvenanceMessage, getGuideStageConfigs, isFounderCalibrationUser, readGuideStageConfig } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -14,8 +14,6 @@ import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./ac
 import { DeleteJournalEntryForm } from "./delete-journal-entry-form"
 import { SavedSessionFeedbackForm } from "./saved-session-feedback-form"
 
-const GUIDE_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"]
-
 export default async function JournalEntryPage({
   params,
   searchParams,
@@ -26,7 +24,7 @@ export default async function JournalEntryPage({
   const [resolvedParams, query] = await Promise.all([params, searchParams])
   const entryNextPath = `/journal/${resolvedParams.entryId}${query.feedback ? `?feedback=${encodeURIComponent(query.feedback)}` : ""}`
   const user = await requireJournalAccessPageUser(entryNextPath)
-  const [founderCalibrationMode, entry] = await Promise.all([
+  const [founderCalibrationMode, entry, guideStages] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.journalEntry.findFirst({
       where: { id: resolvedParams.entryId, userId: user.id },
@@ -83,6 +81,7 @@ export default async function JournalEntryPage({
       },
       },
     }),
+    getGuideStageConfigs(prisma),
   ])
 
   if (!entry) notFound()
@@ -96,7 +95,7 @@ export default async function JournalEntryPage({
     speed: user.voiceSpeed ?? 1.0,
   }
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const guideStageName = GUIDE_STAGE_NAMES[guideStage - 1] ?? GUIDE_STAGE_NAMES[0]
+  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
   const retrievalTraces = entry.councilSession?.generationTraces ?? []
   const selectedSources = retrievalTraces
     .filter((trace) => trace.validationStatus === "selected")

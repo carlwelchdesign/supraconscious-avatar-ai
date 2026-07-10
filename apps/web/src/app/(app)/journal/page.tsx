@@ -1,5 +1,5 @@
 import { prisma } from "@inner-avatar/db"
-import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
+import { getGuideStageConfigs, readGuideStageNames, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { getAppCalendarDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
@@ -20,7 +20,7 @@ export default async function JournalPage() {
     frameOfThought: true,
     socraticQuestion: true,
   } as const
-  const [monthPrompts, founderReadiness] = await Promise.all([
+  const [monthPrompts, founderReadiness, guideStages] = await Promise.all([
     prisma.curriculumDay.findMany({
       where: {
         publishState: "approved_curriculum",
@@ -33,6 +33,7 @@ export default async function JournalPage() {
       userId: user.id,
       email: user.email,
     }),
+    getGuideStageConfigs(prisma),
   ])
   const todaysPrompt = monthPrompts.find((prompt) => prompt.day === day) ?? null
   const fallbackPrompt = todaysPrompt ? null : (monthPrompts[0] ?? null)
@@ -42,6 +43,7 @@ export default async function JournalPage() {
   return (
     <JournalWorkspace
       avatarStage={guideStage as 1 | 2 | 3 | 4 | 5}
+      stageNames={readGuideStageNames(guideStages)}
       thresholdPrompt={thresholdPrompt}
       todayLabel={todayLabel}
       founderCalibrationMode={founderReadiness.founderCalibrationMode}

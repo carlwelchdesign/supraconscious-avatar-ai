@@ -15,7 +15,7 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
-const AVATAR_STAGES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
+const DEFAULT_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 const CALIBRATION_PROMPTS = [
   {
@@ -137,6 +137,7 @@ type ThresholdPrompt = {
 
 type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
+  stageNames?: readonly string[]
   voicePrefs?: VoicePrefs
   thresholdPrompt?: ThresholdPrompt
   todayLabel?: string
@@ -149,6 +150,7 @@ type Props = {
 
 export function JournalWorkspace({
   avatarStage = 1,
+  stageNames = DEFAULT_STAGE_NAMES,
   voicePrefs,
   thresholdPrompt = null,
   todayLabel = "",
@@ -158,6 +160,7 @@ export function JournalWorkspace({
   needsFounderFeedback = false,
   founderFeedbackHref = null,
 }: Props) {
+  const guideStageNames = normalizeStageNames(stageNames)
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
@@ -514,8 +517,8 @@ export function JournalWorkspace({
               </p>
               <p className="text-[12px] font-light text-[var(--plum-soft)]">
                 {result
-                  ? `${AVATAR_STAGES[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
-                  : `${AVATAR_STAGES[avatarStage - 1]} · Stage ${avatarStage}`}
+                  ? `${guideStageNames[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
+                  : `${guideStageNames[avatarStage - 1]} · Stage ${avatarStage}`}
               </p>
             </div>
 
@@ -826,9 +829,9 @@ export function JournalWorkspace({
                     Your guide has deepened
                   </p>
                   <p className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
-                    {AVATAR_STAGES[result.progression.previousStage - 1]} is becoming{" "}
+                    {guideStageNames[result.progression.previousStage - 1]} is becoming{" "}
                     <em className="italic text-[var(--clay-light)]">
-                      {AVATAR_STAGES[result.progression.newStage - 1]}
+                      {guideStageNames[result.progression.newStage - 1]}
                     </em>
                   </p>
                 </div>
@@ -958,4 +961,11 @@ function userFacingSaveError(error: unknown, status: number, item: "shift" | "fe
   return item === "shift"
     ? "Unable to save your shift. Try again in a moment."
     : "Unable to save feedback. Try again in a moment."
+}
+
+function normalizeStageNames(stageNames: readonly string[]) {
+  return DEFAULT_STAGE_NAMES.map((fallback, index) => {
+    const value = stageNames[index]
+    return typeof value === "string" && value.trim() ? value.trim() : fallback
+  })
 }

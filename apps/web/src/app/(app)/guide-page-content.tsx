@@ -1,39 +1,16 @@
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
+import { getGuideStageConfigs, readGuideStageConfig } from "@inner-avatar/ai"
+import { prisma } from "@inner-avatar/db"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
-const stages = [
-  {
-    name: "Echo",
-    description: "Reflects your language back with care. Mirrors tone and recurring words without interpretation.",
-    trait: "Listening",
-  },
-  {
-    name: "Witness",
-    description: "Begins naming what it observes. Notices emotional signals and language patterns.",
-    trait: "Noticing",
-  },
-  {
-    name: "Clear Mirror",
-    description: "Names contradictions gently. Helps you see the gap between what you say and what you feel.",
-    trait: "Clarity",
-  },
-  {
-    name: "Reframer",
-    description: "Offers alternative perspectives on recurring stories. Not prescriptive — expansive.",
-    trait: "Perspective",
-  },
-  {
-    name: "Inner Author",
-    description: "Supports you in writing new narratives. The deepest stage of integration.",
-    trait: "Authorship",
-  },
-]
-
 export async function GuidePageContent() {
-  const user = await requireJournalAccessPageUser("/guide")
+  const [user, stages] = await Promise.all([
+    requireJournalAccessPageUser("/guide"),
+    getGuideStageConfigs(prisma),
+  ])
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
-  const currentStage = stages[stageIndex] ?? stages[0]
+  const currentStage = readGuideStageConfig(stages, guideStage)
 
   return (
     <div className="space-y-10">
@@ -41,15 +18,15 @@ export async function GuidePageContent() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          Your guide
+          {currentStage.guideEyebrow}
         </p>
         <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
-          An inner presence,
+          {currentStage.guideTitle}
           <br />
-          <em className="italic font-normal text-[var(--clay)]">not a chatbot.</em>
+          <em className="italic font-normal text-[var(--clay)]">{currentStage.guideTitleEmphasis}</em>
         </h1>
         <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          The guide adapts through evidence of reflection, not intensity. Each stage is earned gradually through the accumulated depth of your writing.
+          {currentStage.guideIntro}
         </p>
       </div>
 
@@ -68,7 +45,7 @@ export async function GuidePageContent() {
         <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
         <div className="relative z-10 text-center sm:text-left">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Current stage · {guideStage} of 5
+            {currentStage.currentLabel} stage · {guideStage} of 5
           </p>
           <h2 className="font-display text-[36px] font-light text-[var(--cream)] mb-3 leading-tight">
             {currentStage.name}
@@ -101,7 +78,7 @@ export async function GuidePageContent() {
       {/* ── Evolution timeline ──────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--plum-soft)] mb-6">
-          The five stages
+          {currentStage.timelineTitle}
         </p>
         <div className="space-y-3">
           {stages.map((stage, i) => {
@@ -111,7 +88,7 @@ export async function GuidePageContent() {
 
             return (
               <div
-                key={stage.name}
+                key={stage.stage}
                 className="rounded-2xl border p-5 flex items-start gap-4 transition-all"
                 style={{
                   background: isCurrent ? "var(--pearl)" : "transparent",
@@ -123,7 +100,7 @@ export async function GuidePageContent() {
               >
                 <AvatarOrb
                   size="xs"
-                  stage={(i + 1) as 1|2|3|4|5}
+                  stage={stage.stage}
                   className="flex-shrink-0 mt-0.5"
                 />
 
@@ -140,7 +117,7 @@ export async function GuidePageContent() {
                         className="text-[10px] font-medium tracking-[0.1em] uppercase px-2.5 py-0.5 rounded-full"
                         style={{ background: "rgba(184,137,90,0.1)", color: "var(--clay)" }}
                       >
-                        Current
+                        {currentStage.currentLabel}
                       </span>
                     )}
                     {isPast && (
@@ -148,7 +125,7 @@ export async function GuidePageContent() {
                         className="text-[10px] font-medium tracking-[0.1em] uppercase px-2.5 py-0.5 rounded-full"
                         style={{ background: "rgba(155,175,155,0.12)", color: "var(--sage)" }}
                       >
-                        Complete
+                        {currentStage.completedLabel}
                       </span>
                     )}
                   </div>
