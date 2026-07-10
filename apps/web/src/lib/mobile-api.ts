@@ -85,6 +85,15 @@ export function buildMobileSavedSessionResponse(session: {
     rawText: string
     inputMode: string
     createdAt: Date | string
+    avatarResponse?: {
+      openingLine?: string | null
+      mirror?: string | null
+      patternName?: string | null
+      contradiction?: string | null
+      socraticQuestion?: string | null
+      integrationStep?: string | null
+      closingLine?: string | null
+    } | null
   }
   messages: Array<{
     id: string
@@ -113,7 +122,22 @@ export function buildMobileSavedSessionResponse(session: {
     text: string
     createdAt: Date | string
   }>
+  generationTraces?: Array<{
+    id: string
+    sourceChunkId?: string | null
+    validationStatus: string
+    outputJson: unknown
+    sourceChunk?: {
+      sourceDocument: {
+        title: string
+      }
+    } | null
+  }>
 }) {
+  const selectedSources = (session.generationTraces ?? [])
+    .filter((trace) => trace.validationStatus === "selected")
+    .map((trace) => buildMobileSourceSummary(trace))
+
   return {
     session: {
       id: session.id,
@@ -126,6 +150,17 @@ export function buildMobileSavedSessionResponse(session: {
         inputMode: session.journalEntry.inputMode,
         createdAt: serializeDate(session.journalEntry.createdAt),
       },
+      avatarResponse: session.journalEntry.avatarResponse
+        ? {
+            openingLine: session.journalEntry.avatarResponse.openingLine ?? null,
+            mirror: session.journalEntry.avatarResponse.mirror ?? null,
+            patternName: session.journalEntry.avatarResponse.patternName ?? null,
+            contradiction: session.journalEntry.avatarResponse.contradiction ?? null,
+            socraticQuestion: session.journalEntry.avatarResponse.socraticQuestion ?? null,
+            integrationStep: session.journalEntry.avatarResponse.integrationStep ?? null,
+            closingLine: session.journalEntry.avatarResponse.closingLine ?? null,
+          }
+        : null,
       messages: session.messages.map((message) => ({
         id: message.id,
         role: message.role,
@@ -155,6 +190,11 @@ export function buildMobileSavedSessionResponse(session: {
         text: response.text,
         createdAt: serializeDate(response.createdAt),
       })),
+      sourceGrounding: {
+        mode: session.sourceMode,
+        message: buildMobileSourceGroundingMessage(session.sourceMode),
+        selectedSources,
+      },
     },
   }
 }
@@ -255,6 +295,40 @@ export function buildMobilePatternsResponse(patterns: Array<{
   }
 }
 
+export function buildMobileGuideResponse(input: {
+  user: {
+    avatarTone: string
+    intensityLevel: number
+    avatarStage: number
+  }
+  stages: Array<{
+    stage: number
+    name: string
+    description: string
+    trait: string
+    currentLabel: string
+    completedLabel: string
+  }>
+}) {
+  const currentStage = Math.min(Math.max(input.user.avatarStage ?? 1, 1), 5)
+  return {
+    guide: {
+      currentStage,
+      avatarTone: input.user.avatarTone,
+      intensityLevel: input.user.intensityLevel,
+      stages: input.stages.map((stage) => ({
+        stage: stage.stage,
+        name: stage.name,
+        description: stage.description,
+        trait: stage.trait,
+        currentLabel: stage.currentLabel,
+        completedLabel: stage.completedLabel,
+        state: stage.stage < currentStage ? "complete" : stage.stage === currentStage ? "current" : "locked",
+      })),
+    },
+  }
+}
+
 function readLatestConsentGrant(records: ConsentRecord[], type: string) {
   const latest = records.find((record) => record.consentType === type)
   return latest?.granted ?? false
@@ -268,4 +342,41 @@ function truncateForMobile(value: string, maxLength: number) {
   const normalized = value.replace(/\s+/g, " ").trim()
   if (normalized.length <= maxLength) return normalized
   return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+function buildMobileSourceSummary(trace: {
+  id: string
+  sourceChunkId?: string | null
+  outputJson: unknown
+  sourceChunk?: {
+    sourceDocument: {
+      title: string
+    }
+  } | null
+}) {
+  const output = trace.outputJson && typeof trace.outputJson === "object" && !Array.isArray(trace.outputJson)
+    ? trace.outputJson as { title?: unknown; rank?: unknown; displayExcerpt?: unknown; matchedTerms?: unknown }
+    : {}
+
+  return {
+    id: trace.sourceChunkId ?? trace.id,
+    title: typeof output.title === "string"
+      ? output.title
+      : trace.sourceChunk?.sourceDocument.title ?? "Approved source",
+    rank: typeof output.rank === "number" ? output.rank : 0,
+    displayExcerpt: typeof output.displayExcerpt === "string" ? output.displayExcerpt : null,
+    matchedTerms: Array.isArray(output.matchedTerms)
+      ? output.matchedTerms.map((term) => String(term)).slice(0, 6)
+      : [],
+  }
+}
+
+function buildMobileSourceGroundingMessage(sourceMode: string) {
+  if (sourceMode === "rag") {
+    return "This reflection used approved source grounding where eligible."
+  }
+  if (sourceMode === "curriculum") {
+    return "This reflection used the approved daily curriculum frame."
+  }
+  return "This reflection did not use external source grounding."
 }

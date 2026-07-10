@@ -38,6 +38,10 @@ final patternsProvider = FutureProvider<List<MobilePattern>>((ref) {
   return ref.watch(apiClientProvider).getPatterns();
 });
 
+final guideProvider = FutureProvider<MobileGuide>((ref) {
+  return ref.watch(apiClientProvider).getGuide();
+});
+
 class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
   SessionController(this._apiClient) : super(const AsyncValue.loading());
 

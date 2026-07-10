@@ -454,6 +454,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
       const JournalTab(),
       const SavedSessionsTab(),
       const PatternsTab(),
+      const GuideTab(),
       SettingsTab(session: widget.session),
     ];
     return Scaffold(
@@ -492,6 +493,11 @@ class _ProductShellState extends ConsumerState<ProductShell> {
             icon: Icon(Icons.insights_outlined),
             selectedIcon: Icon(Icons.insights),
             label: 'Patterns',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'Guide',
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_outlined),
@@ -670,17 +676,42 @@ class SavedSessionsTab extends ConsumerWidget {
   }
 }
 
-class SavedSessionDetailScreen extends ConsumerWidget {
+class SavedSessionDetailScreen extends ConsumerStatefulWidget {
   const SavedSessionDetailScreen({required this.sessionId, super.key});
 
   final String sessionId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SavedSessionDetailScreen> createState() =>
+      _SavedSessionDetailScreenState();
+}
+
+class _SavedSessionDetailScreenState
+    extends ConsumerState<SavedSessionDetailScreen> {
+  late Future<MobileSavedSessionDetail> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<MobileSavedSessionDetail> _load() {
+    return ref.read(apiClientProvider).getSavedSession(widget.sessionId);
+  }
+
+  void _refresh() {
+    setState(() => _future = _load());
+    ref.invalidate(savedSessionsProvider);
+    ref.invalidate(dashboardProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Saved reflection')),
       body: FutureBuilder<MobileSavedSessionDetail>(
-        future: ref.read(apiClientProvider).getSavedSession(sessionId),
+        future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -699,6 +730,9 @@ class SavedSessionDetailScreen extends ConsumerWidget {
               const SizedBox(height: 10),
               Text(session.journalText),
               const SizedBox(height: 24),
+              if (session.avatarResponse != null)
+                _AvatarResponseCard(response: session.avatarResponse!),
+              if (session.avatarResponse != null) const SizedBox(height: 12),
               if (session.synthesis != null)
                 _InfoCard(
                   title: session.synthesis!.integratorQuestion,
@@ -710,11 +744,284 @@ class SavedSessionDetailScreen extends ConsumerWidget {
                   title: message.displayName,
                   body: message.abstained ? 'Abstained.' : message.content,
                 ),
+              _SourceGroundingCard(sourceGrounding: session.sourceGrounding),
+              _FeedbackEmbodimentSection(session: session, onSaved: _refresh),
             ],
           );
         },
       ),
     );
+  }
+}
+
+class _AvatarResponseCard extends StatelessWidget {
+  const _AvatarResponseCard({required this.response});
+
+  final MobileAvatarResponse response;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Council reflection',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            if (response.openingLine.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(response.openingLine),
+            ],
+            if (response.mirror.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                response.mirror,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+            if (response.patternName.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Chip(label: Text(response.patternName)),
+              ),
+            ],
+            if (response.contradiction.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(response.contradiction),
+            ],
+            if (response.socraticQuestion.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                response.socraticQuestion,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+            if (response.integrationStep.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(response.integrationStep),
+            ],
+            if (response.closingLine.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(response.closingLine),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SourceGroundingCard extends StatelessWidget {
+  const _SourceGroundingCard({required this.sourceGrounding});
+
+  final MobileSourceGrounding sourceGrounding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(top: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Source grounding',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(sourceGrounding.message),
+            if (sourceGrounding.selectedSources.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              for (final source in sourceGrounding.selectedSources)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        source.title,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      if (source.displayExcerpt?.isNotEmpty == true)
+                        Text(source.displayExcerpt!),
+                    ],
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeedbackEmbodimentSection extends ConsumerStatefulWidget {
+  const _FeedbackEmbodimentSection({
+    required this.session,
+    required this.onSaved,
+  });
+
+  final MobileSavedSessionDetail session;
+  final VoidCallback onSaved;
+
+  @override
+  ConsumerState<_FeedbackEmbodimentSection> createState() =>
+      _FeedbackEmbodimentSectionState();
+}
+
+class _FeedbackEmbodimentSectionState
+    extends ConsumerState<_FeedbackEmbodimentSection> {
+  final _feedbackNote = TextEditingController();
+  final _embodiment = TextEditingController();
+  String _feedbackType = 'helpful';
+  String? _message;
+  bool _savingFeedback = false;
+  bool _savingEmbodiment = false;
+
+  @override
+  void dispose() {
+    _feedbackNote.dispose();
+    _embodiment.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(top: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Session status',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${widget.session.feedback.isNotEmpty ? "Feedback saved" : "Feedback needed"} · ${widget.session.embodimentGateResponses.isNotEmpty ? "Gate saved" : "Gate open"}',
+            ),
+            if (widget.session.feedback.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              for (final feedback in widget.session.feedback)
+                Text(
+                  '${_formatFeedbackType(feedback.feedbackType)}${feedback.hasNote ? " · note saved" : ""}',
+                ),
+            ],
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _feedbackType,
+              decoration: const InputDecoration(labelText: 'Feedback'),
+              items: const [
+                DropdownMenuItem(value: 'helpful', child: Text('Helpful')),
+                DropdownMenuItem(
+                  value: 'not_accurate',
+                  child: Text('Not accurate'),
+                ),
+                DropdownMenuItem(
+                  value: 'too_intense',
+                  child: Text('Too intense'),
+                ),
+                DropdownMenuItem(value: 'unclear', child: Text('Unclear')),
+                DropdownMenuItem(
+                  value: 'unsupported_source',
+                  child: Text('Unsupported source'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _feedbackType = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _feedbackNote,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Optional feedback note',
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _savingFeedback ? null : _saveFeedback,
+              child: Text(_savingFeedback ? 'Saving...' : 'Save feedback'),
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _embodiment,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'One small shift I can live today',
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: _savingEmbodiment ? null : _saveEmbodiment,
+              child: Text(
+                _savingEmbodiment ? 'Saving...' : 'Save embodiment gate',
+              ),
+            ),
+            if (_message != null) ...[
+              const SizedBox(height: 10),
+              Text(_message!),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveFeedback() async {
+    setState(() {
+      _savingFeedback = true;
+      _message = null;
+    });
+    try {
+      await ref
+          .read(apiClientProvider)
+          .submitFeedback(
+            councilSessionId: widget.session.id,
+            feedbackType: _feedbackType,
+            note: _feedbackNote.text,
+          );
+      _feedbackNote.clear();
+      _message = 'Feedback saved.';
+      widget.onSaved();
+    } catch (error) {
+      _message = error.toString();
+    } finally {
+      if (mounted) setState(() => _savingFeedback = false);
+    }
+  }
+
+  Future<void> _saveEmbodiment() async {
+    final text = _embodiment.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _savingEmbodiment = true;
+      _message = null;
+    });
+    try {
+      await ref
+          .read(apiClientProvider)
+          .saveEmbodiment(councilSessionId: widget.session.id, text: text);
+      _embodiment.clear();
+      _message = 'Embodiment gate saved.';
+      widget.onSaved();
+    } catch (error) {
+      _message = error.toString();
+    } finally {
+      if (mounted) setState(() => _savingEmbodiment = false);
+    }
   }
 }
 
@@ -745,6 +1052,73 @@ class PatternsTab extends ConsumerWidget {
       ],
     );
   }
+}
+
+class GuideTab extends ConsumerWidget {
+  const GuideTab({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final guide = ref.watch(guideProvider);
+    return _AsyncList(
+      value: guide,
+      onRefresh: () => ref.invalidate(guideProvider),
+      builder: (data) {
+        final current = _currentGuideStage(data);
+        return [
+          Text('Your guide', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          if (current != null)
+            _InfoCard(
+              title: '${current.name} · Stage ${data.currentStage} of 5',
+              body: current.description,
+            ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _StatCard(label: 'Tone', value: data.avatarTone),
+              _StatCard(label: 'Intensity', value: '${data.intensityLevel}/5'),
+              if (current != null)
+                _StatCard(label: 'Trait', value: current.trait),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'The five stages',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          for (final stage in data.stages)
+            Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: ListTile(
+                leading: CircleAvatar(child: Text('${stage.stage}')),
+                title: Text(stage.name),
+                subtitle: Text(stage.description),
+                trailing: Chip(
+                  label: Text(
+                    stage.state == 'current'
+                        ? stage.currentLabel
+                        : stage.state == 'complete'
+                        ? stage.completedLabel
+                        : 'Locked',
+                  ),
+                ),
+              ),
+            ),
+        ];
+      },
+    );
+  }
+}
+
+MobileGuideStage? _currentGuideStage(MobileGuide guide) {
+  for (final stage in guide.stages) {
+    if (stage.stage == guide.currentStage) return stage;
+  }
+  return null;
 }
 
 class _PatternCard extends ConsumerWidget {
@@ -985,6 +1359,28 @@ class _CouncilResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(result.summary),
+            if (result.openingLine.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(result.openingLine),
+            ],
+            if (result.mirror.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                result.mirror,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+            if (result.patternName.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Chip(label: Text(result.patternName)),
+              ),
+            ],
+            if (result.contradiction.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(result.contradiction),
+            ],
             if (result.integratorQuestion.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
@@ -996,11 +1392,26 @@ class _CouncilResultCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(result.integrationStep),
             ],
+            if (result.closingLine.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(result.closingLine),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+String _formatFeedbackType(String feedbackType) {
+  return feedbackType
+      .split('_')
+      .map(
+        (part) => part.isEmpty
+            ? part
+            : '${part[0].toUpperCase()}${part.substring(1)}',
+      )
+      .join(' ');
 }
 
 class _InfoCard extends StatelessWidget {

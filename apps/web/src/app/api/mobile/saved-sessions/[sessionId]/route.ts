@@ -20,6 +20,17 @@ export async function GET(_request: Request, context: { params: Promise<{ sessio
             rawText: true,
             inputMode: true,
             createdAt: true,
+            avatarResponse: {
+              select: {
+                openingLine: true,
+                mirror: true,
+                patternName: true,
+                contradiction: true,
+                socraticQuestion: true,
+                integrationStep: true,
+                closingLine: true,
+              },
+            },
           },
         },
         messages: {
@@ -58,6 +69,23 @@ export async function GET(_request: Request, context: { params: Promise<{ sessio
             id: true,
             text: true,
             createdAt: true,
+          },
+        },
+        generationTraces: {
+          where: { traceType: "retrieval" },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            sourceChunkId: true,
+            validationStatus: true,
+            outputJson: true,
+            sourceChunk: {
+              select: {
+                sourceDocument: {
+                  select: { title: true },
+                },
+              },
+            },
           },
         },
       },

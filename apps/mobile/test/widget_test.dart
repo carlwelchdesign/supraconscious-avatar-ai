@@ -68,7 +68,10 @@ void main() {
   test('journal analyze result parses council synthesis fallback', () {
     final result = JournalAnalyzeResult.fromJson({
       'analysis': {'summary': 'A repeated pattern is visible.'},
-      'avatarResponse': {'integrationStep': 'Fallback step'},
+      'avatarResponse': {
+        'mirror': 'You already know.',
+        'integrationStep': 'Fallback step',
+      },
       'councilSession': {
         'id': 'session-1',
         'synthesis': {
@@ -82,6 +85,99 @@ void main() {
     expect(result.councilSessionId, 'session-1');
     expect(result.integratorQuestion, 'What choice is available?');
     expect(result.integrationStep, 'Take one breath.');
+    expect(result.mirror, 'You already know.');
+  });
+
+  test(
+    'saved session detail parses reflection, feedback, embodiment, and sources',
+    () {
+      final session = MobileSavedSessionDetail.fromJson({
+        'id': 'session-1',
+        'sourceMode': 'rag',
+        'journalEntry': {'text': 'Full entry'},
+        'avatarResponse': {
+          'openingLine': 'Start',
+          'mirror': 'Mirror',
+          'patternName': 'Pattern',
+          'contradiction': 'Contradiction',
+          'socraticQuestion': 'Question?',
+          'integrationStep': 'Step',
+          'closingLine': 'Close',
+        },
+        'messages': [
+          {
+            'displayName': 'The Protector',
+            'content': 'Careful.',
+            'abstained': false,
+          },
+        ],
+        'synthesis': {
+          'integratorQuestion': 'What is true?',
+          'integrationStep': 'Pause.',
+        },
+        'feedback': [
+          {'id': 'feedback-1', 'feedbackType': 'helpful', 'hasNote': true},
+        ],
+        'embodimentGateResponses': [
+          {'id': 'gate-1', 'text': 'One small shift.'},
+        ],
+        'sourceGrounding': {
+          'mode': 'rag',
+          'message': 'Used approved source grounding.',
+          'selectedSources': [
+            {
+              'id': 'source-1',
+              'title': 'Approved source',
+              'rank': 1,
+              'displayExcerpt': 'Short excerpt',
+              'matchedTerms': ['clarity'],
+            },
+          ],
+        },
+      });
+
+      expect(session.id, 'session-1');
+      expect(session.avatarResponse?.mirror, 'Mirror');
+      expect(session.messages.single.displayName, 'The Protector');
+      expect(session.feedback.single.hasNote, true);
+      expect(session.embodimentGateResponses.single.text, 'One small shift.');
+      expect(
+        session.sourceGrounding.selectedSources.single.title,
+        'Approved source',
+      );
+    },
+  );
+
+  test('mobile guide parses current stage timeline', () {
+    final guide = MobileGuide.fromJson({
+      'currentStage': 2,
+      'avatarTone': 'balanced',
+      'intensityLevel': 3,
+      'stages': [
+        {
+          'stage': 1,
+          'name': 'Echo',
+          'description': 'Reflects language.',
+          'trait': 'Listening',
+          'currentLabel': 'Current',
+          'completedLabel': 'Complete',
+          'state': 'complete',
+        },
+        {
+          'stage': 2,
+          'name': 'Witness',
+          'description': 'Notices signals.',
+          'trait': 'Noticing',
+          'currentLabel': 'Current',
+          'completedLabel': 'Complete',
+          'state': 'current',
+        },
+      ],
+    });
+
+    expect(guide.currentStage, 2);
+    expect(guide.stages.last.name, 'Witness');
+    expect(guide.stages.last.state, 'current');
   });
 
   test('default API base URL is available to the app shell', () {
@@ -148,6 +244,24 @@ class _FakeApiClient extends InnerCouncilApiClient {
 
   @override
   Future<List<MobilePattern>> getPatterns() async => const [];
+
+  @override
+  Future<MobileGuide> getGuide() async => const MobileGuide(
+    currentStage: 1,
+    avatarTone: 'balanced',
+    intensityLevel: 3,
+    stages: [
+      MobileGuideStage(
+        stage: 1,
+        name: 'Echo',
+        description: 'Reflects your language back with care.',
+        trait: 'Listening',
+        currentLabel: 'Current',
+        completedLabel: 'Complete',
+        state: 'current',
+      ),
+    ],
+  );
 }
 
 MobileSession _unauthenticated() {
@@ -171,6 +285,10 @@ MobileSession _onboardingRequired() {
       email: 'carl@example.com',
       name: 'Carl',
       patternMemoryEnabled: false,
+      avatarTone: 'balanced',
+      intensityLevel: 3,
+      currentLevel: 1,
+      avatarStage: 1,
     ),
     consent: MobileConsent(
       version: '2026-06-01',
@@ -213,6 +331,10 @@ MobileSession _ready() {
       email: 'carl@example.com',
       name: 'Carl',
       patternMemoryEnabled: true,
+      avatarTone: 'balanced',
+      intensityLevel: 3,
+      currentLevel: 1,
+      avatarStage: 1,
     ),
     consent: MobileConsent(
       version: '2026-06-01',
