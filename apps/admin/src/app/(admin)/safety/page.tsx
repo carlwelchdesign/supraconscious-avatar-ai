@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { resolveSafetyEventAction } from "./actions"
 import { RevealEntryForm } from "./reveal-entry-form"
@@ -31,17 +33,7 @@ export default async function SafetyPage({
         <h1 className="text-2xl font-semibold">Safety Events</h1>
         <p className="mt-2 text-sm text-muted-foreground">Raw journal content is hidden by default. Reveals require a reason and create an audit log.</p>
       </div>
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
       <div className="space-y-4">
         {events.map((event) => (
           <Card key={event.id}>
@@ -65,9 +57,7 @@ export default async function SafetyPage({
                   <option value="escalated">escalated</option>
                 </select>
                 <input name="reason" placeholder="Review reason required" required minLength={10} className="min-w-64 rounded-md border bg-background px-2 py-1 text-xs" />
-                <button className="rounded-md border px-3 py-1 text-xs font-medium hover:bg-muted">
-                  Save review
-                </button>
+                <SubmitButton pendingLabel="Saving review...">Save review</SubmitButton>
               </form>
               {event.journalEntry ? <RevealEntryForm safetyEventId={event.id} /> : null}
             </CardContent>

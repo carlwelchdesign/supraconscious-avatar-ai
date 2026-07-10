@@ -2,6 +2,8 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
 import { readRagActivationMetadata, runPilotExpansionReadiness, runPilotIterationReport, runPilotLaunchReadiness, runPilotLearningReport, runPilotReviewCoverageReport } from "@inner-avatar/ai"
+import { AdminStatusBanner } from "@/components/admin-status-banner"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { createPilotCohortAction, enrollPilotUserAction, expandPilotCohortAction, reviewPilotSessionAction } from "./actions"
 
@@ -92,17 +94,7 @@ export default async function PilotReadinessPage({
         </p>
       </div>
 
-      {statusMessage ? (
-        <div
-          className={[
-            "rounded-md border p-3 text-sm",
-            statusMessage.tone === "success" ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700" : "",
-            statusMessage.tone === "error" ? "border-destructive/20 bg-destructive/5 text-destructive" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {statusMessage.message}
-        </div>
-      ) : null}
+      <AdminStatusBanner message={statusMessage} />
 
       <Card className={readiness.passed ? "border-emerald-500/30" : "border-destructive/30"}>
         <CardHeader>
@@ -230,9 +222,9 @@ export default async function PilotReadinessPage({
               minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm md:col-span-2"
             />
-            <button disabled={!expansion.passed || cohorts.length === 0} className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
+            <SubmitButton disabled={!expansion.passed || cohorts.length === 0} pendingLabel="Expanding..." className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
               Expand internal pilot
-            </button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>
@@ -407,7 +399,7 @@ export default async function PilotReadinessPage({
                   <option value="pilot_blocker">pilot blocker</option>
                 </select>
                 <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
-                <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+                <SubmitButton pendingLabel="Saving review..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Save review</SubmitButton>
               </form>
             </div>
           ))}
@@ -459,7 +451,7 @@ export default async function PilotReadinessPage({
                   <option value="pilot_blocker">pilot blocker</option>
                 </select>
                 <input name="reason" placeholder="Reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
-                <button className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted">Save review</button>
+                <SubmitButton pendingLabel="Saving review..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Save review</SubmitButton>
               </form>
             </div>
           ))}
@@ -498,7 +490,7 @@ export default async function PilotReadinessPage({
             <input name="name" placeholder="Cohort name" required minLength={2} className="rounded-md border bg-background px-3 py-2 text-sm" />
             <input name="description" placeholder="Description" className="rounded-md border bg-background px-3 py-2 text-sm" />
             <input name="reason" placeholder="Cohort setup reason" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
-            <button disabled={!schemaReady} className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Create cohort</button>
+            <SubmitButton disabled={!schemaReady} pendingLabel="Creating..." className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Create cohort</SubmitButton>
           </form>
           {!schemaReady && (
             <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
@@ -515,7 +507,7 @@ export default async function PilotReadinessPage({
                 <input type="hidden" name="pilotCohortId" value={cohort.id} />
                 <input name="email" type="email" placeholder="User email" required className="rounded-md border bg-background px-3 py-2 text-sm" />
                 <input name="reason" placeholder="Setup reason" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-sm" />
-                <button className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Enroll user</button>
+                <SubmitButton pendingLabel="Enrolling..." className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Enroll user</SubmitButton>
               </form>
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                 {cohort.enrollments.map((enrollment) => (

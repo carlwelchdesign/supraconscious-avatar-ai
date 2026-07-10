@@ -20,6 +20,8 @@ Current admin routes:
 - `/calibration/setup`: Carl/Maria founder participant setup, readiness checklist, safe handoff links, and scenario coverage.
 - `/calibration/live`: Carl/Maria live calibration review cockpit with raw journal text hidden by default.
 
+Admin review and CMS-style actions use server actions. High-use forms show pending submit states, top-level status banners, and local validation help where required fields are easy to miss. Source and chunk review actions redirect back near the edited record with anchors when practical.
+
 ## Founder Calibration Operations
 
 Founder calibration is for Carl and Maria while the product is still being shaped. Admins may configure participants and review sessions, but must not create passwords, create sessions, impersonate founders, or bypass onboarding/consent. A feedback type is enough to keep calibration moving; written notes and human reviews are useful when they capture a specific tuning detail or strong example.
@@ -93,6 +95,18 @@ The live Inner Council flow resolves the active `council.system` template at run
 
 Do not paste raw journal text into prompt update reasons or related-session metadata. Use `/calibration` and `/calibration/live` to identify golden examples or issue sessions, then link those session ids when updating `council.system`.
 
+## LangSmith Trace Review
+
+When optional LangSmith tracing is enabled, admin `/council` shows LangSmith metadata from `GenerationTrace.outputJson.langsmith` alongside the existing internal trace details. The display is intentionally metadata-first:
+
+- enabled/sampled state
+- project name
+- policy version
+- run id or trace link when available
+- metadata-only flag
+
+Raw journal text, source chunk text, prompt content, and full council output are not sent to LangSmith by default and should not be added to admin review reasons.
+
 ## Operational Checks
 
 Before deploy:
@@ -100,6 +114,7 @@ Before deploy:
 ```bash
 node .yarn/releases/yarn-4.cjs lint
 node .yarn/releases/yarn-4.cjs typecheck
+node .yarn/releases/yarn-4.cjs test:langsmith
 node .yarn/releases/yarn-4.cjs build:web
 node .yarn/releases/yarn-4.cjs build:admin
 ```

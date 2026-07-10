@@ -45,7 +45,8 @@ const RightsGrantSchema = z.object({
 export async function updateSourceDocumentStateAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = SourceStateSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) redirect("/sources?status=source_invalid")
+  const sourceDocumentId = readFormId(formData, "sourceDocumentId")
+  if (!parsed.success) redirect(sourceActionHref("source_invalid", sourceDocumentId))
 
   const approving = ["approved", "approved_curriculum"].includes(parsed.data.reviewState) ||
     ["approved", "paraphrase_only"].includes(parsed.data.rightsStatus)
@@ -66,10 +67,10 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
       },
     })
 
-    if (!source) redirect("/sources?status=source_missing")
+    if (!source) redirect(sourceActionHref("source_missing", parsed.data.sourceDocumentId))
 
     if (!hasUsableSourceRightsGrant(source, "paraphrase_generation")) {
-      redirect("/sources?status=source_rights_missing")
+      redirect(sourceActionHref("source_rights_missing", parsed.data.sourceDocumentId))
     }
   }
 
@@ -96,13 +97,13 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
   })
 
   revalidatePath("/sources")
-  redirect("/sources?status=source_saved")
+  redirect(sourceActionHref("source_saved", parsed.data.sourceDocumentId))
 }
 
 export async function updateCurriculumDayStateAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = CurriculumStateSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) redirect("/sources?status=curriculum_invalid")
+  if (!parsed.success) redirect("/sources?actionStatus=curriculum_invalid")
 
   await prisma.curriculumDay.update({
     where: { id: parsed.data.curriculumDayId },
@@ -122,13 +123,14 @@ export async function updateCurriculumDayStateAction(formData: FormData) {
 
   revalidatePath("/sources")
   revalidatePath("/journal")
-  redirect("/sources?status=curriculum_saved")
+  redirect("/sources?actionStatus=curriculum_saved#curriculum-preview")
 }
 
 export async function updateSourceChunkStateAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = ChunkStateSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) redirect("/sources?status=chunk_invalid")
+  const sourceChunkId = readFormId(formData, "sourceChunkId")
+  if (!parsed.success) redirect(sourceChunkActionHref("chunk_invalid", sourceChunkId))
 
   const conceptTags = parseCsv(parsed.data.conceptTags)
   const councilRoleTags = parseCsv(parsed.data.councilRoleTags)
@@ -160,7 +162,7 @@ export async function updateSourceChunkStateAction(formData: FormData) {
       },
     })
 
-    if (!chunk) redirect("/sources?status=chunk_missing")
+    if (!chunk) redirect(sourceChunkActionHref("chunk_missing", parsed.data.sourceChunkId))
 
     const proposedChunk = {
       reviewState: parsed.data.reviewState,
@@ -170,11 +172,11 @@ export async function updateSourceChunkStateAction(formData: FormData) {
     const decision = evaluateSourceEligibility(chunk.sourceDocument, proposedChunk)
 
     if (approving && !decision.eligible) {
-      redirect("/sources?status=chunk_not_eligible")
+      redirect(sourceChunkActionHref("chunk_not_eligible", parsed.data.sourceChunkId))
     }
 
     if (quoteSafe && !canDisplaySourceQuote(chunk.sourceDocument, proposedChunk)) {
-      redirect("/sources?status=chunk_quote_blocked")
+      redirect(sourceChunkActionHref("chunk_quote_blocked", parsed.data.sourceChunkId))
     }
   }
 
@@ -207,18 +209,19 @@ export async function updateSourceChunkStateAction(formData: FormData) {
   })
 
   revalidatePath("/sources")
-  redirect("/sources?status=chunk_saved")
+  redirect(sourceChunkActionHref("chunk_saved", parsed.data.sourceChunkId))
 }
 
 export async function upsertSourceRightsGrantAction(formData: FormData) {
   const actor = await requireAdminUser()
+  const sourceDocumentId = readFormId(formData, "sourceDocumentId")
   const parsed = RightsGrantSchema.safeParse({
     ...Object.fromEntries(formData),
     allowedUses: formData.getAll("allowedUses"),
     quoteAllowed: formData.get("quoteAllowed"),
     attributionRequired: formData.get("attributionRequired"),
   })
-  if (!parsed.success) redirect("/sources?status=rights_invalid")
+  if (!parsed.success) redirect(sourceActionHref("rights_invalid", sourceDocumentId))
 
   const grant = await prisma.sourceRightsGrant.create({
     data: {
@@ -253,7 +256,7 @@ export async function upsertSourceRightsGrantAction(formData: FormData) {
   })
 
   revalidatePath("/sources")
-  redirect("/sources?status=rights_saved")
+  redirect(sourceActionHref("rights_saved", parsed.data.sourceDocumentId))
 }
 
 function parseCsv(value: string | undefined) {
@@ -262,4 +265,17 @@ function parseCsv(value: string | undefined) {
     .map((item) => item.trim())
     .filter(Boolean)
   return parsed.length > 0 ? parsed : undefined
+}
+
+function readFormId(formData: FormData, key: string) {
+  const value = formData.get(key)
+  return typeof value === "string" && value ? value : undefined
+}
+
+function sourceActionHref(actionStatus: string, sourceDocumentId?: string) {
+  return `/sources?actionStatus=${encodeURIComponent(actionStatus)}${sourceDocumentId ? `#source-${encodeURIComponent(sourceDocumentId)}` : ""}`
+}
+
+function sourceChunkActionHref(actionStatus: string, sourceChunkId?: string) {
+  return `/sources?actionStatus=${encodeURIComponent(actionStatus)}${sourceChunkId ? `#chunk-${encodeURIComponent(sourceChunkId)}` : "#chunk-review"}`
 }

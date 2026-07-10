@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
 import { readRagActivationMetadata } from "@inner-avatar/ai"
+import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import { activateRagAction, getRagReadinessCounts, rollbackRagAction } from "./actions"
 
@@ -92,9 +93,9 @@ export default async function RagReadinessPage() {
               minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
-            <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+            <SubmitButton pendingLabel="Activating..." className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
               Activate RAG
-            </button>
+            </SubmitButton>
           </form>
           <form action={rollbackRagAction} className="grid gap-3 border-t pt-4 md:grid-cols-[1fr_auto]">
             <input
@@ -104,9 +105,9 @@ export default async function RagReadinessPage() {
               minLength={20}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             />
-            <button type="submit" className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+            <SubmitButton pendingLabel="Disabling..." className="w-fit rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
               Disable RAG
-            </button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

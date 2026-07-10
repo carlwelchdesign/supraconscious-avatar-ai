@@ -5,7 +5,6 @@ import {
   Alert,
   Box,
   Chip,
-  Button,
   Paper,
   Stack,
   Table,
@@ -17,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { MuiSubmitButton } from "@/components/mui-submit-button"
 import { formatAdminDate } from "@/lib/date-format"
 import { resetUserPasswordAction, updateEmailVerificationAction } from "./actions"
 
@@ -178,9 +178,9 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                       required
                       slotProps={{ htmlInput: { minLength: 10 } }}
                     />
-                    <Button type="submit" variant="outlined" size="small">
+                    <MuiSubmitButton variant="outlined" size="small" pendingLabel="Resetting...">
                       Reset password
-                    </Button>
+                    </MuiSubmitButton>
                     <Typography variant="caption" color="text.secondary">
                       Existing sessions are revoked. The password is not stored in audit logs.
                     </Typography>
@@ -196,9 +196,9 @@ export function UsersTable({ users, status }: { users: UserRow[]; status?: strin
                       required
                       slotProps={{ htmlInput: { minLength: 10 } }}
                     />
-                    <Button type="submit" variant="outlined" size="small" color={user.emailVerified ? "warning" : "success"}>
+                    <MuiSubmitButton variant="outlined" size="small" color={user.emailVerified ? "warning" : "success"} pendingLabel="Saving...">
                       {user.emailVerified ? "Mark unverified" : "Mark verified"}
-                    </Button>
+                    </MuiSubmitButton>
                     <Typography variant="caption" color="text.secondary">
                       Manual verification is audited. No verification email is sent.
                     </Typography>

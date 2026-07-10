@@ -17,6 +17,7 @@ import {
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
   buildFounderParticipantAuditMetadata,
+  buildGenerationTraceLangSmithMetadata,
   hashFounderParticipantEmailForAudit,
   hashEmailForAudit,
   buildCouncilPromptVersion,
@@ -34,6 +35,7 @@ import {
   readRagActivationMetadata,
   readFounderCalibrationScenario,
   inferFounderCalibrationScenarioFromText,
+  isLangSmithEnabled,
   isFounderCalibrationUser,
   resolveFounderCalibrationFilterFromInputs,
   resolveCouncilPromptTemplate,
@@ -47,11 +49,16 @@ import {
   resolvePilotEventInputHash,
   formatFounderCalibrationScenario,
   sanitizeProperties,
+  sanitizeLangSmithMetadata,
+  setLangSmithClientFactoryForTests,
   SOURCE_POLICY_VERSION,
   shouldWritePatternMemory,
+  resetLangSmithClientFactoryForTests,
+  runLangSmithObservabilityCheck,
   validateCouncilPromptTemplate,
   validateCouncilRunForPilot,
   validateCouncilSourceCitations,
+  withLangSmithRun,
   type EntryAnalysis,
   type SafetyCheck,
 } from "../src/index.js"
@@ -1726,4 +1733,101 @@ test("founder participant audit metadata hashes emails", () => {
   assert.equal(metadata.source, "test")
   assert.equal(JSON.stringify(metadata).includes("Carl@Example.com"), false)
   assert.equal(JSON.stringify(metadata).includes("carl@example.com"), false)
+})
+
+test("langsmith is disabled by default and missing api key does not enable tracing", () => {
+  assert.equal(isLangSmithEnabled({} as NodeJS.ProcessEnv), false)
+  assert.equal(isLangSmithEnabled({ LANGSMITH_TRACING: "true" } as NodeJS.ProcessEnv), false)
+  assert.equal(isLangSmithEnabled({ LANGSMITH_TRACING: "false", LANGSMITH_API_KEY: "test-langsmith-key" } as NodeJS.ProcessEnv), false)
+  assert.equal(isLangSmithEnabled({ LANGSMITH_TRACING: "true", LANGSMITH_API_KEY: "test-langsmith-key" } as NodeJS.ProcessEnv), true)
+})
+
+test("langsmith sanitizer removes raw content and preserves safe trace metadata", () => {
+  const sanitized = sanitizeLangSmithMetadata({
+    requestId: "request_1",
+    userId: "user_1",
+    journalEntryId: "entry_1",
+    inputHash: "hash_1",
+    inputText: "private journal text",
+    rawText: "private raw text",
+    feedbackNote: "private feedback note",
+    promptTemplate: { key: "council.system", version: 2, content: "private prompt" },
+    councilRun: { messages: [{ content: "private council output" }] },
+    retrieved: [{ id: "chunk_1", title: "Inner Council", chunkText: "private source chunk", displayExcerpt: "private quote" }],
+    model: "gpt-5-mini",
+    promptVersion: "council.system@v2",
+    validationStatus: "validated",
+  }).metadata
+
+  const serialized = JSON.stringify(sanitized)
+  assert.equal(serialized.includes("private journal text"), false)
+  assert.equal(serialized.includes("private raw text"), false)
+  assert.equal(serialized.includes("private feedback note"), false)
+  assert.equal(serialized.includes("private prompt"), false)
+  assert.equal(serialized.includes("private council output"), false)
+  assert.equal(serialized.includes("private source chunk"), false)
+  assert.equal(serialized.includes("private quote"), false)
+  assert.equal(sanitized.requestId, "request_1")
+  assert.equal(sanitized.userId, "user_1")
+  assert.equal(sanitized.journalEntryId, "entry_1")
+  assert.equal(sanitized.inputHash, "hash_1")
+  assert.equal(sanitized.model, "gpt-5-mini")
+  assert.equal(sanitized.promptVersion, "council.system@v2")
+  assert.equal(sanitized.validationStatus, "validated")
+})
+
+test("langsmith run wrapper returns mocked trace metadata without blocking success", async () => {
+  const previous = {
+    LANGSMITH_TRACING: process.env.LANGSMITH_TRACING,
+    LANGSMITH_API_KEY: process.env.LANGSMITH_API_KEY,
+    LANGSMITH_PROJECT: process.env.LANGSMITH_PROJECT,
+    LANGSMITH_SAMPLE_RATE: process.env.LANGSMITH_SAMPLE_RATE,
+  }
+  const creates: Array<Record<string, unknown>> = []
+  const updates: Array<{ runId: string; run: Record<string, unknown> }> = []
+  setLangSmithClientFactoryForTests(async () => ({
+    createRun: async (run) => { creates.push(run) },
+    updateRun: async (runId, run) => { updates.push({ runId, run }) },
+  }))
+  process.env.LANGSMITH_TRACING = "true"
+  process.env.LANGSMITH_API_KEY = "test-langsmith-key"
+  process.env.LANGSMITH_PROJECT = "inner-avatar-test"
+  process.env.LANGSMITH_SAMPLE_RATE = "1"
+
+  try {
+    const result = await withLangSmithRun("test.run", {
+      requestId: "request_1",
+      rawText: "private raw text",
+      promptVersion: "council.system@v1",
+    }, async (context) => ({
+      ok: true,
+      langsmith: buildGenerationTraceLangSmithMetadata(context, { step: "council", validationStatus: "validated" }),
+    }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    assert.equal(result.value.ok, true)
+    assert.equal(result.langsmith.enabled, true)
+    assert.equal(result.langsmith.sampled, true)
+    assert.equal(result.langsmith.projectName, "inner-avatar-test")
+    assert.ok(result.langsmith.runId)
+    assert.equal(result.value.langsmith.runId, result.langsmith.runId)
+    assert.equal(result.value.langsmith.validationStatus, "validated")
+    assert.equal(creates.length, 1)
+    assert.equal(updates.length >= 1, true)
+    assert.equal(JSON.stringify(creates[0]).includes("private raw text"), false)
+  } finally {
+    process.env.LANGSMITH_TRACING = previous.LANGSMITH_TRACING
+    process.env.LANGSMITH_API_KEY = previous.LANGSMITH_API_KEY
+    process.env.LANGSMITH_PROJECT = previous.LANGSMITH_PROJECT
+    process.env.LANGSMITH_SAMPLE_RATE = previous.LANGSMITH_SAMPLE_RATE
+    resetLangSmithClientFactoryForTests()
+  }
+})
+
+test("langsmith observability check passes without external service", async () => {
+  const report = await runLangSmithObservabilityCheck()
+  assert.equal(report.passed, true)
+  assert.equal(report.checks.disabledNoop, true)
+  assert.equal(report.checks.redactionPassed, true)
+  assert.equal(report.checks.safeMetadataPreserved, true)
 })
