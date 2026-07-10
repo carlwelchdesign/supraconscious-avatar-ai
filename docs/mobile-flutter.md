@@ -26,6 +26,45 @@ node .yarn/releases/yarn-4.cjs mobile:build:android
 
 `mobile:check` verifies that `flutter` is available on `PATH`. `mobile:doctor` runs Flutter's own environment diagnostics after that preflight passes.
 
+## Local Preview
+
+Run Flutter preview commands from `apps/mobile`.
+
+Start the backend separately from the repository root before testing authenticated flows:
+
+```bash
+node .yarn/releases/yarn-4.cjs dev:web
+```
+
+Android emulator preview uses the host-loopback alias:
+
+```bash
+cd apps/mobile
+flutter emulators --launch inner_avatar_android_35
+flutter run -d emulator-5554 --dart-define=INNER_COUNCIL_API_BASE_URL=http://10.0.2.2:3000
+```
+
+macOS desktop preview is configured for fast local UI checks:
+
+```bash
+cd apps/mobile
+flutter run -d macos --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:3000
+```
+
+iOS Simulator preview uses localhost:
+
+```bash
+cd apps/mobile
+flutter run -d ios --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:3000
+```
+
+Current local setup notes:
+
+- Android emulator `inner_avatar_android_35` is configured as the preview AVD.
+- CocoaPods is installed for iOS/macOS plugin readiness.
+- Xcode is installed, but an iOS Simulator runtime still must be installed through Xcode Settings > Platforms before `-d ios` will work.
+- The macOS target is for local preview only; iOS and Android remain the release targets.
+
 ## Workspace
 
 The mobile app lives at `apps/mobile`.

@@ -30,6 +30,37 @@ For Android emulator access to the host web app, use:
 flutter run --dart-define=INNER_COUNCIL_API_BASE_URL=http://10.0.2.2:3000
 ```
 
+## Local Preview Targets
+
+Run commands from `apps/mobile`. If you are already in `apps/mobile`, do not run `cd apps/mobile` again.
+
+Start the web backend separately from the repository root before testing login or journal API flows:
+
+```bash
+node .yarn/releases/yarn-4.cjs dev:web
+```
+
+Android emulator:
+
+```bash
+flutter emulators --launch inner_avatar_android_35
+flutter run -d emulator-5554 --dart-define=INNER_COUNCIL_API_BASE_URL=http://10.0.2.2:3000
+```
+
+macOS desktop preview:
+
+```bash
+flutter run -d macos --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:3000
+```
+
+iOS Simulator:
+
+```bash
+flutter run -d ios --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:3000
+```
+
+iOS requires an installed Xcode Simulator runtime. If `flutter doctor -v` reports that simulator runtimes cannot be listed, open Xcode and install an iOS runtime from Settings > Platforms.
+
 ## Current State
 
 - Flutter scaffold is in place for iOS and Android.
