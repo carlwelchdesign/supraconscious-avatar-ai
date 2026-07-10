@@ -62,7 +62,7 @@ Current local setup notes:
 
 - Android emulator `inner_avatar_android_35` is configured as the preview AVD.
 - CocoaPods is installed for iOS/macOS plugin readiness.
-- Xcode is installed, but an iOS Simulator runtime still must be installed through Xcode Settings > Platforms before `-d ios` will work.
+- Xcode and the iOS 26.5 Simulator runtime are installed; `iPhone 17` is the verified local iOS preview device.
 - The macOS target is for local preview only; iOS and Android remain the release targets.
 
 ## Workspace
