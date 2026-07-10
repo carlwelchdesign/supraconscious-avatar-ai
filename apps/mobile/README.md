@@ -24,7 +24,9 @@ cd apps/mobile
 flutter run --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:3000
 ```
 
-For Android emulator access to the host web app, use:
+If no `INNER_COUNCIL_API_BASE_URL` is provided, the app uses `http://10.0.2.2:3000` on Android emulator and `http://localhost:3000` on iOS Simulator/macOS.
+
+For Android emulator access to the host web app, you can also pass the URL explicitly:
 
 ```bash
 flutter run --dart-define=INNER_COUNCIL_API_BASE_URL=http://10.0.2.2:3000

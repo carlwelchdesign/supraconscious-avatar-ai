@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:inner_council_mobile/src/app.dart';
 import 'package:inner_council_mobile/src/mobile_api.dart';
 import 'package:inner_council_mobile/src/session_controller.dart';
@@ -61,6 +62,38 @@ void main() {
     expect(result.integratorQuestion, 'What choice is available?');
     expect(result.integrationStep, 'Take one breath.');
   });
+
+  test('default API base URL is available to the app shell', () {
+    expect(apiBaseUrl, isNotEmpty);
+  });
+
+  test(
+    'mobile API client reports backend connection failures clearly',
+    () async {
+      final client = InnerCouncilApiClient(
+        baseUrl: 'http://127.0.0.1:1',
+        httpClient: _FailingHttpClient(),
+      );
+
+      await expectLater(
+        client.getSession(),
+        throwsA(
+          isA<MobileApiException>().having(
+            (error) => error.message,
+            'message',
+            contains('Could not reach the backend at http://127.0.0.1:1'),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _FailingHttpClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    throw http.ClientException('Connection refused', request.url);
+  }
 }
 
 Widget _testApp(InnerCouncilApiClient client) {

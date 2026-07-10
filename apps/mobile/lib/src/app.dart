@@ -123,7 +123,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: Text(_register ? 'Use existing account' : 'Create account'),
           ),
           const SizedBox(height: 40),
-          const _EnvironmentPill(apiBaseUrl: apiBaseUrl),
+          _EnvironmentPill(apiBaseUrl: apiBaseUrl),
         ],
       ),
     );
