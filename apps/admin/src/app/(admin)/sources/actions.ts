@@ -103,7 +103,13 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
 export async function updateCurriculumDayStateAction(formData: FormData) {
   const actor = await requireAdminUser()
   const parsed = CurriculumStateSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) redirect("/sources?actionStatus=curriculum_invalid")
+  const redirectHref = curriculumActionHref(
+    parsed.success ? "curriculum_saved" : "curriculum_invalid",
+    readFormString(formData, "month"),
+    readFormString(formData, "publishStateFilter"),
+    readFormString(formData, "limit"),
+  )
+  if (!parsed.success) redirect(redirectHref)
 
   await prisma.curriculumDay.update({
     where: { id: parsed.data.curriculumDayId },
@@ -123,7 +129,7 @@ export async function updateCurriculumDayStateAction(formData: FormData) {
 
   revalidatePath("/sources")
   revalidatePath("/journal")
-  redirect("/sources?actionStatus=curriculum_saved#curriculum-preview")
+  redirect(redirectHref)
 }
 
 export async function updateSourceChunkStateAction(formData: FormData) {
@@ -272,10 +278,38 @@ function readFormId(formData: FormData, key: string) {
   return typeof value === "string" && value ? value : undefined
 }
 
+function readFormString(formData: FormData, key: string) {
+  const value = formData.get(key)
+  return typeof value === "string" && value ? value : undefined
+}
+
 function sourceActionHref(actionStatus: string, sourceDocumentId?: string) {
   return `/sources?actionStatus=${encodeURIComponent(actionStatus)}${sourceDocumentId ? `#source-${encodeURIComponent(sourceDocumentId)}` : ""}`
 }
 
 function sourceChunkActionHref(actionStatus: string, sourceChunkId?: string) {
   return `/sources?actionStatus=${encodeURIComponent(actionStatus)}${sourceChunkId ? `#chunk-${encodeURIComponent(sourceChunkId)}` : "#chunk-review"}`
+}
+
+function curriculumActionHref(actionStatus: string, month?: string, publishState?: string, limit?: string) {
+  const params = new URLSearchParams({ actionStatus })
+  if (isAllowedMonthFilter(month)) params.set("month", month)
+  if (isAllowedPublishStateFilter(publishState)) params.set("publishState", publishState)
+  if (isAllowedLimitFilter(limit)) params.set("limit", limit)
+  return `/sources?${params.toString()}#curriculum-preview`
+}
+
+function isAllowedMonthFilter(value: string | undefined): value is string {
+  if (!value) return false
+  if (value === "all") return true
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 12
+}
+
+function isAllowedPublishStateFilter(value: string | undefined): value is string {
+  return ["all", "needs_review", "approved_curriculum", "deprecated", "blocked"].includes(value ?? "")
+}
+
+function isAllowedLimitFilter(value: string | undefined): value is string {
+  return ["40", "100", "all"].includes(value ?? "")
 }

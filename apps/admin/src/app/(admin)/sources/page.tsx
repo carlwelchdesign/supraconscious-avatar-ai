@@ -17,6 +17,8 @@ const CHUNK_STATES = ["parsed", "needs_review", "approved", "approved_curriculum
 const QUOTE_PERMISSIONS = ["none", "paraphrase_only", "quote_safe"]
 const SAFETY_INTENSITIES = ["normal", "gentle", "sensitive", "blocked"]
 const ALLOWED_USES = ["internal_retrieval", "paraphrase_generation", "direct_quote_display", "curriculum_display"]
+const CURRICULUM_LIMITS = ["40", "100", "all"] as const
+const CURRICULUM_FILTER_STATES = ["all", ...CURRICULUM_STATES] as const
 
 const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
   source_saved: { tone: "success", message: "Source document state saved." },
@@ -37,12 +39,32 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
 export default async function SourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; actionStatus?: string }>
+  searchParams: Promise<{ status?: string; actionStatus?: string; month?: string; publishState?: string; limit?: string }>
 }) {
-  const { status, actionStatus } = await searchParams
+  const { status, actionStatus, month, publishState, limit } = await searchParams
   const statusCode = actionStatus ?? status
   const statusMessage = statusCode ? SOURCE_STATUS_MESSAGES[statusCode] : null
-  const [documents, curriculumDays, chunks, reviewChunks, batches] = await Promise.all([
+
+  const currentMonth = getCurrentAppMonth()
+  const requestedMonth = parseMonthParam(month)
+  const hasCurrentMonth = await prisma.curriculumDay.count({ where: { month: currentMonth } })
+  const selectedMonth = requestedMonth === "all"
+    ? "all"
+    : requestedMonth ?? (hasCurrentMonth > 0 ? currentMonth : "all")
+  const baseCurriculumWhere = selectedMonth === "all" ? {} : { month: selectedMonth }
+  const requestedPublishState = parsePublishStateParam(publishState)
+  const needsReviewInScope = await prisma.curriculumDay.count({
+    where: { ...baseCurriculumWhere, publishState: "needs_review" },
+  })
+  const selectedPublishState = requestedPublishState ?? (needsReviewInScope > 0 ? "needs_review" : "all")
+  const selectedLimit = parseLimitParam(limit)
+  const curriculumWhere = {
+    ...baseCurriculumWhere,
+    ...(selectedPublishState === "all" ? {} : { publishState: selectedPublishState }),
+  }
+  const curriculumTake = selectedLimit === "all" ? undefined : Number(selectedLimit)
+
+  const [documents, curriculumDays, totalCurriculumDays, matchingCurriculumDays, chunks, reviewChunks, batches] = await Promise.all([
     prisma.sourceDocument.findMany({
       orderBy: { updatedAt: "desc" },
       take: 50,
@@ -62,8 +84,9 @@ export default async function SourcesPage({
       },
     }),
     prisma.curriculumDay.findMany({
+      where: curriculumWhere,
       orderBy: [{ month: "asc" }, { day: "asc" }],
-      take: 40,
+      take: curriculumTake,
       select: {
         id: true,
         month: true,
@@ -73,6 +96,8 @@ export default async function SourcesPage({
         socraticQuestion: true,
       },
     }),
+    prisma.curriculumDay.count(),
+    prisma.curriculumDay.count({ where: curriculumWhere }),
     prisma.sourceChunk.count({ where: { reviewState: { in: ["approved", "approved_curriculum"] } } }),
     prisma.sourceChunk.findMany({
       orderBy: [{ reviewState: "asc" }, { createdAt: "desc" }],
@@ -95,10 +120,16 @@ export default async function SourcesPage({
       select: { id: true, sourceRoot: true, status: true, importedCount: true, skippedCount: true, failedCount: true, createdAt: true },
     }),
   ])
+  const curriculumFilters = {
+    month: String(selectedMonth),
+    publishState: selectedPublishState,
+    limit: selectedLimit,
+  }
+  const cappedCurriculum = selectedLimit !== "all" && curriculumDays.length < matchingCurriculumDays
 
   return (
     <div className="space-y-6">
-      <div>
+      <div id="overview" className="scroll-mt-6">
         <h1 className="text-2xl font-semibold">Sources</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Metadata-first review for Maria source material, curriculum, and retrieval chunks.
@@ -107,6 +138,26 @@ export default async function SourcesPage({
 
       <AdminStatusBanner message={statusMessage} />
 
+      <nav className="sticky top-0 z-10 -mx-1 overflow-x-auto border-y bg-background/95 px-1 py-2 backdrop-blur">
+        <div className="flex min-w-max gap-2">
+          {[
+            ["Overview", "#overview"],
+            ["Import Batches", "#import-batches"],
+            ["Source Documents", "#source-documents"],
+            ["Chunk Review", "#chunk-review"],
+            ["Curriculum Preview", "#curriculum-preview"],
+          ].map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-md border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </nav>
+
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
@@ -114,7 +165,10 @@ export default async function SourcesPage({
         </Card>
         <Card>
           <CardHeader><CardTitle>Curriculum Days</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-semibold">{curriculumDays.length}</CardContent>
+          <CardContent>
+            <p className="text-3xl font-semibold">{totalCurriculumDays}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{curriculumDays.length} shown in preview</p>
+          </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle>Approved Chunks</CardTitle></CardHeader>
@@ -122,7 +176,7 @@ export default async function SourcesPage({
         </Card>
       </div>
 
-      <Card>
+      <Card id="import-batches" className="scroll-mt-16">
         <CardHeader><CardTitle>Import Batches</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {batches.length === 0 ? (
@@ -142,8 +196,13 @@ export default async function SourcesPage({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Source Documents</CardTitle></CardHeader>
+      <Card id="source-documents" className="scroll-mt-16">
+        <CardHeader>
+          <CardTitle>Source Documents</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Document review controls whether a source is allowed at all. Rights grants record permitted uses. Actual content review happens at the chunk level after parsing.
+          </p>
+        </CardHeader>
         <CardContent className="space-y-3">
           {documents.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source documents imported yet.</p>
@@ -232,8 +291,13 @@ export default async function SourcesPage({
         </CardContent>
       </Card>
 
-      <Card id="chunk-review" className="scroll-mt-6">
-        <CardHeader><CardTitle>Chunk Review</CardTitle></CardHeader>
+      <Card id="chunk-review" className="scroll-mt-16">
+        <CardHeader>
+          <CardTitle>Chunk Review</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Review parsed source text here before it can support retrieval. Documents with zero chunks have no reviewable content yet.
+          </p>
+        </CardHeader>
         <CardContent className="space-y-3">
           {reviewChunks.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source chunks parsed yet.</p>
@@ -272,11 +336,57 @@ export default async function SourcesPage({
         </CardContent>
       </Card>
 
-      <Card id="curriculum-preview" className="scroll-mt-6">
-        <CardHeader><CardTitle>Curriculum Preview</CardTitle></CardHeader>
+      <Card id="curriculum-preview" className="scroll-mt-16">
+        <CardHeader>
+          <CardTitle>Curriculum Preview</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Review daily curriculum prompts separately from RAG chunks. This view is filtered, so the count below shows exactly what is displayed.
+          </p>
+        </CardHeader>
         <CardContent className="space-y-3">
+          <form action="/sources#curriculum-preview" className="grid gap-2 rounded-md border bg-muted/30 p-3 md:grid-cols-4">
+            <label className="grid gap-1 text-xs font-medium">
+              Month
+              <select name="month" defaultValue={curriculumFilters.month} className="rounded-md border bg-background px-2 py-1 text-xs">
+                <option value="all">All months</option>
+                {Array.from({ length: 12 }, (_, index) => index + 1).map((monthNumber) => (
+                  <option key={monthNumber} value={monthNumber}>Month {monthNumber}</option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium">
+              State
+              <select name="publishState" defaultValue={curriculumFilters.publishState} className="rounded-md border bg-background px-2 py-1 text-xs">
+                {CURRICULUM_FILTER_STATES.map((state) => (
+                  <option key={state} value={state}>{state === "all" ? "All states" : state}</option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium">
+              Limit
+              <select name="limit" defaultValue={curriculumFilters.limit} className="rounded-md border bg-background px-2 py-1 text-xs">
+                {CURRICULUM_LIMITS.map((limitOption) => (
+                  <option key={limitOption} value={limitOption}>{limitOption === "all" ? "All matching" : limitOption}</option>
+                ))}
+              </select>
+            </label>
+            <div className="flex items-end">
+              <SubmitButton pendingLabel="Applying...">Apply filters</SubmitButton>
+            </div>
+          </form>
+          <div className="rounded-md border bg-background p-3 text-sm">
+            <p className="font-medium">
+              Showing {curriculumDays.length} of {matchingCurriculumDays} matching curriculum days.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {totalCurriculumDays} curriculum days are imported across the full source set.
+              {cappedCurriculum ? " Increase the limit or filter by month to review more." : ""}
+            </p>
+          </div>
           {curriculumDays.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No curriculum days parsed yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No curriculum days match month {curriculumFilters.month === "all" ? "all" : curriculumFilters.month} and state {curriculumFilters.publishState}.
+            </p>
           ) : curriculumDays.map((day) => (
             <div key={day.id} className="rounded-md border p-3 text-sm">
               <p className="font-medium">Month {day.month}, Day {day.day}: {day.theme}</p>
@@ -284,6 +394,9 @@ export default async function SourcesPage({
               <p className="mt-2 text-sm">{day.socraticQuestion}</p>
               <form action={updateCurriculumDayStateAction} className="mt-3 flex flex-wrap items-center gap-2">
                 <input type="hidden" name="curriculumDayId" value={day.id} />
+                <input type="hidden" name="month" value={curriculumFilters.month} />
+                <input type="hidden" name="publishStateFilter" value={curriculumFilters.publishState} />
+                <input type="hidden" name="limit" value={curriculumFilters.limit} />
                 <select name="publishState" defaultValue={day.publishState} className="rounded-md border bg-background px-2 py-1 text-xs">
                   {CURRICULUM_STATES.map((state) => (
                     <option key={state} value={state}>{state}</option>
@@ -302,4 +415,29 @@ export default async function SourcesPage({
 
 function arrayText(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").join(", ") : ""
+}
+
+function parseMonthParam(value: string | undefined) {
+  if (!value || value === "all") return value === "all" ? "all" : null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 12 ? parsed : null
+}
+
+function parsePublishStateParam(value: string | undefined) {
+  return CURRICULUM_FILTER_STATES.includes(value as (typeof CURRICULUM_FILTER_STATES)[number])
+    ? value as (typeof CURRICULUM_FILTER_STATES)[number]
+    : null
+}
+
+function parseLimitParam(value: string | undefined) {
+  return CURRICULUM_LIMITS.includes(value as (typeof CURRICULUM_LIMITS)[number])
+    ? value as (typeof CURRICULUM_LIMITS)[number]
+    : "40"
+}
+
+function getCurrentAppMonth() {
+  const timeZone = process.env.APP_TIME_ZONE || "America/Los_Angeles"
+  const formatted = new Intl.DateTimeFormat("en-US", { month: "numeric", timeZone }).format(new Date())
+  const month = Number(formatted)
+  return Number.isInteger(month) && month >= 1 && month <= 12 ? month : new Date().getMonth() + 1
 }
