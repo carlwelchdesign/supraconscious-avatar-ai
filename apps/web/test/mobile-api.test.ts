@@ -18,7 +18,7 @@ test("mobile session response reports unauthenticated state", () => {
   assert.equal(response.status, "unauthenticated")
   assert.equal(response.user, null)
   assert.equal(response.language.current, "en")
-  assert.deepEqual(response.language.supported.map((language) => language.code), ["en", "es", "el", "fr", "de"])
+  assert.deepEqual(response.language.supported.map((language) => language.code), ["en", "es", "el", "fr", "de", "zh-Hans"])
   assert.equal(response.consent.version, PILOT_CONSENT_VERSION)
   assert.deepEqual(response.consent.required, [...REQUIRED_PILOT_CONSENTS])
   assert.deepEqual(response.consent.optional, [...OPTIONAL_PILOT_CONSENTS])

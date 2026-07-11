@@ -1,4 +1,4 @@
-export const SUPPORTED_LANGUAGES = ["en", "es", "el", "fr", "de"] as const
+export const SUPPORTED_LANGUAGES = ["en", "es", "el", "fr", "de", "zh-Hans"] as const
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
@@ -47,6 +47,13 @@ export const SUPPORTED_LANGUAGE_DETAILS: Record<SupportedLanguage, {
     aiLanguageName: "German",
     flag: "🇩🇪",
   },
+  "zh-Hans": {
+    code: "zh-Hans",
+    label: "Chinese (Simplified)",
+    nativeLabel: "简体中文",
+    aiLanguageName: "Simplified Chinese",
+    flag: "🇨🇳",
+  },
 }
 
 export function isSupportedLanguage(value: unknown): value is SupportedLanguage {
@@ -58,6 +65,10 @@ export function resolveSupportedLanguage(value: unknown): SupportedLanguage {
   if (typeof value !== "string") return DEFAULT_LANGUAGE
 
   const normalized = value.trim().toLowerCase().replace("_", "-")
+  if (normalized === "zh" || normalized === "zh-hans" || normalized === "zh-cn" || normalized === "zh-sg") {
+    return "zh-Hans"
+  }
+
   const primary = normalized.split("-")[0]
   return isSupportedLanguage(primary) ? primary : DEFAULT_LANGUAGE
 }

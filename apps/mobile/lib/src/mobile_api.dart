@@ -258,7 +258,19 @@ class InnerCouncilApiClient {
   }
 
   String _currentLanguageCode() {
-    final code = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    final locale = PlatformDispatcher.instance.locale;
+    final code = locale.languageCode.toLowerCase();
+    final script = locale.scriptCode?.toLowerCase();
+    final country = locale.countryCode?.toLowerCase();
+
+    if (code == 'zh' &&
+        (script == null ||
+            script == 'hans' ||
+            country == 'cn' ||
+            country == 'sg')) {
+      return 'zh-Hans';
+    }
+
     return const {'en', 'es', 'el', 'fr', 'de'}.contains(code) ? code : 'en';
   }
 }
