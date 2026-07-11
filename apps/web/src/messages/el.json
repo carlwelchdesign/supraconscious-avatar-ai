@@ -65,6 +65,46 @@
     "footerSafety": "Αντανάκλαση με επίγνωση ασφάλειας",
     "footerGrounded": "Με βάση πηγές όταν είναι διαθέσιμο"
   },
+  "auth": {
+    "loginTitlePrimary": "Καλώς",
+    "loginTitleAccent": "ήρθες ξανά",
+    "loginSubtitle": "Συνδέσου στον λογαριασμό σου στο Supraconscious.",
+    "registerTitlePrimary": "Ξεκίνα την",
+    "registerTitleAccent": "αντανάκλασή σου",
+    "registerSubtitle": "Ξεκίνα με email και κωδικό πρόσβασης.",
+    "name": "Όνομα",
+    "namePlaceholder": "Το όνομά σου",
+    "email": "Email",
+    "password": "Κωδικός πρόσβασης",
+    "createAccount": "Δημιουργία λογαριασμού",
+    "signIn": "Σύνδεση",
+    "register": "Εγγραφή",
+    "alreadyHaveAccount": "Έχεις ήδη λογαριασμό;",
+    "needAccount": "Χρειάζεσαι λογαριασμό;",
+    "forgotPassword": "Ξέχασες τον κωδικό;",
+    "verifyEmail": "Επαλήθευση email"
+  },
+  "appShell": {
+    "innerCouncil": "Εσωτερικό Συμβούλιο",
+    "stage": "Στάδιο",
+    "signOut": "Αποσύνδεση",
+    "nav": {
+      "dashboard": "Πίνακας",
+      "home": "Αρχική",
+      "journal": "Ημερολόγιο",
+      "patterns": "Μοτίβα",
+      "guide": "Οδηγός",
+      "settings": "Ρυθμίσεις"
+    }
+  },
+  "dashboard": {
+    "goodMorning": "Καλημέρα",
+    "goodAfternoon": "Καλό απόγευμα",
+    "goodEvening": "Καλό βράδυ",
+    "welcomeBack": "Καλώς ήρθες ξανά",
+    "currentLevelPrefix": "Το τρέχον επίπεδό σου είναι",
+    "newEntry": "Νέα καταχώρηση"
+  },
   "settings": {
     "eyebrow": "Ρυθμίσεις",
     "title": "Η ιδιωτικότητα και οι προτιμήσεις σου",

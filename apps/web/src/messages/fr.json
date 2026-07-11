@@ -65,6 +65,46 @@
     "footerSafety": "Réflexion attentive à la sécurité",
     "footerGrounded": "Ancré dans les sources quand c'est possible"
   },
+  "auth": {
+    "loginTitlePrimary": "Bon",
+    "loginTitleAccent": "retour",
+    "loginSubtitle": "Connecte-toi à ton compte Supraconscious.",
+    "registerTitlePrimary": "Commence ta",
+    "registerTitleAccent": "réflexion",
+    "registerSubtitle": "Commence avec ton e-mail et ton mot de passe.",
+    "name": "Nom",
+    "namePlaceholder": "Ton nom",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "createAccount": "Créer un compte",
+    "signIn": "Se connecter",
+    "register": "S'inscrire",
+    "alreadyHaveAccount": "Tu as déjà un compte ?",
+    "needAccount": "Besoin d'un compte ?",
+    "forgotPassword": "Mot de passe oublié",
+    "verifyEmail": "Vérifier l'e-mail"
+  },
+  "appShell": {
+    "innerCouncil": "Conseil Intérieur",
+    "stage": "Étape",
+    "signOut": "Se déconnecter",
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "home": "Accueil",
+      "journal": "Journal",
+      "patterns": "Schémas",
+      "guide": "Guide",
+      "settings": "Réglages"
+    }
+  },
+  "dashboard": {
+    "goodMorning": "Bonjour",
+    "goodAfternoon": "Bon après-midi",
+    "goodEvening": "Bonsoir",
+    "welcomeBack": "Bon retour",
+    "currentLevelPrefix": "Ton niveau actuel est",
+    "newEntry": "Nouvelle entrée"
+  },
   "settings": {
     "eyebrow": "Réglages",
     "title": "Ta confidentialité et tes préférences",

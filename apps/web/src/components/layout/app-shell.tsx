@@ -6,13 +6,15 @@ import { getCurrentUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
+import { resolveWebLanguage } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/journal", label: "Journal", icon: BookOpen },
-  { href: "/patterns", label: "Patterns", icon: BarChart2 },
-  { href: "/guide", label: "Guide", icon: Sparkles },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/journal", labelKey: "journal", icon: BookOpen },
+  { href: "/patterns", labelKey: "patterns", icon: BarChart2 },
+  { href: "/guide", labelKey: "guide", icon: Sparkles },
+  { href: "/settings", labelKey: "settings", icon: Settings },
 ]
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
@@ -20,6 +22,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     getCurrentUser(),
     getGuideStageConfigs(prisma),
   ])
+  const messages = getWebMessages(await resolveWebLanguage(user?.preferredLanguage))
+  const shell = messages.appShell
   const guideStage = Math.min(Math.max(user?.avatarStage ?? 1, 1), 5)
   const guideStageName = readGuideStageConfig(guideStages, guideStage).name
 
@@ -50,7 +54,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] hover:bg-[var(--plum-pale)] transition-all"
             >
               <item.icon className="w-[15px] h-[15px] flex-shrink-0 opacity-70" />
-              {item.label}
+              {shell.nav[item.labelKey as keyof typeof shell.nav]}
             </Link>
           ))}
         </nav>
@@ -60,10 +64,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex flex-col items-center text-center mb-4">
             <AvatarOrb size="xs" stage={guideStage as 1|2|3|4|5} className="mb-2" priority />
             <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
-              Inner Council
+              {shell.innerCouncil}
             </p>
             <p className="text-[12px] font-light text-[var(--plum-soft)]">
-              {guideStageName} · Stage {guideStage}
+              {guideStageName} · {shell.stage} {guideStage}
             </p>
           </div>
 
@@ -78,7 +82,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                   className="flex items-center gap-2 text-[11px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
                 >
                   <LogOut className="w-3 h-3" />
-                  Sign out
+                  {shell.signOut}
                 </button>
               </form>
             </div>
@@ -102,7 +106,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <button
             type="submit"
             className="p-1.5 text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
-            title="Sign out"
+            title={shell.signOut}
           >
             <LogOut className="w-5 h-5" />
           </button>

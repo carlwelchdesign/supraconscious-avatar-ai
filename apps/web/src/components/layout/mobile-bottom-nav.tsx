@@ -2,17 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { BookOpen, BarChart2, Sparkles, Settings, LayoutDashboard } from "lucide-react"
 
 const navItems = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/journal", label: "Journal", icon: BookOpen },
-  { href: "/patterns", label: "Patterns", icon: BarChart2 },
-  { href: "/guide", label: "Guide", icon: Sparkles },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", labelKey: "home", icon: LayoutDashboard },
+  { href: "/journal", labelKey: "journal", icon: BookOpen },
+  { href: "/patterns", labelKey: "patterns", icon: BarChart2 },
+  { href: "/guide", labelKey: "guide", icon: Sparkles },
+  { href: "/settings", labelKey: "settings", icon: Settings },
 ]
 
 export function MobileBottomNav() {
+  const t = useTranslations("appShell.nav")
   const pathname = usePathname()
 
   return (
@@ -42,7 +44,7 @@ export function MobileBottomNav() {
               className="text-[10px] font-medium tracking-[0.04em]"
               style={{ opacity: active ? 1 : 0.6 }}
             >
-              {item.label}
+              {t(item.labelKey)}
             </span>
             {active && (
               <span

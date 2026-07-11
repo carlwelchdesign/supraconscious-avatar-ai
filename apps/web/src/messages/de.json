@@ -65,6 +65,46 @@
     "footerSafety": "Sicherheitsbewusste Reflexion",
     "footerGrounded": "Quellengestützt, wenn möglich"
   },
+  "auth": {
+    "loginTitlePrimary": "Willkommen",
+    "loginTitleAccent": "zurück",
+    "loginSubtitle": "Melde dich bei deinem Supraconscious-Konto an.",
+    "registerTitlePrimary": "Beginne deine",
+    "registerTitleAccent": "Reflexion",
+    "registerSubtitle": "Starte mit E-Mail und Passwort.",
+    "name": "Name",
+    "namePlaceholder": "Dein Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "createAccount": "Konto erstellen",
+    "signIn": "Anmelden",
+    "register": "Registrieren",
+    "alreadyHaveAccount": "Hast du schon ein Konto?",
+    "needAccount": "Brauchst du ein Konto?",
+    "forgotPassword": "Passwort vergessen",
+    "verifyEmail": "E-Mail bestätigen"
+  },
+  "appShell": {
+    "innerCouncil": "Innerer Rat",
+    "stage": "Stufe",
+    "signOut": "Abmelden",
+    "nav": {
+      "dashboard": "Dashboard",
+      "home": "Start",
+      "journal": "Journal",
+      "patterns": "Muster",
+      "guide": "Guide",
+      "settings": "Einstellungen"
+    }
+  },
+  "dashboard": {
+    "goodMorning": "Guten Morgen",
+    "goodAfternoon": "Guten Nachmittag",
+    "goodEvening": "Guten Abend",
+    "welcomeBack": "Willkommen zurück",
+    "currentLevelPrefix": "Deine aktuelle Stufe ist",
+    "newEntry": "Neuer Eintrag"
+  },
   "settings": {
     "eyebrow": "Einstellungen",
     "title": "Deine Privatsphäre und Einstellungen",
