@@ -105,6 +105,13 @@
     "currentLevelPrefix": "你当前的等级是",
     "newEntry": "新条目"
   },
+  "journal": {
+    "eyebrow": "日记",
+    "title": "今天有什么正在呈现？",
+    "helper": "写下一条诚实的记录。议会会映照模式、张力和一个扎实的下一步。",
+    "backToDashboard": "返回仪表盘",
+    "entryEyebrow": "日记条目"
+  },
   "settings": {
     "eyebrow": "设置",
     "title": "你的隐私与偏好",

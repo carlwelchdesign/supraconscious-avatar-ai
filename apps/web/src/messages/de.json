@@ -105,6 +105,13 @@
     "currentLevelPrefix": "Deine aktuelle Stufe ist",
     "newEntry": "Neuer Eintrag"
   },
+  "journal": {
+    "eyebrow": "Journal",
+    "title": "Was ist heute präsent?",
+    "helper": "Schreibe einen ehrlichen Eintrag. Der Rat spiegelt Muster, Spannungen und einen geerdeten nächsten Schritt.",
+    "backToDashboard": "Zurück zum Dashboard",
+    "entryEyebrow": "Journaleintrag"
+  },
   "settings": {
     "eyebrow": "Einstellungen",
     "title": "Deine Privatsphäre und Einstellungen",
