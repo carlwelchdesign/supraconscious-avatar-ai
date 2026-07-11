@@ -5,6 +5,9 @@
   "signIn": "Σύνδεση",
   "createAccount": "Δημιουργία λογαριασμού",
   "useExistingAccount": "Χρήση υπάρχοντος λογαριασμού",
+  "nameLabel": "Όνομα",
+  "emailLabel": "Email",
+  "passwordLabel": "Κωδικός πρόσβασης",
   "landingEyebrow": "Αντανάκλαση ταυτότητας με AI",
   "landingNotJournal": "Αυτό δεν είναι ημερολόγιο.",
   "landingMeetYourself": "Εδώ συναντάς τον εαυτό σου.",
@@ -25,5 +28,96 @@
   "languageTitle": "Γλώσσα",
   "languageSubtitle": "Ελέγχει τη γλώσσα της εφαρμογής και τη γλώσσα για νέες αντανακλάσεις AI.",
   "patternMemory": "Μνήμη μοτίβων",
-  "patternMemorySubtitle": "Επίτρεψε σε επαναλαμβανόμενα σήματα να εμφανίζονται με τον χρόνο."
+  "patternMemorySubtitle": "Επίτρεψε σε επαναλαμβανόμενα σήματα να εμφανίζονται με τον χρόνο.",
+  "landingProblemEyebrow": "Το πρόβλημα",
+  "landingProblemTitle": "Δεν έχεις κολλήσει. Δεν βλέπεις καθαρά.",
+  "landingProblemBody": "Το σκέφτηκες, το ανέλυσες, το ξαναέπαιξες, και κάτι μέσα σου ακόμη διστάζει.",
+  "landingCouncilEyebrow": "Πώς λειτουργεί",
+  "landingCouncilTitle": "Γνώρισε το Inner Council σου",
+  "landingCouncilBody": "Γράφεις ό,τι έχεις στο μυαλό σου. Τέσσερις εσωτερικοί φακοί αντανακλούν τι κινείται κάτω από την επιφάνεια.",
+  "protectorRole": "Ο Προστάτης",
+  "protectorRoleBody": "Δείχνει πού ο φόβος σε κρατά πίσω.",
+  "conditionedSelfRole": "Ο Προγραμματισμένος Εαυτός",
+  "conditionedSelfRoleBody": "Αποκαλύπτει μοτίβα που δεν είχες αμφισβητήσει.",
+  "visionaryRole": "Ο Οραματιστής",
+  "visionaryRoleBody": "Δείχνει ποιος γίνεσαι.",
+  "truthSelfRole": "Ο Αληθινός Εαυτός",
+  "truthSelfRoleBody": "Διαπερνά την ψευδαίσθηση.",
+  "landingExperienceEyebrow": "Η εμπειρία",
+  "landingExperienceTitle": "Γράψε. Δες. Αντιμετώπισε. Διάλεξε. Γίνε.",
+  "landingExperienceBody": "Κάθε συνεδρία ακολουθεί απλή διαδρομή: χωρίς θόρυβο, χωρίς υπερφόρτωση, μόνο ένα πιο καθαρό επόμενο βήμα.",
+  "landingDifferentEyebrow": "Διαφορετικό από σχεδιασμό",
+  "landingDifferentTitle": "Όχι άλλο ένα μέρος για κύκλους συζήτησης.",
+  "landingDifferentBody": "Είναι σύστημα στοχασμού ταυτότητας, μηχανή καθαρότητας αποφάσεων και καθρέφτης του γίγνεσθαι.",
+  "landingFinalCta": "Ξεκίνα τον πρώτο στοχασμό",
+  "landingBack": "Αρχική",
+  "continueLabel": "Συνέχεια",
+  "tabHome": "Αρχική",
+  "entries": "Εγγραφές",
+  "guideStage": "Στάδιο οδηγού",
+  "noSavedTitle": "Δεν υπάρχουν αποθηκευμένοι στοχασμοί ακόμα",
+  "today": "Σήμερα",
+  "askCouncil": "Ρώτησε το Συμβούλιο",
+  "reflecting": "Στοχασμός...",
+  "wordCount": "{count} λέξεις",
+  "nothingSavedTitle": "Δεν έχει αποθηκευτεί τίποτα ακόμα",
+  "savedReflectionTitle": "Αποθηκευμένος στοχασμός",
+  "feedbackSaved": "Σχόλια αποθηκεύτηκαν",
+  "feedbackNeeded": "Χρειάζονται σχόλια",
+  "gateSaved": "Πύλη αποθηκεύτηκε",
+  "gateOpen": "Πύλη ανοιχτή",
+  "helpful": "Χρήσιμο",
+  "notAccurate": "Όχι ακριβές",
+  "tooIntense": "Πολύ έντονο",
+  "unclear": "Ασαφές",
+  "unsupportedSource": "Αστήρικτη πηγή",
+  "saving": "Αποθήκευση...",
+  "saveFeedback": "Αποθήκευση σχολίων",
+  "patternsTitle": "Μοτίβα",
+  "patternsEmptyTitle": "Τα μοτίβα αναδύονται με τον χρόνο",
+  "yourGuide": "Ο οδηγός σου",
+  "tone": "Τόνος",
+  "intensity": "Ένταση",
+  "trait": "Χαρακτηριστικό",
+  "retry": "Δοκιμή ξανά",
+  "guideResponse": "Απάντηση οδηγού",
+  "oneGroundedStep": "Ένα γειωμένο βήμα",
+  "sourceGrounding": "Γείωση πηγών",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "Αποσύνδεση",
+  "grounding": "Γείωση",
+  "recentReflections": "Πρόσφατοι στοχασμοί",
+  "firstEntryBody": "Γράψε την πρώτη σου εγγραφή για να ξεκινήσεις την πρακτική σου.",
+  "savedReflections": "Αποθηκευμένοι στοχασμοί",
+  "patternsSubtitle": "Σήματα, όχι διαγνώσεις. Τα μοτίβα εμφανίζονται μόνο όταν επαναλαμβάνονται.",
+  "savedReflectionFallback": "Αποθηκευμένος στοχασμός",
+  "thresholdLabel": "Κατώφλι · Μήνας {month}, Ημέρα {day}",
+  "noThresholdPrompt": "Δεν έχει δημοσιευτεί prompt Κατωφλίου για σήμερα. Γράψε ό,τι είναι παρόν χωρίς να πιέζεις για δομή.",
+  "thresholdPurposeTheme": "ΣΚΟΠΟΣ",
+  "thresholdPurposeQuote": "Η ψυχή ψιθυρίζει πριν μιλήσει το πεπρωμένο.",
+  "thresholdPurposeFrameOfThought": "Ο σκοπός σπάνια έρχεται ως εντολή. Συχνά αρχίζει ως μια ήσυχη πρόσκληση.",
+  "thresholdPurposeSocraticQuestion": "Ποια πρόσκληση αγνοείς;",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

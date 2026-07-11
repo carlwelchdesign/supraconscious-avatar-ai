@@ -97,7 +97,38 @@ function Row({
   )
 }
 
-export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
+export function VoiceSettingsSection({
+  initial,
+  messages,
+  commonMessages,
+}: {
+  initial: VoicePrefs
+  messages: {
+    section: string
+    voiceJournaling: string
+    voiceJournalingDescription: string
+    defaultInputMode: string
+    defaultInputModeDescription: string
+    text: string
+    voice: string
+    ask: string
+    autoPlay: string
+    autoPlayDescription: string
+    voiceCharacter: string
+    voiceCharacterDescription: string
+    feminine: string
+    masculine: string
+    warm: string
+    neutral: string
+    soft: string
+    deep: string
+    playbackSpeed: string
+    storageNote: string
+    savePreferences: string
+    failed: string
+  }
+  commonMessages: { saving: string; saved: string }
+}) {
   const [state, formAction, isPending] = useActionState<VoiceActionState, FormData>(
     updateVoicePreferences,
     null,
@@ -110,56 +141,56 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
     >
       <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
         <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-          Voice &amp; Audio
+          {messages.section}
         </p>
       </div>
 
       <form action={formAction}>
         <div className="px-6">
-          <Row inline label="Voice journaling" description="Show a mic button to dictate entries.">
+          <Row inline label={messages.voiceJournaling} description={messages.voiceJournalingDescription}>
             <Toggle name="voiceEnabled" defaultChecked={initial.voiceEnabled} />
           </Row>
 
-          <Row label="Default input mode" description="How the journal opens by default.">
+          <Row label={messages.defaultInputMode} description={messages.defaultInputModeDescription}>
             <PillGroup
               name="voiceInputDefault"
               defaultValue={initial.voiceInputDefault}
               options={[
-                { value: "text",  label: "Text" },
-                { value: "voice", label: "Voice" },
-                { value: "ask",   label: "Ask each time" },
+                { value: "text",  label: messages.text },
+                { value: "voice", label: messages.voice },
+                { value: "ask",   label: messages.ask },
               ]}
             />
           </Row>
 
-          <Row inline label="Auto-play responses" description="Play the guide response as audio after each reflection.">
+          <Row inline label={messages.autoPlay} description={messages.autoPlayDescription}>
             <Toggle name="voiceAutoPlay" defaultChecked={initial.voiceAutoPlay} />
           </Row>
 
-          <Row label="Voice character" description="Choose the tone of your guide's voice.">
+          <Row label={messages.voiceCharacter} description={messages.voiceCharacterDescription}>
             <div className="space-y-2.5">
               <PillGroup
                 name="voiceGender"
                 defaultValue={initial.voiceGender}
                 options={[
-                  { value: "female", label: "Feminine" },
-                  { value: "male",   label: "Masculine" },
+                  { value: "female", label: messages.feminine },
+                  { value: "male",   label: messages.masculine },
                 ]}
               />
               <PillGroup
                 name="voiceStyle"
                 defaultValue={initial.voiceStyle}
                 options={[
-                  { value: "warm",    label: "Warm" },
-                  { value: "neutral", label: "Neutral" },
-                  { value: "soft",    label: "Soft" },
-                  { value: "deep",    label: "Deep" },
+                  { value: "warm",    label: messages.warm },
+                  { value: "neutral", label: messages.neutral },
+                  { value: "soft",    label: messages.soft },
+                  { value: "deep",    label: messages.deep },
                 ]}
               />
             </div>
           </Row>
 
-          <Row label="Playback speed">
+          <Row label={messages.playbackSpeed}>
             <PillGroup
               name="voiceSpeed"
               defaultValue={String(initial.voiceSpeed)}
@@ -177,7 +208,7 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
           style={{ borderColor: "rgba(43,27,53,0.06)" }}
         >
           <p className="text-[11px] font-light text-[var(--plum-soft)]/60 order-2 sm:order-1">
-            Voice audio is never stored. Processed once and discarded.
+            {messages.storageNote}
           </p>
           <button
             type="submit"
@@ -190,7 +221,7 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
             ) : state?.ok ? (
               <Check className="w-4 h-4" />
             ) : null}
-            {isPending ? "Saving…" : state?.ok ? "Saved" : "Save preferences"}
+            {isPending ? commonMessages.saving : state?.ok ? commonMessages.saved : messages.savePreferences}
           </button>
         </div>
 
@@ -203,7 +234,7 @@ export function VoiceSettingsSection({ initial }: { initial: VoicePrefs }) {
               color: "var(--destructive)",
             }}
           >
-            Failed to save. Please try again.
+            {messages.failed}
           </div>
         )}
       </form>

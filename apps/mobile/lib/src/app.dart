@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import 'local_language_controller.dart';
 import 'mobile_api.dart';
 import 'session_controller.dart';
 
@@ -13,10 +14,16 @@ class InnerCouncilMobileApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider).valueOrNull;
+    final localLanguage = ref.watch(localLanguageControllerProvider);
+    final localeLanguageCode = localLanguage.hasExplicitPreference
+        ? localLanguage.code
+        : session?.authenticated == true
+            ? session!.language.current
+            : localLanguage.code;
     return MaterialApp(
       title: 'The Inner Council',
       debugShowCheckedModeBanner: false,
-      locale: session == null ? null : _localeFromLanguageCode(session.language.current),
+      locale: _localeFromLanguageCode(localeLanguageCode),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
@@ -64,6 +71,10 @@ class _MobileRootState extends ConsumerState<MobileRoot> {
       ),
       error: (error, _) => AuthScreen(
         initialRegister: _authMode == _AuthMode.register,
+        language: MobileLanguageState(
+          current: ref.read(localLanguageControllerProvider).code,
+          supported: fallbackSupportedLanguages,
+        ),
         error: error.toString(),
         onBack: _showLanding,
       ),
@@ -72,12 +83,14 @@ class _MobileRootState extends ConsumerState<MobileRoot> {
           final mode = _authMode;
           if (mode == null) {
             return LandingScreen(
+              language: value.language,
               onCreateAccount: () => _showAuth(_AuthMode.register),
               onSignIn: () => _showAuth(_AuthMode.login),
             );
           }
           return AuthScreen(
             initialRegister: mode == _AuthMode.register,
+            language: value.language,
             onBack: _showLanding,
           );
         }
@@ -100,11 +113,13 @@ class _MobileRootState extends ConsumerState<MobileRoot> {
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({
+    required this.language,
     required this.onCreateAccount,
     required this.onSignIn,
     super.key,
   });
 
+  final MobileLanguageState language;
   final VoidCallback onCreateAccount;
   final VoidCallback onSignIn;
 
@@ -116,6 +131,10 @@ class LandingScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: _LanguageSelector(language: language, compact: true),
+          ),
           const SizedBox(height: 56),
           const _LandingHero(),
           const SizedBox(height: 28),
@@ -126,35 +145,31 @@ class LandingScreen extends StatelessWidget {
           const SizedBox(height: 10),
           OutlinedButton(onPressed: onSignIn, child: Text(l10n.signIn)),
           const SizedBox(height: 36),
-          const _LandingSection(
-            eyebrow: 'The problem',
-            title: 'You are not stuck. You are not seeing clearly.',
-            body:
-                'You have thought about it, analyzed it, replayed it, and still something in you hesitates.',
+          _LandingSection(
+            eyebrow: l10n.landingProblemEyebrow,
+            title: l10n.landingProblemTitle,
+            body: l10n.landingProblemBody,
           ),
-          const _LandingSection(
-            eyebrow: 'How it works',
-            title: 'Meet Your Inner Council',
-            body:
-                'You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.',
+          _LandingSection(
+            eyebrow: l10n.landingCouncilEyebrow,
+            title: l10n.landingCouncilTitle,
+            body: l10n.landingCouncilBody,
           ),
           const _CouncilRoleGrid(),
-          const _LandingSection(
-            eyebrow: 'The experience',
-            title: 'Write. See. Face. Choose. Become.',
-            body:
-                'Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.',
+          _LandingSection(
+            eyebrow: l10n.landingExperienceEyebrow,
+            title: l10n.landingExperienceTitle,
+            body: l10n.landingExperienceBody,
           ),
-          const _LandingSection(
-            eyebrow: 'Different by design',
-            title: 'Not another place to talk in circles.',
-            body:
-                'This is an identity reflection system, a decision clarity engine, and a mirror for becoming.',
+          _LandingSection(
+            eyebrow: l10n.landingDifferentEyebrow,
+            title: l10n.landingDifferentTitle,
+            body: l10n.landingDifferentBody,
           ),
           const SizedBox(height: 12),
           FilledButton(
             onPressed: onCreateAccount,
-            child: const Text('Begin Your First Reflection'),
+            child: Text(l10n.landingFinalCta),
           ),
           const SizedBox(height: 16),
           _EnvironmentPill(apiBaseUrl: apiBaseUrl),
@@ -267,22 +282,23 @@ class _LandingSection extends StatelessWidget {
 class _CouncilRoleGrid extends StatelessWidget {
   const _CouncilRoleGrid();
 
-  static const _roles = [
-    ('The Protector', 'Shows where fear is holding you back.'),
-    ('The Conditioned Self', 'Reveals patterns you did not question.'),
-    ('The Visionary', 'Shows who you are becoming.'),
-    ('The Truth Self', 'Cuts through illusion.'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final roles = [
+      (l10n.protectorRole, l10n.protectorRoleBody),
+      (l10n.conditionedSelfRole, l10n.conditionedSelfRoleBody),
+      (l10n.visionaryRole, l10n.visionaryRoleBody),
+      (l10n.truthSelfRole, l10n.truthSelfRoleBody),
+    ];
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 28),
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
         children: [
-          for (final role in _roles)
+          for (final role in roles)
             SizedBox(
               width: 320,
               child: _InfoCard(title: role.$1, body: role.$2),
@@ -296,12 +312,14 @@ class _CouncilRoleGrid extends StatelessWidget {
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({
     required this.initialRegister,
+    required this.language,
     this.error,
     this.onBack,
     super.key,
   });
 
   final bool initialRegister;
+  final MobileLanguageState language;
   final String? error;
   final VoidCallback? onBack;
 
@@ -341,8 +359,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: TextButton.icon(
               onPressed: widget.onBack,
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Landing'),
+              label: Text(l10n.landingBack),
             ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _LanguageSelector(language: widget.language, compact: true),
           ),
           const SizedBox(height: 34),
           const _BrandHeader(),
@@ -351,20 +373,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             TextField(
               controller: _name,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: l10n.nameLabel),
             ),
           if (_register) const SizedBox(height: 12),
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(labelText: 'Email'),
+            decoration: InputDecoration(labelText: l10n.emailLabel),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _password,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: l10n.passwordLabel),
           ),
           if (widget.error != null) ...[
             const SizedBox(height: 12),
@@ -393,10 +415,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   void _submit() {
     final controller = ref.read(sessionControllerProvider.notifier);
+    final preferredLanguage = ref.read(localLanguageControllerProvider).code;
     if (_register) {
-      controller.register(_name.text, _email.text, _password.text);
+      controller.register(
+        _name.text,
+        _email.text,
+        _password.text,
+        preferredLanguage: preferredLanguage,
+      );
     } else {
-      controller.login(_email.text, _password.text);
+      controller.login(
+        _email.text,
+        _password.text,
+        preferredLanguage: preferredLanguage,
+      );
     }
   }
 }
@@ -445,7 +477,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                   .read(sessionControllerProvider.notifier)
                   .acceptConsent(patternMemoryGranted: _patternMemoryGranted);
             },
-            child: const Text('Continue'),
+            child: Text(AppLocalizations.of(context).continueLabel),
           ),
           const SizedBox(height: 40),
         ],
@@ -482,7 +514,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
-            tooltip: 'Sign out',
+            tooltip: l10n.signOut,
             onPressed: () =>
                 ref.read(sessionControllerProvider.notifier).logout(),
             icon: const Icon(Icons.logout),
@@ -497,7 +529,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
           NavigationDestination(
             icon: const Icon(Icons.dashboard_outlined),
             selectedIcon: const Icon(Icons.dashboard),
-            label: 'Home',
+            label: l10n.tabHome,
           ),
           NavigationDestination(
             icon: const Icon(Icons.edit_note_outlined),
@@ -554,24 +586,24 @@ class DashboardTab extends ConsumerWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
-            _StatCard(label: 'Entries', value: '${data.entryCount}'),
+            _StatCard(label: l10n.entries, value: '${data.entryCount}'),
             _StatCard(
               label: l10n.tabPatterns,
               value: '${data.activePatternCount}',
             ),
-            _StatCard(label: 'Guide stage', value: '${data.avatarStage}'),
+            _StatCard(label: l10n.guideStage, value: '${data.avatarStage}'),
           ],
         ),
         const SizedBox(height: 24),
         Text(
-          'Recent reflections',
+          l10n.recentReflections,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
         if (data.recentSessions.isEmpty)
-          const _InfoCard(
-            title: 'No saved reflections yet',
-            body: 'Write your first entry to begin building your practice.',
+          _InfoCard(
+            title: l10n.noSavedTitle,
+            body: l10n.firstEntryBody,
           )
         else
           for (final item in data.recentSessions)
@@ -634,20 +666,20 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           maxLines: 14,
           textInputAction: TextInputAction.newline,
           decoration: InputDecoration(
-            labelText: 'Reflection',
+            labelText: l10n.tabJournal,
             hintText: l10n.journalPlaceholder,
             alignLabelWithHint: true,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          '${wordCount == 1 ? "1 word" : "$wordCount words"} · Private by default · Pattern memory adjustable in settings',
+          '${l10n.wordCount(wordCount)} · ${l10n.privacyBody}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         if (needsMoreContext) ...[
           const SizedBox(height: 8),
           Text(
-            'Add a little more context so the council can reflect without guessing.',
+            l10n.journalHelper,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -655,7 +687,7 @@ class _JournalTabState extends ConsumerState<JournalTab> {
         FilledButton.icon(
           onPressed: _submitting ? null : _submitJournal,
           icon: const Icon(Icons.auto_awesome),
-          label: Text(_submitting ? 'Reflecting...' : 'Ask the Council'),
+          label: Text(_submitting ? l10n.reflecting : l10n.askCouncil),
         ),
         if (_error != null) ...[
           const SizedBox(height: 12),
@@ -701,13 +733,14 @@ class _JournalPromptCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final threshold = prompt.prompt;
+    final l10n = AppLocalizations.of(context);
     if (threshold == null) {
       return _InfoCard(
-        title: prompt.todayLabel.isEmpty ? 'Today' : prompt.todayLabel,
-        body:
-            'No Threshold prompt is published for today. Write what is present without forcing a structure.',
+        title: prompt.todayLabel.isEmpty ? l10n.today : prompt.todayLabel,
+        body: l10n.noThresholdPrompt,
       );
     }
+    final localizedThreshold = _localizedThresholdPrompt(l10n, threshold);
 
     return Card(
       child: Padding(
@@ -719,25 +752,25 @@ class _JournalPromptCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Threshold · Month ${threshold.month}, Day ${threshold.day}',
+                    l10n.thresholdLabel(threshold.month, threshold.day),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ),
-                Text(threshold.theme),
+                Text(localizedThreshold.theme),
               ],
             ),
-            if (threshold.quote?.isNotEmpty == true) ...[
+            if (localizedThreshold.quote?.isNotEmpty == true) ...[
               const SizedBox(height: 12),
               Text(
-                threshold.quote!,
+                localizedThreshold.quote!,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
             const SizedBox(height: 12),
-            Text(threshold.frameOfThought),
+            Text(localizedThreshold.frameOfThought),
             const SizedBox(height: 12),
             Text(
-              threshold.socraticQuestion,
+              localizedThreshold.socraticQuestion,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -745,6 +778,25 @@ class _JournalPromptCard extends StatelessWidget {
       ),
     );
   }
+}
+
+MobileThresholdPrompt _localizedThresholdPrompt(
+  AppLocalizations l10n,
+  MobileThresholdPrompt threshold,
+) {
+  final isPurposePrompt =
+      threshold.theme.toLowerCase() == 'purpose' ||
+      threshold.quote == 'The soul whispers before destiny speaks.';
+  if (!isPurposePrompt) return threshold;
+
+  return MobileThresholdPrompt(
+    month: threshold.month,
+    day: threshold.day,
+    theme: l10n.thresholdPurposeTheme,
+    quote: l10n.thresholdPurposeQuote,
+    frameOfThought: l10n.thresholdPurposeFrameOfThought,
+    socraticQuestion: l10n.thresholdPurposeSocraticQuestion,
+  );
 }
 
 class SavedSessionsTab extends ConsumerWidget {
@@ -758,14 +810,14 @@ class SavedSessionsTab extends ConsumerWidget {
       onRefresh: () => ref.invalidate(savedSessionsProvider),
       builder: (items) => [
         Text(
-          'Saved reflections',
+          AppLocalizations.of(context).savedReflections,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 16),
         if (items.isEmpty)
-          const _InfoCard(
-            title: 'Nothing saved yet',
-            body: 'Your council reflections will appear here after you write.',
+          _InfoCard(
+            title: AppLocalizations.of(context).nothingSavedTitle,
+            body: AppLocalizations.of(context).noSavedTitle,
           )
         else
           for (final item in items)
@@ -818,7 +870,7 @@ class _SavedSessionDetailScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved reflection')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).savedReflectionTitle)),
       body: FutureBuilder<MobileSavedSessionDetail>(
         future: _future,
         builder: (context, snapshot) {
@@ -833,7 +885,7 @@ class _SavedSessionDetailScreenState
             padding: const EdgeInsets.all(24),
             children: [
               Text(
-                'Journal entry',
+                AppLocalizations.of(context).journalTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
@@ -851,7 +903,7 @@ class _SavedSessionDetailScreenState
               for (final message in session.messages)
                 _InfoCard(
                   title: message.displayName,
-                  body: message.abstained ? 'Abstained.' : message.content,
+                  body: message.abstained ? AppLocalizations.of(context).grounding : message.content,
                 ),
               _SourceGroundingCard(sourceGrounding: session.sourceGrounding),
               _FeedbackEmbodimentSection(session: session, onSaved: _refresh),
@@ -877,7 +929,7 @@ class _AvatarResponseCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Council reflection',
+              AppLocalizations.of(context).guideResponse,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             if (response.openingLine.isNotEmpty) ...[
@@ -939,7 +991,7 @@ class _SourceGroundingCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Source grounding',
+              AppLocalizations.of(context).sourceGrounding,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -1144,16 +1196,16 @@ class PatternsTab extends ConsumerWidget {
       value: patterns,
       onRefresh: () => ref.invalidate(patternsProvider),
       builder: (items) => [
-        Text('Patterns', style: Theme.of(context).textTheme.headlineSmall),
+            Text(AppLocalizations.of(context).patternsTitle, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
         Text(
-          'Signals, not diagnoses. Patterns appear only after they recur.',
+          AppLocalizations.of(context).patternsSubtitle,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
         if (items.isEmpty)
-          const _InfoCard(
-            title: 'Patterns emerge over time',
+          _InfoCard(
+            title: AppLocalizations.of(context).patternsEmptyTitle,
             body: 'Keep writing. Recurring signals will appear here.',
           )
         else
@@ -1175,11 +1227,11 @@ class GuideTab extends ConsumerWidget {
       builder: (data) {
         final current = _currentGuideStage(data);
         return [
-          Text('Your guide', style: Theme.of(context).textTheme.headlineSmall),
+          Text(AppLocalizations.of(context).yourGuide, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           if (current != null)
             _InfoCard(
-              title: '${current.name} · Stage ${data.currentStage} of 5',
+              title: '${current.name} · ${AppLocalizations.of(context).guideStage} ${data.currentStage}',
               body: current.description,
             ),
           const SizedBox(height: 12),
@@ -1187,10 +1239,10 @@ class GuideTab extends ConsumerWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _StatCard(label: 'Tone', value: data.avatarTone),
-              _StatCard(label: 'Intensity', value: '${data.intensityLevel}/5'),
+              _StatCard(label: AppLocalizations.of(context).tone, value: data.avatarTone),
+              _StatCard(label: AppLocalizations.of(context).intensity, value: '${data.intensityLevel}/5'),
               if (current != null)
-                _StatCard(label: 'Trait', value: current.trait),
+                _StatCard(label: AppLocalizations.of(context).trait, value: current.trait),
             ],
           ),
           const SizedBox(height: 24),
@@ -1328,26 +1380,13 @@ class SettingsTab extends ConsumerWidget {
           body: l10n.privacyBody,
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          initialValue: session.language.current,
-          decoration: InputDecoration(
-            labelText: l10n.languageTitle,
-            helperText: l10n.languageSubtitle,
+        _InfoCard(
+          title: l10n.languageTitle,
+          body: l10n.languageSubtitle,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _LanguageSelector(language: session.language),
           ),
-          items: session.language.supported
-              .map(
-                (language) => DropdownMenuItem(
-                  value: language.code,
-                  child: Text(language.nativeLabel),
-                ),
-              )
-              .toList(),
-          onChanged: (value) {
-            if (value == null) return;
-            ref
-                .read(sessionControllerProvider.notifier)
-                .updateLanguagePreference(value);
-          },
         ),
         const SizedBox(height: 12),
         SwitchListTile(
@@ -1363,6 +1402,104 @@ class SettingsTab extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _LanguageSelector extends ConsumerWidget {
+  const _LanguageSelector({
+    required this.language,
+    this.compact = false,
+  });
+
+  final MobileLanguageState language;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localLanguage = ref.watch(localLanguageControllerProvider);
+    final current = localLanguage.hasExplicitPreference
+        ? localLanguage.code
+        : language.current;
+    final supported = language.supported.isEmpty
+        ? fallbackSupportedLanguages
+        : language.supported;
+    final selected = supported.firstWhere(
+      (item) => item.code == current,
+      orElse: () => fallbackSupportedLanguages.first,
+    );
+
+    return DropdownButtonHideUnderline(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: compact ? const Color(0x1AFFFFFF) : const Color(0x0DFFFFFF),
+          border: Border.all(color: const Color(0x22FFFFFF)),
+          borderRadius: BorderRadius.circular(compact ? 999 : 16),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 12 : 14,
+            vertical: compact ? 2 : 4,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: compact ? 156 : 0),
+            child: DropdownButton<String>(
+              value: selected.code,
+              isExpanded: compact,
+              borderRadius: BorderRadius.circular(16),
+              dropdownColor: const Color(0xFF211A30),
+              iconEnabledColor: const Color(0xFFE9D9B7),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFFFFF8EA),
+              ),
+              selectedItemBuilder: (context) => supported
+                  .map(
+                    (item) => Row(
+                      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+                      children: [
+                        Text(item.flag, style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            item.nativeLabel,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  .toList(),
+              items: supported
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item.code,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(item.flag, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 10),
+                          Flexible(child: Text(item.nativeLabel)),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) async {
+                if (value == null) return;
+                await ref
+                    .read(localLanguageControllerProvider.notifier)
+                    .setLanguage(value);
+                final session = ref.read(sessionControllerProvider).valueOrNull;
+                if (session?.authenticated == true) {
+                  await ref
+                      .read(sessionControllerProvider.notifier)
+                      .updateLanguagePreference(value);
+                }
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1412,7 +1549,10 @@ class _ErrorState extends StatelessWidget {
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+              OutlinedButton(
+                onPressed: onRetry,
+                child: Text(AppLocalizations.of(context).retry),
+              ),
             ],
           ],
         ),
@@ -1462,7 +1602,9 @@ class _SessionSummaryCard extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         title: Text(
-          question?.isNotEmpty == true ? question! : 'Saved reflection',
+          question?.isNotEmpty == true
+              ? question!
+              : AppLocalizations.of(context).savedReflectionFallback,
         ),
         subtitle: Text(session.journalEntry.excerpt),
         trailing: onTap == null ? null : const Icon(Icons.chevron_right),
@@ -1552,10 +1694,11 @@ int _wordCount(String value) {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.body});
+  const _InfoCard({required this.title, required this.body, this.child});
 
   final String title;
   final String body;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -1568,6 +1711,7 @@ class _InfoCard extends StatelessWidget {
             Text(title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(body),
+            ?child,
           ],
         ),
       ),

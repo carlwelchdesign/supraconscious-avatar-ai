@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Volume2, Pause, Play, Loader2 } from "lucide-react"
 
 type PlayerState = "idle" | "loading" | "playing" | "paused" | "error"
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm", voiceSpeed = 1.0, autoPlay = false }: Props) {
+  const t = useTranslations("voice.audio")
   const [state, setState] = useState<PlayerState>("idle")
   const [progress, setProgress] = useState(0)
   const [errorMsg, setErrorMsg] = useState("")
@@ -48,7 +50,7 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
       })
       if (!res.ok) {
         const data = await readErrorResponse(res)
-        throw new Error(userFacingAudioError(data, res.status))
+        throw new Error(userFacingAudioError(data, res.status, t))
       }
 
       const blob = await res.blob()
@@ -66,18 +68,18 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
         setProgress(0)
       }
       audio.onerror = () => {
-        setErrorMsg("Audio playback failed. Retry when ready.")
+        setErrorMsg(t("playbackFailed"))
         setState("error")
       }
 
       await audio.play()
       setState("playing")
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Audio playback could not start"
-      setErrorMsg(`${message}. Retry when ready.`)
+      const message = error instanceof Error ? error.message : t("couldNotStart")
+      setErrorMsg(t("retryWhenReady", { message }))
       setState("error")
     }
-  }, [text, voiceGender, voiceStyle, voiceSpeed, cleanup])
+  }, [text, voiceGender, voiceStyle, voiceSpeed, cleanup, t])
 
   useEffect(() => {
     if (autoPlay && !didAutoPlayRef.current && text) {
@@ -119,14 +121,14 @@ export function AudioPlayer({ text, voiceGender = "female", voiceStyle = "warm",
         )}
         <span>
           {state === "loading"
-            ? "Preparing…"
+            ? t("preparing")
             : state === "playing"
-            ? "Pause"
+            ? t("pause")
             : state === "paused"
-            ? "Resume"
+            ? t("resume")
             : state === "error"
-            ? "Retry"
-            : "Listen"}
+            ? t("retry")
+            : t("listen")}
         </span>
       </button>
 
@@ -159,9 +161,11 @@ async function readErrorResponse(response: Response) {
   }
 }
 
-function userFacingAudioError(error: string, status: number) {
-  if (status === 401) return "Please sign in again before using voice"
-  if (status === 429) return error || "Voice playback is temporarily rate limited"
+type VoiceTranslator = (key: string, values?: Record<string, string>) => string
+
+function userFacingAudioError(error: string, status: number, t: VoiceTranslator) {
+  if (status === 401) return t("signIn")
+  if (status === 429) return error || t("rateLimited")
   if (status === 400 && error) return error
-  return "Voice playback is unavailable right now"
+  return t("unavailable")
 }

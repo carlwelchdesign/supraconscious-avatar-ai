@@ -14,9 +14,17 @@ type Props = {
   action: FeedbackAction
   councilSessionId: string
   founderCalibrationMode: boolean
+  labels: {
+    save: string
+    chooseBeforeSaving: string
+    founderHelp: string
+    founderPlaceholder: string
+    standardPlaceholder: string
+    feedbackTypes: Record<string, string>
+  }
 }
 
-export function SavedSessionFeedbackForm({ action, councilSessionId, founderCalibrationMode }: Props) {
+export function SavedSessionFeedbackForm({ action, councilSessionId, founderCalibrationMode, labels }: Props) {
   const [note, setNote] = useState("")
   const [feedbackType, setFeedbackType] = useState<SavedSessionFeedbackType | "">(
     readInitialSavedSessionFeedbackType(founderCalibrationMode),
@@ -32,7 +40,7 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
       <input type="hidden" name="councilSessionId" value={councilSessionId} />
       <input type="hidden" name="feedbackType" value={feedbackType} />
       <div className="flex flex-wrap gap-2">
-        {SAVED_SESSION_FEEDBACK_TYPES.map(([value, label]) => (
+        {SAVED_SESSION_FEEDBACK_TYPES.map(([value, fallbackLabel]) => (
           <button
             key={value}
             type="button"
@@ -45,7 +53,7 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
               color: feedbackType === value ? "var(--primary)" : "var(--plum-soft)",
             }}
           >
-            {label}
+            {labels.feedbackTypes[value] ?? fallbackLabel}
           </button>
         ))}
       </div>
@@ -54,9 +62,7 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
         value={note}
         onChange={(event) => setNote(event.target.value)}
         maxLength={500}
-        placeholder={founderCalibrationMode
-          ? "Optional note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
-          : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
+        placeholder={founderCalibrationMode ? labels.founderPlaceholder : labels.standardPlaceholder}
         className="w-full min-h-[86px] resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
         style={{ borderColor: "rgba(43,27,53,0.08)" }}
       />
@@ -76,11 +82,11 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
             ))}
           </div>
           <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/70">
-            Choose a feedback type to keep calibration moving. Add a note only when there is a specific detail to capture; it stays with the session and does not automatically retrain the guide.
+            {labels.founderHelp}
           </p>
           {!feedbackType && (
             <p className="text-[11px] font-light leading-relaxed text-[var(--clay)]">
-              Choose one feedback type before saving this calibration pass.
+              {labels.chooseBeforeSaving}
             </p>
           )}
         </>
@@ -91,7 +97,7 @@ export function SavedSessionFeedbackForm({ action, councilSessionId, founderCali
         className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)] disabled:cursor-not-allowed disabled:opacity-40"
         style={{ borderColor: "rgba(43,27,53,0.08)" }}
       >
-        Save feedback
+        {labels.save}
       </button>
     </form>
   )

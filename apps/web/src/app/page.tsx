@@ -42,9 +42,9 @@ export default async function Home() {
           </Link>
           <nav className="hidden items-center gap-7 md:flex" aria-label="Landing page sections">
             {[
-              ["Problem", "#problem"],
-              ["Council", "#council"],
-              ["Experience", "#experience"],
+              [landing.nav.problem, "#problem"],
+              [landing.nav.council, "#council"],
+              [landing.nav.experience, "#experience"],
             ].map(([label, href]) => (
               <Link
                 key={href}
@@ -55,7 +55,7 @@ export default async function Home() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full items-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
             <LanguagePicker
               key={currentLanguage}
               currentLanguage={currentLanguage}
@@ -64,7 +64,7 @@ export default async function Home() {
             />
             <Link
               href={primaryHref}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+              className="ml-auto inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
             >
               {user ? common.openJournal : common.begin}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />

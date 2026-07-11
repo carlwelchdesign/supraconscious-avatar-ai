@@ -6,10 +6,19 @@ import { LANGUAGE_COOKIE_NAME, resolveSupportedLanguage, type SupportedLanguage 
 function safeRedirectTarget(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next")
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return new URL("/", request.url)
+    return new URL("/", requestOrigin(request))
   }
 
-  return new URL(next, request.url)
+  return new URL(next, requestOrigin(request))
+}
+
+function requestOrigin(request: NextRequest) {
+  const forwardedProtocol = request.headers.get("x-forwarded-proto")
+  const protocol = forwardedProtocol ? forwardedProtocol.split(",")[0]?.trim() : request.nextUrl.protocol.replace(":", "")
+  const forwardedHost = request.headers.get("x-forwarded-host")
+  const host = forwardedHost?.split(",")[0]?.trim() ?? request.headers.get("host")
+
+  return host ? `${protocol || "http"}://${host}` : request.nextUrl.origin
 }
 
 export async function GET(request: NextRequest) {

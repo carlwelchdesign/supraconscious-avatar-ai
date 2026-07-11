@@ -5,12 +5,15 @@
   "signIn": "Iniciar sesión",
   "createAccount": "Crear cuenta",
   "useExistingAccount": "Usar cuenta existente",
+  "nameLabel": "Nombre",
+  "emailLabel": "Correo electrónico",
+  "passwordLabel": "Contraseña",
   "landingEyebrow": "Reflexión de identidad con IA",
   "landingNotJournal": "Esto no es un diario.",
   "landingMeetYourself": "Aquí es donde te encuentras contigo.",
   "landingBody": "No necesitas más consejos. Necesitas ver con claridad. El Consejo Interior revela lo que ya sabes, pero aún no has enfrentado.",
   "tabJournal": "Diario",
-  "tabSaved": "Guardadas",
+  "tabSaved": "Guard.",
   "tabPatterns": "Patrones",
   "tabGuide": "Guía",
   "tabSettings": "Ajustes",
@@ -25,5 +28,96 @@
   "languageTitle": "Idioma",
   "languageSubtitle": "Controla el idioma de la app y el idioma usado para nuevas reflexiones de IA.",
   "patternMemory": "Memoria de patrones",
-  "patternMemorySubtitle": "Permitir que señales recurrentes aparezcan con el tiempo."
+  "patternMemorySubtitle": "Permitir que señales recurrentes aparezcan con el tiempo.",
+  "landingProblemEyebrow": "El problema",
+  "landingProblemTitle": "No estás bloqueado. No estás viendo con claridad.",
+  "landingProblemBody": "Lo pensaste, lo analizaste, lo repetiste, y aun así algo en ti duda.",
+  "landingCouncilEyebrow": "Cómo funciona",
+  "landingCouncilTitle": "Conoce tu Inner Council",
+  "landingCouncilBody": "Escribes lo que tienes en mente. Cuatro lentes internos reflejan lo que se mueve bajo la superficie.",
+  "protectorRole": "El Protector",
+  "protectorRoleBody": "Muestra dónde el miedo te está frenando.",
+  "conditionedSelfRole": "El Yo Condicionado",
+  "conditionedSelfRoleBody": "Revela patrones que no habías cuestionado.",
+  "visionaryRole": "El Visionario",
+  "visionaryRoleBody": "Muestra en quién te estás convirtiendo.",
+  "truthSelfRole": "El Yo Verdadero",
+  "truthSelfRoleBody": "Atraviesa la ilusión.",
+  "landingExperienceEyebrow": "La experiencia",
+  "landingExperienceTitle": "Escribe. Ve. Enfrenta. Elige. Conviértete.",
+  "landingExperienceBody": "Cada sesión sigue un camino simple: sin ruido, sin saturación, solo un siguiente paso más claro.",
+  "landingDifferentEyebrow": "Diferente por diseño",
+  "landingDifferentTitle": "No es otro lugar para hablar en círculos.",
+  "landingDifferentBody": "Es un sistema de reflexión de identidad, un motor de claridad para decisiones y un espejo para devenir.",
+  "landingFinalCta": "Comienza tu primera reflexión",
+  "landingBack": "Inicio",
+  "continueLabel": "Continuar",
+  "tabHome": "Inicio",
+  "entries": "Entradas",
+  "guideStage": "Etapa del guía",
+  "noSavedTitle": "Aún no hay reflexiones guardadas",
+  "today": "Hoy",
+  "askCouncil": "Preguntar al Consejo",
+  "reflecting": "Reflexionando...",
+  "wordCount": "{count} palabras",
+  "nothingSavedTitle": "Aún no hay nada guardado",
+  "savedReflectionTitle": "Reflexión guardada",
+  "feedbackSaved": "Comentarios guardados",
+  "feedbackNeeded": "Comentarios necesarios",
+  "gateSaved": "Puerta guardada",
+  "gateOpen": "Puerta abierta",
+  "helpful": "Útil",
+  "notAccurate": "No es preciso",
+  "tooIntense": "Demasiado intenso",
+  "unclear": "Poco claro",
+  "unsupportedSource": "Fuente sin apoyo",
+  "saving": "Guardando...",
+  "saveFeedback": "Guardar comentarios",
+  "patternsTitle": "Patrones",
+  "patternsEmptyTitle": "Los patrones emergen con el tiempo",
+  "yourGuide": "Tu guía",
+  "tone": "Tono",
+  "intensity": "Intensidad",
+  "trait": "Rasgo",
+  "retry": "Reintentar",
+  "guideResponse": "Respuesta del guía",
+  "oneGroundedStep": "Un paso concreto",
+  "sourceGrounding": "Fundamentación de fuentes",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "Cerrar sesión",
+  "grounding": "Grounding",
+  "recentReflections": "Reflexiones recientes",
+  "firstEntryBody": "Escribe tu primera entrada para empezar a construir tu práctica.",
+  "savedReflections": "Reflexiones guardadas",
+  "patternsSubtitle": "Señales, no diagnósticos. Los patrones aparecen solo cuando se repiten.",
+  "savedReflectionFallback": "Reflexión guardada",
+  "thresholdLabel": "Umbral · Mes {month}, día {day}",
+  "noThresholdPrompt": "No hay un prompt de Umbral publicado para hoy. Escribe lo que está presente sin forzar una estructura.",
+  "thresholdPurposeTheme": "PROPÓSITO",
+  "thresholdPurposeQuote": "El alma susurra antes de que hable el destino.",
+  "thresholdPurposeFrameOfThought": "El propósito rara vez llega como una orden. A menudo comienza como una invitación silenciosa.",
+  "thresholdPurposeSocraticQuestion": "¿Qué invitación has estado ignorando?",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

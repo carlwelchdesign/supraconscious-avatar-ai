@@ -5,6 +5,9 @@
   "signIn": "Sign in",
   "createAccount": "Create account",
   "useExistingAccount": "Use existing account",
+  "nameLabel": "Name",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
   "landingEyebrow": "AI-powered identity reflection",
   "landingNotJournal": "This is not a journal.",
   "landingMeetYourself": "This is where you meet yourself.",
@@ -16,7 +19,13 @@
   "tabSettings": "Settings",
   "welcome": "Welcome",
   "welcomeName": "Welcome, {name}",
-  "@welcomeName": {"placeholders": {"name": {"type": "String"}}},
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "journalTitle": "What is present today?",
   "journalHelper": "Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.",
   "journalPlaceholder": "Write what is present — emotions, observations, tensions. No structure required…",
@@ -26,5 +35,89 @@
   "languageTitle": "Language",
   "languageSubtitle": "Controls app language and the language used for new AI reflections.",
   "patternMemory": "Pattern memory",
-  "patternMemorySubtitle": "Allow recurring signals to appear over time."
+  "patternMemorySubtitle": "Allow recurring signals to appear over time.",
+  "landingProblemEyebrow": "The problem",
+  "landingProblemTitle": "You are not stuck. You are not seeing clearly.",
+  "landingProblemBody": "You have thought about it, analyzed it, replayed it, and still something in you hesitates.",
+  "landingCouncilEyebrow": "How it works",
+  "landingCouncilTitle": "Meet Your Inner Council",
+  "landingCouncilBody": "You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.",
+  "protectorRole": "The Protector",
+  "protectorRoleBody": "Shows where fear is holding you back.",
+  "conditionedSelfRole": "The Conditioned Self",
+  "conditionedSelfRoleBody": "Reveals patterns you did not question.",
+  "visionaryRole": "The Visionary",
+  "visionaryRoleBody": "Shows who you are becoming.",
+  "truthSelfRole": "The Truth Self",
+  "truthSelfRoleBody": "Cuts through illusion.",
+  "landingExperienceEyebrow": "The experience",
+  "landingExperienceTitle": "Write. See. Face. Choose. Become.",
+  "landingExperienceBody": "Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.",
+  "landingDifferentEyebrow": "Different by design",
+  "landingDifferentTitle": "Not another place to talk in circles.",
+  "landingDifferentBody": "This is an identity reflection system, a decision clarity engine, and a mirror for becoming.",
+  "landingFinalCta": "Begin Your First Reflection",
+  "landingBack": "Landing",
+  "continueLabel": "Continue",
+  "tabHome": "Home",
+  "entries": "Entries",
+  "guideStage": "Guide stage",
+  "noSavedTitle": "No saved reflections yet",
+  "today": "Today",
+  "askCouncil": "Ask the Council",
+  "reflecting": "Reflecting...",
+  "wordCount": "{count} words",
+  "nothingSavedTitle": "Nothing saved yet",
+  "savedReflectionTitle": "Saved reflection",
+  "feedbackSaved": "Feedback saved",
+  "feedbackNeeded": "Feedback needed",
+  "gateSaved": "Gate saved",
+  "gateOpen": "Gate open",
+  "helpful": "Helpful",
+  "notAccurate": "Not accurate",
+  "tooIntense": "Too intense",
+  "unclear": "Unclear",
+  "unsupportedSource": "Unsupported source",
+  "saving": "Saving...",
+  "saveFeedback": "Save feedback",
+  "patternsTitle": "Patterns",
+  "patternsEmptyTitle": "Patterns emerge over time",
+  "yourGuide": "Your guide",
+  "tone": "Tone",
+  "intensity": "Intensity",
+  "trait": "Trait",
+  "retry": "Retry",
+  "guideResponse": "Guide Response",
+  "oneGroundedStep": "One grounded step",
+  "sourceGrounding": "Source grounding",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "Sign out",
+  "grounding": "Grounding",
+  "recentReflections": "Recent reflections",
+  "firstEntryBody": "Write your first entry to begin building your practice.",
+  "savedReflections": "Saved reflections",
+  "patternsSubtitle": "Signals, not diagnoses. Patterns appear only after they recur.",
+  "savedReflectionFallback": "Saved reflection",
+  "thresholdLabel": "Threshold · Month {month}, Day {day}",
+  "noThresholdPrompt": "No Threshold prompt is published for today. Write what is present without forcing a structure.",
+  "thresholdPurposeTheme": "PURPOSE",
+  "thresholdPurposeQuote": "The soul whispers before destiny speaks.",
+  "thresholdPurposeFrameOfThought": "Purpose rarely arrives as a command. It often begins as a quiet invitation.",
+  "thresholdPurposeSocraticQuestion": "What invitation have you been ignoring?",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  }
 }

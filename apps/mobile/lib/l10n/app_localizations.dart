@@ -137,6 +137,24 @@ abstract class AppLocalizations {
   /// **'Use existing account'**
   String get useExistingAccount;
 
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
   /// No description provided for @landingEyebrow.
   ///
   /// In en, this message translates to:
@@ -262,6 +280,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow recurring signals to appear over time.'**
   String get patternMemorySubtitle;
+
+  /// No description provided for @landingProblemEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'The problem'**
+  String get landingProblemEyebrow;
+
+  /// No description provided for @landingProblemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not stuck. You are not seeing clearly.'**
+  String get landingProblemTitle;
+
+  /// No description provided for @landingProblemBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have thought about it, analyzed it, replayed it, and still something in you hesitates.'**
+  String get landingProblemBody;
+
+  /// No description provided for @landingCouncilEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get landingCouncilEyebrow;
+
+  /// No description provided for @landingCouncilTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet Your Inner Council'**
+  String get landingCouncilTitle;
+
+  /// No description provided for @landingCouncilBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.'**
+  String get landingCouncilBody;
+
+  /// No description provided for @protectorRole.
+  ///
+  /// In en, this message translates to:
+  /// **'The Protector'**
+  String get protectorRole;
+
+  /// No description provided for @protectorRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows where fear is holding you back.'**
+  String get protectorRoleBody;
+
+  /// No description provided for @conditionedSelfRole.
+  ///
+  /// In en, this message translates to:
+  /// **'The Conditioned Self'**
+  String get conditionedSelfRole;
+
+  /// No description provided for @conditionedSelfRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveals patterns you did not question.'**
+  String get conditionedSelfRoleBody;
+
+  /// No description provided for @visionaryRole.
+  ///
+  /// In en, this message translates to:
+  /// **'The Visionary'**
+  String get visionaryRole;
+
+  /// No description provided for @visionaryRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows who you are becoming.'**
+  String get visionaryRoleBody;
+
+  /// No description provided for @truthSelfRole.
+  ///
+  /// In en, this message translates to:
+  /// **'The Truth Self'**
+  String get truthSelfRole;
+
+  /// No description provided for @truthSelfRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuts through illusion.'**
+  String get truthSelfRoleBody;
+
+  /// No description provided for @landingExperienceEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'The experience'**
+  String get landingExperienceEyebrow;
+
+  /// No description provided for @landingExperienceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write. See. Face. Choose. Become.'**
+  String get landingExperienceTitle;
+
+  /// No description provided for @landingExperienceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.'**
+  String get landingExperienceBody;
+
+  /// No description provided for @landingDifferentEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Different by design'**
+  String get landingDifferentEyebrow;
+
+  /// No description provided for @landingDifferentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not another place to talk in circles.'**
+  String get landingDifferentTitle;
+
+  /// No description provided for @landingDifferentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an identity reflection system, a decision clarity engine, and a mirror for becoming.'**
+  String get landingDifferentBody;
+
+  /// No description provided for @landingFinalCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin Your First Reflection'**
+  String get landingFinalCta;
+
+  /// No description provided for @landingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get landingBack;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @tabHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get tabHome;
+
+  /// No description provided for @entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get entries;
+
+  /// No description provided for @guideStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide stage'**
+  String get guideStage;
+
+  /// No description provided for @noSavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved reflections yet'**
+  String get noSavedTitle;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @askCouncil.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the Council'**
+  String get askCouncil;
+
+  /// No description provided for @reflecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reflecting...'**
+  String get reflecting;
+
+  /// No description provided for @wordCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} words'**
+  String wordCount(int count);
+
+  /// No description provided for @nothingSavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved yet'**
+  String get nothingSavedTitle;
+
+  /// No description provided for @savedReflectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved reflection'**
+  String get savedReflectionTitle;
+
+  /// No description provided for @feedbackSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback saved'**
+  String get feedbackSaved;
+
+  /// No description provided for @feedbackNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback needed'**
+  String get feedbackNeeded;
+
+  /// No description provided for @gateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Gate saved'**
+  String get gateSaved;
+
+  /// No description provided for @gateOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Gate open'**
+  String get gateOpen;
+
+  /// No description provided for @helpful.
+  ///
+  /// In en, this message translates to:
+  /// **'Helpful'**
+  String get helpful;
+
+  /// No description provided for @notAccurate.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accurate'**
+  String get notAccurate;
+
+  /// No description provided for @tooIntense.
+  ///
+  /// In en, this message translates to:
+  /// **'Too intense'**
+  String get tooIntense;
+
+  /// No description provided for @unclear.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclear'**
+  String get unclear;
+
+  /// No description provided for @unsupportedSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported source'**
+  String get unsupportedSource;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
+
+  /// No description provided for @saveFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Save feedback'**
+  String get saveFeedback;
+
+  /// No description provided for @patternsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get patternsTitle;
+
+  /// No description provided for @patternsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns emerge over time'**
+  String get patternsEmptyTitle;
+
+  /// No description provided for @yourGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Your guide'**
+  String get yourGuide;
+
+  /// No description provided for @tone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tone'**
+  String get tone;
+
+  /// No description provided for @intensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get intensity;
+
+  /// No description provided for @trait.
+  ///
+  /// In en, this message translates to:
+  /// **'Trait'**
+  String get trait;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @guideResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide Response'**
+  String get guideResponse;
+
+  /// No description provided for @oneGroundedStep.
+  ///
+  /// In en, this message translates to:
+  /// **'One grounded step'**
+  String get oneGroundedStep;
+
+  /// No description provided for @sourceGrounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Source grounding'**
+  String get sourceGrounding;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// No description provided for @grounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounding'**
+  String get grounding;
+
+  /// No description provided for @recentReflections.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent reflections'**
+  String get recentReflections;
+
+  /// No description provided for @firstEntryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your first entry to begin building your practice.'**
+  String get firstEntryBody;
+
+  /// No description provided for @savedReflections.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved reflections'**
+  String get savedReflections;
+
+  /// No description provided for @patternsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signals, not diagnoses. Patterns appear only after they recur.'**
+  String get patternsSubtitle;
+
+  /// No description provided for @savedReflectionFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved reflection'**
+  String get savedReflectionFallback;
+
+  /// No description provided for @thresholdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Threshold · Month {month}, Day {day}'**
+  String thresholdLabel(int month, int day);
+
+  /// No description provided for @noThresholdPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No Threshold prompt is published for today. Write what is present without forcing a structure.'**
+  String get noThresholdPrompt;
+
+  /// No description provided for @thresholdPurposeTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'PURPOSE'**
+  String get thresholdPurposeTheme;
+
+  /// No description provided for @thresholdPurposeQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'The soul whispers before destiny speaks.'**
+  String get thresholdPurposeQuote;
+
+  /// No description provided for @thresholdPurposeFrameOfThought.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose rarely arrives as a command. It often begins as a quiet invitation.'**
+  String get thresholdPurposeFrameOfThought;
+
+  /// No description provided for @thresholdPurposeSocraticQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What invitation have you been ignoring?'**
+  String get thresholdPurposeSocraticQuestion;
 }
 
 class _AppLocalizationsDelegate

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { Loader2, ArrowRight } from "lucide-react"
 import {
-  FOUNDER_CALIBRATION_SCENARIO_LABELS,
   FOUNDER_CALIBRATION_SCENARIO_PROMPTS,
   type FounderCalibrationScenario,
 } from "@inner-avatar/ai/founder-calibration-scenarios"
@@ -20,32 +19,28 @@ const DEFAULT_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inn
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 const CALIBRATION_PROMPTS = [
   {
-    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.voice_test,
     scenario: "voice_test",
     text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.voice_test,
   },
   {
-    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.source_grounding_test,
     scenario: "source_grounding_test",
     text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.source_grounding_test,
   },
   {
-    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.embodiment_test,
     scenario: "embodiment_test",
     text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.embodiment_test,
   },
   {
-    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.no_source_fallback_test,
     scenario: "no_source_fallback_test",
     text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.no_source_fallback_test,
   },
   {
-    label: FOUNDER_CALIBRATION_SCENARIO_LABELS.intensity_boundary_test,
     scenario: "intensity_boundary_test",
     text: FOUNDER_CALIBRATION_SCENARIO_PROMPTS.intensity_boundary_test,
   },
 ] as const
 const CALIBRATION_PROMPT_TEXTS = new Set<string>(CALIBRATION_PROMPTS.map((prompt) => prompt.text))
+type ThresholdPromptTranslationKey = "purpose"
 
 type AnalysisResult = {
   journalEntry?: {
@@ -136,6 +131,26 @@ type ThresholdPrompt = {
   socraticQuestion: string
 } | null
 
+function readThresholdPromptTranslationKey(prompt: ThresholdPrompt): ThresholdPromptTranslationKey | null {
+  if (!prompt) return null
+
+  const theme = prompt.theme.trim().toLowerCase()
+  const quote = prompt.quote?.trim().toLowerCase()
+  const frame = prompt.frameOfThought.trim().toLowerCase()
+  const question = prompt.socraticQuestion.trim().toLowerCase()
+
+  if (
+    theme === "purpose" ||
+    quote === "the soul whispers before destiny speaks." ||
+    frame === "purpose rarely arrives as a command. it often begins as a quiet invitation." ||
+    question === "what invitation have you been ignoring?"
+  ) {
+    return "purpose"
+  }
+
+  return null
+}
+
 type Props = {
   avatarStage?: 1 | 2 | 3 | 4 | 5
   stageNames?: readonly string[]
@@ -162,10 +177,14 @@ export function JournalWorkspace({
   founderFeedbackHref = null,
 }: Props) {
   const t = useTranslations("journal")
+  const feedbackT = useTranslations("sessionDetail.feedbackTypes")
   const guideStageNames = normalizeStageNames(stageNames)
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
+  const suggestedPromptLabel = suggestedPrompt
+    ? t(`calibrationScenarios.${suggestedPrompt.scenario}`)
+    : ""
   const initialText = founderCalibrationMode && needsFounderFirstSessionGuide && suggestedPrompt
     ? suggestedPrompt.text
     : ""
@@ -211,10 +230,10 @@ export function JournalWorkspace({
         body: JSON.stringify({ text, calibrationScenario: submittedCalibrationScenario }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingJournalError(payload.error, response.status))
+      if (!response.ok) throw new Error(userFacingJournalError(payload.error, response.status, t))
       setResult(payload)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Reflection could not be completed. Try again in a moment.")
+      setError(e instanceof Error ? e.message : t("transientError"))
     } finally {
       setIsSubmitting(false)
     }
@@ -253,10 +272,10 @@ export function JournalWorkspace({
         }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "shift"))
+      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "shift", t))
       setEmbodimentSaved(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save your shift. Try again in a moment.")
+      setError(e instanceof Error ? e.message : t("saveShiftError"))
     } finally {
       setIsSavingShift(false)
     }
@@ -277,11 +296,11 @@ export function JournalWorkspace({
         }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "feedback"))
+      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "feedback", t))
       setFeedbackSaved(feedbackType)
       setFeedbackNote("")
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save feedback. Try again in a moment.")
+      setError(e instanceof Error ? e.message : t("saveFeedbackError"))
     } finally {
       setIsSavingFeedback(false)
     }
@@ -292,14 +311,32 @@ export function JournalWorkspace({
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
   const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
   const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
+  const thresholdPromptTranslationKey = readThresholdPromptTranslationKey(thresholdPrompt)
+  const localizedThresholdPrompt = thresholdPrompt
+    ? {
+        ...thresholdPrompt,
+        theme: thresholdPromptTranslationKey
+          ? t(`thresholdPrompts.${thresholdPromptTranslationKey}.theme`)
+          : thresholdPrompt.theme,
+        quote: thresholdPromptTranslationKey && thresholdPrompt.quote
+          ? t(`thresholdPrompts.${thresholdPromptTranslationKey}.quote`)
+          : thresholdPrompt.quote,
+        frameOfThought: thresholdPromptTranslationKey
+          ? t(`thresholdPrompts.${thresholdPromptTranslationKey}.frameOfThought`)
+          : thresholdPrompt.frameOfThought,
+        socraticQuestion: thresholdPromptTranslationKey
+          ? t(`thresholdPrompts.${thresholdPromptTranslationKey}.socraticQuestion`)
+          : thresholdPrompt.socraticQuestion,
+      }
+    : null
 
   const speakText = result
     ? buildSpeakText(result.avatarResponse)
     : ""
   const signalLabel = (confidence: number) => {
-    if (confidence >= 0.75) return "Strong recurring signal"
-    if (confidence >= 0.55) return "Based on your entry"
-    return "Light signal"
+    if (confidence >= 0.75) return t("strongSignal")
+    if (confidence >= 0.55) return t("basedOnEntry")
+    return t("lightSignal")
   }
 
   return (
@@ -330,29 +367,29 @@ export function JournalWorkspace({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-                Founder calibration
+                {t("founderCalibration")}
               </p>
               <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                Use these sessions to tune the guide with Carl and Maria. After each reflection, choose a feedback type. Add a short note when there is a specific voice, source, intensity, embodiment, or phrasing detail to keep.
+                {t("founderCalibrationBody")}
               </p>
               {suggestedPrompt && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
-                  {needsFounderFirstSessionGuide ? "Suggested first run" : "Suggested next guided scenario"}: {suggestedPrompt.label}
+                  {needsFounderFirstSessionGuide ? t("suggestedFirstRun") : t("suggestedNextScenario")}: {suggestedPromptLabel}
                 </p>
               )}
               {needsFounderFirstSessionGuide && (
                 <p className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
-                  First calibration session: start with the prefilled {suggestedPrompt?.label ?? "guided prompt"}, add one or two sentences from your real situation, submit one reflection, and choose a feedback type. Add a note only when there is a specific detail to capture.
+                  {t("firstCalibrationHelp", { label: suggestedPromptLabel || t("calibrationScenarios.freeform") })}
                 </p>
               )}
               {needsFounderFeedback && (
                 <div className="mt-2 rounded-2xl border px-3 py-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)", background: "rgba(43,27,53,0.035)" }}>
                   <p>
-                    A first reflection is already saved. Choose one feedback type on that saved session before starting more calibration runs. A written note is optional when there is a specific detail to capture.
+                    {t("firstReflectionSaved")}
                   </p>
                   {founderFeedbackHref && (
                     <Link href={founderFeedbackHref} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--primary)] hover:text-[var(--clay)]">
-                      Open saved session
+                      {t("openSavedSession")}
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   )}
@@ -364,7 +401,7 @@ export function JournalWorkspace({
                 const selected = calibrationScenario === prompt.scenario
                 return (
                 <button
-                  key={prompt.label}
+                  key={prompt.scenario}
                   type="button"
                   onClick={() => applyCalibrationPrompt(prompt)}
                   className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)]"
@@ -374,8 +411,8 @@ export function JournalWorkspace({
                     color: selected ? "var(--primary)" : "var(--plum-soft)",
                   }}
                 >
-                  {selected ? "Selected: " : ""}
-                  {prompt.label}
+                  {selected ? t("selectedPrefix") : ""}
+                  {t(`calibrationScenarios.${prompt.scenario}`)}
                 </button>
                 )
               })}
@@ -384,7 +421,7 @@ export function JournalWorkspace({
         </section>
       )}
 
-      {thresholdPrompt && (
+      {localizedThresholdPrompt && (
         <section
           className="rounded-3xl border px-6 py-5"
           style={{
@@ -395,20 +432,20 @@ export function JournalWorkspace({
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-              Threshold · Month {thresholdPrompt.month}, Day {thresholdPrompt.day}
+              {t("thresholdLabel", { month: localizedThresholdPrompt.month, day: localizedThresholdPrompt.day })}
             </p>
-            <p className="text-[11px] font-light text-[var(--plum-soft)]">{thresholdPrompt.theme}</p>
+            <p className="text-[11px] font-light text-[var(--plum-soft)]">{localizedThresholdPrompt.theme}</p>
           </div>
-          {thresholdPrompt.quote && (
+          {localizedThresholdPrompt.quote && (
             <p className="mt-3 font-display text-[18px] font-light italic leading-relaxed text-[var(--primary)]">
-              {thresholdPrompt.quote}
+              {localizedThresholdPrompt.quote}
             </p>
           )}
           <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-            {thresholdPrompt.frameOfThought}
+            {localizedThresholdPrompt.frameOfThought}
           </p>
           <p className="mt-4 font-display text-[17px] font-medium italic leading-relaxed text-[var(--primary)]">
-            {thresholdPrompt.socraticQuestion}
+            {localizedThresholdPrompt.socraticQuestion}
           </p>
         </section>
       )}
@@ -434,7 +471,7 @@ export function JournalWorkspace({
                 {todayLabel}
               </span>
               <span className="text-[12px] font-light text-[var(--plum-soft)]">
-                {wordCount} {wordCount === 1 ? "word" : "words"}
+                {wordCount} {wordCount === 1 ? t("wordOne") : t("wordOther")}
               </span>
             </div>
 
@@ -443,7 +480,7 @@ export function JournalWorkspace({
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Write what is present — emotions, observations, tensions. No structure required…"
+                placeholder={t("journalPlaceholder")}
                 className="w-full min-h-[340px] resize-none bg-transparent outline-none font-display text-[18px] font-light leading-[1.95] text-[var(--primary)] placeholder:text-[var(--primary)]/20 journal-lines"
                 style={{ caretColor: "var(--clay)" }}
               />
@@ -456,7 +493,7 @@ export function JournalWorkspace({
             >
               <div className="flex items-center gap-3">
                 <p className="text-[12px] font-light text-[var(--plum-soft)]/70">
-                  Private by default · Pattern memory adjustable in settings
+                  {t("privacyNote")}
                 </p>
                 {voice.voiceEnabled && (
                   <MicButton onTranscribe={handleTranscribe} disabled={isSubmitting} />
@@ -472,17 +509,17 @@ export function JournalWorkspace({
                 ) : (
                   <ArrowRight className="w-4 h-4" />
                 )}
-                {isSubmitting ? "Reflecting…" : "Reflect"}
+                {isSubmitting ? t("reflecting") : t("reflect")}
               </button>
             </div>
             {text.trim().length > 0 && text.trim().length < 20 && (
               <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
-                Add a little more context so the council can reflect without guessing.
+                {t("addMoreContext")}
               </p>
             )}
             {founderOnlyHasPromptText && (
               <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
-                Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.
+                {t("addRealContext")}
               </p>
             )}
           </div>
@@ -515,12 +552,12 @@ export function JournalWorkspace({
             <div className="flex flex-col items-center text-center mb-5">
               <AvatarOrb size="lg" stage={result ? result.progression.newStage as 1|2|3|4|5 : avatarStage} className="mb-3" />
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-                Guide Response
+                {t("guideResponse")}
               </p>
               <p className="text-[12px] font-light text-[var(--plum-soft)]">
                 {result
-                  ? `${guideStageNames[result.progression.newStage - 1]} · Stage ${result.progression.newStage}`
-                  : `${guideStageNames[avatarStage - 1]} · Stage ${avatarStage}`}
+                  ? t("stageLine", { name: guideStageNames[result.progression.newStage - 1], stage: result.progression.newStage })
+                  : t("stageLine", { name: guideStageNames[avatarStage - 1], stage: avatarStage })}
               </p>
             </div>
 
@@ -575,7 +612,7 @@ export function JournalWorkspace({
                     }}
                   >
                     <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] mb-2">
-                      One grounded step
+                      {t("oneGroundedStep")}
                     </p>
                     <p className="text-[14px] font-light text-[var(--plum-soft)] leading-relaxed">
                       {result.avatarResponse.integrationStep}
@@ -606,7 +643,7 @@ export function JournalWorkspace({
               </div>
             ) : (
               <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)]/60 leading-relaxed">
-                Your reflection will appear here after you write and submit an entry.
+                {t("emptyReflection")}
               </p>
             )}
           </div>
@@ -620,10 +657,10 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                Inner Council
+                {t("innerCouncil")}
               </p>
               <h2 className="font-display text-[22px] font-light text-[var(--primary)] leading-snug">
-                {result.councilSession.observerSignal.coreTension ?? "The Council has gathered around the pattern."}
+                {result.councilSession.observerSignal.coreTension ?? t("councilFallback")}
               </h2>
               {result.councilSession.observerSignal.contradiction && (
                 <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
@@ -646,11 +683,11 @@ export function JournalWorkspace({
                         {message.displayName}
                       </p>
                       <span className="text-[10px] font-light text-[var(--plum-soft)]">
-                        {message.abstained ? "Grounding" : signalLabel(message.confidence)}
+                        {message.abstained ? t("grounding") : signalLabel(message.confidence)}
                       </span>
                     </div>
                     <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                      {message.abstained ? "This voice is quiet while grounding comes first." : message.content}
+                      {message.abstained ? t("quietVoice") : message.content}
                     </p>
                   </div>
                 ))}
@@ -665,7 +702,7 @@ export function JournalWorkspace({
                   }}
                 >
                   <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                    Supraconscious Guide
+                    {t("supraconsciousGuide")}
                   </p>
                   <p className="font-display italic text-[17px] font-medium leading-[1.55] text-[var(--primary)]">
                     {result.councilSession.synthesis.integratorQuestion}
@@ -684,16 +721,16 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                Session feedback
+                {t("sessionFeedback")}
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 {founderCalibrationMode
-                  ? "Help tune the guide by choosing a feedback type. Add a note only when there is a specific detail to capture. Feedback does not automatically retrain the guide or act as a diagnosis."
-                  : "Tell us whether this reflection helped. Your feedback stays with this session and does not automatically retrain the guide."}
+                  ? t("feedbackFounderHelp")
+                  : t("feedbackStandardHelp")}
               </p>
               {founderCalibrationMode && (
                 <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  A note is useful for Carl/Maria calibration when something specific should change, but the feedback type is enough to save this pass.
+                  {t("feedbackFounderNoteHelp")}
                 </p>
               )}
               <textarea
@@ -701,8 +738,8 @@ export function JournalWorkspace({
                 onChange={(event) => setFeedbackNote(event.target.value)}
                 maxLength={500}
                 placeholder={founderCalibrationMode
-                  ? "Optional note: what felt right, wrong, unsupported, or unlike Maria's phrasing."
-                  : "Optional note: what felt helpful, inaccurate, too intense, unclear, or unsupported."}
+                  ? t("feedbackFounderPlaceholder")
+                  : t("feedbackStandardPlaceholder")}
                 className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
                 style={{ borderColor: "rgba(43,27,53,0.08)" }}
               />
@@ -723,11 +760,11 @@ export function JournalWorkspace({
               )}
               <div className="mt-4 flex flex-wrap gap-2">
                 {[
-                  ["helpful", "Helpful"],
-                  ["not_accurate", "Not accurate"],
-                  ["too_intense", "Too intense"],
-                  ["unclear", "Unclear"],
-                  ["unsupported_source", "Report source issue"],
+                  ["helpful", feedbackT("helpful")],
+                  ["not_accurate", feedbackT("not_accurate")],
+                  ["too_intense", feedbackT("too_intense")],
+                  ["unclear", feedbackT("unclear")],
+                  ["unsupported_source", feedbackT("unsupported_source")],
                 ].map(([value, label]) => (
                   <button
                     key={value}
@@ -737,7 +774,7 @@ export function JournalWorkspace({
                     className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
                     style={{ borderColor: "rgba(43,27,53,0.08)" }}
                   >
-                    {feedbackSaved === value ? "Saved" : label}
+                    {feedbackSaved === value ? t("saved") : label}
                   </button>
                 ))}
               </div>
@@ -745,8 +782,8 @@ export function JournalWorkspace({
                 <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
                   <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
                     {founderCalibrationMode
-                      ? "Feedback saved. This is for Carl/Maria calibration review and does not automatically retrain the guide."
-                      : "Feedback saved. It can help improve the guide, but it does not automatically retrain it."}
+                      ? t("feedbackSavedFounder")
+                      : t("feedbackSavedStandard")}
                   </p>
                   {founderCalibrationMode && result.journalEntry?.id && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -762,7 +799,7 @@ export function JournalWorkspace({
                         className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
                         style={{ borderColor: "rgba(43,27,53,0.08)" }}
                       >
-                        Return to dashboard
+                        {t("returnDashboard")}
                       </Link>
                     </div>
                   )}
@@ -780,7 +817,7 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                Source grounding
+                {t("sourceGrounding")}
               </p>
               <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                 {result.sourceProvenance.message}
@@ -799,7 +836,7 @@ export function JournalWorkspace({
                       </p>
                       {source.matchedTerms && source.matchedTerms.length > 0 && (
                         <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
-                          Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                          {t("matchedTerms", { terms: source.matchedTerms.slice(0, 4).join(", ") })}
                         </p>
                       )}
                       {source.displayExcerpt && (
@@ -828,17 +865,20 @@ export function JournalWorkspace({
                 <AvatarOrb size="lg" stage={result.progression.newStage as 1|2|3|4|5} className="mx-auto" />
                 <div>
                   <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[var(--clay-light)] mb-1">
-                    Your guide has deepened
+                    {t("guideDeepened")}
                   </p>
                   <p className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
-                    {guideStageNames[result.progression.previousStage - 1]} is becoming{" "}
+                    {t("guideBecoming", {
+                      from: guideStageNames[result.progression.previousStage - 1],
+                      to: guideStageNames[result.progression.newStage - 1],
+                    }).split(guideStageNames[result.progression.newStage - 1])[0]}
                     <em className="italic text-[var(--clay-light)]">
                       {guideStageNames[result.progression.newStage - 1]}
                     </em>
                   </p>
                 </div>
                 <p className="text-[13px] font-light text-[var(--cream)]/50">
-                  Stage {result.progression.newStage} of 5
+                  {t("stageLine", { name: "", stage: result.progression.newStage }).replace(" · ", "")}
                 </p>
               </div>
             </div>
@@ -853,11 +893,10 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
-                Reflection depth
+                {t("reflectionDepth")}
               </p>
               <p className="font-display text-[16px] font-light text-[var(--primary)]">
-                You are entering{" "}
-                <em className="italic">{LEVELS[result.progression.newLevel - 1]}</em>
+                {t("enteringLevel", { level: LEVELS[result.progression.newLevel - 1] })}
               </p>
             </div>
           )}
@@ -872,7 +911,7 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)] mb-4">
-                Generated Prompt
+                {t("generatedPrompt")}
               </p>
               {result ? (
                 <div className="space-y-3">
@@ -896,7 +935,7 @@ export function JournalWorkspace({
                 </div>
               ) : (
                 <p className="font-display italic text-[15px] font-light text-[var(--plum-soft)]/60 leading-relaxed">
-                  A grounded prompt will be generated from your reflection.
+                  {t("generatedPromptEmpty")}
                 </p>
               )}
             </div>
@@ -911,13 +950,13 @@ export function JournalWorkspace({
               }}
             >
               <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-                Embodiment Gate
+                {t("embodimentGate")}
               </p>
               <h3 className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
-                What is one small shift you can carry today?
+                {t("embodimentQuestion")}
               </h3>
               <p className="mt-2 text-[13px] font-light text-[var(--cream)]/60">
-                Save this as today&apos;s small shift.
+                {t("embodimentHelp")}
               </p>
               <textarea
                 value={embodimentText}
@@ -925,7 +964,7 @@ export function JournalWorkspace({
                   setEmbodimentText(event.target.value)
                   setEmbodimentSaved(false)
                 }}
-                placeholder="One small shift..."
+                placeholder={t("embodimentPlaceholder")}
                 className="mt-4 w-full min-h-[110px] resize-none rounded-2xl border bg-[rgba(244,237,228,0.06)] px-4 py-3 text-[14px] font-light leading-relaxed text-[var(--cream)] outline-none placeholder:text-[var(--cream)]/35"
                 style={{ borderColor: "rgba(244,237,228,0.14)" }}
               />
@@ -936,7 +975,7 @@ export function JournalWorkspace({
                 className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--cream)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary)] disabled:opacity-45"
               >
                 {isSavingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {embodimentSaved ? "Gate crossed" : "Cross the Gate"}
+                {embodimentSaved ? t("gateCrossed") : t("crossGate")}
               </button>
             </div>
           )}
@@ -946,23 +985,25 @@ export function JournalWorkspace({
   )
 }
 
-function userFacingJournalError(error: unknown, status: number) {
+type JournalTranslator = (key: string, values?: Record<string, string | number>) => string
+
+function userFacingJournalError(error: unknown, status: number, t: JournalTranslator) {
   const message = typeof error === "string" ? error : ""
-  if (status === 401) return "Please sign in again before starting a reflection."
-  if (status === 429) return "Too many reflection attempts in a short time. Pause for a moment, then try again."
+  if (status === 401) return t("journalErrorSignIn")
+  if (status === 429) return t("journalErrorRate")
   if (status === 400 && message) return message
-  if (status >= 500) return "The guide could not complete this reflection right now. Try again in a moment."
-  return "Reflection could not be completed. Try again in a moment."
+  if (status >= 500) return t("journalErrorServer")
+  return t("transientError")
 }
 
-function userFacingSaveError(error: unknown, status: number, item: "shift" | "feedback") {
+function userFacingSaveError(error: unknown, status: number, item: "shift" | "feedback", t: JournalTranslator) {
   const message = typeof error === "string" ? error : ""
-  if (status === 401) return "Please sign in again before saving."
-  if (status === 404) return "This council session is no longer available. Refresh the page and try again."
+  if (status === 401) return t("saveErrorSignIn")
+  if (status === 404) return t("saveErrorMissing")
   if (status === 400 && message) return message
   return item === "shift"
-    ? "Unable to save your shift. Try again in a moment."
-    : "Unable to save feedback. Try again in a moment."
+    ? t("saveShiftError")
+    : t("saveFeedbackError")
 }
 
 function normalizeStageNames(stageNames: readonly string[]) {

@@ -4,13 +4,9 @@ import { getGuideStageConfigs, readGuideStageConfig, runFounderCalibrationJourna
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
-import { readFounderFeedbackSummary } from "@/lib/founder-feedback-summary"
-import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { resolveWebLanguage } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
-
-const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
 
 export default async function DashboardPage({
   searchParams,
@@ -63,9 +59,11 @@ export default async function DashboardPage({
   const founderFeedbackHref = founderReadiness.founderFeedbackHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = readGuideStageConfig(guideStages, guideStage).name
-  const dashboardMessage = readDashboardMessage(query)
-  const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
+  const messages = getWebMessages(currentLanguage)
   const dashboard = messages.dashboard
+  const dashboardMessage = readDashboardMessage(query, dashboard)
+  const levelName = dashboard.levelNames[(user.currentLevel ?? 1) - 1] ?? dashboard.levelNames[0]
 
   const greeting = (() => {
     const h = getAppHour()
@@ -87,8 +85,7 @@ export default async function DashboardPage({
             {user.name ?? dashboard.welcomeBack}
           </h1>
           <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-            {dashboard.currentLevelPrefix}{" "}
-            <span className="font-medium text-[var(--primary)]">{LEVEL_NAMES[(user.currentLevel ?? 1) - 1]}</span>.
+            {formatDashboardMessage(dashboard.currentLevel, { level: levelName })}
           </p>
         </div>
         <Link
@@ -124,19 +121,19 @@ export default async function DashboardPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-            Founder calibration next step
+            {dashboard.founderNextStep}
           </p>
           <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
-            Run one guided calibration session.
+            {dashboard.runGuidedCalibrationTitle}
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Use the suggested guided scenario, submit one reflection, and choose a feedback type. Add a short note only when something specific felt right or should change.
+            {dashboard.runGuidedCalibrationBody}
           </p>
           <Link
             href="/journal"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
-            Open guided journal
+            {dashboard.openGuidedJournal}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -152,19 +149,19 @@ export default async function DashboardPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-            Founder calibration next step
+            {dashboard.founderNextStep}
           </p>
           <h2 className="mt-2 font-display text-[24px] font-light text-[var(--primary)]">
-            Choose one feedback type for your latest session.
+            {dashboard.chooseFeedbackTitle}
           </h2>
           <p className="mt-2 max-w-2xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            A reflection was saved, but Carl/Maria calibration still needs one feedback type. Add a written note only if there is a specific voice, source, intensity, embodiment, or phrasing detail to capture.
+            {dashboard.chooseFeedbackBody}
           </p>
           <Link
             href={founderFeedbackHref}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
           >
-            Add feedback
+            {dashboard.addFeedback}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -179,17 +176,17 @@ export default async function DashboardPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)]">
-            Founder calibration
+            {dashboard.founderCalibration}
           </p>
           <p className="mt-2 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your feedback is saved. Keep going with another guided scenario, or open the session if you want to add more detail about what felt right or what should change.
+            {dashboard.feedbackSavedContinueBody}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/journal"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-4 py-2 text-[12px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)]"
             >
-              Continue calibration
+              {dashboard.continueCalibration}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <Link
@@ -197,7 +194,7 @@ export default async function DashboardPage({
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium text-[var(--primary)] transition-all hover:-translate-y-px"
               style={{ borderColor: "rgba(43,27,53,0.08)" }}
             >
-              Open latest session
+              {dashboard.openLatestSession}
             </Link>
           </div>
         </div>
@@ -221,19 +218,19 @@ export default async function DashboardPage({
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Inner Council guide · Stage {guideStage}
+            {formatDashboardMessage(dashboard.guideHeroEyebrow, { stage: guideStage })}
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
             {guideStageName}
           </h2>
           <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
-            Reflecting your language back with care while the council practice deepens.
+            {dashboard.guideHeroBody}
           </p>
           <Link
             href="/guide"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-[var(--clay-light)] hover:text-[var(--cream)] transition-colors"
           >
-            See the guide&apos;s evolution
+            {dashboard.seeGuideEvolution}
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -242,9 +239,9 @@ export default async function DashboardPage({
       {/* ── Stats row ────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
-          { label: "Entries written", value: entryCount, unit: entryCount === 1 ? "entry" : "entries" },
-          { label: "Active patterns", value: patternCount, unit: "patterns" },
-          { label: "Guide stage", value: guideStage, unit: "of 5" },
+          { label: dashboard.entriesWritten, value: entryCount, unit: entryCount === 1 ? dashboard.entryUnit : dashboard.entriesUnit },
+          { label: dashboard.activePatterns, value: patternCount, unit: dashboard.patternsUnit },
+          { label: dashboard.guideStage, value: guideStage, unit: dashboard.ofFive },
         ].map(({ label, value, unit }) => (
           <div
             key={label}
@@ -279,16 +276,16 @@ export default async function DashboardPage({
           }}
         >
           <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] mb-4">
-            Most recent reflection
+            {dashboard.mostRecentReflection}
           </p>
           <p className="font-display italic text-[18px] font-light text-[var(--plum-soft)] leading-[1.8]">
-            &ldquo;{latestEntry.avatarResponse.mirror ?? "Your guide is listening."}&rdquo;
+            &ldquo;{latestEntry.avatarResponse.mirror ?? dashboard.guideListeningFallback}&rdquo;
           </p>
           <Link
             href={`/journal/${latestEntry.id}`}
             className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-medium text-[var(--clay)] hover:text-[var(--primary)] transition-colors"
           >
-            Open this session
+            {dashboard.openThisSession}
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -300,16 +297,16 @@ export default async function DashboardPage({
           style={{ borderColor: "rgba(43,27,53,0.12)" }}
         >
           <p className="font-display text-[20px] font-light text-[var(--plum-soft)] mb-4">
-            Your first council entry is waiting.
+            {dashboard.firstCouncilWaiting}
           </p>
           <p className="text-[14px] font-light text-[var(--plum-soft)]/70 max-w-sm mx-auto mb-6">
-            Write what is present today — no structure required. The council will reflect it back with care.
+            {dashboard.firstCouncilBody}
           </p>
           <Link
             href="/journal"
             className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-3 rounded-full hover:bg-[var(--plum-mid)] transition-all"
           >
-            Begin writing
+            {dashboard.beginWriting}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -322,14 +319,14 @@ export default async function DashboardPage({
             <div className="flex items-center gap-2.5">
               <BookOpen className="w-4 h-4 text-[var(--clay)]" />
               <h2 className="text-[13px] font-medium tracking-[0.08em] uppercase text-[var(--clay)]">
-                Past reflections
+                {dashboard.pastReflections}
               </h2>
             </div>
           </div>
 
           <div className="space-y-3">
             {recentEntries.map((entry) => {
-              const label = formatWebMonthDay(entry.createdAt)
+              const label = formatWebMonthDay(entry.createdAt, currentLanguage)
               const excerpt = entry.rawText.length > 140
                 ? entry.rawText.slice(0, 140).trimEnd() + "…"
                 : entry.rawText
@@ -340,24 +337,24 @@ export default async function DashboardPage({
               const hasFeedback = Boolean(entry.councilSession?.feedback.length)
               const hasFeedbackNote = Boolean(entry.councilSession?.feedback.some((item) => item.note?.trim()))
               const founderFeedbackSummary = founderCalibrationMode
-                ? readFounderFeedbackSummary({ hasFeedback, hasFeedbackNote })
+                ? readFounderFeedbackSummary({ hasFeedback, hasFeedbackNote }, dashboard)
                 : null
               const review = entry.councilSession?.qualityReviews[0]
               const founderReviewSummary = founderCalibrationMode
-                ? readFounderReviewSummary({ reviewLabel: review?.label, reviewSeverity: review?.severity })
+                ? readFounderReviewSummary({ reviewLabel: review?.label, reviewSeverity: review?.severity }, dashboard)
                 : null
               const reviewMetadata = review?.metadata as { feedbackDisposition?: string } | null | undefined
               const reportedForReview = feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
               const statuses = [
-                entry.councilSession?.embodimentGateResponses.length ? "Gate saved" : entry.councilSession ? "Gate open" : null,
-                hasFeedback ? "Feedback submitted" : entry.councilSession ? "Feedback needed" : null,
-                founderCalibrationMode && hasFeedbackNote ? "Note added" : null,
-                reportedForReview && !reviewMetadata?.feedbackDisposition ? "Needs follow-up" : null,
-                review?.severity === "pilot_blocker" ? "Needs attention" : null,
-                reviewMetadata?.feedbackDisposition === "cleared" ? "Resolved" : null,
-                reviewMetadata?.feedbackDisposition === "blocked" ? "Needs attention" : null,
-                entry.councilSession?.sourceMode === "rag" ? "Source-grounded" : null,
-                safety?.severity && safety.severity !== "none" ? "Safety-grounded" : null,
+                entry.councilSession?.embodimentGateResponses.length ? dashboard.gateSaved : entry.councilSession ? dashboard.gateOpen : null,
+                hasFeedback ? dashboard.feedbackSubmitted : entry.councilSession ? dashboard.feedbackNeeded : null,
+                founderCalibrationMode && hasFeedbackNote ? dashboard.noteAdded : null,
+                reportedForReview && !reviewMetadata?.feedbackDisposition ? dashboard.needsFollowUp : null,
+                review?.severity === "pilot_blocker" ? dashboard.needsAttention : null,
+                reviewMetadata?.feedbackDisposition === "cleared" ? dashboard.resolved : null,
+                reviewMetadata?.feedbackDisposition === "blocked" ? dashboard.needsAttention : null,
+                entry.councilSession?.sourceMode === "rag" ? dashboard.sourceGrounded : null,
+                safety?.severity && safety.severity !== "none" ? dashboard.safetyGrounded : null,
               ].filter(Boolean)
 
               return (
@@ -376,7 +373,7 @@ export default async function DashboardPage({
                       {formatWebDayOfMonth(entry.createdAt)}
                     </p>
                     <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--plum-soft)] mt-0.5">
-                      {formatWebShortMonth(entry.createdAt)}
+                      {formatWebShortMonth(entry.createdAt, currentLanguage)}
                     </p>
                   </div>
 
@@ -443,18 +440,58 @@ export default async function DashboardPage({
   )
 }
 
-function readDashboardMessage(query: { feedback?: string; delete?: string }) {
+type DashboardCopy = {
+  [key: string]: string | readonly string[]
+}
+
+function formatDashboardMessage(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
+    template,
+  )
+}
+
+function readFounderFeedbackSummary(
+  input: { hasFeedback: boolean; hasFeedbackNote: boolean },
+  dashboard: DashboardCopy,
+) {
+  if (!input.hasFeedback) return null
+  return input.hasFeedbackNote
+    ? String(dashboard.feedbackNoteSaved)
+    : String(dashboard.feedbackTypeSaved)
+}
+
+function readFounderReviewSummary(
+  input: { reviewLabel?: string | null; reviewSeverity?: string | null },
+  dashboard: DashboardCopy,
+) {
+  if (!input.reviewLabel) return null
+
+  if (input.reviewSeverity === "pilot_blocker") return String(dashboard.reviewPilotBlocker)
+  if (input.reviewLabel === "ready") return String(dashboard.reviewReady)
+  if (input.reviewLabel === "voice_good" || input.reviewLabel === "source_good") return String(dashboard.reviewStrongEvidence)
+  if (input.reviewLabel === "voice_wrong") return String(dashboard.reviewVoiceWrong)
+  if (input.reviewLabel === "source_unsupported") return String(dashboard.reviewSourceUnsupported)
+  if (input.reviewLabel === "embodiment_weak") return String(dashboard.reviewEmbodimentWeak)
+  if (input.reviewLabel === "too_generic") return String(dashboard.reviewTooGeneric)
+  if (input.reviewLabel === "too_intense") return String(dashboard.reviewTooIntense)
+  if (input.reviewLabel === "prompt_regression") return String(dashboard.reviewPromptRegression)
+
+  return formatDashboardMessage(String(dashboard.reviewFallback), { label: input.reviewLabel.replaceAll("_", " ") })
+}
+
+function readDashboardMessage(query: { feedback?: string; delete?: string }, dashboard: DashboardCopy) {
   if (query.feedback === "invalid") {
-    return { tone: "error", text: "That feedback action was incomplete. Open the saved session and try again." } as const
+    return { tone: "error", text: String(dashboard.feedbackInvalid) } as const
   }
   if (query.feedback === "session_missing") {
-    return { tone: "error", text: "That council session is no longer available on this account." } as const
+    return { tone: "error", text: String(dashboard.feedbackSessionMissing) } as const
   }
   if (query.delete === "invalid") {
-    return { tone: "error", text: "That delete action was incomplete. Open the session and try again." } as const
+    return { tone: "error", text: String(dashboard.deleteInvalid) } as const
   }
   if (query.delete === "missing") {
-    return { tone: "error", text: "That journal entry is no longer available on this account." } as const
+    return { tone: "error", text: String(dashboard.deleteMissing) } as const
   }
   return null
 }

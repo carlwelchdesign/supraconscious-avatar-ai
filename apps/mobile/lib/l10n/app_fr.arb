@@ -5,6 +5,9 @@
   "signIn": "Se connecter",
   "createAccount": "Créer un compte",
   "useExistingAccount": "Utiliser un compte existant",
+  "nameLabel": "Nom",
+  "emailLabel": "E-mail",
+  "passwordLabel": "Mot de passe",
   "landingEyebrow": "Réflexion identitaire avec l'IA",
   "landingNotJournal": "Ce n'est pas un journal.",
   "landingMeetYourself": "C'est ici que tu te rencontres.",
@@ -25,5 +28,96 @@
   "languageTitle": "Langue",
   "languageSubtitle": "Contrôle la langue de l'app et celle utilisée pour les nouvelles réflexions IA.",
   "patternMemory": "Mémoire des schémas",
-  "patternMemorySubtitle": "Autoriser les signaux récurrents à apparaître avec le temps."
+  "patternMemorySubtitle": "Autoriser les signaux récurrents à apparaître avec le temps.",
+  "landingProblemEyebrow": "Le problème",
+  "landingProblemTitle": "You are not stuck. You are not seeing clearly.",
+  "landingProblemBody": "You have thought about it, analyzed it, replayed it, and still something in you hesitates.",
+  "landingCouncilEyebrow": "Fonctionnement",
+  "landingCouncilTitle": "Meet Your Inner Council",
+  "landingCouncilBody": "You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.",
+  "protectorRole": "Le Protecteur",
+  "protectorRoleBody": "Montre où la peur te retient.",
+  "conditionedSelfRole": "Le Moi Conditionné",
+  "conditionedSelfRoleBody": "Révèle les schémas que tu n'avais pas remis en question.",
+  "visionaryRole": "Le Visionnaire",
+  "visionaryRoleBody": "Montre qui tu es en train de devenir.",
+  "truthSelfRole": "Le Moi Véritable",
+  "truthSelfRoleBody": "Traverse l'illusion.",
+  "landingExperienceEyebrow": "L’expérience",
+  "landingExperienceTitle": "Write. See. Face. Choose. Become.",
+  "landingExperienceBody": "Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.",
+  "landingDifferentEyebrow": "Différent par conception",
+  "landingDifferentTitle": "Not another place to talk in circles.",
+  "landingDifferentBody": "This is an identity reflection system, a decision clarity engine, and a mirror for becoming.",
+  "landingFinalCta": "Commencer ta première réflexion",
+  "landingBack": "Accueil",
+  "continueLabel": "Continuer",
+  "tabHome": "Accueil",
+  "entries": "Entrées",
+  "guideStage": "Étape du guide",
+  "noSavedTitle": "Aucune réflexion enregistrée pour le moment",
+  "today": "Aujourd’hui",
+  "askCouncil": "Demander au Conseil",
+  "reflecting": "Réflexion...",
+  "wordCount": "{count} mots",
+  "nothingSavedTitle": "Rien d’enregistré pour le moment",
+  "savedReflectionTitle": "Réflexion enregistrée",
+  "feedbackSaved": "Commentaires enregistrés",
+  "feedbackNeeded": "Commentaires nécessaires",
+  "gateSaved": "Porte enregistrée",
+  "gateOpen": "Porte ouverte",
+  "helpful": "Utile",
+  "notAccurate": "Pas exact",
+  "tooIntense": "Trop intense",
+  "unclear": "Pas clair",
+  "unsupportedSource": "Source non étayée",
+  "saving": "Enregistrement...",
+  "saveFeedback": "Enregistrer les commentaires",
+  "patternsTitle": "Motifs",
+  "patternsEmptyTitle": "Les motifs émergent avec le temps",
+  "yourGuide": "Ton guide",
+  "tone": "Ton",
+  "intensity": "Intensité",
+  "trait": "Trait",
+  "retry": "Réessayer",
+  "guideResponse": "Réponse du guide",
+  "oneGroundedStep": "Une étape concrète",
+  "sourceGrounding": "Ancrage des sources",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "Se déconnecter",
+  "grounding": "Ancrage",
+  "recentReflections": "Réflexions récentes",
+  "firstEntryBody": "Écris ta première entrée pour commencer ta pratique.",
+  "savedReflections": "Réflexions enregistrées",
+  "patternsSubtitle": "Des signaux, pas des diagnostics. Les motifs apparaissent seulement lorsqu’ils reviennent.",
+  "savedReflectionFallback": "Réflexion enregistrée",
+  "thresholdLabel": "Seuil · Mois {month}, jour {day}",
+  "noThresholdPrompt": "Aucun prompt Seuil n’est publié pour aujourd’hui. Écris ce qui est présent sans forcer de structure.",
+  "thresholdPurposeTheme": "BUT",
+  "thresholdPurposeQuote": "L’âme murmure avant que le destin ne parle.",
+  "thresholdPurposeFrameOfThought": "Le but arrive rarement comme un ordre. Il commence souvent comme une invitation silencieuse.",
+  "thresholdPurposeSocraticQuestion": "Quelle invitation as-tu ignorée ?",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -2,12 +2,15 @@ import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { getGuideStageConfigs, readGuideStageConfig } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 
 export async function GuidePageContent() {
   const [user, stages] = await Promise.all([
     requireJournalAccessPageUser("/guide"),
     getGuideStageConfigs(prisma),
   ])
+  const guideMessages = getWebMessages(await resolveWebLanguage(user.preferredLanguage)).guide
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
   const currentStage = readGuideStageConfig(stages, guideStage)
@@ -45,7 +48,9 @@ export async function GuidePageContent() {
         <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
         <div className="relative z-10 text-center sm:text-left">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            {currentStage.currentLabel} stage · {guideStage} of 5
+            {guideMessages.currentStageLine
+              .replace("{label}", currentStage.currentLabel)
+              .replace("{stage}", String(guideStage))}
           </p>
           <h2 className="font-display text-[36px] font-light text-[var(--cream)] mb-3 leading-tight">
             {currentStage.name}
@@ -55,9 +60,9 @@ export async function GuidePageContent() {
           </p>
           <div className="flex flex-wrap gap-3 mt-5">
             {[
-              { label: "Tone", value: user.avatarTone ?? "Gentle" },
-              { label: "Intensity", value: `${user.intensityLevel ?? 1}/5` },
-              { label: "Trait", value: currentStage.trait },
+              { label: guideMessages.tone, value: user.avatarTone ?? "Gentle" },
+              { label: guideMessages.intensity, value: `${user.intensityLevel ?? 1}/5` },
+              { label: guideMessages.trait, value: currentStage.trait },
             ].map(({ label, value }) => (
               <div
                 key={label}

@@ -28,6 +28,8 @@ export default async function JournalEntryPage({
   const user = await requireJournalAccessPageUser(entryNextPath)
   const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
   const journalMessages = messages.journal
+  const sessionMessages = messages.sessionDetail
+  const feedbackTypeLabels = sessionMessages.feedbackTypes as Record<string, string>
   const [founderCalibrationMode, entry, guideStages] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.journalEntry.findFirst({
@@ -112,7 +114,7 @@ export default async function JournalEntryPage({
       } | null
       return {
         id: trace.sourceChunkId ?? trace.id,
-        title: output?.title ?? trace.sourceChunk?.sourceDocument.title ?? "Approved source",
+        title: output?.title ?? trace.sourceChunk?.sourceDocument.title ?? sessionMessages.approvedSource,
         rank: output?.rank ?? 0,
         displayExcerpt: output?.displayExcerpt ?? null,
         matchedTerms: output?.matchedTerms ?? [],
@@ -124,10 +126,10 @@ export default async function JournalEntryPage({
   const hasCalibrationFeedback = (entry.councilSession?.feedback.length ?? 0) > 0
   const hasCalibrationFeedbackNote = Boolean(entry.councilSession?.feedback.some((feedback) => feedback.note?.trim()))
   const calibrationStatus = latestCalibrationReview
-    ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity)
+    ? describeCalibrationStatus(latestCalibrationReview.label, latestCalibrationReview.severity, sessionMessages)
     : hasCalibrationFeedback
-      ? "Feedback saved"
-      : "Feedback needed"
+      ? sessionMessages.feedbackReceived
+      : sessionMessages.feedbackNeeded
   const calibrationGuidance = founderCalibrationMode
     ? readSavedSessionCalibrationGuidance({
         hasFeedback: hasCalibrationFeedback,
@@ -142,7 +144,7 @@ export default async function JournalEntryPage({
         reviewSeverity: latestCalibrationReview?.severity,
       })
     : null
-  const feedbackMessage = readFeedbackMessage(query.feedback)
+  const feedbackMessage = readFeedbackMessage(query.feedback, sessionMessages)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -180,7 +182,7 @@ export default async function JournalEntryPage({
         </div>
       )}
 
-      <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} />
+      <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} labels={sessionMessages.delete} />
 
       {/* Entry text */}
       <div
@@ -211,10 +213,10 @@ export default async function JournalEntryPage({
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
             <AvatarOrb size="sm" stage={guideStage as 1|2|3|4|5} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
-              Council reflection
+              {sessionMessages.councilReflection}
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
-              {guideStageName} · Stage {guideStage}
+              {sessionMessages.stageLine.replace("{name}", guideStageName).replace("{stage}", String(guideStage))}
             </p>
           </div>
 
@@ -257,7 +259,7 @@ export default async function JournalEntryPage({
                 }}
               >
                 <p className="text-[13px] font-medium tracking-[0.06em] uppercase text-[var(--clay-light)] mb-2">
-                  Reflect on this
+                  {sessionMessages.reflectOnThis}
                 </p>
                 <p className="font-display italic text-[16px] font-light leading-[1.7] text-[var(--cream)]/80">
                   {r.socraticQuestion}
@@ -271,7 +273,7 @@ export default async function JournalEntryPage({
                 style={{ background: "rgba(255,255,255,0.05)" }}
               >
                 <p className="text-[13px] font-medium tracking-[0.06em] uppercase text-[var(--clay-light)] mb-2">
-                  An integration step
+                  {sessionMessages.integrationStep}
                 </p>
                 <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/75">
                   {r.integrationStep}
@@ -306,7 +308,7 @@ export default async function JournalEntryPage({
           style={{ borderColor: "rgba(43,27,53,0.12)" }}
         >
           <p className="font-display text-[18px] font-light text-[var(--plum-soft)]">
-            No reflection was generated for this entry.
+            {sessionMessages.noReflection}
           </p>
         </div>
       )}
@@ -320,7 +322,7 @@ export default async function JournalEntryPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-3">
-            Inner Council
+            {sessionMessages.innerCouncil}
           </p>
           {entry.councilSession.synthesis && (
             <div
@@ -345,21 +347,21 @@ export default async function JournalEntryPage({
                   {message.displayName}
                 </p>
                 <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                  {message.abstained ? "This voice was quiet while grounding came first." : message.content}
+                  {message.abstained ? sessionMessages.quietVoice : message.content}
                 </p>
               </div>
             ))}
           </div>
           <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
             <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-              {founderCalibrationMode ? "Calibration status" : "Session status"}
+              {founderCalibrationMode ? sessionMessages.calibrationStatus : sessionMessages.sessionStatus}
             </p>
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
-              {entry.councilSession.embodimentGateResponses.length > 0 ? "Gate saved" : "Gate not saved"} · {entry.councilSession.feedback.length > 0 ? "Feedback received" : "Feedback needed"}
+              {entry.councilSession.embodimentGateResponses.length > 0 ? sessionMessages.gateSaved : sessionMessages.gateNotSaved} · {entry.councilSession.feedback.length > 0 ? sessionMessages.feedbackReceived : sessionMessages.feedbackNeeded}
             </p>
             {founderCalibrationMode && (
               <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
-                Calibration: {calibrationStatus}
+                {sessionMessages.calibrationPrefix.replace("{status}", calibrationStatus)}
               </p>
             )}
             {calibrationGuidance && (
@@ -378,12 +380,12 @@ export default async function JournalEntryPage({
             )}
             <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
               {founderCalibrationMode
-                ? "Feedback is saved for Carl/Maria calibration; notes are optional detail and do not automatically retrain the guide."
-                : "Feedback is saved with this session; it does not automatically retrain the guide."}
+                ? sessionMessages.feedbackCalibrationNote
+                : sessionMessages.feedbackSessionNote}
             </p>
             {founderCalibrationMode && (
               <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                Choose a feedback type to keep calibration moving. Add a short note only when there is something specific to improve from.
+                {sessionMessages.feedbackPrompt}
               </p>
             )}
             {entry.councilSession.feedback.length > 0 && (
@@ -393,12 +395,12 @@ export default async function JournalEntryPage({
                   return (
                     <div key={feedback.id} className="rounded-xl border px-3 py-2 text-[11px] font-light leading-relaxed text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
                       <p>
-                        <span className="font-medium text-[var(--primary)]">{formatFeedbackType(feedback.feedbackType)}</span>
-                        {note ? " · note saved" : " · no note"}
+                        <span className="font-medium text-[var(--primary)]">{feedbackTypeLabels[feedback.feedbackType] ?? formatFeedbackType(feedback.feedbackType)}</span>
+                        {note ? ` · ${messages.common.noteSaved}` : ` · ${messages.common.noNote}`}
                       </p>
                       {note && (
                         <p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-[var(--plum-soft)]/80">
-                          Note: {note}
+                          {sessionMessages.noteLabel.replace("{note}", note)}
                         </p>
                       )}
                     </div>
@@ -410,6 +412,10 @@ export default async function JournalEntryPage({
               action={submitSavedSessionFeedbackAction}
               councilSessionId={entry.councilSession.id}
               founderCalibrationMode={founderCalibrationMode}
+              labels={{
+                ...sessionMessages.feedbackForm,
+                feedbackTypes: feedbackTypeLabels,
+              }}
             />
           </div>
         </div>
@@ -424,7 +430,7 @@ export default async function JournalEntryPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-2">
-            Source grounding
+            {sessionMessages.sourceGrounding}
           </p>
           <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
             {sourceMessage}
@@ -438,7 +444,7 @@ export default async function JournalEntryPage({
                   </p>
                   {source.matchedTerms.length > 0 && (
                     <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]/70">
-                      Matched {source.matchedTerms.slice(0, 4).join(", ")}
+                      {sessionMessages.matchedTerms.replace("{terms}", source.matchedTerms.slice(0, 4).join(", "))}
                     </p>
                   )}
                   {source.displayExcerpt && (
@@ -456,22 +462,22 @@ export default async function JournalEntryPage({
   )
 }
 
-function describeCalibrationStatus(label: string, severity: string) {
-  if (severity === "pilot_blocker") return "Needs attention"
-  if (label === "ready") return "Ready"
-  if (label === "voice_good" || label === "source_good") return "Good enough"
-  if (label === "voice_wrong") return "Voice issue"
-  if (label === "source_unsupported") return "Source issue"
-  if (label === "too_generic" || label === "too_intense") return "Prompt issue"
+function describeCalibrationStatus(label: string, severity: string, messages: ReturnType<typeof getWebMessages>["sessionDetail"]) {
+  if (severity === "pilot_blocker") return messages.statusNeedsAttention
+  if (label === "ready") return messages.statusReady
+  if (label === "voice_good" || label === "source_good") return messages.statusGoodEnough
+  if (label === "voice_wrong") return messages.statusVoiceIssue
+  if (label === "source_unsupported") return messages.statusSourceIssue
+  if (label === "too_generic" || label === "too_intense") return messages.statusPromptIssue
   return label.replaceAll("_", " ")
 }
 
-function readFeedbackMessage(status?: string) {
+function readFeedbackMessage(status: string | undefined, messages: ReturnType<typeof getWebMessages>["sessionDetail"]) {
   if (status === "saved") {
-    return { tone: "success", text: "Feedback saved. It stays with this session and does not automatically retrain the guide." } as const
+    return { tone: "success", text: messages.feedbackSaved } as const
   }
   if (status === "note_required") {
-    return { tone: "warning", text: "Feedback notes are optional now. Choose a feedback type to save this calibration pass." } as const
+    return { tone: "warning", text: messages.feedbackTypeRequired } as const
   }
   return null
 }
