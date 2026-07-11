@@ -42,6 +42,10 @@ final guideProvider = FutureProvider<MobileGuide>((ref) {
   return ref.watch(apiClientProvider).getGuide();
 });
 
+final journalPromptProvider = FutureProvider<MobileJournalPrompt>((ref) {
+  return ref.watch(apiClientProvider).getJournalPrompt();
+});
+
 class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
   SessionController(this._apiClient) : super(const AsyncValue.loading());
 

@@ -4,6 +4,7 @@ import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS
 import {
   buildMobileDashboardResponse,
   buildMobileGuideResponse,
+  buildMobileJournalPromptResponse,
   buildMobilePatternsResponse,
   buildMobileSavedSessionResponse,
   buildMobileSavedSessionsResponse,
@@ -265,4 +266,40 @@ test("mobile guide response marks current, completed, and locked stages", () => 
 
   assert.equal(response.guide.currentStage, 2)
   assert.deepEqual(response.guide.stages.map((stage) => stage.state), ["complete", "current", "locked"])
+})
+
+test("mobile journal prompt response serializes threshold prompt", () => {
+  const response = buildMobileJournalPromptResponse({
+    todayLabel: "Friday, July 10",
+    prompt: {
+      month: 7,
+      day: 10,
+      theme: "Clarity",
+      quote: "A short approved quote.",
+      frameOfThought: "Notice what is present before solving it.",
+      socraticQuestion: "What are you not letting yourself say?",
+    },
+  })
+
+  assert.deepEqual(response, {
+    todayLabel: "Friday, July 10",
+    prompt: {
+      month: 7,
+      day: 10,
+      theme: "Clarity",
+      quote: "A short approved quote.",
+      frameOfThought: "Notice what is present before solving it.",
+      socraticQuestion: "What are you not letting yourself say?",
+    },
+  })
+})
+
+test("mobile journal prompt response allows no prompt", () => {
+  assert.deepEqual(buildMobileJournalPromptResponse({
+    todayLabel: "Friday, July 10",
+    prompt: null,
+  }), {
+    todayLabel: "Friday, July 10",
+    prompt: null,
+  })
 })

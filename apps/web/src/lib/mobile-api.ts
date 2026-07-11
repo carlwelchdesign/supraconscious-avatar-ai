@@ -329,6 +329,32 @@ export function buildMobileGuideResponse(input: {
   }
 }
 
+export function buildMobileJournalPromptResponse(input: {
+  todayLabel: string
+  prompt: {
+    month: number
+    day: number
+    theme: string
+    quote: string | null
+    frameOfThought: string
+    socraticQuestion: string
+  } | null
+}) {
+  return {
+    todayLabel: input.todayLabel,
+    prompt: input.prompt
+      ? {
+          month: input.prompt.month,
+          day: input.prompt.day,
+          theme: input.prompt.theme,
+          quote: input.prompt.quote,
+          frameOfThought: input.prompt.frameOfThought,
+          socraticQuestion: input.prompt.socraticQuestion,
+        }
+      : null,
+  }
+}
+
 function readLatestConsentGrant(records: ConsentRecord[], type: string) {
   const latest = records.find((record) => record.consentType === type)
   return latest?.granted ?? false

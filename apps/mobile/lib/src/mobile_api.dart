@@ -116,6 +116,11 @@ class InnerCouncilApiClient {
     );
   }
 
+  Future<MobileJournalPrompt> getJournalPrompt() async {
+    final json = await _send('GET', '/api/mobile/journal/prompt');
+    return MobileJournalPrompt.fromJson(json);
+  }
+
   Future<void> submitPatternFeedback({
     required String patternMemoryId,
     required String feedbackType,
@@ -835,6 +840,52 @@ class MobileGuideStage {
       currentLabel: json['currentLabel'] as String? ?? 'Current',
       completedLabel: json['completedLabel'] as String? ?? 'Complete',
       state: json['state'] as String? ?? 'locked',
+    );
+  }
+}
+
+class MobileJournalPrompt {
+  const MobileJournalPrompt({required this.todayLabel, required this.prompt});
+
+  final String todayLabel;
+  final MobileThresholdPrompt? prompt;
+
+  factory MobileJournalPrompt.fromJson(Map<String, dynamic> json) {
+    final promptJson = json['prompt'];
+    return MobileJournalPrompt(
+      todayLabel: json['todayLabel'] as String? ?? '',
+      prompt: promptJson is Map<String, dynamic>
+          ? MobileThresholdPrompt.fromJson(promptJson)
+          : null,
+    );
+  }
+}
+
+class MobileThresholdPrompt {
+  const MobileThresholdPrompt({
+    required this.month,
+    required this.day,
+    required this.theme,
+    required this.quote,
+    required this.frameOfThought,
+    required this.socraticQuestion,
+  });
+
+  final int month;
+  final int day;
+  final String theme;
+  final String? quote;
+  final String frameOfThought;
+  final String socraticQuestion;
+
+  factory MobileThresholdPrompt.fromJson(Map<String, dynamic> json) {
+    return MobileThresholdPrompt(
+      month: json['month'] as int? ?? 0,
+      day: json['day'] as int? ?? 0,
+      theme: json['theme'] as String? ?? '',
+      quote: json['quote'] as String?,
+      frameOfThought: json['frameOfThought'] as String? ?? '',
+      socraticQuestion: json['socraticQuestion'] as String? ?? '',
     );
   }
 }
