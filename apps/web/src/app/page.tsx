@@ -3,7 +3,8 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
-import { readRequestLanguage, resolveSupportedLanguage, supportedLanguageOptions } from "@/lib/language"
+import { LanguagePicker } from "@/components/landing/language-picker"
+import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
 const councilIcons = [Shield, VenetianMask, Telescope, Sparkles]
@@ -24,7 +25,7 @@ function CtaLink({ href, children, variant = "dark" }: { href: string; children:
 
 export default async function Home() {
   const user = await getCurrentUser()
-  const currentLanguage = resolveSupportedLanguage(user?.preferredLanguage ?? await readRequestLanguage())
+  const currentLanguage = await resolveWebLanguage(user?.preferredLanguage)
   const messages = getWebMessages(currentLanguage)
   const common = messages.common
   const landing = messages.landing
@@ -55,30 +56,12 @@ export default async function Home() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 items-center gap-1 rounded-full border border-white/15 bg-white/10 px-1.5"
-              aria-label={common.language}
-            >
-              {supportedLanguageOptions().map((language) => {
-                const active = language.code === currentLanguage
-                return (
-                  <Link
-                    key={language.code}
-                    href={`/language?lang=${language.code}&next=/`}
-                    title={language.nativeLabel}
-                    aria-label={language.nativeLabel}
-                    aria-current={active ? "true" : undefined}
-                    className={
-                      active
-                        ? "inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--cream)] text-base shadow-sm ring-1 ring-white/60"
-                        : "inline-flex h-7 w-7 items-center justify-center rounded-full text-base opacity-70 transition hover:bg-white/10 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
-                    }
-                  >
-                    <span aria-hidden="true">{language.flag}</span>
-                  </Link>
-                )
-              })}
-            </div>
+            <LanguagePicker
+              key={currentLanguage}
+              currentLanguage={currentLanguage}
+              label={common.language}
+              languages={supportedLanguageOptions()}
+            />
             <Link
               href={primaryHref}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"

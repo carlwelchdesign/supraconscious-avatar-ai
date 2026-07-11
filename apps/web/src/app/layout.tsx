@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Cormorant_Garamond, DM_Sans } from "next/font/google"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { getWebLocale, getWebMessages } from "@/lib/web-messages"
-import { readRequestLanguage } from "@/lib/language"
+import { resolveWebLanguage } from "@/lib/language"
 import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
@@ -68,7 +68,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const user = await getCurrentUser()
-  const locale = getWebLocale(user?.preferredLanguage ?? await readRequestLanguage())
+  const locale = getWebLocale(await resolveWebLanguage(user?.preferredLanguage))
   const messages = getWebMessages(locale)
 
   return (
