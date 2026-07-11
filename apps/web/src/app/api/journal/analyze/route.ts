@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       currentLevel: user.currentLevel,
       avatarStage: user.avatarStage,
       patternMemoryEnabled: user.patternMemoryEnabled,
+      preferredLanguage: user.preferredLanguage,
     }, {
       text: body.text,
       inputMode: body.inputMode,

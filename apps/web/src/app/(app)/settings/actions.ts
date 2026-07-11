@@ -10,6 +10,7 @@ import { destroySession, getCurrentSession, hashPassword, requireAppUser, verify
 import { archiveStripeCustomerForAccountDeletion } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { buildAccountDeletionAuditMetadata } from "@/lib/account-deletion-audit"
+import { resolveSupportedLanguage } from "@/lib/language"
 import { buildAllSessionsRevocationAuditMetadata, buildSessionRevocationAuditMetadata } from "@/lib/session-audit"
 
 export type VoiceActionState = { ok: boolean } | null
@@ -32,6 +33,10 @@ const RevokeSessionSchema = z.object({
 const DeleteAccountSchema = z.object({
   password: z.string().min(1),
   confirmation: z.string().trim(),
+})
+
+const LanguagePreferenceSchema = z.object({
+  preferredLanguage: z.string(),
 })
 
 export async function updateReflectionPreferences(
@@ -68,6 +73,19 @@ export async function updateReflectionPreferences(
       granted: patternMemoryEnabled,
       source: "settings_reflection_preferences",
     },
+  })
+
+  revalidatePath("/settings")
+}
+
+export async function updateLanguagePreference(formData: FormData): Promise<void> {
+  const user = await requireAppUser()
+  const parsed = LanguagePreferenceSchema.parse(Object.fromEntries(formData))
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { preferredLanguage: resolveSupportedLanguage(parsed.preferredLanguage) },
+    select: { id: true },
   })
 
   revalidatePath("/settings")

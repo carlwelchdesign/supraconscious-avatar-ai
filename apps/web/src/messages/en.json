@@ -1,0 +1,32 @@
+{
+  "common": {
+    "begin": "Begin",
+    "openJournal": "Open journal",
+    "startReflection": "Start Your First Reflection",
+    "continueReflection": "Continue Your Reflection",
+    "saveLanguage": "Save language",
+    "language": "Language"
+  },
+  "landing": {
+    "brand": "The Inner Council™",
+    "eyebrow": "AI-powered identity reflection",
+    "notJournal": "This is not a journal.",
+    "meetYourself": "This is where you meet yourself.",
+    "heroBody": "You do not need more advice. You need to see clearly. The Inner Council™ reveals what you already know, but have not faced.",
+    "seeWhatChanges": "See what changes",
+    "problem": "The problem",
+    "problemTitleA": "You are not stuck.",
+    "problemTitleB": "You are not seeing clearly.",
+    "council": "How it works",
+    "councilTitle": "Meet Your Inner Council™",
+    "experience": "The experience"
+  },
+  "settings": {
+    "eyebrow": "Settings",
+    "title": "Your privacy & preferences",
+    "body": "Your journal is private by default. These controls let you shape how your guide works.",
+    "languageSection": "Language",
+    "languageLabel": "App and AI language",
+    "languageDescription": "Controls app language and the language used for new AI reflections."
+  }
+}

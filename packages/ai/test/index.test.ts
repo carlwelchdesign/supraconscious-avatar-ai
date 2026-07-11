@@ -28,6 +28,7 @@ import {
   DEFAULT_COUNCIL_SYSTEM_PROMPT,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
+  languageInstruction,
   evaluatePilotExpansionReadinessSnapshot,
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
@@ -126,6 +127,27 @@ test("local council roles stay concise", () => {
     const sentenceCount = message.content.split(/[.!?]+/).filter((part) => part.trim()).length
     assert.ok(sentenceCount <= 2, `${message.role} returned more than two sentences`)
   }
+})
+
+test("local council fallback can respond in the requested language", () => {
+  const run = buildLocalCouncilRun("Sigo esperando claridad antes de elegir.", analysis, "es")
+
+  assert.match(run.messages[0].content, /protectora|protector/i)
+  assert.match(run.synthesis.integratorQuestion, /Qué|que/i)
+})
+
+test("grounding fallback can respond in the requested language", () => {
+  const run = buildGroundingCouncilRun("Ich brauche Hilfe.", highSafety, "de")
+
+  assert.equal(run.synthesis.openingLine, "Halte hier inne.")
+  assert.match(run.synthesis.integrationStep, /fünf Dinge|fünf/i)
+})
+
+test("language instruction preserves structured JSON while setting response language", () => {
+  const instruction = languageInstruction("fr")
+
+  assert.match(instruction, /French/)
+  assert.match(instruction, /JSON keys/)
 })
 
 test("integrator synthesis is forced to exactly one question", () => {

@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
 import { Cormorant_Garamond, DM_Sans } from "next/font/google"
+import { getCurrentUser } from "@inner-avatar/auth/session"
+import { getWebLocale, getWebMessages } from "@/lib/web-messages"
+import { readRequestLanguage } from "@/lib/language"
 import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
@@ -59,14 +62,18 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getCurrentUser()
+  const locale = getWebLocale(user?.preferredLanguage ?? await readRequestLanguage())
+  const messages = getWebMessages(locale)
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${cormorant.variable} ${dmSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -84,7 +91,7 @@ export default function RootLayout({
             mixBlendMode: "multiply",
           }}
         />
-        <AppProviders>{children}</AppProviders>
+        <AppProviders locale={locale} messages={messages}>{children}</AppProviders>
       </body>
     </html>
   )

@@ -15,6 +15,7 @@ export const PUBLIC_USER_PREFERENCES_SELECT = {
   voiceGender: true,
   voiceStyle: true,
   voiceSpeed: true,
+  preferredLanguage: true,
   onboardingComplete: true,
   emailVerified: true,
   createdAt: true,

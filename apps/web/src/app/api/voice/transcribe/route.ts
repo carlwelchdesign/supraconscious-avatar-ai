@@ -1,4 +1,5 @@
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
+import { resolveSupportedLanguage } from "@/lib/language"
 import { readPrivateApiError } from "@/lib/private-api-error"
 import { reserveVoiceUsage, voiceRateLimitMessage } from "@/lib/voice/rate-limit"
 import { transcribeAudio } from "@/lib/voice/transcribe"
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       return privateJson({ error: voiceRateLimitMessage("voice_transcribe") }, { status: 429 })
     }
 
-    const text = await transcribeAudio(audio)
+    const text = await transcribeAudio(audio, resolveSupportedLanguage(user.preferredLanguage))
     if (!text.trim()) {
       return privateJson({ error: "No speech detected." }, { status: 422 })
     }

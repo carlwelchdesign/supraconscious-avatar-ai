@@ -1,6 +1,7 @@
 import { zodTextFormat } from "openai/helpers/zod"
 import { AVATAR_STAGES, AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
 import {
   AvatarResponseSchema,
   type AvatarResponse,
@@ -13,6 +14,7 @@ type AvatarOptions = {
   intensity: number
   currentLevel: number
   avatarStage: number
+  language?: ResponseLanguage
 }
 
 export async function generateAvatarResponse(
@@ -21,16 +23,18 @@ export async function generateAvatarResponse(
   safety: SafetyCheck,
   options: AvatarOptions,
 ): Promise<AvatarResponse> {
+  const language = options.language ?? "en"
   if (!isOpenAIConfigured()) {
     const pattern = analysis.behavioralPatterns[0]?.label ?? "a familiar role"
+    const copy = localAiCopy(language).avatar
     return {
-      openingLine: "Something in this repeats.",
-      mirror: "You describe responsibility, but the shape also carries exhaustion.",
+      openingLine: copy.openingLine,
+      mirror: copy.mirror,
       patternName: pattern,
-      contradiction: "Part of you wants relief while another part protects the role that keeps you needed.",
-      socraticQuestion: "What would become possible if one thing did not have to be carried by you today?",
-      integrationStep: "Write one sentence beginning with: I am allowed to not carry...",
-      closingLine: "Keep the answer small enough to practice.",
+      contradiction: copy.contradiction,
+      socraticQuestion: copy.socraticQuestion,
+      integrationStep: copy.integrationStep,
+      closingLine: copy.closingLine,
     }
   }
 
@@ -44,7 +48,8 @@ export async function generateAvatarResponse(
 Return a short structured reflection.
 If a field does not fit, return an empty string for that field.
 Avoid advice, diagnosis, certainty, motivational slogans, and destabilizing language.
-Always include one small integration step.`,
+Always include one small integration step.
+${languageInstruction(language)}`,
       },
       {
         role: "user",
@@ -57,6 +62,7 @@ Always include one small integration step.`,
             intensity: options.intensity,
             level: LEVELS[Math.max(0, options.currentLevel - 1)],
             avatarStage: AVATAR_STAGES[Math.max(0, options.avatarStage - 1)],
+            language,
           },
         }),
       },

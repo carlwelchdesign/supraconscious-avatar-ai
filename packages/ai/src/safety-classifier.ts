@@ -1,10 +1,11 @@
 import { zodTextFormat } from "openai/helpers/zod"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
 import { SafetyCheckSchema, type SafetyCheck } from "./schemas.js"
 
-export async function classifyJournalSafety(text: string): Promise<SafetyCheck> {
+export async function classifyJournalSafety(text: string, language: ResponseLanguage = "en"): Promise<SafetyCheck> {
   if (!isOpenAIConfigured()) {
-    return classifyJournalSafetyLocally(text)
+    return classifyJournalSafetyLocally(text, language)
   }
 
   const response = await getOpenAIClient().responses.parse({
@@ -13,7 +14,9 @@ export async function classifyJournalSafety(text: string): Promise<SafetyCheck> 
       {
         role: "system",
         content:
-          "Classify journaling text for safety. Do not diagnose. Identify crisis, self-harm, harm-to-others, abuse/coercion, psychosis-like destabilization, severe dissociation, minors, or unsafe dependency patterns. Return grounded, concise handling guidance.",
+          `Classify journaling text for safety. Do not diagnose. Identify crisis, self-harm, harm-to-others, abuse/coercion, psychosis-like destabilization, severe dissociation, minors, or unsafe dependency patterns. Return grounded, concise handling guidance.
+
+${languageInstruction(language)}`,
       },
       {
         role: "user",
@@ -32,7 +35,8 @@ export async function classifyJournalSafety(text: string): Promise<SafetyCheck> 
   return response.output_parsed
 }
 
-function classifyJournalSafetyLocally(text: string): SafetyCheck {
+function classifyJournalSafetyLocally(text: string, language: ResponseLanguage): SafetyCheck {
+  const copy = localAiCopy(language).safety
   const normalized = text.toLowerCase()
   const highRisk = ["kill myself", "suicide", "end my life", "hurt myself", "harm myself", "hurt someone", "kill them"]
   const mediumRisk = ["can't go on", "not safe", "dissociate", "dissociation", "unreal", "abuse", "coerced"]
@@ -43,8 +47,8 @@ function classifyJournalSafetyLocally(text: string): SafetyCheck {
     return {
       severity: "high",
       flags: highFlags,
-      recommendedAction: "Use crisis-oriented support and avoid normal reflective prompting.",
-      userMessage: "This sounds urgent enough to pause reflection and connect with immediate support. If you may be in danger, contact emergency services or a crisis line now.",
+      recommendedAction: copy.highRecommendedAction,
+      userMessage: copy.highUserMessage,
       allowReflectiveFlow: false,
     }
   }
@@ -53,8 +57,8 @@ function classifyJournalSafetyLocally(text: string): SafetyCheck {
     return {
       severity: "medium",
       flags: mediumFlags,
-      recommendedAction: "Use grounding language and keep the prompt simple.",
-      userMessage: "This entry carries distress. Stay with orientation before interpretation.",
+      recommendedAction: copy.mediumRecommendedAction,
+      userMessage: copy.mediumUserMessage,
       allowReflectiveFlow: true,
     }
   }
@@ -62,8 +66,8 @@ function classifyJournalSafetyLocally(text: string): SafetyCheck {
   return {
     severity: "none",
     flags: [],
-    recommendedAction: "Continue normal reflective flow.",
-    userMessage: "No acute safety concern detected.",
+    recommendedAction: copy.noneRecommendedAction,
+    userMessage: copy.noneUserMessage,
     allowReflectiveFlow: true,
   }
 }

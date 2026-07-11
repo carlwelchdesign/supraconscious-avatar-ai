@@ -2,6 +2,7 @@ import { zodTextFormat } from "openai/helpers/zod"
 import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt.js"
 import { COUNCIL_ROLES } from "./council-roles.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
 import {
   type CouncilRetrievedContext,
 } from "./source-context.js"
@@ -37,6 +38,7 @@ export type CouncilOptions = {
     sourcePolicyVersion?: string
     displayExcerpt?: string | null
   }>
+  language?: ResponseLanguage
 }
 
 export const DEFAULT_COUNCIL_PROMPT_KEY = "council.system"
@@ -64,12 +66,13 @@ export async function generateCouncilRun(
   safety: SafetyCheck,
   options: CouncilOptions,
 ): Promise<CouncilRun> {
+  const language = options.language ?? "en"
   if (!safety.allowReflectiveFlow || safety.severity === "high") {
-    return buildGroundingCouncilRun(text, safety)
+    return buildGroundingCouncilRun(text, safety, language)
   }
 
   if (!isOpenAIConfigured()) {
-    return buildLocalCouncilRun(text, analysis)
+    return buildLocalCouncilRun(text, analysis, language)
   }
 
   const response = await getOpenAIClient().responses.parse({
@@ -77,7 +80,9 @@ export async function generateCouncilRun(
     input: [
       {
         role: "system",
-        content: options.promptTemplate?.content ?? DEFAULT_COUNCIL_SYSTEM_PROMPT,
+        content: `${options.promptTemplate?.content ?? DEFAULT_COUNCIL_SYSTEM_PROMPT}
+
+${languageInstruction(language)}`,
       },
       {
         role: "user",
@@ -86,6 +91,7 @@ export async function generateCouncilRun(
           analysis,
           safety,
           preferences: options,
+          language,
           councilRoles: COUNCIL_ROLES,
           sourceContext: options.sourceContext ?? [],
         }),
@@ -101,14 +107,15 @@ export async function generateCouncilRun(
   }
 
   return validateCouncilSourceCitations(
-    enforceCouncilShape(response.output_parsed, analysis),
+    enforceCouncilShape(response.output_parsed, analysis, language),
     options.sourceContext ?? [],
   )
 }
 
-export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): CouncilRun {
-  const observer = buildObserver(text, analysis)
-  const primaryPattern = analysis.behavioralPatterns[0]?.label ?? "a familiar pattern"
+export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis, language: ResponseLanguage = "en"): CouncilRun {
+  const copy = localAiCopy(language).council
+  const observer = buildObserver(text, analysis, language)
+  const primaryPattern = analysis.behavioralPatterns[0]?.label ?? localAiCopy(language).patternFallback
   const evidence = analysis.behavioralPatterns[0]?.evidence?.slice(0, 2) ?? [text.slice(0, 180)]
 
   const messages: CouncilMessage[] = [
@@ -116,7 +123,7 @@ export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): Cou
       role: "protector",
       displayName: "Protector",
       lens: "Safety, fear, risk, and emotional protection",
-      content: "A protective part may be trying to prevent risk by keeping the familiar pattern in place.",
+      content: copy.protector,
       evidence,
       confidence: 0.68,
       riskLevel: "low",
@@ -128,7 +135,7 @@ export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): Cou
       role: "conditioned_self",
       displayName: "Conditioned Self",
       lens: "Inherited scripts, roles, habits, and learned behavior",
-      content: `The pattern named ${primaryPattern} may be an old role asking to be noticed before it repeats.`,
+      content: copy.conditionedSelf(primaryPattern),
       evidence,
       confidence: 0.66,
       riskLevel: "low",
@@ -140,7 +147,7 @@ export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): Cou
       role: "visionary",
       displayName: "Visionary",
       lens: "Future potential, expansion, values, and emergence",
-      content: "Something in the entry appears to want more choice, even if the next move is small.",
+      content: copy.visionary,
       evidence,
       confidence: 0.62,
       riskLevel: "low",
@@ -152,7 +159,7 @@ export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): Cou
       role: "truth_self",
       displayName: "Truth Self",
       lens: "Direct clarity, contradiction, and self-honesty",
-      content: observer.contradiction || "The clearest truth may be the difference between what is wanted and what is being repeated.",
+      content: observer.contradiction || copy.truthSelfFallback,
       evidence: observer.userEvidence,
       confidence: 0.64,
       riskLevel: "low",
@@ -165,16 +172,17 @@ export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis): Cou
   return {
     observer,
     messages,
-    synthesis: buildSynthesis(observer),
+    synthesis: buildSynthesis(observer, language),
   }
 }
 
-export function buildGroundingCouncilRun(text: string, safety: SafetyCheck): CouncilRun {
+export function buildGroundingCouncilRun(text: string, safety: SafetyCheck, language: ResponseLanguage = "en"): CouncilRun {
+  const copy = localAiCopy(language).council
   const observer: ObserverSignal = {
-    coreTension: "Safety must come before interpretation.",
+    coreTension: copy.safetyCoreTension,
     emotionalTone: safety.severity,
     patternLanguage: safety.flags,
-    contradiction: "This moment asks for support rather than symbolic reflection.",
+    contradiction: copy.safetyContradiction,
     userEvidence: [text.slice(0, 180)],
   }
 
@@ -184,53 +192,55 @@ export function buildGroundingCouncilRun(text: string, safety: SafetyCheck): Cou
       role: role.role,
       displayName: role.displayName,
       lens: role.lens,
-      content: "This voice is quiet while grounding and real support come first.",
+      content: copy.safetyQuiet,
       evidence: [],
       confidence: 1,
       riskLevel: "high",
       abstained: true,
-      abstainReason: "Safety grounding flow is active.",
+      abstainReason: copy.safetyAbstainReason,
       sourceChunkIds: [],
     })),
     synthesis: {
-      guideName: "Supraconscious Guide",
-      openingLine: "Pause here.",
+      guideName: copy.guideName,
+      openingLine: copy.pauseHere,
       coreTension: observer.coreTension,
-      integratorQuestion: "Can you name one place of support available to you right now?",
-      integrationStep: "Name five things you can see. Write one sentence about where you are right now.",
-      closingLine: "Do not solve everything in this moment.",
+      integratorQuestion: copy.supportQuestion,
+      integrationStep: copy.groundingStep,
+      closingLine: copy.groundingClose,
       sourceChunkIds: [],
     },
   }
 }
 
-function buildObserver(text: string, analysis: EntryAnalysis): ObserverSignal {
+function buildObserver(text: string, analysis: EntryAnalysis, language: ResponseLanguage): ObserverSignal {
+  const copy = localAiCopy(language).council
   const contradiction = analysis.contradictionSignals[0]
   return {
     coreTension: analysis.summary,
     emotionalTone: analysis.emotionalSignals.primary[0] ?? "unclear",
     patternLanguage: analysis.behavioralPatterns.map((pattern) => pattern.label).slice(0, 3),
     contradiction: contradiction
-      ? `You name ${contradiction.statedDesire}, while another movement repeats ${contradiction.conflictingBehavior}.`
-      : "A part of you may be asking to be seen before the next choice is made.",
+      ? copy.contradiction(contradiction.statedDesire, contradiction.conflictingBehavior)
+      : copy.contradictionFallback,
     userEvidence: [text.slice(0, 180)],
   }
 }
 
-function buildSynthesis(observer: ObserverSignal): CouncilSynthesis {
+function buildSynthesis(observer: ObserverSignal, language: ResponseLanguage): CouncilSynthesis {
+  const copy = localAiCopy(language).council
   return {
-    guideName: "Supraconscious Guide",
-    openingLine: "The Council is not here to decide for you.",
+    guideName: copy.guideName,
+    openingLine: copy.openingLine,
     coreTension: observer.coreTension,
-    integratorQuestion: "What becomes clear when each part is allowed to speak, but none of them is allowed to rule?",
-    integrationStep: "Write one small shift you can carry today without forcing a complete transformation.",
-    closingLine: "Cross the Gate only with what is small enough to live.",
+    integratorQuestion: copy.integratorQuestion,
+    integrationStep: copy.integrationStep,
+    closingLine: copy.closingLine,
     sourceChunkIds: [],
   }
 }
 
-export function enforceCouncilShape(run: CouncilRun, analysis: EntryAnalysis): CouncilRun {
-  const fallback = buildLocalCouncilRun("", analysis)
+export function enforceCouncilShape(run: CouncilRun, analysis: EntryAnalysis, language: ResponseLanguage = "en"): CouncilRun {
+  const fallback = buildLocalCouncilRun("", analysis, language)
   const messages = COUNCIL_ROLES.map((role) => {
     const message = run.messages.find((item) => item.role === role.role)
     return {

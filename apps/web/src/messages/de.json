@@ -1,0 +1,32 @@
+{
+  "common": {
+    "begin": "Beginnen",
+    "openJournal": "Journal öffnen",
+    "startReflection": "Starte deine erste Reflexion",
+    "continueReflection": "Reflexion fortsetzen",
+    "saveLanguage": "Sprache speichern",
+    "language": "Sprache"
+  },
+  "landing": {
+    "brand": "Der Innere Rat™",
+    "eyebrow": "KI-gestützte Identitätsreflexion",
+    "notJournal": "Das ist kein Journal.",
+    "meetYourself": "Hier begegnest du dir selbst.",
+    "heroBody": "Du brauchst nicht mehr Ratschläge. Du musst klar sehen. Der Innere Rat™ zeigt, was du bereits weißt, aber noch nicht angeschaut hast.",
+    "seeWhatChanges": "Sehen, was sich verändert",
+    "problem": "Das Problem",
+    "problemTitleA": "Du steckst nicht fest.",
+    "problemTitleB": "Du siehst nicht klar.",
+    "council": "So funktioniert es",
+    "councilTitle": "Lerne deinen Inneren Rat™ kennen",
+    "experience": "Die Erfahrung"
+  },
+  "settings": {
+    "eyebrow": "Einstellungen",
+    "title": "Deine Privatsphäre und Einstellungen",
+    "body": "Dein Journal ist standardmäßig privat. Mit diesen Einstellungen formst du, wie dein Guide arbeitet.",
+    "languageSection": "Sprache",
+    "languageLabel": "App- und KI-Sprache",
+    "languageDescription": "Steuert die App-Sprache und die Sprache neuer KI-Reflexionen."
+  }
+}

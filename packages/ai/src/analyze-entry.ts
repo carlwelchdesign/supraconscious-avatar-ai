@@ -1,11 +1,12 @@
 import { zodTextFormat } from "openai/helpers/zod"
 import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
 import { EntryAnalysisSchema, type EntryAnalysis, type SafetyCheck } from "./schemas.js"
 
-export async function analyzeEntry(text: string, safety: SafetyCheck): Promise<EntryAnalysis> {
+export async function analyzeEntry(text: string, safety: SafetyCheck, language: ResponseLanguage = "en"): Promise<EntryAnalysis> {
   if (!isOpenAIConfigured()) {
-    return analyzeEntryLocally(text, safety)
+    return analyzeEntryLocally(text, safety, language)
   }
 
   const response = await getOpenAIClient().responses.parse({
@@ -19,7 +20,8 @@ Analyze the user's journal entry into structured data only.
 Use grounded, non-clinical language.
 Do not infer diagnosis, trauma, disorder, or certainty.
 Use short evidence excerpts only.
-Suggested level must be 1 if safety severity is medium or high.`,
+Suggested level must be 1 if safety severity is medium or high.
+${languageInstruction(language)}`,
       },
       {
         role: "user",
@@ -41,7 +43,8 @@ Suggested level must be 1 if safety severity is medium or high.`,
   return response.output_parsed
 }
 
-function analyzeEntryLocally(text: string, safety: SafetyCheck): EntryAnalysis {
+function analyzeEntryLocally(text: string, safety: SafetyCheck, language: ResponseLanguage): EntryAnalysis {
+  const copy = localAiCopy(language).analysis
   const repeatedWords = Array.from(
     text
       .toLowerCase()
@@ -58,8 +61,8 @@ function analyzeEntryLocally(text: string, safety: SafetyCheck): EntryAnalysis {
 
   return {
     emotionalSignals: {
-      primary: ["pressure"],
-      secondary: ["fatigue", "concern"],
+      primary: [copy.pressure],
+      secondary: [copy.fatigue, copy.concern],
       intensity: safety.severity === "medium" ? 6 : 4,
     },
     languageMarkers: {
@@ -77,8 +80,8 @@ function analyzeEntryLocally(text: string, safety: SafetyCheck): EntryAnalysis {
     ],
     contradictionSignals: [
       {
-        statedDesire: "Relief or clarity",
-        conflictingBehavior: "Continuing the role that creates pressure",
+        statedDesire: copy.reliefOrClarity,
+        conflictingBehavior: copy.pressureRole,
         confidence: 0.62,
       },
     ],
@@ -88,7 +91,7 @@ function analyzeEntryLocally(text: string, safety: SafetyCheck): EntryAnalysis {
       severity: safety.severity,
       flags: safety.flags,
     },
-    summary: `A repeated pattern around ${pattern.toLowerCase()} may be present, with language that suggests pressure and emerging self-awareness.`,
+    summary: copy.summary(pattern),
   }
 }
 

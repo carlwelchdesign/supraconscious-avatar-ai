@@ -8,6 +8,7 @@ test("public user preference projection excludes auth and admin fields", () => {
   assert.equal(selectedFields.includes("passwordHash"), false)
   assert.equal(selectedFields.includes("role"), false)
   assert.equal(selectedFields.includes("tokenHash"), false)
+  assert.equal(selectedFields.includes("preferredLanguage"), true)
 })
 
 test("public user preference assertion rejects unsafe fields", () => {

@@ -89,6 +89,15 @@ class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
     );
   }
 
+  Future<void> updateLanguagePreference(String preferredLanguage) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => _apiClient.updateLanguagePreference(
+        preferredLanguage: preferredLanguage,
+      ),
+    );
+  }
+
   Future<void> logout() async {
     await _apiClient.logout();
     await load();

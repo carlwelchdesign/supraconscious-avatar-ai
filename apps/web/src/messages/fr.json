@@ -1,0 +1,32 @@
+{
+  "common": {
+    "begin": "Commencer",
+    "openJournal": "Ouvrir le journal",
+    "startReflection": "Commencer ta première réflexion",
+    "continueReflection": "Continuer ta réflexion",
+    "saveLanguage": "Enregistrer la langue",
+    "language": "Langue"
+  },
+  "landing": {
+    "brand": "Le Conseil Intérieur™",
+    "eyebrow": "Réflexion identitaire alimentée par l'IA",
+    "notJournal": "Ce n'est pas un journal.",
+    "meetYourself": "C'est ici que tu te rencontres.",
+    "heroBody": "Tu n'as pas besoin de plus de conseils. Tu as besoin de voir clairement. Le Conseil Intérieur™ révèle ce que tu sais déjà, mais que tu n'as pas encore affronté.",
+    "seeWhatChanges": "Voir ce qui change",
+    "problem": "Le problème",
+    "problemTitleA": "Tu n'es pas bloqué.",
+    "problemTitleB": "Tu ne vois pas clairement.",
+    "council": "Comment ça marche",
+    "councilTitle": "Rencontre ton Conseil Intérieur™",
+    "experience": "L'expérience"
+  },
+  "settings": {
+    "eyebrow": "Réglages",
+    "title": "Ta confidentialité et tes préférences",
+    "body": "Ton journal est privé par défaut. Ces contrôles te permettent de façonner le fonctionnement de ton guide.",
+    "languageSection": "Langue",
+    "languageLabel": "Langue de l'app et de l'IA",
+    "languageDescription": "Contrôle la langue de l'app et celle utilisée pour les nouvelles réflexions IA."
+  }
+}

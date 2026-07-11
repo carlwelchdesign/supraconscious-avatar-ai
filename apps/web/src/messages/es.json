@@ -1,0 +1,32 @@
+{
+  "common": {
+    "begin": "Comenzar",
+    "openJournal": "Abrir diario",
+    "startReflection": "Iniciar tu primera reflexión",
+    "continueReflection": "Continuar tu reflexión",
+    "saveLanguage": "Guardar idioma",
+    "language": "Idioma"
+  },
+  "landing": {
+    "brand": "El Consejo Interior™",
+    "eyebrow": "Reflexión de identidad con IA",
+    "notJournal": "Esto no es un diario.",
+    "meetYourself": "Aquí es donde te encuentras contigo.",
+    "heroBody": "No necesitas más consejos. Necesitas ver con claridad. El Consejo Interior™ revela lo que ya sabes, pero aún no has enfrentado.",
+    "seeWhatChanges": "Ver qué cambia",
+    "problem": "El problema",
+    "problemTitleA": "No estás atascado.",
+    "problemTitleB": "No estás viendo con claridad.",
+    "council": "Cómo funciona",
+    "councilTitle": "Conoce tu Consejo Interior™",
+    "experience": "La experiencia"
+  },
+  "settings": {
+    "eyebrow": "Ajustes",
+    "title": "Tu privacidad y preferencias",
+    "body": "Tu diario es privado por defecto. Estos controles te permiten dar forma a cómo funciona tu guía.",
+    "languageSection": "Idioma",
+    "languageLabel": "Idioma de la app y la IA",
+    "languageDescription": "Controla el idioma de la app y el idioma usado para nuevas reflexiones de IA."
+  }
+}
