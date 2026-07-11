@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Loader2, ArrowRight } from "lucide-react"
 import {
   FOUNDER_CALIBRATION_SCENARIO_LABELS,
@@ -160,6 +161,7 @@ export function JournalWorkspace({
   needsFounderFeedback = false,
   founderFeedbackHref = null,
 }: Props) {
+  const t = useTranslations("journal")
   const guideStageNames = normalizeStageNames(stageNames)
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
@@ -306,13 +308,13 @@ export function JournalWorkspace({
       {/* ── Page header ─────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
-          Journal
+          {t("eyebrow")}
         </p>
         <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
-          What is present today?
+          {t("title")}
         </h1>
         <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-          Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.
+          {t("helper")}
         </p>
       </div>
 

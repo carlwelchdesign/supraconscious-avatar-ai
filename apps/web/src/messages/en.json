@@ -105,6 +105,13 @@
     "currentLevelPrefix": "Your current level is",
     "newEntry": "New entry"
   },
+  "journal": {
+    "eyebrow": "Journal",
+    "title": "What is present today?",
+    "helper": "Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.",
+    "backToDashboard": "Back to dashboard",
+    "entryEyebrow": "Journal entry"
+  },
   "settings": {
     "eyebrow": "Settings",
     "title": "Your privacy & preferences",

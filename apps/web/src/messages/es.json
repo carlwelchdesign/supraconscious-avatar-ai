@@ -105,6 +105,13 @@
     "currentLevelPrefix": "Tu nivel actual es",
     "newEntry": "Nueva entrada"
   },
+  "journal": {
+    "eyebrow": "Diario",
+    "title": "¿Qué está presente hoy?",
+    "helper": "Escribe una entrada honesta. El consejo reflejará patrones, tensiones y un siguiente paso con base.",
+    "backToDashboard": "Volver al panel",
+    "entryEyebrow": "Entrada del diario"
+  },
   "settings": {
     "eyebrow": "Ajustes",
     "title": "Tu privacidad y preferencias",

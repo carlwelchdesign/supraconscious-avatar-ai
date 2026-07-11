@@ -8,8 +8,10 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { formatWebLongDate } from "@/lib/date-format"
 import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage } from "@/lib/language"
 import { readSavedSessionCalibrationGuidance } from "@/lib/saved-session-calibration"
 import { buildSpeakText } from "@/lib/voice/voice-config"
+import { getWebMessages } from "@/lib/web-messages"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 import { DeleteJournalEntryForm } from "./delete-journal-entry-form"
 import { SavedSessionFeedbackForm } from "./saved-session-feedback-form"
@@ -24,6 +26,8 @@ export default async function JournalEntryPage({
   const [resolvedParams, query] = await Promise.all([params, searchParams])
   const entryNextPath = `/journal/${resolvedParams.entryId}${query.feedback ? `?feedback=${encodeURIComponent(query.feedback)}` : ""}`
   const user = await requireJournalAccessPageUser(entryNextPath)
+  const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
+  const journalMessages = messages.journal
   const [founderCalibrationMode, entry, guideStages] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.journalEntry.findFirst({
@@ -149,13 +153,13 @@ export default async function JournalEntryPage({
         className="inline-flex items-center gap-2 text-[13px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        Back to dashboard
+        {journalMessages.backToDashboard}
       </Link>
 
       {/* Date header */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          Journal entry
+          {journalMessages.entryEyebrow}
         </p>
         <h1 className="font-display text-[32px] font-light leading-tight text-[var(--primary)]">
           {dateLabel}
