@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@inner-avatar/auth/session"
+import { prisma } from "@inner-avatar/db"
 import { LANGUAGE_COOKIE_NAME, resolveSupportedLanguage } from "@/lib/language"
 
 function safeRedirectTarget(request: NextRequest) {
@@ -10,9 +12,17 @@ function safeRedirectTarget(request: NextRequest) {
   return new URL(next, request.url)
 }
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const language = resolveSupportedLanguage(request.nextUrl.searchParams.get("lang"))
   const response = NextResponse.redirect(safeRedirectTarget(request))
+  const user = await getCurrentUser()
+
+  if (user && user.preferredLanguage !== language) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { preferredLanguage: language },
+    })
+  }
 
   response.cookies.set(LANGUAGE_COOKIE_NAME, language, {
     httpOnly: false,
