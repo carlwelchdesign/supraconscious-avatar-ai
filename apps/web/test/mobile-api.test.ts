@@ -1,7 +1,14 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
-import { buildMobileSavedSessionResponse, buildMobileSessionResponse } from "../src/lib/mobile-api"
+import {
+  buildMobileDashboardResponse,
+  buildMobileGuideResponse,
+  buildMobilePatternsResponse,
+  buildMobileSavedSessionResponse,
+  buildMobileSavedSessionsResponse,
+  buildMobileSessionResponse,
+} from "../src/lib/mobile-api"
 
 test("mobile session response reports unauthenticated state", () => {
   const response = buildMobileSessionResponse({ user: null })
@@ -88,4 +95,174 @@ test("mobile saved session response omits private feedback notes", () => {
     createdAt: "2026-07-10T12:01:00.000Z",
   }])
   assert.equal(JSON.stringify(response).includes("private note"), false)
+})
+
+test("mobile saved session response includes reflection fields and selected source summaries", () => {
+  const response = buildMobileSavedSessionResponse({
+    id: "session-1",
+    status: "completed",
+    sourceMode: "rag",
+    createdAt: new Date("2026-07-10T12:00:00.000Z"),
+    journalEntry: {
+      id: "entry-1",
+      rawText: "My full journal text",
+      inputMode: "text",
+      createdAt: new Date("2026-07-10T11:59:00.000Z"),
+      avatarResponse: {
+        openingLine: "Start here.",
+        mirror: "You already know.",
+        patternName: "Avoided clarity",
+        contradiction: "You say yes while wanting no.",
+        socraticQuestion: "What is the honest no?",
+        integrationStep: "Pause once.",
+        closingLine: "Stay close to the truth.",
+      },
+    },
+    messages: [{
+      id: "message-1",
+      role: "protector",
+      displayName: "The Protector",
+      lens: "safety",
+      content: "Slow down.",
+      confidence: 0.8,
+      abstained: false,
+    }],
+    synthesis: {
+      integratorQuestion: "What is true?",
+      integrationStep: "Pause once.",
+    },
+    feedback: [],
+    embodimentGateResponses: [],
+    generationTraces: [{
+      id: "trace-1",
+      sourceChunkId: "chunk-1",
+      validationStatus: "selected",
+      outputJson: {
+        title: "Approved source",
+        rank: 1,
+        displayExcerpt: "Short source summary.",
+        matchedTerms: ["clarity", "choice"],
+      },
+      sourceChunk: {
+        sourceDocument: { title: "Fallback source" },
+      },
+    }, {
+      id: "trace-2",
+      sourceChunkId: "chunk-2",
+      validationStatus: "rejected",
+      outputJson: { title: "Rejected source" },
+      sourceChunk: {
+        sourceDocument: { title: "Rejected fallback" },
+      },
+    }],
+  })
+
+  assert.equal(response.session.avatarResponse?.mirror, "You already know.")
+  assert.equal(response.session.messages[0].displayName, "The Protector")
+  assert.equal(response.session.sourceGrounding.mode, "rag")
+  assert.deepEqual(response.session.sourceGrounding.selectedSources, [{
+    id: "chunk-1",
+    title: "Approved source",
+    rank: 1,
+    displayExcerpt: "Short source summary.",
+    matchedTerms: ["clarity", "choice"],
+  }])
+  assert.equal(JSON.stringify(response).includes("Rejected source"), false)
+})
+
+test("mobile dashboard response includes counts and recent session summaries", () => {
+  const response = buildMobileDashboardResponse({
+    user: {
+      name: "Carl",
+      currentLevel: 2,
+      avatarStage: 3,
+      patternMemoryEnabled: true,
+    },
+    entryCount: 12,
+    activePatternCount: 4,
+    recentSessions: [{
+      id: "session-1",
+      status: "completed",
+      sourceMode: "none",
+      createdAt: new Date("2026-07-10T12:00:00.000Z"),
+      journalEntry: {
+        id: "entry-1",
+        rawText: "This is a long journal entry that should become a mobile-safe excerpt.",
+        inputMode: "text",
+        createdAt: new Date("2026-07-10T11:59:00.000Z"),
+      },
+      synthesis: {
+        integratorQuestion: "What is true?",
+        integrationStep: "Pause once.",
+      },
+      feedback: [{ id: "feedback-1", feedbackType: "helpful" }],
+      embodimentGateResponses: [],
+    }],
+  })
+
+  assert.equal(response.dashboard.greetingName, "Carl")
+  assert.equal(response.dashboard.entryCount, 12)
+  assert.equal(response.dashboard.activePatternCount, 4)
+  assert.equal(response.dashboard.recentSessions[0].id, "session-1")
+  assert.equal(response.dashboard.recentSessions[0].hasFeedback, true)
+})
+
+test("mobile saved sessions response uses excerpts instead of raw full text", () => {
+  const response = buildMobileSavedSessionsResponse([{
+    id: "session-1",
+    status: "completed",
+    sourceMode: "none",
+    createdAt: "2026-07-10T12:00:00.000Z",
+    journalEntry: {
+      id: "entry-1",
+      rawText: `${"x".repeat(240)} private ending`,
+      inputMode: "text",
+      createdAt: "2026-07-10T11:59:00.000Z",
+    },
+    synthesis: null,
+  }])
+
+  assert.equal(response.sessions.length, 1)
+  assert.equal(response.sessions[0].journalEntry.excerpt.length <= 180, true)
+  assert.equal(response.sessions[0].journalEntry.excerpt.includes("private ending"), false)
+})
+
+test("mobile patterns response serializes examples and visibility", () => {
+  const response = buildMobilePatternsResponse([{
+    id: "pattern-1",
+    patternLabel: "Over-responsibility",
+    evidenceCount: 3,
+    confidence: 0.78,
+    examples: ["first", "second", "third", "fourth"],
+    lastSeenAt: new Date("2026-07-10T12:00:00.000Z"),
+    active: false,
+  }])
+
+  assert.deepEqual(response.patterns, [{
+    id: "pattern-1",
+    patternLabel: "Over-responsibility",
+    evidenceCount: 3,
+    confidence: 0.78,
+    examples: ["first", "second", "third"],
+    lastSeenAt: "2026-07-10T12:00:00.000Z",
+    active: false,
+  }])
+})
+
+test("mobile guide response marks current, completed, and locked stages", () => {
+  const response = buildMobileGuideResponse({
+    user: {
+      avatarTone: "balanced",
+      intensityLevel: 3,
+      avatarStage: 2,
+    },
+    stages: [
+      { stage: 1, name: "Echo", description: "Reflects.", trait: "Listening", currentLabel: "Current", completedLabel: "Complete" },
+      { stage: 2, name: "Witness", description: "Notices.", trait: "Noticing", currentLabel: "Current", completedLabel: "Complete" },
+      { stage: 3, name: "Mirror", description: "Clarifies.", trait: "Clarity", currentLabel: "Current", completedLabel: "Complete" },
+    ],
+  })
+
+  assert.equal(response.guide.currentStage, 2)
+  assert.deepEqual(response.guide.stages.map((stage) => stage.state), ["complete", "current", "locked"])
 })

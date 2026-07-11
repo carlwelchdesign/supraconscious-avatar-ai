@@ -73,6 +73,60 @@ class InnerCouncilApiClient {
     return MobileSession.fromJson(json);
   }
 
+  Future<MobileDashboard> getDashboard() async {
+    final json = await _send('GET', '/api/mobile/dashboard');
+    return MobileDashboard.fromJson(
+      json['dashboard'] as Map<String, dynamic>? ?? const {},
+    );
+  }
+
+  Future<List<MobileSavedSessionSummary>> getSavedSessions() async {
+    final json = await _send('GET', '/api/mobile/saved-sessions');
+    final sessions = json['sessions'];
+    return sessions is List
+        ? sessions
+              .whereType<Map<String, dynamic>>()
+              .map(MobileSavedSessionSummary.fromJson)
+              .toList()
+        : const [];
+  }
+
+  Future<MobileSavedSessionDetail> getSavedSession(String sessionId) async {
+    final json = await _send('GET', '/api/mobile/saved-sessions/$sessionId');
+    return MobileSavedSessionDetail.fromJson(
+      json['session'] as Map<String, dynamic>? ?? const {},
+    );
+  }
+
+  Future<List<MobilePattern>> getPatterns() async {
+    final json = await _send('GET', '/api/mobile/patterns');
+    final patterns = json['patterns'];
+    return patterns is List
+        ? patterns
+              .whereType<Map<String, dynamic>>()
+              .map(MobilePattern.fromJson)
+              .toList()
+        : const [];
+  }
+
+  Future<MobileGuide> getGuide() async {
+    final json = await _send('GET', '/api/mobile/guide');
+    return MobileGuide.fromJson(
+      json['guide'] as Map<String, dynamic>? ?? const {},
+    );
+  }
+
+  Future<void> submitPatternFeedback({
+    required String patternMemoryId,
+    required String feedbackType,
+  }) async {
+    await _send(
+      'POST',
+      '/api/mobile/patterns',
+      body: {'patternMemoryId': patternMemoryId, 'feedbackType': feedbackType},
+    );
+  }
+
   Future<void> logout() async {
     await _send('POST', '/api/mobile/auth/logout');
     _cookies.clear();
@@ -218,17 +272,29 @@ class MobileUser {
     required this.email,
     required this.name,
     required this.patternMemoryEnabled,
+    required this.avatarTone,
+    required this.intensityLevel,
+    required this.currentLevel,
+    required this.avatarStage,
   });
 
   final String email;
   final String? name;
   final bool patternMemoryEnabled;
+  final String avatarTone;
+  final int intensityLevel;
+  final int currentLevel;
+  final int avatarStage;
 
   factory MobileUser.fromJson(Map<String, dynamic> json) {
     return MobileUser(
       email: json['email'] as String? ?? '',
       name: json['name'] as String?,
       patternMemoryEnabled: json['patternMemoryEnabled'] == true,
+      avatarTone: json['avatarTone'] as String? ?? 'balanced',
+      intensityLevel: json['intensityLevel'] as int? ?? 3,
+      currentLevel: json['currentLevel'] as int? ?? 1,
+      avatarStage: json['avatarStage'] as int? ?? 1,
     );
   }
 }
@@ -288,12 +354,22 @@ class JournalAnalyzeResult {
     required this.integrationStep,
     required this.integratorQuestion,
     required this.councilSessionId,
+    required this.openingLine,
+    required this.mirror,
+    required this.patternName,
+    required this.contradiction,
+    required this.closingLine,
   });
 
   final String summary;
   final String integrationStep;
   final String integratorQuestion;
   final String? councilSessionId;
+  final String openingLine;
+  final String mirror;
+  final String patternName;
+  final String contradiction;
+  final String closingLine;
 
   factory JournalAnalyzeResult.fromJson(Map<String, dynamic> json) {
     final analysis = json['analysis'];
@@ -319,6 +395,446 @@ class JournalAnalyzeResult {
       councilSessionId: session is Map<String, dynamic>
           ? session['id'] as String?
           : null,
+      openingLine: response is Map<String, dynamic>
+          ? response['openingLine'] as String? ?? ''
+          : '',
+      mirror: response is Map<String, dynamic>
+          ? response['mirror'] as String? ?? ''
+          : '',
+      patternName: response is Map<String, dynamic>
+          ? response['patternName'] as String? ?? ''
+          : '',
+      contradiction: response is Map<String, dynamic>
+          ? response['contradiction'] as String? ?? ''
+          : '',
+      closingLine: response is Map<String, dynamic>
+          ? response['closingLine'] as String? ?? ''
+          : '',
+    );
+  }
+}
+
+class MobileDashboard {
+  const MobileDashboard({
+    required this.greetingName,
+    required this.currentLevel,
+    required this.avatarStage,
+    required this.patternMemoryEnabled,
+    required this.entryCount,
+    required this.activePatternCount,
+    required this.recentSessions,
+  });
+
+  final String? greetingName;
+  final int currentLevel;
+  final int avatarStage;
+  final bool patternMemoryEnabled;
+  final int entryCount;
+  final int activePatternCount;
+  final List<MobileSavedSessionSummary> recentSessions;
+
+  factory MobileDashboard.fromJson(Map<String, dynamic> json) {
+    final sessions = json['recentSessions'];
+    return MobileDashboard(
+      greetingName: json['greetingName'] as String?,
+      currentLevel: json['currentLevel'] as int? ?? 1,
+      avatarStage: json['avatarStage'] as int? ?? 1,
+      patternMemoryEnabled: json['patternMemoryEnabled'] == true,
+      entryCount: json['entryCount'] as int? ?? 0,
+      activePatternCount: json['activePatternCount'] as int? ?? 0,
+      recentSessions: sessions is List
+          ? sessions
+                .whereType<Map<String, dynamic>>()
+                .map(MobileSavedSessionSummary.fromJson)
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class MobileSavedSessionSummary {
+  const MobileSavedSessionSummary({
+    required this.id,
+    required this.status,
+    required this.sourceMode,
+    required this.createdAt,
+    required this.journalEntry,
+    required this.synthesis,
+    required this.hasFeedback,
+    required this.hasEmbodiment,
+  });
+
+  final String id;
+  final String status;
+  final String sourceMode;
+  final String createdAt;
+  final MobileJournalEntrySummary journalEntry;
+  final MobileSessionSynthesis? synthesis;
+  final bool hasFeedback;
+  final bool hasEmbodiment;
+
+  factory MobileSavedSessionSummary.fromJson(Map<String, dynamic> json) {
+    return MobileSavedSessionSummary(
+      id: json['id'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      sourceMode: json['sourceMode'] as String? ?? '',
+      createdAt: json['createdAt'] as String? ?? '',
+      journalEntry: MobileJournalEntrySummary.fromJson(
+        json['journalEntry'] as Map<String, dynamic>? ?? const {},
+      ),
+      synthesis: json['synthesis'] is Map<String, dynamic>
+          ? MobileSessionSynthesis.fromJson(
+              json['synthesis'] as Map<String, dynamic>,
+            )
+          : null,
+      hasFeedback: json['hasFeedback'] == true,
+      hasEmbodiment: json['hasEmbodiment'] == true,
+    );
+  }
+}
+
+class MobileJournalEntrySummary {
+  const MobileJournalEntrySummary({
+    required this.id,
+    required this.excerpt,
+    required this.inputMode,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String excerpt;
+  final String inputMode;
+  final String createdAt;
+
+  factory MobileJournalEntrySummary.fromJson(Map<String, dynamic> json) {
+    return MobileJournalEntrySummary(
+      id: json['id'] as String? ?? '',
+      excerpt: json['excerpt'] as String? ?? '',
+      inputMode: json['inputMode'] as String? ?? 'text',
+      createdAt: json['createdAt'] as String? ?? '',
+    );
+  }
+}
+
+class MobileSessionSynthesis {
+  const MobileSessionSynthesis({
+    required this.integratorQuestion,
+    required this.integrationStep,
+  });
+
+  final String integratorQuestion;
+  final String integrationStep;
+
+  factory MobileSessionSynthesis.fromJson(Map<String, dynamic> json) {
+    return MobileSessionSynthesis(
+      integratorQuestion: json['integratorQuestion'] as String? ?? '',
+      integrationStep: json['integrationStep'] as String? ?? '',
+    );
+  }
+}
+
+class MobileSavedSessionDetail {
+  const MobileSavedSessionDetail({
+    required this.id,
+    required this.sourceMode,
+    required this.journalText,
+    required this.avatarResponse,
+    required this.messages,
+    required this.synthesis,
+    required this.feedback,
+    required this.embodimentGateResponses,
+    required this.sourceGrounding,
+  });
+
+  final String id;
+  final String sourceMode;
+  final String journalText;
+  final MobileAvatarResponse? avatarResponse;
+  final List<MobileCouncilMessage> messages;
+  final MobileSessionSynthesis? synthesis;
+  final List<MobileFeedbackSummary> feedback;
+  final List<MobileEmbodimentResponse> embodimentGateResponses;
+  final MobileSourceGrounding sourceGrounding;
+
+  factory MobileSavedSessionDetail.fromJson(Map<String, dynamic> json) {
+    final journalEntry = json['journalEntry'];
+    final messages = json['messages'];
+    final feedback = json['feedback'];
+    final embodiment = json['embodimentGateResponses'];
+    return MobileSavedSessionDetail(
+      id: json['id'] as String? ?? '',
+      sourceMode: json['sourceMode'] as String? ?? 'none',
+      journalText: journalEntry is Map<String, dynamic>
+          ? journalEntry['text'] as String? ?? ''
+          : '',
+      avatarResponse: json['avatarResponse'] is Map<String, dynamic>
+          ? MobileAvatarResponse.fromJson(
+              json['avatarResponse'] as Map<String, dynamic>,
+            )
+          : null,
+      messages: messages is List
+          ? messages
+                .whereType<Map<String, dynamic>>()
+                .map(MobileCouncilMessage.fromJson)
+                .toList()
+          : const [],
+      synthesis: json['synthesis'] is Map<String, dynamic>
+          ? MobileSessionSynthesis.fromJson(
+              json['synthesis'] as Map<String, dynamic>,
+            )
+          : null,
+      feedback: feedback is List
+          ? feedback
+                .whereType<Map<String, dynamic>>()
+                .map(MobileFeedbackSummary.fromJson)
+                .toList()
+          : const [],
+      embodimentGateResponses: embodiment is List
+          ? embodiment
+                .whereType<Map<String, dynamic>>()
+                .map(MobileEmbodimentResponse.fromJson)
+                .toList()
+          : const [],
+      sourceGrounding: MobileSourceGrounding.fromJson(
+        json['sourceGrounding'] as Map<String, dynamic>? ?? const {},
+      ),
+    );
+  }
+}
+
+class MobileAvatarResponse {
+  const MobileAvatarResponse({
+    required this.openingLine,
+    required this.mirror,
+    required this.patternName,
+    required this.contradiction,
+    required this.socraticQuestion,
+    required this.integrationStep,
+    required this.closingLine,
+  });
+
+  final String openingLine;
+  final String mirror;
+  final String patternName;
+  final String contradiction;
+  final String socraticQuestion;
+  final String integrationStep;
+  final String closingLine;
+
+  factory MobileAvatarResponse.fromJson(Map<String, dynamic> json) {
+    return MobileAvatarResponse(
+      openingLine: json['openingLine'] as String? ?? '',
+      mirror: json['mirror'] as String? ?? '',
+      patternName: json['patternName'] as String? ?? '',
+      contradiction: json['contradiction'] as String? ?? '',
+      socraticQuestion: json['socraticQuestion'] as String? ?? '',
+      integrationStep: json['integrationStep'] as String? ?? '',
+      closingLine: json['closingLine'] as String? ?? '',
+    );
+  }
+}
+
+class MobileCouncilMessage {
+  const MobileCouncilMessage({
+    required this.displayName,
+    required this.content,
+    required this.abstained,
+  });
+
+  final String displayName;
+  final String content;
+  final bool abstained;
+
+  factory MobileCouncilMessage.fromJson(Map<String, dynamic> json) {
+    return MobileCouncilMessage(
+      displayName: json['displayName'] as String? ?? '',
+      content: json['content'] as String? ?? '',
+      abstained: json['abstained'] == true,
+    );
+  }
+}
+
+class MobileFeedbackSummary {
+  const MobileFeedbackSummary({
+    required this.id,
+    required this.feedbackType,
+    required this.hasNote,
+  });
+
+  final String id;
+  final String feedbackType;
+  final bool hasNote;
+
+  factory MobileFeedbackSummary.fromJson(Map<String, dynamic> json) {
+    return MobileFeedbackSummary(
+      id: json['id'] as String? ?? '',
+      feedbackType: json['feedbackType'] as String? ?? '',
+      hasNote: json['hasNote'] == true,
+    );
+  }
+}
+
+class MobileEmbodimentResponse {
+  const MobileEmbodimentResponse({required this.id, required this.text});
+
+  final String id;
+  final String text;
+
+  factory MobileEmbodimentResponse.fromJson(Map<String, dynamic> json) {
+    return MobileEmbodimentResponse(
+      id: json['id'] as String? ?? '',
+      text: json['text'] as String? ?? '',
+    );
+  }
+}
+
+class MobileSourceGrounding {
+  const MobileSourceGrounding({
+    required this.mode,
+    required this.message,
+    required this.selectedSources,
+  });
+
+  final String mode;
+  final String message;
+  final List<MobileSourceSummary> selectedSources;
+
+  factory MobileSourceGrounding.fromJson(Map<String, dynamic> json) {
+    final sources = json['selectedSources'];
+    return MobileSourceGrounding(
+      mode: json['mode'] as String? ?? 'none',
+      message: json['message'] as String? ?? '',
+      selectedSources: sources is List
+          ? sources
+                .whereType<Map<String, dynamic>>()
+                .map(MobileSourceSummary.fromJson)
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class MobileSourceSummary {
+  const MobileSourceSummary({
+    required this.id,
+    required this.title,
+    required this.rank,
+    required this.displayExcerpt,
+    required this.matchedTerms,
+  });
+
+  final String id;
+  final String title;
+  final int rank;
+  final String? displayExcerpt;
+  final List<String> matchedTerms;
+
+  factory MobileSourceSummary.fromJson(Map<String, dynamic> json) {
+    final terms = json['matchedTerms'];
+    return MobileSourceSummary(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? 'Approved source',
+      rank: json['rank'] as int? ?? 0,
+      displayExcerpt: json['displayExcerpt'] as String?,
+      matchedTerms: terms is List
+          ? terms.map((term) => '$term').toList()
+          : const [],
+    );
+  }
+}
+
+class MobilePattern {
+  const MobilePattern({
+    required this.id,
+    required this.patternLabel,
+    required this.evidenceCount,
+    required this.confidence,
+    required this.examples,
+    required this.lastSeenAt,
+    required this.active,
+  });
+
+  final String id;
+  final String patternLabel;
+  final int evidenceCount;
+  final double confidence;
+  final List<String> examples;
+  final String lastSeenAt;
+  final bool active;
+
+  factory MobilePattern.fromJson(Map<String, dynamic> json) {
+    final examples = json['examples'];
+    return MobilePattern(
+      id: json['id'] as String? ?? '',
+      patternLabel: json['patternLabel'] as String? ?? '',
+      evidenceCount: json['evidenceCount'] as int? ?? 0,
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0,
+      examples: examples is List
+          ? examples.map((item) => '$item').toList()
+          : const [],
+      lastSeenAt: json['lastSeenAt'] as String? ?? '',
+      active: json['active'] == true,
+    );
+  }
+}
+
+class MobileGuide {
+  const MobileGuide({
+    required this.currentStage,
+    required this.avatarTone,
+    required this.intensityLevel,
+    required this.stages,
+  });
+
+  final int currentStage;
+  final String avatarTone;
+  final int intensityLevel;
+  final List<MobileGuideStage> stages;
+
+  factory MobileGuide.fromJson(Map<String, dynamic> json) {
+    final stages = json['stages'];
+    return MobileGuide(
+      currentStage: json['currentStage'] as int? ?? 1,
+      avatarTone: json['avatarTone'] as String? ?? 'balanced',
+      intensityLevel: json['intensityLevel'] as int? ?? 3,
+      stages: stages is List
+          ? stages
+                .whereType<Map<String, dynamic>>()
+                .map(MobileGuideStage.fromJson)
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class MobileGuideStage {
+  const MobileGuideStage({
+    required this.stage,
+    required this.name,
+    required this.description,
+    required this.trait,
+    required this.currentLabel,
+    required this.completedLabel,
+    required this.state,
+  });
+
+  final int stage;
+  final String name;
+  final String description;
+  final String trait;
+  final String currentLabel;
+  final String completedLabel;
+  final String state;
+
+  factory MobileGuideStage.fromJson(Map<String, dynamic> json) {
+    return MobileGuideStage(
+      stage: json['stage'] as int? ?? 1,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      trait: json['trait'] as String? ?? '',
+      currentLabel: json['currentLabel'] as String? ?? 'Current',
+      completedLabel: json['completedLabel'] as String? ?? 'Complete',
+      state: json['state'] as String? ?? 'locked',
     );
   }
 }
