@@ -1,39 +1,12 @@
 import Image from "next/image"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
-import { readRequestLanguage, resolveSupportedLanguage, supportedLanguageOptions, writeLanguageCookie } from "@/lib/language"
+import { readRequestLanguage, resolveSupportedLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
-const councilRoles = [
-  {
-    icon: Shield,
-    title: "The Protector",
-    body: "Shows where fear is holding you back.",
-  },
-  {
-    icon: VenetianMask,
-    title: "The Conditioned Self",
-    body: "Reveals patterns you did not question.",
-  },
-  {
-    icon: Telescope,
-    title: "The Visionary",
-    body: "Shows who you are becoming.",
-  },
-  {
-    icon: Sparkles,
-    title: "The Truth Self",
-    body: "Cuts through illusion.",
-  },
-]
-
-const experienceSteps = ["Write", "See", "Face", "Choose", "Become"]
-
-const notThis = ["a journaling app", "a chatbot", "a coaching tool"]
-const thisIs = ["an identity reflection system", "a decision clarity engine", "a mirror for your becoming"]
+const councilIcons = [Shield, VenetianMask, Telescope, Sparkles]
 
 function CtaLink({ href, children, variant = "dark" }: { href: string; children: ReactNode; variant?: "dark" | "light" }) {
   const className =
@@ -49,13 +22,6 @@ function CtaLink({ href, children, variant = "dark" }: { href: string; children:
   )
 }
 
-async function updateLandingLanguage(formData: FormData) {
-  "use server"
-
-  await writeLanguageCookie(formData.get("language"))
-  redirect("/")
-}
-
 export default async function Home() {
   const user = await getCurrentUser()
   const currentLanguage = resolveSupportedLanguage(user?.preferredLanguage ?? await readRequestLanguage())
@@ -64,7 +30,7 @@ export default async function Home() {
   const landing = messages.landing
   const primaryHref = user ? "/journal" : "/register"
   const primaryCta = user ? common.continueReflection : common.startReflection
-  const finalCta = user ? common.continueReflection : "Begin Your First Reflection"
+  const finalCta = user ? common.continueReflection : landing.finalCta
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--primary)]">
@@ -88,27 +54,31 @@ export default async function Home() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
-            <form action={updateLandingLanguage} className="flex items-center gap-2">
-              <select
-                name="language"
-                defaultValue={currentLanguage}
-                aria-label={common.language}
-                className="h-10 rounded-full border border-white/15 bg-white/10 px-3 text-xs font-medium text-[var(--cream)] outline-none transition hover:bg-white/15 focus:ring-2 focus:ring-[var(--clay-light)]"
-              >
-                {supportedLanguageOptions().map((language) => (
-                  <option key={language.code} value={language.code} className="text-[var(--primary)]">
-                    {language.nativeLabel}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="inline-flex h-10 items-center rounded-full border border-white/15 px-3 text-xs font-medium text-[var(--cream)] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
-              >
-                {common.saveLanguage}
-              </button>
-            </form>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 items-center gap-1 rounded-full border border-white/15 bg-white/10 px-1.5"
+              aria-label={common.language}
+            >
+              {supportedLanguageOptions().map((language) => {
+                const active = language.code === currentLanguage
+                return (
+                  <Link
+                    key={language.code}
+                    href={`/language?lang=${language.code}&next=/`}
+                    title={language.nativeLabel}
+                    aria-label={language.nativeLabel}
+                    aria-current={active ? "true" : undefined}
+                    className={
+                      active
+                        ? "inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--cream)] text-base shadow-sm ring-1 ring-white/60"
+                        : "inline-flex h-7 w-7 items-center justify-center rounded-full text-base opacity-70 transition hover:bg-white/10 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+                    }
+                  >
+                    <span aria-hidden="true">{language.flag}</span>
+                  </Link>
+                )
+              })}
+            </div>
             <Link
               href={primaryHref}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
@@ -178,15 +148,13 @@ export default async function Home() {
             </h2>
           </div>
           <div className="max-w-2xl space-y-7 text-[18px] font-light leading-[1.82] text-[var(--plum-soft)]">
-            <p>You have thought about it. Analyzed it. Replayed it. And still, something in you hesitates.</p>
+            <p>{landing.problemBody1}</p>
             <div className="grid gap-3 border-l border-[var(--clay)]/30 pl-6 font-display text-3xl font-light leading-tight text-[var(--primary)] md:grid-cols-3 md:border-l-0 md:pl-0">
-              <span>you hesitate</span>
-              <span>you delay</span>
-              <span>you stay</span>
+              {landing.problemSignals.map((signal) => (
+                <span key={signal}>{signal}</span>
+              ))}
             </div>
-            <p>
-              Not because you do not know what to do. Because something in you is pulling in different directions.
-            </p>
+            <p>{landing.problemBody2}</p>
           </div>
         </div>
       </section>
@@ -194,21 +162,21 @@ export default async function Home() {
       <section className="border-y border-[var(--border)] bg-[var(--pearl)] px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div className="max-w-2xl">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">The shift</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.shiftEyebrow}</p>
             <h2 className="font-display text-[clamp(38px,4.8vw,64px)] font-light leading-[1.08]">
-              What if you could see every part of yourself at once?
+              {landing.shiftTitle}
             </h2>
           </div>
           <div className="space-y-6 text-[17px] font-light leading-[1.8] text-[var(--plum-soft)]">
-            <p>Inside you, there is not one voice. There are many.</p>
+            <p>{landing.shiftBody}</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              {["the part that wants safety", "the part that repeats the past", "the part that knows your potential", "the part that sees the truth"].map((item) => (
+              {landing.shiftParts.map((item) => (
                 <div key={item} className="border-t border-[var(--clay)]/25 pt-4 text-[15px] text-[var(--primary)]">
                   {item}
                 </div>
               ))}
             </div>
-            <p>Most people hear noise. This system gives you structure.</p>
+            <p>{landing.shiftClosing}</p>
           </div>
         </div>
       </section>
@@ -221,12 +189,14 @@ export default async function Home() {
               {landing.councilTitle}
             </h2>
             <p className="mt-6 max-w-xl text-[17px] font-light leading-[1.75] text-[var(--plum-soft)]">
-              You write what is on your mind. Then four inner lenses reflect what is moving beneath the surface.
+              {landing.councilBody}
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {councilRoles.map(({ icon: Icon, title, body }) => (
+            {landing.councilRoles.map(({ title, body }, index) => {
+              const Icon = councilIcons[index] ?? Shield
+              return (
               <article
                 key={title}
                 className="min-h-56 rounded-lg border border-[var(--border)] bg-[var(--pearl)] p-6 shadow-[0_12px_40px_rgba(43,27,53,0.06)]"
@@ -235,15 +205,16 @@ export default async function Home() {
                 <h3 className="font-display text-3xl font-light text-[var(--primary)]">{title}</h3>
                 <p className="mt-4 text-[15px] font-light leading-relaxed text-[var(--plum-soft)]">{body}</p>
               </article>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-16 max-w-4xl border-l border-[var(--clay)]/40 pl-7">
             <p className="font-display text-[clamp(32px,4vw,52px)] font-light leading-[1.12] text-[var(--primary)]">
-              And then you face the question that changes everything.
+              {landing.changeQuestionTitle}
             </p>
             <p className="mt-5 max-w-2xl text-[17px] font-light leading-[1.75] text-[var(--plum-soft)]">
-              Not advice. Not answers. One precise question that reveals what you have been avoiding.
+              {landing.changeQuestionBody}
             </p>
           </div>
         </div>
@@ -255,17 +226,17 @@ export default async function Home() {
             <div>
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay-light)]">{landing.experience}</p>
               <h2 className="font-display text-[clamp(40px,5vw,70px)] font-light leading-[1.05]">
-                This is not about writing.
+                {landing.experienceTitleA}
                 <br />
-                <span className="italic text-[var(--clay-light)]">It is about seeing.</span>
+                <span className="italic text-[var(--clay-light)]">{landing.experienceTitleB}</span>
               </h2>
             </div>
             <p className="max-w-2xl text-[17px] font-light leading-[1.8] text-[var(--cream)]/70">
-              Every session moves through a simple path. No noise. No overwhelm. No endless scrolling. Just clarity.
+              {landing.experienceBody}
             </p>
           </div>
           <div className="mt-14 grid gap-3 md:grid-cols-5">
-            {experienceSteps.map((step, index) => (
+            {landing.experienceSteps.map((step, index) => (
               <div key={step} className="border-t border-[var(--cream)]/20 pt-5">
                 <span className="text-xs font-medium text-[var(--clay-light)]">0{index + 1}</span>
                 <p className="mt-3 font-display text-3xl font-light">{step}</p>
@@ -278,20 +249,20 @@ export default async function Home() {
       <section className="px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1fr_1fr]">
           <div>
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">Why it works</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.whyEyebrow}</p>
             <h2 className="font-display text-[clamp(40px,5vw,70px)] font-light leading-[1.05]">
-              Because clarity changes behavior.
+              {landing.whyTitle}
             </h2>
             <p className="mt-7 max-w-xl text-[17px] font-light leading-[1.8] text-[var(--plum-soft)]">
-              Not motivation. Not discipline. Clarity. When you see your patterns, contradictions, and truth, you do not need to be pushed. You move naturally.
+              {landing.whyBody}
             </p>
           </div>
           <div className="bg-[var(--pearl)] p-8 shadow-[0_14px_48px_rgba(43,27,53,0.07)] md:p-10">
-            <p className="mb-6 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">Daily use</p>
-            <h3 className="font-display text-4xl font-light leading-tight">This becomes part of how you think.</h3>
+            <p className="mb-6 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.dailyEyebrow}</p>
+            <h3 className="font-display text-4xl font-light leading-tight">{landing.dailyTitle}</h3>
             <div className="mt-8 grid gap-5 text-[15px] font-light leading-relaxed text-[var(--plum-soft)]">
-              <p>Each day, you write what is real, the system reflects what you could not see, and you make one small shift.</p>
-              <p>Over time, you stop repeating yourself. You stop avoiding decisions. You stop betraying what you know.</p>
+              <p>{landing.dailyBody1}</p>
+              <p>{landing.dailyBody2}</p>
             </div>
           </div>
         </div>
@@ -300,24 +271,24 @@ export default async function Home() {
       <section className="border-y border-[var(--border)] bg-[var(--pearl)] px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">Different by design</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.differentEyebrow}</p>
             <h2 className="font-display text-[clamp(38px,5vw,64px)] font-light leading-[1.08]">
-              Not another place to talk in circles.
+              {landing.differentTitle}
             </h2>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
             <div>
-              <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--plum-soft)]">This is not</p>
+              <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--plum-soft)]">{landing.notThisLabel}</p>
               <div className="space-y-3">
-                {notThis.map((item) => (
+                {landing.notThis.map((item) => (
                   <p key={item} className="text-[17px] font-light text-[var(--plum-soft)]">× {item}</p>
                 ))}
               </div>
             </div>
             <div>
-              <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">This is</p>
+              <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.thisIsLabel}</p>
               <div className="space-y-3">
-                {thisIs.map((item) => (
+                {landing.thisIs.map((item) => (
                   <p key={item} className="text-[17px] font-medium text-[var(--primary)]">→ {item}</p>
                 ))}
               </div>
@@ -329,21 +300,21 @@ export default async function Home() {
       <section className="px-5 py-20 md:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl border-y border-[var(--clay)]/25 py-12 text-center">
           <p className="mx-auto max-w-3xl font-display text-[clamp(30px,4vw,50px)] font-light leading-[1.18] text-[var(--primary)]">
-            Trusted by leaders, creators, and individuals ready to stop avoiding themselves.
+            {landing.trustStatement}
           </p>
-          <p className="mt-5 text-sm font-light text-[var(--plum-soft)]">Testimonials and authority proof can be added here.</p>
+          <p className="mt-5 text-sm font-light text-[var(--plum-soft)]">{landing.trustSubtext}</p>
         </div>
       </section>
 
       <section className="bg-[var(--primary)] px-5 py-28 text-center text-[var(--cream)] md:px-8 lg:py-36">
         <div className="mx-auto max-w-3xl">
           <h2 className="font-display text-[clamp(46px,6vw,86px)] font-light leading-[1.02]">
-            You do not need another system.
+            {landing.finalTitleA}
             <br />
-            <span className="italic text-[var(--clay-light)]">You need to see.</span>
+            <span className="italic text-[var(--clay-light)]">{landing.finalTitleB}</span>
           </h2>
           <p className="mx-auto mt-7 max-w-xl text-[17px] font-light leading-[1.8] text-[var(--cream)]/72">
-            You already know more than you think. This is where you finally face it.
+            {landing.finalBody}
           </p>
           <div className="mt-10">
             <CtaLink href={primaryHref} variant="light">
@@ -355,11 +326,11 @@ export default async function Home() {
 
       <footer className="border-t border-[var(--cream)]/10 bg-[var(--primary)] px-5 py-10 text-[var(--cream)] md:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
-          <span className="font-display text-lg font-light tracking-wide text-[var(--cream)]/55">Supraconscious</span>
+          <span className="font-display text-lg font-light tracking-wide text-[var(--cream)]/55">{landing.footerBrand}</span>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-[13px] font-light text-[var(--cream)]/38">
-            <span>Private by default</span>
-            <span>Safety-aware reflection</span>
-            <span>Source-grounded when eligible</span>
+            <span>{landing.footerPrivate}</span>
+            <span>{landing.footerSafety}</span>
+            <span>{landing.footerGrounded}</span>
           </div>
           <span className="text-xs text-[var(--cream)]/25">© {new Date().getFullYear()} Supraconscious</span>
         </div>

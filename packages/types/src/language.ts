@@ -10,36 +10,42 @@ export const SUPPORTED_LANGUAGE_DETAILS: Record<SupportedLanguage, {
   label: string
   nativeLabel: string
   aiLanguageName: string
+  flag: string
 }> = {
   en: {
     code: "en",
     label: "English",
     nativeLabel: "English",
     aiLanguageName: "English",
+    flag: "🇺🇸",
   },
   es: {
     code: "es",
     label: "Spanish",
     nativeLabel: "Español",
     aiLanguageName: "Spanish",
+    flag: "🇪🇸",
   },
   el: {
     code: "el",
     label: "Greek",
     nativeLabel: "Ελληνικά",
     aiLanguageName: "Greek",
+    flag: "🇬🇷",
   },
   fr: {
     code: "fr",
     label: "French",
     nativeLabel: "Français",
     aiLanguageName: "French",
+    flag: "🇫🇷",
   },
   de: {
     code: "de",
     label: "German",
     nativeLabel: "Deutsch",
     aiLanguageName: "German",
+    flag: "🇩🇪",
   },
 }
 
