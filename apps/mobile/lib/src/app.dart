@@ -578,24 +578,55 @@ class _JournalTabState extends ConsumerState<JournalTab> {
 
   @override
   Widget build(BuildContext context) {
+    final prompt = ref.watch(journalPromptProvider);
+    final wordCount = _wordCount(_journal.text);
+    final needsMoreContext =
+        _journal.text.trim().isNotEmpty && _journal.text.trim().length < 20;
+
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
         Text(
-          'New reflection',
+          'What is present today?',
           style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        prompt.when(
+          loading: () => const LinearProgressIndicator(),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (value) => _JournalPromptCard(prompt: value),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _journal,
+          onChanged: (_) => setState(() {}),
           minLines: 8,
           maxLines: 14,
           textInputAction: TextInputAction.newline,
           decoration: const InputDecoration(
             labelText: 'Reflection',
+            hintText:
+                'Write what is present — emotions, observations, tensions. No structure required…',
             alignLabelWithHint: true,
           ),
         ),
+        const SizedBox(height: 8),
+        Text(
+          '${wordCount == 1 ? "1 word" : "$wordCount words"} · Private by default · Pattern memory adjustable in settings',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        if (needsMoreContext) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Add a little more context so the council can reflect without guessing.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: _submitting ? null : _submitJournal,
@@ -635,6 +666,60 @@ class _JournalTabState extends ConsumerState<JournalTab> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+}
+
+class _JournalPromptCard extends StatelessWidget {
+  const _JournalPromptCard({required this.prompt});
+
+  final MobileJournalPrompt prompt;
+
+  @override
+  Widget build(BuildContext context) {
+    final threshold = prompt.prompt;
+    if (threshold == null) {
+      return _InfoCard(
+        title: prompt.todayLabel.isEmpty ? 'Today' : prompt.todayLabel,
+        body:
+            'No Threshold prompt is published for today. Write what is present without forcing a structure.',
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Threshold · Month ${threshold.month}, Day ${threshold.day}',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                Text(threshold.theme),
+              ],
+            ),
+            if (threshold.quote?.isNotEmpty == true) ...[
+              const SizedBox(height: 12),
+              Text(
+                threshold.quote!,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+            const SizedBox(height: 12),
+            Text(threshold.frameOfThought),
+            const SizedBox(height: 12),
+            Text(
+              threshold.socraticQuestion,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -1412,6 +1497,12 @@ String _formatFeedbackType(String feedbackType) {
             : '${part[0].toUpperCase()}${part.substring(1)}',
       )
       .join(' ');
+}
+
+int _wordCount(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return 0;
+  return trimmed.split(RegExp(r'\s+')).length;
 }
 
 class _InfoCard extends StatelessWidget {

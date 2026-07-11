@@ -65,6 +65,42 @@ void main() {
     expect(find.text('Journal'), findsOneWidget);
   });
 
+  testWidgets('journal tab shows prompt guidance when ready', (tester) async {
+    await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Journal'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What is present today?'), findsOneWidget);
+    expect(
+      find.text(
+        'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Threshold · Month 7, Day 10'), findsOneWidget);
+    expect(find.text('What are you not letting yourself say?'), findsOneWidget);
+  });
+
+  testWidgets('journal tab works when prompt is unavailable', (tester) async {
+    await tester.pumpWidget(
+      _testApp(_FakeApiClient(_ready(), prompt: _emptyJournalPrompt())),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Journal'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What is present today?'), findsOneWidget);
+    expect(
+      find.text(
+        'No Threshold prompt is published for today. Write what is present without forcing a structure.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   test('journal analyze result parses council synthesis fallback', () {
     final result = JournalAnalyzeResult.fromJson({
       'analysis': {'summary': 'A repeated pattern is visible.'},
@@ -180,6 +216,27 @@ void main() {
     expect(guide.stages.last.state, 'current');
   });
 
+  test('mobile journal prompt parses threshold prompt', () {
+    final prompt = MobileJournalPrompt.fromJson({
+      'todayLabel': 'Friday, July 10',
+      'prompt': {
+        'month': 7,
+        'day': 10,
+        'theme': 'Clarity',
+        'quote': 'A short approved quote.',
+        'frameOfThought': 'Notice what is present.',
+        'socraticQuestion': 'What are you not letting yourself say?',
+      },
+    });
+
+    expect(prompt.todayLabel, 'Friday, July 10');
+    expect(prompt.prompt?.theme, 'Clarity');
+    expect(
+      prompt.prompt?.socraticQuestion,
+      'What are you not letting yourself say?',
+    );
+  });
+
   test('default API base URL is available to the app shell', () {
     expect(apiBaseUrl, isNotEmpty);
   });
@@ -221,9 +278,12 @@ Widget _testApp(InnerCouncilApiClient client) {
 }
 
 class _FakeApiClient extends InnerCouncilApiClient {
-  _FakeApiClient(this._session) : super(baseUrl: 'http://localhost:3000');
+  _FakeApiClient(this._session, {MobileJournalPrompt? prompt})
+    : _prompt = prompt ?? _journalPrompt(),
+      super(baseUrl: 'http://localhost:3000');
 
   final MobileSession _session;
+  final MobileJournalPrompt _prompt;
 
   @override
   Future<MobileSession> getSession() async => _session;
@@ -262,6 +322,9 @@ class _FakeApiClient extends InnerCouncilApiClient {
       ),
     ],
   );
+
+  @override
+  Future<MobileJournalPrompt> getJournalPrompt() async => _prompt;
 }
 
 MobileSession _unauthenticated() {
@@ -342,4 +405,22 @@ MobileSession _ready() {
       items: [],
     ),
   );
+}
+
+MobileJournalPrompt _journalPrompt() {
+  return const MobileJournalPrompt(
+    todayLabel: 'Friday, July 10',
+    prompt: MobileThresholdPrompt(
+      month: 7,
+      day: 10,
+      theme: 'Clarity',
+      quote: 'A short approved quote.',
+      frameOfThought: 'Notice what is present before solving it.',
+      socraticQuestion: 'What are you not letting yourself say?',
+    ),
+  );
+}
+
+MobileJournalPrompt _emptyJournalPrompt() {
+  return const MobileJournalPrompt(todayLabel: 'Friday, July 10', prompt: null);
 }
