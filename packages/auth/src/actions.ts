@@ -16,7 +16,8 @@ import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./red
 import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
 import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
-import { readSupportedLanguageFromHeader, type UserRole } from "@inner-avatar/types"
+import type { UserRole } from "@inner-avatar/types"
+import { readSupportedLanguageFromHeader } from "@inner-avatar/types/language"
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),

@@ -12,7 +12,7 @@ import { classifyJournalSafety } from "./safety-classifier.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
-import { localAiCopy, resolveResponseLanguage, type ResponseLanguage } from "./response-language.js"
+import { localAiCopy, resolveResponseLanguage, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
   buildGenerationTraceLangSmithMetadata,
   recordLangSmithEvent,

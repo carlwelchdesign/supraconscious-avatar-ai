@@ -1,7 +1,7 @@
 import { zodTextFormat } from "openai/helpers/zod"
 import { AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
-import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
   GeneratedPromptSchema,
   type EntryAnalysis,

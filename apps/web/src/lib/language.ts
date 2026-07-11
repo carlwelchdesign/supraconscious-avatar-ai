@@ -6,7 +6,7 @@ import {
   readSupportedLanguageFromHeader,
   resolveSupportedLanguage,
   type SupportedLanguage,
-} from "@inner-avatar/types"
+} from "@inner-avatar/types/language"
 
 export {
   DEFAULT_LANGUAGE,

@@ -8,7 +8,8 @@ import { linkFounderParticipantIfConfigured } from "@inner-avatar/auth/redirects
 import { createSession, destroySession, getCurrentUser, hashPassword, verifyPassword } from "@inner-avatar/auth/session"
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
-import { resolveSupportedLanguage, type UserRole } from "@inner-avatar/types"
+import type { UserRole } from "@inner-avatar/types"
+import { resolveSupportedLanguage } from "@inner-avatar/types/language"
 import { buildMobileSessionResponse } from "./mobile-api"
 import { readRequestLanguage } from "./language"
 

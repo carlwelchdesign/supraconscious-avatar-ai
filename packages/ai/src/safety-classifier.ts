@@ -1,6 +1,6 @@
 import { zodTextFormat } from "openai/helpers/zod"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
-import { languageInstruction, localAiCopy, type ResponseLanguage } from "./response-language.js"
+import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import { SafetyCheckSchema, type SafetyCheck } from "./schemas.js"
 
 export async function classifyJournalSafety(text: string, language: ResponseLanguage = "en"): Promise<SafetyCheck> {

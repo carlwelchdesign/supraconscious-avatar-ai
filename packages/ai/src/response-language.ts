@@ -1,4 +1,4 @@
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGE_DETAILS, resolveSupportedLanguage, type SupportedLanguage } from "@inner-avatar/types"
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGE_DETAILS, resolveSupportedLanguage, type SupportedLanguage } from "@inner-avatar/types/language"
 
 export type ResponseLanguage = SupportedLanguage
 

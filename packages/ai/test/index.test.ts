@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
+import { languageInstruction } from "@inner-avatar/ai/response-language"
 import {
   buildApprovedSourceWhere,
   buildAccountExportPayload,
@@ -28,7 +29,6 @@ import {
   DEFAULT_COUNCIL_SYSTEM_PROMPT,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
-  languageInstruction,
   evaluatePilotExpansionReadinessSnapshot,
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,

@@ -2,8 +2,8 @@ import { z } from "zod"
 import {
   classifyJournalSafety,
   generateAvatarResponse,
-  resolveResponseLanguage,
 } from "@inner-avatar/ai"
+import { resolveResponseLanguage } from "@inner-avatar/ai/response-language"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"

@@ -1,5 +1,5 @@
 import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS, hasRequiredPilotConsents } from "@inner-avatar/auth/consent"
-import { SUPPORTED_LANGUAGE_DETAILS, SUPPORTED_LANGUAGES, resolveSupportedLanguage } from "@inner-avatar/types"
+import { SUPPORTED_LANGUAGE_DETAILS, SUPPORTED_LANGUAGES, resolveSupportedLanguage } from "@inner-avatar/types/language"
 import { ONBOARDING_CONSENT_ITEMS } from "./onboarding-consent-copy"
 
 type MobileUser = {
