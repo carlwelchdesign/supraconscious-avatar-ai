@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import 'mobile_api.dart';
 import 'session_controller.dart';
 
 enum _AuthMode { login, register }
 
-class InnerCouncilMobileApp extends StatelessWidget {
+class InnerCouncilMobileApp extends ConsumerWidget {
   const InnerCouncilMobileApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(sessionControllerProvider).valueOrNull;
     return MaterialApp(
       title: 'The Inner Council',
       debugShowCheckedModeBanner: false,
+      locale: session == null ? null : Locale(session.language.current),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -96,6 +101,7 @@ class LandingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return _FoundationFrame(
       maxWidth: 720,
       child: Column(
@@ -106,10 +112,10 @@ class LandingScreen extends StatelessWidget {
           const SizedBox(height: 28),
           FilledButton(
             onPressed: onCreateAccount,
-            child: const Text('Start Your First Reflection'),
+            child: Text(l10n.startReflection),
           ),
           const SizedBox(height: 10),
-          OutlinedButton(onPressed: onSignIn, child: const Text('Sign in')),
+          OutlinedButton(onPressed: onSignIn, child: Text(l10n.signIn)),
           const SizedBox(height: 36),
           const _LandingSection(
             eyebrow: 'The problem',
@@ -154,11 +160,12 @@ class _LandingHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'AI-powered identity reflection',
+          l10n.landingEyebrow,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: const Color(0xFFD6C493),
             letterSpacing: 1.1,
@@ -166,7 +173,7 @@ class _LandingHero extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          'The Inner Council',
+          l10n.appTitle,
           style: Theme.of(context).textTheme.displayMedium?.copyWith(
             color: const Color(0xFFFFF8EA),
             fontWeight: FontWeight.w500,
@@ -175,14 +182,14 @@ class _LandingHero extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         Text(
-          'This is not a journal.',
+          l10n.landingNotJournal,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             color: const Color(0xFFFFF8EA),
             height: 1.05,
           ),
         ),
         Text(
-          'This is where you meet yourself.',
+          l10n.landingMeetYourself,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             color: const Color(0xFFE9D9B7),
             fontStyle: FontStyle.italic,
@@ -190,7 +197,7 @@ class _LandingHero extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'You do not need more advice. You need to see clearly. The Inner Council reveals what you already know, but have not faced.',
+          l10n.landingBody,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: const Color(0xDFFFF8EA),
             height: 1.55,
@@ -315,6 +322,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return _FoundationFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -359,11 +367,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           const SizedBox(height: 20),
           FilledButton(
             onPressed: _submit,
-            child: Text(_register ? 'Create account' : 'Sign in'),
+            child: Text(_register ? l10n.createAccount : l10n.signIn),
           ),
           TextButton(
             onPressed: () => setState(() => _register = !_register),
-            child: Text(_register ? 'Use existing account' : 'Create account'),
+            child: Text(
+              _register ? l10n.useExistingAccount : l10n.createAccount,
+            ),
           ),
           const SizedBox(height: 40),
           _EnvironmentPill(apiBaseUrl: apiBaseUrl),
@@ -449,6 +459,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final tabs = [
       DashboardTab(session: widget.session),
       const JournalTab(),
@@ -459,7 +470,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
     ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('The Inner Council'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -473,36 +484,36 @@ class _ProductShellState extends ConsumerState<ProductShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (value) => setState(() => _index = value),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.edit_note_outlined),
-            selectedIcon: Icon(Icons.edit_note),
-            label: 'Journal',
+            icon: const Icon(Icons.edit_note_outlined),
+            selectedIcon: const Icon(Icons.edit_note),
+            label: l10n.tabJournal,
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'Saved',
+            icon: const Icon(Icons.history_outlined),
+            selectedIcon: const Icon(Icons.history),
+            label: l10n.tabSaved,
           ),
           NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'Patterns',
+            icon: const Icon(Icons.insights_outlined),
+            selectedIcon: const Icon(Icons.insights),
+            label: l10n.tabPatterns,
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_awesome_outlined),
-            selectedIcon: Icon(Icons.auto_awesome),
-            label: 'Guide',
+            icon: const Icon(Icons.auto_awesome_outlined),
+            selectedIcon: const Icon(Icons.auto_awesome),
+            label: l10n.tabGuide,
           ),
           NavigationDestination(
-            icon: Icon(Icons.tune_outlined),
-            selectedIcon: Icon(Icons.tune),
-            label: 'Settings',
+            icon: const Icon(Icons.tune_outlined),
+            selectedIcon: const Icon(Icons.tune),
+            label: l10n.tabSettings,
           ),
         ],
       ),
@@ -517,6 +528,7 @@ class DashboardTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final dashboard = ref.watch(dashboardProvider);
     return _AsyncList(
       value: dashboard,
@@ -524,8 +536,8 @@ class DashboardTab extends ConsumerWidget {
       builder: (data) => [
         Text(
           data.greetingName?.isNotEmpty == true
-              ? 'Welcome, ${data.greetingName}'
-              : 'Welcome',
+              ? l10n.welcomeName(data.greetingName!)
+              : l10n.welcome,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 16),
@@ -534,7 +546,10 @@ class DashboardTab extends ConsumerWidget {
           runSpacing: 12,
           children: [
             _StatCard(label: 'Entries', value: '${data.entryCount}'),
-            _StatCard(label: 'Patterns', value: '${data.activePatternCount}'),
+            _StatCard(
+              label: l10n.tabPatterns,
+              value: '${data.activePatternCount}',
+            ),
             _StatCard(label: 'Guide stage', value: '${data.avatarStage}'),
           ],
         ),
@@ -578,6 +593,7 @@ class _JournalTabState extends ConsumerState<JournalTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final prompt = ref.watch(journalPromptProvider);
     final wordCount = _wordCount(_journal.text);
     final needsMoreContext =
@@ -587,12 +603,12 @@ class _JournalTabState extends ConsumerState<JournalTab> {
       padding: const EdgeInsets.all(24),
       children: [
         Text(
-          'What is present today?',
+          l10n.journalTitle,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
         Text(
-          'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.',
+          l10n.journalHelper,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
@@ -608,10 +624,9 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           minLines: 8,
           maxLines: 14,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Reflection',
-            hintText:
-                'Write what is present — emotions, observations, tensions. No structure required…',
+            hintText: l10n.journalPlaceholder,
             alignLabelWithHint: true,
           ),
         ),
@@ -1292,22 +1307,44 @@ class SettingsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final user = session.user;
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Text('Settings', style: Theme.of(context).textTheme.headlineSmall),
+        Text(l10n.settingsTitle, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
         _InfoCard(
-          title: user?.email ?? 'Account',
-          body:
-              'Your journal entries stay private to this account and are used for reflection, safety checks, voice features, and pattern memory when enabled.',
+          title: user?.email ?? l10n.accountFallback,
+          body: l10n.privacyBody,
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: session.language.current,
+          decoration: InputDecoration(
+            labelText: l10n.languageTitle,
+            helperText: l10n.languageSubtitle,
+          ),
+          items: session.language.supported
+              .map(
+                (language) => DropdownMenuItem(
+                  value: language.code,
+                  child: Text(language.nativeLabel),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value == null) return;
+            ref
+                .read(sessionControllerProvider.notifier)
+                .updateLanguagePreference(value);
+          },
         ),
         const SizedBox(height: 12),
         SwitchListTile(
           value: user?.patternMemoryEnabled == true,
-          title: const Text('Pattern memory'),
-          subtitle: const Text('Allow recurring signals to appear over time.'),
+          title: Text(l10n.patternMemory),
+          subtitle: Text(l10n.patternMemorySubtitle),
           onChanged: (value) {
             ref
                 .read(sessionControllerProvider.notifier)

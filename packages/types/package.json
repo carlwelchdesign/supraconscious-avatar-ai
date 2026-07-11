@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./language": "./src/language.ts",
     "./pilot-consent": "./src/pilot-consent.ts"
   },
   "scripts": {

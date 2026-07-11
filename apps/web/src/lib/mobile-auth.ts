@@ -9,12 +9,15 @@ import { createSession, destroySession, getCurrentUser, hashPassword, verifyPass
 import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
+import { resolveSupportedLanguage } from "@inner-avatar/types/language"
 import { buildMobileSessionResponse } from "./mobile-api"
+import { readRequestLanguage } from "./language"
 
 export const MobileRegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
+  preferredLanguage: z.string().optional(),
 })
 
 export const MobileLoginSchema = z.object({
@@ -28,6 +31,10 @@ export const MobileConsentSchema = z.object({
 
 export const MobileReflectionPreferencesSchema = z.object({
   patternMemoryEnabled: z.boolean(),
+})
+
+export const MobileLanguagePreferenceSchema = z.object({
+  preferredLanguage: z.string(),
 })
 
 export async function registerMobileUser(input: z.infer<typeof MobileRegisterSchema>) {
@@ -52,6 +59,7 @@ export async function registerMobileUser(input: z.infer<typeof MobileRegisterSch
         email: input.email,
         passwordHash: await hashPassword(input.password),
         role: roleForEmail(input.email),
+        preferredLanguage: resolveSupportedLanguage(input.preferredLanguage ?? await readRequestLanguage()),
       },
     })
     await linkFounderParticipantIfConfigured(user.id, user.email)
@@ -177,6 +185,16 @@ export async function updateMobileReflectionPreferences(userId: string, input: z
       granted: input.patternMemoryEnabled,
       source: "mobile_reflection_preferences",
     },
+  })
+
+  return getMobileSessionBody(userId)
+}
+
+export async function updateMobileLanguagePreference(userId: string, input: z.infer<typeof MobileLanguagePreferenceSchema>) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { preferredLanguage: resolveSupportedLanguage(input.preferredLanguage) },
+    select: { id: true },
   })
 
   return getMobileSessionBody(userId)

@@ -325,13 +325,35 @@ class _FakeApiClient extends InnerCouncilApiClient {
 
   @override
   Future<MobileJournalPrompt> getJournalPrompt() async => _prompt;
+
+  @override
+  Future<MobileSession> updateLanguagePreference({
+    required String preferredLanguage,
+  }) async => _session;
 }
+
+const _languageState = MobileLanguageState(
+  current: 'en',
+  supported: [
+    MobileSupportedLanguage(
+      code: 'en',
+      label: 'English',
+      nativeLabel: 'English',
+    ),
+    MobileSupportedLanguage(
+      code: 'es',
+      label: 'Spanish',
+      nativeLabel: 'Español',
+    ),
+  ],
+);
 
 MobileSession _unauthenticated() {
   return const MobileSession(
     authenticated: false,
     status: 'unauthenticated',
     user: null,
+    language: _languageState,
     consent: MobileConsent(
       version: '2026-06-01',
       hasRequiredConsents: false,
@@ -352,7 +374,9 @@ MobileSession _onboardingRequired() {
       intensityLevel: 3,
       currentLevel: 1,
       avatarStage: 1,
+      preferredLanguage: 'en',
     ),
+    language: _languageState,
     consent: MobileConsent(
       version: '2026-06-01',
       hasRequiredConsents: false,
@@ -398,7 +422,9 @@ MobileSession _ready() {
       intensityLevel: 3,
       currentLevel: 1,
       avatarStage: 1,
+      preferredLanguage: 'en',
     ),
+    language: _languageState,
     consent: MobileConsent(
       version: '2026-06-01',
       hasRequiredConsents: true,

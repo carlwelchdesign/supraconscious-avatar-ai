@@ -3,6 +3,7 @@ import {
   classifyJournalSafety,
   generateSymbolicPrompt,
 } from "@inner-avatar/ai"
+import { resolveResponseLanguage } from "@inner-avatar/ai/response-language"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
@@ -28,9 +29,10 @@ export async function POST(request: Request) {
       text: body.text,
     })
 
-    const safety = await classifyJournalSafety(journalEntry.rawText)
+    const responseLanguage = resolveResponseLanguage(user.preferredLanguage)
+    const safety = await classifyJournalSafety(journalEntry.rawText, responseLanguage)
     const analysis = await getOrCreateEntryAnalysis({ userId: user.id, journalEntry, safety })
-    const prompt = await generateSymbolicPrompt(analysis, safety)
+    const prompt = await generateSymbolicPrompt(analysis, safety, responseLanguage)
 
     const saved = await prisma.generatedPrompt.create({
       data: {

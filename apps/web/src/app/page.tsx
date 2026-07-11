@@ -3,6 +3,8 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
+import { readRequestLanguage } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 
 const councilRoles = [
   {
@@ -48,16 +50,19 @@ function CtaLink({ href, children, variant = "dark" }: { href: string; children:
 
 export default async function Home() {
   const user = await getCurrentUser()
+  const messages = getWebMessages(user?.preferredLanguage ?? await readRequestLanguage())
+  const common = messages.common
+  const landing = messages.landing
   const primaryHref = user ? "/journal" : "/register"
-  const primaryCta = user ? "Continue Your Reflection" : "Start Your First Reflection"
-  const finalCta = user ? "Continue Your Reflection" : "Begin Your First Reflection"
+  const primaryCta = user ? common.continueReflection : common.startReflection
+  const finalCta = user ? common.continueReflection : "Begin Your First Reflection"
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--primary)]">
       <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[rgba(26,16,32,0.58)] px-5 py-4 text-[var(--cream)] backdrop-blur-xl md:px-8">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Link href="/" className="font-display text-xl font-medium tracking-wide focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]">
-            The Inner Council™
+            {landing.brand}
           </Link>
           <nav className="hidden items-center gap-7 md:flex" aria-label="Landing page sections">
             {[
@@ -78,7 +83,7 @@ export default async function Home() {
             href={primaryHref}
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
           >
-            {user ? "Open journal" : "Begin"}
+            {user ? common.openJournal : common.begin}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
@@ -103,17 +108,17 @@ export default async function Home() {
         <div className="relative z-10 mx-auto flex min-h-[calc(92vh-10rem)] max-w-7xl flex-col justify-end lg:min-h-[calc(100vh-10rem)]">
           <div className="max-w-3xl">
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.2em] text-[var(--clay-light)]">
-              AI-powered identity reflection
+              {landing.eyebrow}
             </p>
             <h1 className="font-display text-[clamp(54px,8vw,112px)] font-light leading-[0.96] text-[var(--cream)]">
-              The Inner Council™
+              {landing.brand}
             </h1>
             <div className="mt-8 max-w-2xl space-y-3 font-display text-[clamp(30px,4vw,54px)] font-light leading-[1.1] text-[var(--cream)]">
-              <p>This is not a journal.</p>
-              <p className="italic text-[var(--clay-light)]">This is where you meet yourself.</p>
+              <p>{landing.notJournal}</p>
+              <p className="italic text-[var(--clay-light)]">{landing.meetYourself}</p>
             </div>
             <p className="mt-7 max-w-xl text-[17px] font-light leading-[1.75] text-[var(--cream)]/78">
-              You do not need more advice. You need to see clearly. The Inner Council™ reveals what you already know, but have not faced.
+              {landing.heroBody}
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <CtaLink href={primaryHref} variant="light">
@@ -123,7 +128,7 @@ export default async function Home() {
                 href="#problem"
                 className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-[var(--cream)]/72 transition hover:text-[var(--cream)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
               >
-                See what changes
+                {landing.seeWhatChanges}
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
@@ -134,11 +139,11 @@ export default async function Home() {
       <section id="problem" className="px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">The problem</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.problem}</p>
             <h2 className="font-display text-[clamp(38px,5vw,68px)] font-light leading-[1.05] text-[var(--primary)]">
-              You are not stuck.
+              {landing.problemTitleA}
               <br />
-              <span className="italic text-[var(--clay)]">You are not seeing clearly.</span>
+              <span className="italic text-[var(--clay)]">{landing.problemTitleB}</span>
             </h2>
           </div>
           <div className="max-w-2xl space-y-7 text-[18px] font-light leading-[1.82] text-[var(--plum-soft)]">
@@ -180,9 +185,9 @@ export default async function Home() {
       <section id="council" className="px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 max-w-3xl">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">How it works</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.council}</p>
             <h2 className="font-display text-[clamp(42px,5.5vw,74px)] font-light leading-[1.03]">
-              Meet Your Inner Council™
+              {landing.councilTitle}
             </h2>
             <p className="mt-6 max-w-xl text-[17px] font-light leading-[1.75] text-[var(--plum-soft)]">
               You write what is on your mind. Then four inner lenses reflect what is moving beneath the surface.
@@ -217,7 +222,7 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
             <div>
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay-light)]">The experience</p>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay-light)]">{landing.experience}</p>
               <h2 className="font-display text-[clamp(40px,5vw,70px)] font-light leading-[1.05]">
                 This is not about writing.
                 <br />

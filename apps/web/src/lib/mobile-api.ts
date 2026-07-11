@@ -1,4 +1,5 @@
 import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS, hasRequiredPilotConsents } from "@inner-avatar/auth/consent"
+import { SUPPORTED_LANGUAGE_DETAILS, SUPPORTED_LANGUAGES, resolveSupportedLanguage } from "@inner-avatar/types/language"
 import { ONBOARDING_CONSENT_ITEMS } from "./onboarding-consent-copy"
 
 type MobileUser = {
@@ -11,6 +12,7 @@ type MobileUser = {
   intensityLevel: number
   currentLevel: number
   avatarStage: number
+  preferredLanguage?: string | null
 }
 
 type ConsentRecord = {
@@ -31,6 +33,7 @@ export function buildMobileSessionResponse(input: {
       authenticated: false,
       status: "unauthenticated" as const,
       user: null,
+      language: buildMobileLanguageState(null),
       consent: buildMobileConsentState(input.consentRecords ?? []),
     }
   }
@@ -42,6 +45,7 @@ export function buildMobileSessionResponse(input: {
     authenticated: true,
     status: ready ? ("ready" as const) : ("onboarding_required" as const),
     user: buildMobileUser(input.user),
+    language: buildMobileLanguageState(input.user.preferredLanguage),
     consent,
   }
 }
@@ -57,6 +61,16 @@ export function buildMobileUser(user: MobileUser) {
     intensityLevel: user.intensityLevel,
     currentLevel: user.currentLevel,
     avatarStage: user.avatarStage,
+    preferredLanguage: resolveSupportedLanguage(user.preferredLanguage),
+  }
+}
+
+export function buildMobileLanguageState(preferredLanguage: string | null | undefined) {
+  const current = resolveSupportedLanguage(preferredLanguage)
+  return {
+    current,
+    default: "en" as const,
+    supported: SUPPORTED_LANGUAGES.map((code) => SUPPORTED_LANGUAGE_DETAILS[code]),
   }
 }
 

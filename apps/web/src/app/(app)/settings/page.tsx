@@ -2,6 +2,8 @@ import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
 import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { formatWebDateTime } from "@/lib/date-format"
+import { supportedLanguageOptions } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 import { ClearPatternMemoryButton } from "./clear-pattern-memory-button"
 import { RevokeSessionsButton } from "./revoke-sessions-button"
@@ -11,6 +13,7 @@ import {
   deleteAccountAction,
   revokeSessionAction,
   revokeSessionsAction,
+  updateLanguagePreference,
   updateReflectionPreferences,
 } from "./actions"
 
@@ -68,6 +71,9 @@ export default async function SettingsPage({
   searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string; session?: string }>
 }) {
   const [params, user] = await Promise.all([searchParams, requireAppUser()])
+  const messages = getWebMessages(user.preferredLanguage)
+  const settingsMessages = messages.settings
+  const commonMessages = messages.common
   const billingEnabled = isStripeConfigured()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const [currentSession, subscription, sessions] = await Promise.all([
@@ -95,13 +101,13 @@ export default async function SettingsPage({
       {/* ── Header ─────────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          Settings
+          {settingsMessages.eyebrow}
         </p>
         <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
-          Your privacy & preferences
+          {settingsMessages.title}
         </h1>
         <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          Your journal is private by default. These controls let you shape how your guide works.
+          {settingsMessages.body}
         </p>
       </div>
 
@@ -122,6 +128,53 @@ export default async function SettingsPage({
             Your entries are used only to generate your reflections, safety checks, voice transcription, and speech playback. AI providers may process the text or audio needed for those features; raw journal text stays protected in this app.
           </p>
         </div>
+      </div>
+
+      {/* ── Language preferences ─────────────────────────────── */}
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          background: "var(--pearl)",
+          borderColor: "rgba(43,27,53,0.07)",
+        }}
+      >
+        <div
+          className="px-6 py-4 border-b"
+          style={{ borderColor: "rgba(43,27,53,0.06)" }}
+        >
+          <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
+            {settingsMessages.languageSection}
+          </p>
+        </div>
+        <form action={updateLanguagePreference} className="px-6">
+          <SettingRow
+            label={settingsMessages.languageLabel}
+            description={settingsMessages.languageDescription}
+            value={
+              <select
+                name="preferredLanguage"
+                defaultValue={user.preferredLanguage ?? "en"}
+                className="rounded-lg border bg-white px-3 py-2 text-[13px] text-[var(--primary)]"
+                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+                aria-label="Language preference"
+              >
+                {supportedLanguageOptions().map((language) => (
+                  <option key={language.code} value={language.code}>
+                    {language.nativeLabel}
+                  </option>
+                ))}
+              </select>
+            }
+          />
+          <div className="py-5">
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
+            >
+              {commonMessages.saveLanguage}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* ── Reflection preferences ─────────────────────────────── */}

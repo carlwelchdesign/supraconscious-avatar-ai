@@ -12,6 +12,7 @@ import { classifyJournalSafety } from "./safety-classifier.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import { localAiCopy, resolveResponseLanguage, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
   buildGenerationTraceLangSmithMetadata,
   recordLangSmithEvent,
@@ -28,6 +29,7 @@ export type CouncilReflectionUser = {
   currentLevel: number
   avatarStage: number
   patternMemoryEnabled: boolean
+  preferredLanguage?: string | null
 }
 
 export type CouncilReflectionInput = {
@@ -37,6 +39,7 @@ export type CouncilReflectionInput = {
   ragEnabled: boolean
   calibrationScenario?: FounderCalibrationScenario
   requestId?: string
+  responseLanguage?: ResponseLanguage
 }
 
 export async function runCouncilReflection(user: CouncilReflectionUser, input: CouncilReflectionInput) {
@@ -48,12 +51,14 @@ export async function runCouncilReflection(user: CouncilReflectionUser, input: C
     councilModeEnabled: input.councilModeEnabled,
     ragEnabled: input.ragEnabled,
     calibrationScenario: readFounderCalibrationScenario(input.calibrationScenario),
+    responseLanguage: resolveReflectionLanguage(user, input),
   }, async (langsmith) => runCouncilReflectionInternal(user, input, langsmith))
 
   return value
 }
 
 async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: CouncilReflectionInput, langsmith: LangSmithTraceContext) {
+  const responseLanguage = resolveReflectionLanguage(user, input)
   const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const featureFlags = {
     council_mode: input.councilModeEnabled,
@@ -82,7 +87,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
   })
 
   const safetyStart = Date.now()
-  const safety = await classifyJournalSafety(input.text)
+  const safety = await classifyJournalSafety(input.text, responseLanguage)
   const safetyLatencyMs = Date.now() - safetyStart
   recordLangSmithEvent(langsmith, "safety_classified", {
     requestId: input.requestId,
@@ -119,16 +124,17 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
   }
 
   if (!safety.allowReflectiveFlow || safety.severity === "high") {
+    const copy = localAiCopy(responseLanguage)
     const avatarResponse = await prisma.avatarResponse.create({
       data: {
         userId: user.id,
         journalEntryId: journalEntry.id,
-        openingLine: "Pause here.",
+        openingLine: copy.council.pauseHere,
         mirror: safety.userMessage,
-        patternName: "Grounding",
-        socraticQuestion: "Can you name one place of support available to you right now?",
-        integrationStep: "Name five things you can see. Write one sentence about where you are right now.",
-        closingLine: "Do not solve everything in this moment.",
+        patternName: copy.groundingPattern,
+        socraticQuestion: copy.council.supportQuestion,
+        integrationStep: copy.council.groundingStep,
+        closingLine: copy.council.groundingClose,
       },
     })
 
@@ -137,12 +143,12 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
         userId: user.id,
         journalEntryId: journalEntry.id,
         level: 1,
-        title: "Return to the Room",
-        context: "When the entry feels urgent or unsafe, the first reflection is orientation.",
-        materials: "A visible object, a steady surface, and one sentence.",
-        execution: "Look around and name five things you can see. Place one hand on a surface and write where you are.",
-        integration: "What is one next step that keeps you connected to real support?",
-        targetPattern: "grounding",
+        title: copy.prompt.title,
+        context: copy.prompt.context,
+        materials: copy.prompt.materialsAndPreparation,
+        execution: copy.prompt.execution,
+        integration: copy.prompt.integration,
+        targetPattern: copy.groundingPattern.toLowerCase(),
       },
     })
 
@@ -189,7 +195,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
   }
 
   const analysisStart = Date.now()
-  const analysis = await analyzeEntry(input.text, safety)
+  const analysis = await analyzeEntry(input.text, safety, responseLanguage)
   const analysisLatencyMs = Date.now() - analysisStart
   recordLangSmithEvent(langsmith, "entry_analyzed", {
     requestId: input.requestId,
@@ -220,8 +226,9 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       intensity: user.intensityLevel,
       currentLevel: user.currentLevel,
       avatarStage: user.avatarStage,
+      language: responseLanguage,
     }),
-    generateSymbolicPrompt(analysis, safety),
+    generateSymbolicPrompt(analysis, safety, responseLanguage),
   ])
 
   const [avatarResponse, generatedPrompt] = await Promise.all([
@@ -281,6 +288,7 @@ async function runCouncilMode(
   timings: { safetyLatencyMs: number; analysisLatencyMs: number },
   langsmith: LangSmithTraceContext,
 ) {
+  const responseLanguage = resolveReflectionLanguage(user, input)
   const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
   const retrievalStart = Date.now()
   const sourceContext = input.ragEnabled
@@ -357,6 +365,7 @@ async function runCouncilMode(
     avatarStage: user.avatarStage,
     sourceContext,
     promptTemplate: councilPromptTemplate,
+    language: responseLanguage,
   })
   const councilLatencyMs = Date.now() - councilStart
   const validation = validateCouncilRunForPilot(councilRun, { sourceContext, safety, sourceMode })
@@ -376,7 +385,7 @@ async function runCouncilMode(
     latencyMs: councilLatencyMs,
     calibrationScenario,
   })
-  const prompt = await generateSymbolicPrompt(analysis, safety)
+  const prompt = await generateSymbolicPrompt(analysis, safety, responseLanguage)
   const storedAnalysis = await prisma.entryAnalysis.create({
     data: buildAnalysisData(user.id, journalEntry.id, analysis),
   })
@@ -575,6 +584,10 @@ async function runCouncilMode(
       pilotScope: SOURCE_PROVENANCE_PILOT_SCOPE,
     },
   }
+}
+
+function resolveReflectionLanguage(user: CouncilReflectionUser, input: CouncilReflectionInput) {
+  return resolveResponseLanguage(input.responseLanguage ?? user.preferredLanguage)
 }
 
 function buildAnalysisData(userId: string, journalEntryId: string, analysis: Awaited<ReturnType<typeof analyzeEntry>>) {

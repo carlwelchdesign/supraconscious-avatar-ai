@@ -1,12 +1,12 @@
 import { getOpenAIClient } from "@inner-avatar/ai"
 
-export async function transcribeAudio(audio: Blob): Promise<string> {
+export async function transcribeAudio(audio: Blob, language = "en"): Promise<string> {
   const type = audio.type || "audio/webm"
   const file = new File([audio], `recording.${extensionForMimeType(type)}`, { type })
   const response = await getOpenAIClient().audio.transcriptions.create({
     file,
     model: "whisper-1",
-    language: "en",
+    language,
   })
   return response.text
 }

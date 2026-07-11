@@ -1,5 +1,6 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import {
@@ -16,6 +17,7 @@ import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
 import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
+import { readSupportedLanguageFromHeader } from "@inner-avatar/types/language"
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -103,6 +105,7 @@ export async function registerAction(_state: AuthActionState, formData: FormData
         email: parsed.data.email,
         passwordHash: await hashPassword(parsed.data.password),
         role: roleForEmail(parsed.data.email),
+        preferredLanguage: await readRequestLanguage(),
       },
     })
     await linkFounderParticipantIfConfigured(user.id, user.email)
@@ -119,6 +122,11 @@ export async function registerAction(_state: AuthActionState, formData: FormData
   }
 
   redirect(choosePostRegistrationRedirect(parsed.data.next))
+}
+
+async function readRequestLanguage() {
+  const headerStore = await headers()
+  return readSupportedLanguageFromHeader(headerStore.get("accept-language"))
 }
 
 export async function loginAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {

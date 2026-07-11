@@ -3,6 +3,7 @@ import {
   classifyJournalSafety,
   generateAvatarResponse,
 } from "@inner-avatar/ai"
+import { resolveResponseLanguage } from "@inner-avatar/ai/response-language"
 import { prisma } from "@inner-avatar/db"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { getOrCreateEntryAnalysis, resolveLegacyJournalEntry } from "@/lib/legacy-reflection"
@@ -28,13 +29,15 @@ export async function POST(request: Request) {
       text: body.text,
     })
 
-    const safety = await classifyJournalSafety(journalEntry.rawText)
+    const responseLanguage = resolveResponseLanguage(user.preferredLanguage)
+    const safety = await classifyJournalSafety(journalEntry.rawText, responseLanguage)
     const analysis = await getOrCreateEntryAnalysis({ userId: user.id, journalEntry, safety })
     const avatarResponse = await generateAvatarResponse(journalEntry.rawText, analysis, safety, {
       tone: user.avatarTone,
       intensity: user.intensityLevel,
       currentLevel: user.currentLevel,
       avatarStage: user.avatarStage,
+      language: responseLanguage,
     })
 
     const saved = await prisma.avatarResponse.upsert({

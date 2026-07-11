@@ -17,6 +17,8 @@ test("mobile session response reports unauthenticated state", () => {
   assert.equal(response.authenticated, false)
   assert.equal(response.status, "unauthenticated")
   assert.equal(response.user, null)
+  assert.equal(response.language.current, "en")
+  assert.deepEqual(response.language.supported.map((language) => language.code), ["en", "es", "el", "fr", "de"])
   assert.equal(response.consent.version, PILOT_CONSENT_VERSION)
   assert.deepEqual(response.consent.required, [...REQUIRED_PILOT_CONSENTS])
   assert.deepEqual(response.consent.optional, [...OPTIONAL_PILOT_CONSENTS])
@@ -44,6 +46,7 @@ test("mobile session response distinguishes onboarding from ready", () => {
     intensityLevel: 3,
     currentLevel: 1,
     avatarStage: 1,
+    preferredLanguage: "es",
   }
   const consentRecords = [
     ...REQUIRED_PILOT_CONSENTS.map((consentType) => ({
@@ -59,7 +62,10 @@ test("mobile session response distinguishes onboarding from ready", () => {
   ]
 
   assert.equal(buildMobileSessionResponse({ user: { ...user, onboardingComplete: false }, consentRecords }).status, "onboarding_required")
-  assert.equal(buildMobileSessionResponse({ user, consentRecords }).status, "ready")
+  const ready = buildMobileSessionResponse({ user, consentRecords })
+  assert.equal(ready.status, "ready")
+  assert.equal(ready.user?.preferredLanguage, "es")
+  assert.equal(ready.language.current, "es")
 })
 
 test("mobile saved session response omits private feedback notes", () => {

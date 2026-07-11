@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:http/http.dart' as http;
 
@@ -46,7 +47,12 @@ class InnerCouncilApiClient {
     final json = await _send(
       'POST',
       '/api/mobile/auth/register',
-      body: {'name': name, 'email': email, 'password': password},
+      body: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'preferredLanguage': _currentLanguageCode(),
+      },
     );
     return MobileSession.fromJson(json);
   }
@@ -69,6 +75,17 @@ class InnerCouncilApiClient {
       'PATCH',
       '/api/mobile/settings/reflection-preferences',
       body: {'patternMemoryEnabled': patternMemoryEnabled},
+    );
+    return MobileSession.fromJson(json);
+  }
+
+  Future<MobileSession> updateLanguagePreference({
+    required String preferredLanguage,
+  }) async {
+    final json = await _send(
+      'PATCH',
+      '/api/mobile/settings/language',
+      body: {'preferredLanguage': preferredLanguage},
     );
     return MobileSession.fromJson(json);
   }
@@ -181,6 +198,7 @@ class InnerCouncilApiClient {
     final uri = Uri.parse(baseUrl).resolve(path);
     final request = http.Request(method, uri)
       ..headers['Accept'] = 'application/json';
+    request.headers['Accept-Language'] = _currentLanguageCode();
 
     if (_cookies.isNotEmpty) {
       request.headers['Cookie'] = _cookies.entries
@@ -238,6 +256,11 @@ class InnerCouncilApiClient {
       );
     }
   }
+
+  String _currentLanguageCode() {
+    final code = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    return const {'en', 'es', 'el', 'fr', 'de'}.contains(code) ? code : 'en';
+  }
 }
 
 class MobileSession {
@@ -245,12 +268,14 @@ class MobileSession {
     required this.authenticated,
     required this.status,
     required this.user,
+    required this.language,
     required this.consent,
   });
 
   final bool authenticated;
   final String status;
   final MobileUser? user;
+  final MobileLanguageState language;
   final MobileConsent consent;
 
   bool get isUnauthenticated => status == 'unauthenticated';
@@ -265,6 +290,9 @@ class MobileSession {
       user: userJson is Map<String, dynamic>
           ? MobileUser.fromJson(userJson)
           : null,
+      language: MobileLanguageState.fromJson(
+        json['language'] as Map<String, dynamic>? ?? const {},
+      ),
       consent: MobileConsent.fromJson(
         json['consent'] as Map<String, dynamic>? ?? const {},
       ),
@@ -281,6 +309,7 @@ class MobileUser {
     required this.intensityLevel,
     required this.currentLevel,
     required this.avatarStage,
+    required this.preferredLanguage,
   });
 
   final String email;
@@ -290,6 +319,7 @@ class MobileUser {
   final int intensityLevel;
   final int currentLevel;
   final int avatarStage;
+  final String preferredLanguage;
 
   factory MobileUser.fromJson(Map<String, dynamic> json) {
     return MobileUser(
@@ -300,6 +330,56 @@ class MobileUser {
       intensityLevel: json['intensityLevel'] as int? ?? 3,
       currentLevel: json['currentLevel'] as int? ?? 1,
       avatarStage: json['avatarStage'] as int? ?? 1,
+      preferredLanguage: json['preferredLanguage'] as String? ?? 'en',
+    );
+  }
+}
+
+class MobileLanguageState {
+  const MobileLanguageState({
+    required this.current,
+    required this.supported,
+  });
+
+  final String current;
+  final List<MobileSupportedLanguage> supported;
+
+  factory MobileLanguageState.fromJson(Map<String, dynamic> json) {
+    final supported = json['supported'];
+    return MobileLanguageState(
+      current: json['current'] as String? ?? 'en',
+      supported: supported is List
+          ? supported
+                .whereType<Map<String, dynamic>>()
+                .map(MobileSupportedLanguage.fromJson)
+                .toList()
+          : const [
+              MobileSupportedLanguage(
+                code: 'en',
+                label: 'English',
+                nativeLabel: 'English',
+              ),
+            ],
+    );
+  }
+}
+
+class MobileSupportedLanguage {
+  const MobileSupportedLanguage({
+    required this.code,
+    required this.label,
+    required this.nativeLabel,
+  });
+
+  final String code;
+  final String label;
+  final String nativeLabel;
+
+  factory MobileSupportedLanguage.fromJson(Map<String, dynamic> json) {
+    return MobileSupportedLanguage(
+      code: json['code'] as String? ?? 'en',
+      label: json['label'] as String? ?? 'English',
+      nativeLabel: json['nativeLabel'] as String? ?? 'English',
     );
   }
 }
