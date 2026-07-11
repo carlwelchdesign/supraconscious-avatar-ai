@@ -1,6 +1,6 @@
 "use server"
 
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import {
@@ -17,7 +17,7 @@ import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
 import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
-import { readSupportedLanguageFromHeader } from "@inner-avatar/types/language"
+import { LANGUAGE_COOKIE_NAME, readSupportedLanguageFromHeader, resolveSupportedLanguage } from "@inner-avatar/types/language"
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -125,6 +125,10 @@ export async function registerAction(_state: AuthActionState, formData: FormData
 }
 
 async function readRequestLanguage() {
+  const cookieStore = await cookies()
+  const savedLanguage = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value
+  if (savedLanguage) return resolveSupportedLanguage(savedLanguage)
+
   const headerStore = await headers()
   return readSupportedLanguageFromHeader(headerStore.get("accept-language"))
 }

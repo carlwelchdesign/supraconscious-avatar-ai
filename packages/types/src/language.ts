@@ -3,6 +3,7 @@ export const SUPPORTED_LANGUAGES = ["en", "es", "el", "fr", "de"] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = "en"
+export const LANGUAGE_COOKIE_NAME = "inner_avatar_language"
 
 export const SUPPORTED_LANGUAGE_DETAILS: Record<SupportedLanguage, {
   code: SupportedLanguage

@@ -1,9 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
-import { readRequestLanguage } from "@/lib/language"
+import { readRequestLanguage, resolveSupportedLanguage, supportedLanguageOptions, writeLanguageCookie } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
 const councilRoles = [
@@ -48,9 +49,17 @@ function CtaLink({ href, children, variant = "dark" }: { href: string; children:
   )
 }
 
+async function updateLandingLanguage(formData: FormData) {
+  "use server"
+
+  await writeLanguageCookie(formData.get("language"))
+  redirect("/")
+}
+
 export default async function Home() {
   const user = await getCurrentUser()
-  const messages = getWebMessages(user?.preferredLanguage ?? await readRequestLanguage())
+  const currentLanguage = resolveSupportedLanguage(user?.preferredLanguage ?? await readRequestLanguage())
+  const messages = getWebMessages(currentLanguage)
   const common = messages.common
   const landing = messages.landing
   const primaryHref = user ? "/journal" : "/register"
@@ -60,7 +69,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--primary)]">
       <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[rgba(26,16,32,0.58)] px-5 py-4 text-[var(--cream)] backdrop-blur-xl md:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 md:gap-4">
           <Link href="/" className="font-display text-xl font-medium tracking-wide focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]">
             {landing.brand}
           </Link>
@@ -79,13 +88,35 @@ export default async function Home() {
               </Link>
             ))}
           </nav>
-          <Link
-            href={primaryHref}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
-          >
-            {user ? common.openJournal : common.begin}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <form action={updateLandingLanguage} className="flex items-center gap-2">
+              <select
+                name="language"
+                defaultValue={currentLanguage}
+                aria-label={common.language}
+                className="h-10 rounded-full border border-white/15 bg-white/10 px-3 text-xs font-medium text-[var(--cream)] outline-none transition hover:bg-white/15 focus:ring-2 focus:ring-[var(--clay-light)]"
+              >
+                {supportedLanguageOptions().map((language) => (
+                  <option key={language.code} value={language.code} className="text-[var(--primary)]">
+                    {language.nativeLabel}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="inline-flex h-10 items-center rounded-full border border-white/15 px-3 text-xs font-medium text-[var(--cream)] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+              >
+                {common.saveLanguage}
+              </button>
+            </form>
+            <Link
+              href={primaryHref}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+            >
+              {user ? common.openJournal : common.begin}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </header>
 
