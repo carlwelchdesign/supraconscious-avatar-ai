@@ -3,7 +3,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
-import { readRequestLanguage, resolveSupportedLanguage, supportedLanguageOptions } from "@/lib/language"
+import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
 const councilIcons = [Shield, VenetianMask, Telescope, Sparkles]
@@ -24,7 +24,7 @@ function CtaLink({ href, children, variant = "dark" }: { href: string; children:
 
 export default async function Home() {
   const user = await getCurrentUser()
-  const currentLanguage = resolveSupportedLanguage(user?.preferredLanguage ?? await readRequestLanguage())
+  const currentLanguage = await resolveWebLanguage(user?.preferredLanguage)
   const messages = getWebMessages(currentLanguage)
   const common = messages.common
   const landing = messages.landing

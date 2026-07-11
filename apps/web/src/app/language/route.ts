@@ -15,13 +15,18 @@ function safeRedirectTarget(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const language = resolveSupportedLanguage(request.nextUrl.searchParams.get("lang"))
   const response = NextResponse.redirect(safeRedirectTarget(request))
-  const user = await getCurrentUser()
 
-  if (user && user.preferredLanguage !== language) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { preferredLanguage: language },
-    })
+  try {
+    const user = await getCurrentUser()
+
+    if (user && user.preferredLanguage !== language) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { preferredLanguage: language },
+      })
+    }
+  } catch (error) {
+    console.error("Unable to persist language preference", error)
   }
 
   response.cookies.set(LANGUAGE_COOKIE_NAME, language, {

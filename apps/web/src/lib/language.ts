@@ -20,9 +20,24 @@ export {
 }
 
 export async function readRequestLanguage(): Promise<SupportedLanguage> {
+  const savedLanguage = await readLanguageCookie()
+  if (savedLanguage) return savedLanguage
+
+  const headerStore = await headers()
+  return readSupportedLanguageFromHeader(headerStore.get("accept-language"))
+}
+
+export async function readLanguageCookie(): Promise<SupportedLanguage | null> {
   const cookieStore = await cookies()
   const savedLanguage = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value
-  if (savedLanguage) return resolveSupportedLanguage(savedLanguage)
+  return savedLanguage ? resolveSupportedLanguage(savedLanguage) : null
+}
+
+export async function resolveWebLanguage(preferredLanguage: unknown): Promise<SupportedLanguage> {
+  const savedLanguage = await readLanguageCookie()
+  if (savedLanguage) return savedLanguage
+
+  if (preferredLanguage) return resolveSupportedLanguage(preferredLanguage)
 
   const headerStore = await headers()
   return readSupportedLanguageFromHeader(headerStore.get("accept-language"))
