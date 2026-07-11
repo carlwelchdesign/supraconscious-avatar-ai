@@ -2,7 +2,7 @@ import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
 import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { formatWebDateTime } from "@/lib/date-format"
-import { supportedLanguageOptions } from "@/lib/language"
+import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
 import { ClearPatternMemoryButton } from "./clear-pattern-memory-button"
@@ -71,7 +71,8 @@ export default async function SettingsPage({
   searchParams: Promise<{ accountDelete?: string; billing?: string; checkout?: string; password?: string; session?: string }>
 }) {
   const [params, user] = await Promise.all([searchParams, requireAppUser()])
-  const messages = getWebMessages(user.preferredLanguage)
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
+  const messages = getWebMessages(currentLanguage)
   const settingsMessages = messages.settings
   const commonMessages = messages.common
   const billingEnabled = isStripeConfigured()
@@ -153,7 +154,7 @@ export default async function SettingsPage({
             value={
               <select
                 name="preferredLanguage"
-                defaultValue={user.preferredLanguage ?? "en"}
+                defaultValue={currentLanguage}
                 className="rounded-lg border bg-white px-3 py-2 text-[13px] text-[var(--primary)]"
                 style={{ borderColor: "rgba(43,27,53,0.12)" }}
                 aria-label="Language preference"

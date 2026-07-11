@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
 import type { AuthActionState } from "@inner-avatar/auth/actions"
@@ -15,6 +16,7 @@ type AuthFormProps = {
 }
 
 export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: AuthFormProps) {
+  const t = useTranslations("auth")
   const [state, formAction, isPending] = useActionState(action, {})
   const isRegister = mode === "register"
   const alternateHref = buildAlternateHref(isRegister ? "/login" : "/register", defaultEmail, nextPath)
@@ -27,15 +29,15 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
         <AvatarOrb size="md" className="mx-auto mb-5" priority />
         <h1 className="font-display text-[32px] font-light text-[var(--primary)] leading-tight">
           {isRegister ? (
-            <>Begin your<br /><em className="italic font-normal text-[var(--clay)]">reflection</em></>
+            <>{t("registerTitlePrimary")}<br /><em className="italic font-normal text-[var(--clay)]">{t("registerTitleAccent")}</em></>
           ) : (
-            <>Welcome<br /><em className="italic font-normal text-[var(--clay)]">back</em></>
+            <>{t("loginTitlePrimary")}<br /><em className="italic font-normal text-[var(--clay)]">{t("loginTitleAccent")}</em></>
           )}
         </h1>
         <p className="mt-2 text-[13px] font-light text-[var(--plum-soft)]">
           {isRegister
-            ? "Start with email and password."
-            : "Sign in to your Supraconscious account."}
+            ? t("registerSubtitle")
+            : t("loginSubtitle")}
         </p>
       </div>
 
@@ -59,7 +61,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
         {isRegister && (
           <label className="block space-y-1.5">
             <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
-              Name
+              {t("name")}
             </span>
             <input
               name="name"
@@ -67,14 +69,14 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
               required
               className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
               style={{ borderColor: "rgba(43,27,53,0.1)" }}
-              placeholder="Your name"
+              placeholder={t("namePlaceholder")}
             />
           </label>
         )}
 
         <label className="block space-y-1.5">
           <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
-            Email
+            {t("email")}
           </span>
           <input
             name="email"
@@ -90,7 +92,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
 
         <label className="block space-y-1.5">
           <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
-            Password
+            {t("password")}
           </span>
           <input
             name="password"
@@ -129,26 +131,26 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
           ) : (
             <ArrowRight className="w-4 h-4" />
           )}
-          {isRegister ? "Create account" : "Sign in"}
+          {isRegister ? t("createAccount") : t("signIn")}
         </button>
       </form>
 
       <p className="text-center text-[13px] font-light text-[var(--plum-soft)]">
-        {isRegister ? "Already have an account?" : "Need an account?"}{" "}
+        {isRegister ? t("alreadyHaveAccount") : t("needAccount")}{" "}
         <Link
           href={alternateHref}
           className="font-medium text-[var(--primary)] underline-offset-4 hover:underline"
         >
-          {isRegister ? "Sign in" : "Register"}
+          {isRegister ? t("signIn") : t("register")}
         </Link>
       </p>
       {!isRegister && (
         <div className="flex items-center justify-center gap-4 text-[12px] font-light text-[var(--plum-soft)]">
           <Link href={buildAlternateHref("/forgot-password", defaultEmail, "")} className="underline-offset-4 hover:underline">
-            Forgot password
+            {t("forgotPassword")}
           </Link>
           <Link href={buildAlternateHref("/verify-email", defaultEmail, "")} className="underline-offset-4 hover:underline">
-            Verify email
+            {t("verifyEmail")}
           </Link>
         </div>
       )}

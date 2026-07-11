@@ -18,6 +18,7 @@ import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-r
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
 import { LANGUAGE_COOKIE_NAME, readSupportedLanguageFromHeader, resolveSupportedLanguage } from "@inner-avatar/types/language"
+import type { SupportedLanguage } from "@inner-avatar/types/language"
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -162,10 +163,14 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       return { error: "Email or password is incorrect." }
     }
 
+    const selectedLanguage = await readLanguageCookie()
     const expectedRole = roleForEmail(user.email)
-    const effectiveUser = expectedRole === "super_admin" && user.role !== "super_admin"
+    const roleUpdatedUser = expectedRole === "super_admin" && user.role !== "super_admin"
       ? await prisma.user.update({ where: { id: user.id }, data: { role: "super_admin" } })
       : user
+    const effectiveUser = selectedLanguage && roleUpdatedUser.preferredLanguage !== selectedLanguage
+      ? await prisma.user.update({ where: { id: roleUpdatedUser.id }, data: { preferredLanguage: selectedLanguage } })
+      : roleUpdatedUser
 
     await createSession(effectiveUser.id, "web")
     redirectTo = choosePostAuthRedirect(await readPostLoginRedirect(effectiveUser), parsed.data.next)
@@ -175,6 +180,12 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
   }
 
   redirect(redirectTo)
+}
+
+async function readLanguageCookie(): Promise<SupportedLanguage | null> {
+  const cookieStore = await cookies()
+  const savedLanguage = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value
+  return savedLanguage ? resolveSupportedLanguage(savedLanguage) : null
 }
 
 export async function logoutAction() {

@@ -16,7 +16,7 @@ class InnerCouncilMobileApp extends ConsumerWidget {
     return MaterialApp(
       title: 'The Inner Council',
       debugShowCheckedModeBanner: false,
-      locale: session == null ? null : Locale(session.language.current),
+      locale: session == null ? null : _localeFromLanguageCode(session.language.current),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
@@ -34,6 +34,15 @@ class InnerCouncilMobileApp extends ConsumerWidget {
       home: const MobileRoot(),
     );
   }
+}
+
+Locale _localeFromLanguageCode(String languageCode) {
+  final normalized = languageCode.replaceAll('_', '-');
+  if (normalized == 'zh-Hans' || normalized == 'zh' || normalized == 'zh-CN') {
+    return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+  }
+
+  return Locale(normalized.split('-').first);
 }
 
 class MobileRoot extends ConsumerStatefulWidget {

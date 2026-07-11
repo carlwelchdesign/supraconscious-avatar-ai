@@ -7,6 +7,8 @@ import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour
 import { readFounderFeedbackSummary } from "@/lib/founder-feedback-summary"
 import { readFounderReviewSummary } from "@/lib/founder-review-summary"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 
 const LEVEL_NAMES = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"]
 
@@ -62,12 +64,14 @@ export default async function DashboardPage({
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = readGuideStageConfig(guideStages, guideStage).name
   const dashboardMessage = readDashboardMessage(query)
+  const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
+  const dashboard = messages.dashboard
 
   const greeting = (() => {
     const h = getAppHour()
-    if (h < 12) return "Good morning"
-    if (h < 17) return "Good afternoon"
-    return "Good evening"
+    if (h < 12) return dashboard.goodMorning
+    if (h < 17) return dashboard.goodAfternoon
+    return dashboard.goodEvening
   })()
 
   return (
@@ -80,10 +84,10 @@ export default async function DashboardPage({
             {greeting}
           </p>
           <h1 className="font-display text-[40px] font-light leading-tight text-[var(--primary)]">
-            {user.name ?? "Welcome back"}
+            {user.name ?? dashboard.welcomeBack}
           </h1>
           <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-            Your current level is{" "}
+            {dashboard.currentLevelPrefix}{" "}
             <span className="font-medium text-[var(--primary)]">{LEVEL_NAMES[(user.currentLevel ?? 1) - 1]}</span>.
           </p>
         </div>
@@ -91,7 +95,7 @@ export default async function DashboardPage({
           href="/journal"
           className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-5 py-3 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px whitespace-nowrap self-start sm:self-auto"
         >
-          New entry
+          {dashboard.newEntry}
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
