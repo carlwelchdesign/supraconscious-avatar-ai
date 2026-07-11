@@ -24,6 +24,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get useExistingAccount => 'Bestehendes Konto nutzen';
 
   @override
+  String get nameLabel => 'Name';
+
+  @override
+  String get emailLabel => 'E-Mail';
+
+  @override
+  String get passwordLabel => 'Passwort';
+
+  @override
   String get landingEyebrow => 'KI-gestützte Identitätsreflexion';
 
   @override
@@ -93,4 +102,223 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get patternMemorySubtitle =>
       'Wiederkehrende Signale dürfen mit der Zeit sichtbar werden.';
+
+  @override
+  String get landingProblemEyebrow => 'Das Problem';
+
+  @override
+  String get landingProblemTitle =>
+      'Du steckst nicht fest. Du siehst noch nicht klar.';
+
+  @override
+  String get landingProblemBody =>
+      'Du hast darüber nachgedacht, es analysiert, es wiederholt, und doch zögert etwas in dir.';
+
+  @override
+  String get landingCouncilEyebrow => 'So funktioniert es';
+
+  @override
+  String get landingCouncilTitle => 'Lerne deinen Inneren Rat kennen';
+
+  @override
+  String get landingCouncilBody =>
+      'Du schreibst, was dich beschäftigt. Vier innere Perspektiven spiegeln, was sich unter der Oberfläche bewegt.';
+
+  @override
+  String get protectorRole => 'Der Beschützer';
+
+  @override
+  String get protectorRoleBody => 'Zeigt, wo Angst dich zurückhält.';
+
+  @override
+  String get conditionedSelfRole => 'Das konditionierte Selbst';
+
+  @override
+  String get conditionedSelfRoleBody =>
+      'Zeigt Muster, die du nicht hinterfragt hast.';
+
+  @override
+  String get visionaryRole => 'Der Visionär';
+
+  @override
+  String get visionaryRoleBody => 'Zeigt, wer du wirst.';
+
+  @override
+  String get truthSelfRole => 'Das wahre Selbst';
+
+  @override
+  String get truthSelfRoleBody => 'Durchdringt die Illusion.';
+
+  @override
+  String get landingExperienceEyebrow => 'Die Erfahrung';
+
+  @override
+  String get landingExperienceTitle =>
+      'Schreiben. Sehen. Begegnen. Wählen. Werden.';
+
+  @override
+  String get landingExperienceBody =>
+      'Jede Sitzung folgt einem einfachen Weg: kein Lärm, keine Überforderung, nur ein klarerer nächster Schritt.';
+
+  @override
+  String get landingDifferentEyebrow => 'Anders gestaltet';
+
+  @override
+  String get landingDifferentTitle =>
+      'Nicht noch ein Ort, um dich im Kreis zu drehen.';
+
+  @override
+  String get landingDifferentBody =>
+      'Dies ist ein System für Identitätsreflexion, Klarheit in Entscheidungen und ein Spiegel für dein Werden.';
+
+  @override
+  String get landingFinalCta => 'Erste Reflexion beginnen';
+
+  @override
+  String get landingBack => 'Start';
+
+  @override
+  String get continueLabel => 'Weiter';
+
+  @override
+  String get tabHome => 'Home';
+
+  @override
+  String get entries => 'Einträge';
+
+  @override
+  String get guideStage => 'Guide-Stufe';
+
+  @override
+  String get noSavedTitle => 'Noch keine gespeicherten Reflexionen';
+
+  @override
+  String get today => 'Heute';
+
+  @override
+  String get askCouncil => 'Den Rat fragen';
+
+  @override
+  String get reflecting => 'Reflexion...';
+
+  @override
+  String wordCount(int count) {
+    return '$count Wörter';
+  }
+
+  @override
+  String get nothingSavedTitle => 'Noch nichts gespeichert';
+
+  @override
+  String get savedReflectionTitle => 'Gespeicherte Reflexion';
+
+  @override
+  String get feedbackSaved => 'Feedback gespeichert';
+
+  @override
+  String get feedbackNeeded => 'Feedback erforderlich';
+
+  @override
+  String get gateSaved => 'Tor gespeichert';
+
+  @override
+  String get gateOpen => 'Tor offen';
+
+  @override
+  String get helpful => 'Hilfreich';
+
+  @override
+  String get notAccurate => 'Nicht treffend';
+
+  @override
+  String get tooIntense => 'Zu intensiv';
+
+  @override
+  String get unclear => 'Unklar';
+
+  @override
+  String get unsupportedSource => 'Nicht gestützte Quelle';
+
+  @override
+  String get saving => 'Speichern...';
+
+  @override
+  String get saveFeedback => 'Feedback speichern';
+
+  @override
+  String get patternsTitle => 'Muster';
+
+  @override
+  String get patternsEmptyTitle => 'Muster entstehen mit der Zeit';
+
+  @override
+  String get yourGuide => 'Dein Guide';
+
+  @override
+  String get tone => 'Ton';
+
+  @override
+  String get intensity => 'Intensität';
+
+  @override
+  String get trait => 'Eigenschaft';
+
+  @override
+  String get retry => 'Erneut versuchen';
+
+  @override
+  String get guideResponse => 'Antwort des Guides';
+
+  @override
+  String get oneGroundedStep => 'Ein geerdeter Schritt';
+
+  @override
+  String get sourceGrounding => 'Quellenverankerung';
+
+  @override
+  String get signOut => 'Abmelden';
+
+  @override
+  String get grounding => 'Erdung';
+
+  @override
+  String get recentReflections => 'Aktuelle Reflexionen';
+
+  @override
+  String get firstEntryBody =>
+      'Schreibe deinen ersten Eintrag, um deine Praxis aufzubauen.';
+
+  @override
+  String get savedReflections => 'Gespeicherte Reflexionen';
+
+  @override
+  String get patternsSubtitle =>
+      'Signale, keine Diagnosen. Muster erscheinen erst, wenn sie wiederkehren.';
+
+  @override
+  String get savedReflectionFallback => 'Gespeicherte Reflexion';
+
+  @override
+  String thresholdLabel(int month, int day) {
+    return 'Schwelle · Monat $month, Tag $day';
+  }
+
+  @override
+  String get noThresholdPrompt =>
+      'Für heute ist kein Schwellen-Impuls veröffentlicht. Schreibe, was präsent ist, ohne eine Struktur zu erzwingen.';
+
+  @override
+  String get thresholdPurposeTheme => 'SINN';
+
+  @override
+  String get thresholdPurposeQuote =>
+      'Die Seele flüstert, bevor das Schicksal spricht.';
+
+  @override
+  String get thresholdPurposeFrameOfThought =>
+      'Sinn kommt selten als Befehl. Oft beginnt er als leise Einladung.';
+
+  @override
+  String get thresholdPurposeSocraticQuestion =>
+      'Welche Einladung hast du ignoriert?';
 }

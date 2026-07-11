@@ -30,11 +30,16 @@ class InnerCouncilApiClient {
   Future<MobileSession> login({
     required String email,
     required String password,
+    String? preferredLanguage,
   }) async {
     final json = await _send(
       'POST',
       '/api/mobile/auth/login',
-      body: {'email': email, 'password': password},
+      body: {
+        'email': email,
+        'password': password,
+        'preferredLanguage': preferredLanguage ?? _currentLanguageCode(),
+      },
     );
     return MobileSession.fromJson(json);
   }
@@ -43,6 +48,7 @@ class InnerCouncilApiClient {
     required String name,
     required String email,
     required String password,
+    String? preferredLanguage,
   }) async {
     final json = await _send(
       'POST',
@@ -51,7 +57,7 @@ class InnerCouncilApiClient {
         'name': name,
         'email': email,
         'password': password,
-        'preferredLanguage': _currentLanguageCode(),
+        'preferredLanguage': preferredLanguage ?? _currentLanguageCode(),
       },
     );
     return MobileSession.fromJson(json);
@@ -370,6 +376,7 @@ class MobileLanguageState {
                 code: 'en',
                 label: 'English',
                 nativeLabel: 'English',
+                flag: '🇺🇸',
               ),
             ],
     );
@@ -381,17 +388,20 @@ class MobileSupportedLanguage {
     required this.code,
     required this.label,
     required this.nativeLabel,
+    required this.flag,
   });
 
   final String code;
   final String label;
   final String nativeLabel;
+  final String flag;
 
   factory MobileSupportedLanguage.fromJson(Map<String, dynamic> json) {
     return MobileSupportedLanguage(
       code: json['code'] as String? ?? 'en',
       label: json['label'] as String? ?? 'English',
       nativeLabel: json['nativeLabel'] as String? ?? 'English',
+      flag: json['flag'] as String? ?? '🌐',
     );
   }
 }

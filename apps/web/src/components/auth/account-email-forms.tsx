@@ -3,6 +3,7 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import { ArrowRight, Loader2 } from "lucide-react"
 import type { AuthActionState } from "@inner-avatar/auth/actions"
 import {
@@ -24,20 +25,22 @@ type TokenFormProps = {
 }
 
 export function EmailRequestForm({ mode, defaultEmail = "" }: EmailRequestFormProps) {
+  const t = useTranslations("auth")
   const action = mode === "verify" ? requestEmailVerificationAction : requestPasswordResetAction
   const [state, formAction, isPending] = useActionState(action, {})
   const isVerify = mode === "verify"
 
   return (
     <AccountPanel
-      title={isVerify ? "Verify email" : "Reset password"}
-      description={isVerify ? "Request a fresh verification link." : "Request a secure password reset link."}
+      title={isVerify ? t("verifyEmailTitle") : t("resetPassword")}
+      description={isVerify ? t("verifyEmailDescription") : t("resetPasswordDescription")}
       state={state}
+      backLabel={t("backToSignIn")}
     >
       <form action={formAction} className="space-y-4">
         <Honeypot />
         <label className="block space-y-1.5">
-          <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">Email</span>
+          <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">{t("email")}</span>
           <input
             name="email"
             type="email"
@@ -50,34 +53,36 @@ export function EmailRequestForm({ mode, defaultEmail = "" }: EmailRequestFormPr
           />
         </label>
         <TurnstileWidget />
-        <SubmitButton pending={isPending}>{isVerify ? "Send verification link" : "Send reset link"}</SubmitButton>
+        <SubmitButton pending={isPending}>{isVerify ? t("sendVerificationLink") : t("sendResetLink")}</SubmitButton>
       </form>
     </AccountPanel>
   )
 }
 
 export function TokenForm({ mode, token }: TokenFormProps) {
+  const t = useTranslations("auth")
   const action = mode === "verify" ? verifyEmailAction : resetPasswordAction
   const [state, formAction, isPending] = useActionState(action, {})
   const isVerify = mode === "verify"
 
   return (
     <AccountPanel
-      title={isVerify ? "Confirm email" : "Choose new password"}
-      description={isVerify ? "Use the secure link from your email." : "Use the secure reset link from your email."}
+      title={isVerify ? t("confirmEmail") : t("chooseNewPassword")}
+      description={isVerify ? t("confirmEmailDescription") : t("chooseNewPasswordDescription")}
       state={state}
+      backLabel={t("backToSignIn")}
     >
       <form action={formAction} className="space-y-4">
         <Honeypot />
         <input type="hidden" name="token" value={token} />
         {!isVerify && (
           <>
-            <PasswordInput name="password" label="New password" />
-            <PasswordInput name="confirmPassword" label="Confirm password" />
+            <PasswordInput name="password" label={t("newPassword")} />
+            <PasswordInput name="confirmPassword" label={t("confirmPassword")} />
           </>
         )}
         <TurnstileWidget />
-        <SubmitButton pending={isPending}>{isVerify ? "Verify email" : "Reset password"}</SubmitButton>
+        <SubmitButton pending={isPending}>{isVerify ? t("verifyEmail") : t("resetPassword")}</SubmitButton>
       </form>
     </AccountPanel>
   )
@@ -87,11 +92,13 @@ function AccountPanel({
   title,
   description,
   state,
+  backLabel,
   children,
 }: {
   title: string
   description: string
   state: AuthActionState
+  backLabel: string
   children: ReactNode
 }) {
   return (
@@ -112,7 +119,7 @@ function AccountPanel({
       {children}
       <p className="text-center text-[13px] font-light text-[var(--plum-soft)]">
         <Link href="/login" className="font-medium text-[var(--primary)] underline-offset-4 hover:underline">
-          Back to sign in
+          {backLabel}
         </Link>
       </p>
     </div>

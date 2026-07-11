@@ -56,17 +56,35 @@ class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
     state = await AsyncValue.guard(_apiClient.getSession);
   }
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(
+    String email,
+    String password, {
+    String? preferredLanguage,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
-      () => _apiClient.login(email: email, password: password),
+      () => _apiClient.login(
+        email: email,
+        password: password,
+        preferredLanguage: preferredLanguage,
+      ),
     );
   }
 
-  Future<void> register(String name, String email, String password) async {
+  Future<void> register(
+    String name,
+    String email,
+    String password, {
+    String? preferredLanguage,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
-      () => _apiClient.register(name: name, email: email, password: password),
+      () => _apiClient.register(
+        name: name,
+        email: email,
+        password: password,
+        preferredLanguage: preferredLanguage,
+      ),
     );
   }
 

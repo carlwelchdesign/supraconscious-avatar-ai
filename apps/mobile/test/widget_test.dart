@@ -5,8 +5,13 @@ import 'package:http/http.dart' as http;
 import 'package:inner_council_mobile/src/app.dart';
 import 'package:inner_council_mobile/src/mobile_api.dart';
 import 'package:inner_council_mobile/src/session_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('bootstrap shows auth entry points when unauthenticated', (
     tester,
   ) async {
@@ -18,6 +23,22 @@ void main() {
     expect(find.text('Start Your First Reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
     expect(find.text('API: http://localhost:3000'), findsOneWidget);
+  });
+
+  testWidgets('landing language selector updates localized copy', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('🇺🇸'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ελληνικά').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Το Εσωτερικό Συμβούλιο'), findsOneWidget);
+    expect(find.text('Αυτό δεν είναι ημερολόγιο.'), findsOneWidget);
+    expect(find.text('Ο Προστάτης'), findsOneWidget);
   });
 
   testWidgets('landing create account opens register form', (tester) async {
@@ -99,6 +120,26 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('journal prompt card localizes known Threshold prompt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _testApp(_FakeApiClient(_readySpanish(), prompt: _purposeJournalPrompt())),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Diario'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Umbral · Mes 7, día 11'), findsOneWidget);
+    expect(
+      find.text('El alma susurra antes de que hable el destino.'),
+      findsOneWidget,
+    );
+    expect(find.text('PROPÓSITO'), findsOneWidget);
+    expect(find.text('PURPOSE'), findsNothing);
   });
 
   test('journal analyze result parses council synthesis fallback', () {
@@ -339,11 +380,19 @@ const _languageState = MobileLanguageState(
       code: 'en',
       label: 'English',
       nativeLabel: 'English',
+      flag: '🇺🇸',
     ),
     MobileSupportedLanguage(
       code: 'es',
       label: 'Spanish',
       nativeLabel: 'Español',
+      flag: '🇪🇸',
+    ),
+    MobileSupportedLanguage(
+      code: 'el',
+      label: 'Greek',
+      nativeLabel: 'Ελληνικά',
+      flag: '🇬🇷',
     ),
   ],
 );
@@ -433,6 +482,45 @@ MobileSession _ready() {
   );
 }
 
+MobileSession _readySpanish() {
+  return const MobileSession(
+    authenticated: true,
+    status: 'ready',
+    user: MobileUser(
+      email: 'carl@example.com',
+      name: 'Carl',
+      patternMemoryEnabled: true,
+      avatarTone: 'balanced',
+      intensityLevel: 3,
+      currentLevel: 1,
+      avatarStage: 1,
+      preferredLanguage: 'es',
+    ),
+    language: MobileLanguageState(
+      current: 'es',
+      supported: [
+        MobileSupportedLanguage(
+          code: 'en',
+          label: 'English',
+          nativeLabel: 'English',
+          flag: '🇺🇸',
+        ),
+        MobileSupportedLanguage(
+          code: 'es',
+          label: 'Spanish',
+          nativeLabel: 'Español',
+          flag: '🇪🇸',
+        ),
+      ],
+    ),
+    consent: MobileConsent(
+      version: '2026-06-01',
+      hasRequiredConsents: true,
+      items: [],
+    ),
+  );
+}
+
 MobileJournalPrompt _journalPrompt() {
   return const MobileJournalPrompt(
     todayLabel: 'Friday, July 10',
@@ -449,4 +537,19 @@ MobileJournalPrompt _journalPrompt() {
 
 MobileJournalPrompt _emptyJournalPrompt() {
   return const MobileJournalPrompt(todayLabel: 'Friday, July 10', prompt: null);
+}
+
+MobileJournalPrompt _purposeJournalPrompt() {
+  return const MobileJournalPrompt(
+    todayLabel: 'Saturday, July 11',
+    prompt: MobileThresholdPrompt(
+      month: 7,
+      day: 11,
+      theme: 'PURPOSE',
+      quote: 'The soul whispers before destiny speaks.',
+      frameOfThought:
+          'Purpose rarely arrives as a command. It often begins as a quiet invitation.',
+      socraticQuestion: 'What invitation have you been ignoring?',
+    ),
+  );
 }

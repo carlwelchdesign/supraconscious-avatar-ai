@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { Mic, Square, Loader2 } from "lucide-react"
 
 type MicState = "idle" | "recording" | "processing" | "error"
@@ -19,6 +20,7 @@ const MIME_TYPE_CANDIDATES = [
 ]
 
 export function MicButton({ onTranscribe, disabled }: Props) {
+  const t = useTranslations("voice.mic")
   const [state, setState] = useState<MicState>("idle")
   const [errorMsg, setErrorMsg] = useState("")
   const [hasRetryableRecording, setHasRetryableRecording] = useState(false)
@@ -41,26 +43,26 @@ export function MicButton({ onTranscribe, disabled }: Props) {
       fd.append("audio", blob, `recording.${extensionForMimeType(blob.type)}`)
       const res = await fetch("/api/voice/transcribe", { method: "POST", body: fd })
       const data = await res.json()
-      if (!res.ok) throw new Error(userFacingTranscriptionError(data.error, res.status))
+      if (!res.ok) throw new Error(userFacingTranscriptionError(data.error, res.status, t))
       onTranscribe(data.text)
       lastRecordingRef.current = null
       setHasRetryableRecording(false)
       setState("idle")
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Voice transcription failed. Try again in a moment."
+      const msg = e instanceof Error ? e.message : t("failed")
       setErrorMsg(msg)
       setState("error")
     }
-  }, [onTranscribe])
+  }, [onTranscribe, t])
 
   const startRecording = useCallback(async () => {
     setErrorMsg("")
     try {
       if (!window.isSecureContext) {
-        throw new Error("Microphone requires HTTPS")
+        throw new Error(t("https"))
       }
       if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-        throw new Error("Recording is not supported on this browser")
+        throw new Error(t("unsupported"))
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -82,7 +84,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
         const blob = new Blob(chunksRef.current, { type: blobType })
 
         if (blob.size < 500) {
-          setErrorMsg("No speech captured")
+          setErrorMsg(t("noSpeech"))
           lastRecordingRef.current = null
           setHasRetryableRecording(false)
           setState("idle")
@@ -97,11 +99,11 @@ export function MicButton({ onTranscribe, disabled }: Props) {
       mediaRecorder.start(1000)
       setState("recording")
     } catch (e) {
-      const msg = microphoneErrorMessage(e)
+      const msg = microphoneErrorMessage(e, t)
       setErrorMsg(msg)
       setState("error")
     }
-  }, [submitAudio])
+  }, [submitAudio, t])
 
   const handleClick = () => {
     if (state === "recording") stopRecording()
@@ -118,7 +120,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
         type="button"
         onClick={handleClick}
         disabled={disabled || isProcessing}
-        title={state === "error" && hasRetryableRecording ? "Retry transcription" : isRecording ? "Stop recording" : "Dictate entry"}
+        title={state === "error" && hasRetryableRecording ? t("retry") : isRecording ? t("stop") : t("dictate")}
         className="relative inline-flex items-center justify-center w-10 h-10 rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         style={{
           background: isRecording ? "var(--clay)" : state === "error" && hasRetryableRecording ? "rgba(166,95,74,0.1)" : "rgba(43,27,53,0.06)",
@@ -151,7 +153,7 @@ export function MicButton({ onTranscribe, disabled }: Props) {
             border: "1px solid rgba(191,64,64,0.15)",
           }}
         >
-          {hasRetryableRecording ? `${errorMsg}. Tap mic to retry.` : errorMsg}
+          {hasRetryableRecording ? t("tapToRetry", { message: errorMsg }) : errorMsg}
         </span>
       )}
     </div>
@@ -170,18 +172,20 @@ function extensionForMimeType(mimeType: string) {
   return "webm"
 }
 
-function microphoneErrorMessage(error: unknown) {
-  if (!(error instanceof Error)) return "Microphone unavailable"
-  if (error.name === "NotAllowedError") return "Microphone access denied"
-  if (error.name === "NotFoundError") return "No microphone found"
-  return error.message || "Microphone unavailable"
+type VoiceTranslator = (key: string, values?: Record<string, string>) => string
+
+function microphoneErrorMessage(error: unknown, t: VoiceTranslator) {
+  if (!(error instanceof Error)) return t("unavailable")
+  if (error.name === "NotAllowedError") return t("denied")
+  if (error.name === "NotFoundError") return t("notFound")
+  return error.message || t("unavailable")
 }
 
-function userFacingTranscriptionError(error: unknown, status: number) {
+function userFacingTranscriptionError(error: unknown, status: number, t: VoiceTranslator) {
   const message = typeof error === "string" ? error : ""
-  if (status === 401) return "Please sign in again before using voice."
-  if (status === 422) return "No speech was detected. Try recording again."
-  if (status === 429) return message || "Voice is temporarily rate limited. Try again shortly."
+  if (status === 401) return t("signIn")
+  if (status === 422) return t("noSpeechDetected")
+  if (status === 429) return message || t("rateLimited")
   if (status === 400 && message) return message
-  return "Voice transcription failed. Try again in a moment."
+  return t("failed")
 }

@@ -1,6 +1,8 @@
 const DEFAULT_APP_TIME_ZONE = "America/Los_Angeles"
 
-const LONG_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const DEFAULT_WEB_LOCALE = "en-US"
+
+const LONG_DATE_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   weekday: "long",
   month: "long",
@@ -8,30 +10,30 @@ const LONG_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 })
 
-const MONTH_DAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const MONTH_DAY_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   month: "long",
   day: "numeric",
   year: "numeric",
 })
 
-const SHORT_MONTH_DAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const SHORT_MONTH_DAY_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   month: "short",
   day: "numeric",
 })
 
-const SHORT_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const SHORT_MONTH_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   month: "short",
 })
 
-const DAY_OF_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const DAY_OF_MONTH_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   day: "numeric",
 })
 
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat(DEFAULT_WEB_LOCALE, {
   timeZone: "UTC",
   dateStyle: "medium",
   timeStyle: "short",
@@ -91,13 +93,25 @@ export function getAppHour(value: string | Date = new Date(), timeZone = resolve
   return hour === 24 ? 0 : hour
 }
 
+function webLocale(value?: string | null) {
+  return value || DEFAULT_WEB_LOCALE
+}
+
 export function formatWebLongDate(value: string | Date | null | undefined) {
   if (!value) return "-"
   return LONG_DATE_FORMATTER.format(new Date(value))
 }
 
-export function formatWebMonthDay(value: string | Date | null | undefined) {
+export function formatWebMonthDay(value: string | Date | null | undefined, locale?: string | null) {
   if (!value) return "-"
+  if (locale) {
+    return new Intl.DateTimeFormat(webLocale(locale), {
+      timeZone: "UTC",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(value))
+  }
   return MONTH_DAY_FORMATTER.format(new Date(value))
 }
 
@@ -106,8 +120,14 @@ export function formatWebShortMonthDay(value: string | Date | null | undefined) 
   return SHORT_MONTH_DAY_FORMATTER.format(new Date(value))
 }
 
-export function formatWebShortMonth(value: string | Date | null | undefined) {
+export function formatWebShortMonth(value: string | Date | null | undefined, locale?: string | null) {
   if (!value) return "-"
+  if (locale) {
+    return new Intl.DateTimeFormat(webLocale(locale), {
+      timeZone: "UTC",
+      month: "short",
+    }).format(new Date(value))
+  }
   return SHORT_MONTH_FORMATTER.format(new Date(value))
 }
 

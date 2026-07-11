@@ -1,6 +1,8 @@
 import { prisma } from "@inner-avatar/db"
 import { formatWebShortMonthDay } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage } from "@/lib/language"
+import { getWebMessages } from "@/lib/web-messages"
 import { submitPatternFeedbackAction } from "./actions"
 
 type PatternSummary = {
@@ -13,7 +15,7 @@ type PatternSummary = {
   active: boolean
 }
 
-function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceBar({ value, label }: { value: number; label: string }) {
   const pct = Math.round(value * 100)
   const color =
     pct >= 75 ? "var(--clay)" : pct >= 50 ? "var(--moonblue)" : "var(--plum-soft)"
@@ -21,7 +23,7 @@ function ConfidenceBar({ value }: { value: number }) {
     <div className="mt-3">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--plum-soft)]">
-          Confidence
+          {label}
         </span>
         <span className="text-[12px] font-light text-[var(--plum-soft)]">{pct}%</span>
       </div>
@@ -38,24 +40,17 @@ function ConfidenceBar({ value }: { value: number }) {
   )
 }
 
-const FEEDBACK_MESSAGES: Record<string, string> = {
-  helpful: "Marked helpful. Future pattern review can treat this signal as more useful.",
-  not_accurate: "Marked not accurate. This correction was saved for pattern review.",
-  too_intense: "Marked too intense. This signal was flagged for a gentler review.",
-  suppress: "Hidden from active pattern memory.",
-  restore: "Restored to active pattern memory.",
-  invalid: "That pattern action was incomplete. Try again from the pattern card.",
-  missing: "That pattern is no longer available on this account.",
-}
-
 export default async function PatternsPage({
   searchParams,
 }: {
   searchParams: Promise<{ feedback?: string }>
 }) {
   const user = await requireJournalAccessPageUser("/patterns")
+  const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
+  const patternMessages = messages.patterns
   const params = await searchParams
-  const feedbackMessage = params.feedback ? FEEDBACK_MESSAGES[params.feedback] : null
+  const feedbackMessages = patternMessages.feedback as Record<string, string>
+  const feedbackMessage = params.feedback ? feedbackMessages[params.feedback] : null
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
     where: { userId: user.id },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
@@ -63,6 +58,10 @@ export default async function PatternsPage({
   })
   const activePatterns = patterns.filter((pattern) => pattern.active)
   const hiddenPatterns = patterns.filter((pattern) => !pattern.active)
+  const readSeenSummary = (pattern: PatternSummary) =>
+    `${patternMessages.seenPrefix} ${pattern.evidenceCount} ${
+      pattern.evidenceCount === 1 ? patternMessages.seenTimeOne : patternMessages.seenTimeOther
+    } ${patternMessages.seenAcross} · ${patternMessages.lastSeen} ${formatWebShortMonthDay(pattern.lastSeenAt)}`
 
   return (
     <div className="space-y-10">
@@ -70,13 +69,13 @@ export default async function PatternsPage({
       {/* ── Header ─────────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          Pattern awareness
+          {patternMessages.eyebrow}
         </p>
         <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
-          Signals, not diagnoses
+          {patternMessages.title}
         </h1>
         <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          Patterns appear only after they recur across multiple entries. Nothing is labeled from a single moment.
+          {patternMessages.body}
         </p>
       </div>
 
@@ -121,9 +120,7 @@ export default async function PatternsPage({
                   </span>
                 </div>
                 <p className="text-[13px] font-light text-[var(--plum-soft)]/70">
-                  Seen {pattern.evidenceCount}{" "}
-                  {pattern.evidenceCount === 1 ? "time" : "times"} across your entries · last seen{" "}
-                  {formatWebShortMonthDay(pattern.lastSeenAt)}
+                  {readSeenSummary(pattern)}
                 </p>
                 {Array.isArray(pattern.examples) && pattern.examples.length > 0 && (
                   <div
@@ -131,7 +128,7 @@ export default async function PatternsPage({
                     style={{ background: "rgba(43,27,53,0.035)" }}
                   >
                     <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] mb-2">
-                      Why this appeared
+                      {patternMessages.whyAppeared}
                     </p>
                     <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
                       {String(pattern.examples[0]).slice(0, 180)}
@@ -139,13 +136,13 @@ export default async function PatternsPage({
                     </p>
                   </div>
                 )}
-                <ConfidenceBar value={pattern.confidence} />
+                <ConfidenceBar value={pattern.confidence} label={patternMessages.confidence} />
                 <div className="mt-5 flex flex-wrap gap-2">
                   {[
-                    ["helpful", "Helpful"],
-                    ["not_accurate", "Not accurate"],
-                    ["too_intense", "Too intense"],
-                    ["suppress", "Hide"],
+                    ["helpful", patternMessages.actions.helpful],
+                    ["not_accurate", patternMessages.actions.notAccurate],
+                    ["too_intense", patternMessages.actions.tooIntense],
+                    ["suppress", patternMessages.actions.hide],
                   ].map(([feedbackType, label]) => (
                     <form key={feedbackType} action={submitPatternFeedbackAction}>
                       <input type="hidden" name="patternMemoryId" value={pattern.id} />
@@ -167,7 +164,7 @@ export default async function PatternsPage({
           {hiddenPatterns.length > 0 && (
             <div className="space-y-3">
               <h2 className="font-display text-[22px] font-light text-[var(--primary)]">
-                Hidden signals
+                {patternMessages.hiddenSignals}
               </h2>
               <div className="grid gap-3 md:grid-cols-2">
                 {hiddenPatterns.map((pattern) => (
@@ -176,13 +173,13 @@ export default async function PatternsPage({
                       {pattern.patternLabel}
                     </p>
                     <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
-                      Hidden from active pattern memory.
+                      {patternMessages.hiddenDescription}
                     </p>
                     <form action={submitPatternFeedbackAction} className="mt-3">
                       <input type="hidden" name="patternMemoryId" value={pattern.id} />
                       <input type="hidden" name="feedbackType" value="restore" />
                       <button type="submit" className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)]">
-                        Restore
+                        {patternMessages.actions.restore}
                       </button>
                     </form>
                   </div>
@@ -195,7 +192,7 @@ export default async function PatternsPage({
           <p
             className="text-[12px] font-light text-[var(--plum-soft)]/60 leading-relaxed max-w-lg px-1"
           >
-            Patterns are draft reflective signals from your language. You can correct or hide any signal here, or disable pattern memory in settings.
+            {patternMessages.footnote}
           </p>
         </>
       ) : (
@@ -211,10 +208,10 @@ export default async function PatternsPage({
             <span className="text-[24px]">◎</span>
           </div>
           <h2 className="font-display text-[24px] font-light text-[var(--primary)] mb-3">
-            Patterns emerge over time
+            {patternMessages.emptyTitle}
           </h2>
           <p className="text-[14px] font-light text-[var(--plum-soft)] max-w-sm mx-auto leading-relaxed">
-            Keep writing. The council notices recurring language and emotional signals only after they appear across multiple entries.
+            {patternMessages.emptyBody}
           </p>
         </div>
       )}

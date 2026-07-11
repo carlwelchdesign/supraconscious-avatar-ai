@@ -46,7 +46,7 @@ function SettingRow({
   )
 }
 
-function StatusPill({ on }: { on: boolean }) {
+function StatusPill({ on, labels }: { on: boolean; labels: { on: string; off: string } }) {
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1 rounded-full"
@@ -60,7 +60,7 @@ function StatusPill({ on }: { on: boolean }) {
         className="w-1.5 h-1.5 rounded-full"
         style={{ background: on ? "var(--sage)" : "var(--plum-soft)" }}
       />
-      {on ? "On" : "Off"}
+      {on ? labels.on : labels.off}
     </span>
   )
 }
@@ -75,6 +75,7 @@ export default async function SettingsPage({
   const messages = getWebMessages(currentLanguage)
   const settingsMessages = messages.settings
   const commonMessages = messages.common
+  const statusLabels = { on: commonMessages.on, off: commonMessages.off }
   const billingEnabled = isStripeConfigured()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const [currentSession, subscription, sessions] = await Promise.all([
@@ -123,10 +124,10 @@ export default async function SettingsPage({
         <span className="text-[var(--sage)] text-[18px] flex-shrink-0 mt-0.5">✦</span>
         <div>
           <p className="text-[13px] font-medium text-[var(--primary)] mb-0.5">
-            Private by default
+            {settingsMessages.privacyTitle}
           </p>
           <p className="text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-            Your entries are used only to generate your reflections, safety checks, voice transcription, and speech playback. AI providers may process the text or audio needed for those features; raw journal text stays protected in this app.
+            {settingsMessages.privacyDescription}
           </p>
         </div>
       </div>
@@ -191,13 +192,13 @@ export default async function SettingsPage({
           style={{ borderColor: "rgba(43,27,53,0.06)" }}
         >
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Reflection preferences
+            {settingsMessages.reflectionSection}
           </p>
         </div>
         <form action={updateReflectionPreferences} className="px-6">
           <SettingRow
-            label="Guide tone"
-            description="How your guide speaks to you during reflections."
+            label={settingsMessages.guideTone}
+            description={settingsMessages.guideToneDescription}
             value={
               <span className="font-medium text-[var(--primary)]">
                 {user.avatarTone ?? "Gentle"}
@@ -205,8 +206,8 @@ export default async function SettingsPage({
             }
           />
           <SettingRow
-            label="Reflection intensity"
-            description="How deeply your guide engages with each entry."
+            label={settingsMessages.reflectionIntensity}
+            description={settingsMessages.reflectionIntensityDescription}
             value={
               <span className="font-medium text-[var(--primary)]">
                 {user.intensityLevel ?? 1} / 5
@@ -214,15 +215,15 @@ export default async function SettingsPage({
             }
           />
           <SettingRow
-            label="Remember recurring signals"
-            description="Stores recurring signals and short evidence excerpts only when this is explicitly on."
+            label={settingsMessages.patternMemoryLabel}
+            description={settingsMessages.patternMemoryDescription}
             value={
               <input
                 name="patternMemoryEnabled"
                 type="checkbox"
                 defaultChecked={user.patternMemoryEnabled === true}
                 className="h-5 w-5 accent-[var(--clay)]"
-                aria-label="Enable pattern memory"
+                aria-label={settingsMessages.patternMemoryLabel}
               />
             }
           />
@@ -230,16 +231,16 @@ export default async function SettingsPage({
             <ClearPatternMemoryButton action={clearPatternMemoryAction} />
           </div>
           <SettingRow
-            label="Safety mode"
-            description="Crisis and high-risk entries always receive grounded support. This cannot be disabled."
-            value={<StatusPill on />}
+            label={settingsMessages.safetyMode}
+            description={settingsMessages.safetyModeDescription}
+            value={<StatusPill on labels={statusLabels} />}
           />
           <div className="py-5">
             <button
               type="submit"
               className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
             >
-              Save reflection preferences
+              {settingsMessages.saveReflectionPreferences}
             </button>
           </div>
         </form>
@@ -258,38 +259,38 @@ export default async function SettingsPage({
           style={{ borderColor: "rgba(43,27,53,0.06)" }}
         >
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Billing
+            {settingsMessages.billingSection}
           </p>
         </div>
         <div className="px-6">
           {params.checkout === "success" ? (
             <p className="mt-5 rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
-              Checkout completed. Your billing status will update after Stripe confirms the subscription.
+              {settingsMessages.checkoutSuccess}
             </p>
           ) : null}
           {params.billing === "unavailable" ? (
             <p className="mt-5 rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Billing management is not available in this environment yet. Your journal and reflection data are unchanged.
+              {settingsMessages.billingUnavailable}
             </p>
           ) : null}
           {!billingEnabled ? (
             <p className="mt-5 rounded-xl bg-[rgba(184,137,90,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Paid billing is disabled in this environment. Your free reflection flow is still available.
+              {settingsMessages.billingDisabled}
             </p>
           ) : null}
           <SettingRow
-            label="Plan"
-            description="Your current Supraconscious subscription plan."
+            label={settingsMessages.plan}
+            description={settingsMessages.planDescription}
             value={
               <span className="font-medium text-[var(--primary)]">
-                {subscription?.plan ?? "free"}
+                {subscription?.plan ?? settingsMessages.freePlan}
               </span>
             }
           />
           <SettingRow
-            label="Subscription status"
-            description="Managed securely through Stripe."
-            value={<StatusPill on={subscription?.status === "active"} />}
+            label={settingsMessages.subscriptionStatus}
+            description={settingsMessages.subscriptionDescription}
+            value={<StatusPill on={subscription?.status === "active"} labels={statusLabels} />}
           />
           <div className="py-5">
             {subscription?.stripeCustomerId && billingEnabled ? (
@@ -298,7 +299,7 @@ export default async function SettingsPage({
                   type="submit"
                   className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
                 >
-                  Manage billing
+                  {settingsMessages.manageBilling}
                 </button>
               </form>
             ) : billingEnabled ? (
@@ -306,11 +307,11 @@ export default async function SettingsPage({
                 href="/pricing"
                 className="inline-flex rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
               >
-                Choose a plan
+                {settingsMessages.choosePlan}
               </a>
             ) : (
               <span className="inline-flex rounded-full border px-5 py-2.5 text-[13px] font-medium text-[var(--plum-soft)]" style={{ borderColor: "rgba(43,27,53,0.08)" }}>
-                Billing disabled
+                {settingsMessages.billingDisabledButton}
               </span>
             )}
           </div>
@@ -330,13 +331,13 @@ export default async function SettingsPage({
           style={{ borderColor: "rgba(43,27,53,0.06)" }}
         >
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Account
+            {settingsMessages.accountSection}
           </p>
         </div>
         <div className="px-6">
           <SettingRow
-            label="Email"
-            description="Your account email address and verification state."
+            label={settingsMessages.email}
+            description={settingsMessages.emailDescription}
             value={
               <span className="inline-flex flex-wrap items-center justify-end gap-2">
                 <span>{user.email}</span>
@@ -348,55 +349,55 @@ export default async function SettingsPage({
                       : { background: "rgba(166,95,74,0.10)", color: "var(--clay)" }
                   }
                 >
-                  {user.emailVerified ? "verified" : "unverified"}
+                  {user.emailVerified ? settingsMessages.verified : settingsMessages.unverified}
                 </span>
                 {!user.emailVerified ? (
                   <a href={`/verify-email?email=${encodeURIComponent(user.email)}`} className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">
-                    Send link
+                    {settingsMessages.sendLink}
                   </a>
                 ) : null}
               </span>
             }
           />
           <SettingRow
-            label="Name"
+            label={settingsMessages.name}
             value={user.name ?? "—"}
           />
           <SettingRow
-            label="Guide stage"
-            description="Your current stage of reflection depth."
+            label={settingsMessages.guideStage}
+            description={settingsMessages.guideStageDescription}
             value={
               <span className="font-medium text-[var(--primary)]">
-                Stage {guideStage}
+                {commonMessages.stageOf.replace("{stage}", String(guideStage))}
               </span>
             }
           />
         </div>
         <form action={changePasswordAction} className="border-t px-6 py-5 space-y-4" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
           <div>
-            <p className="text-[14px] font-medium text-[var(--primary)]">Change password</p>
+            <p className="text-[14px] font-medium text-[var(--primary)]">{settingsMessages.changePassword}</p>
             <p className="mt-0.5 text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-              Use this when you know your current password. If you are locked out, a super-admin can issue a temporary password from the admin users page.
+              {settingsMessages.changePasswordDescription}
             </p>
           </div>
           {params.password === "changed" ? (
             <p className="rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
-              Password updated.
+              {settingsMessages.passwordUpdated}
             </p>
           ) : null}
           {params.password === "incorrect" ? (
             <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Current password is incorrect.
+              {settingsMessages.passwordIncorrect}
             </p>
           ) : null}
           {params.password === "invalid" ? (
             <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Enter a new password with at least 8 characters and make sure both new-password fields match.
+              {settingsMessages.passwordInvalid}
             </p>
           ) : null}
           <div className="grid gap-3 md:grid-cols-3">
             <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
-              Current password
+              {settingsMessages.currentPassword}
               <input
                 name="currentPassword"
                 type="password"
@@ -407,7 +408,7 @@ export default async function SettingsPage({
               />
             </label>
             <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
-              New password
+              {settingsMessages.newPassword}
               <input
                 name="newPassword"
                 type="password"
@@ -420,7 +421,7 @@ export default async function SettingsPage({
               />
             </label>
             <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
-              Confirm password
+              {settingsMessages.confirmPassword}
               <input
                 name="confirmPassword"
                 type="password"
@@ -437,13 +438,15 @@ export default async function SettingsPage({
             type="submit"
             className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-[13px] font-medium text-[var(--cream)] hover:bg-[var(--plum-mid)]"
           >
-            Update password
+            {settingsMessages.updatePassword}
           </button>
         </form>
       </div>
 
       {/* ── Voice & Audio ───────────────────────────────────────── */}
       <VoiceSettingsSection
+        messages={messages.voice.settings}
+        commonMessages={commonMessages}
         initial={{
           voiceEnabled: user.voiceEnabled ?? false,
           voiceAutoPlay: user.voiceAutoPlay ?? false,
@@ -463,23 +466,23 @@ export default async function SettingsPage({
       >
         <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Data controls
+            {settingsMessages.dataControls}
           </p>
         </div>
         <div className="px-6">
           <SettingRow
-            label="Export your data"
-            description="Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata."
-            value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Download JSON</a>}
+            label={settingsMessages.exportData}
+            description={settingsMessages.exportDataDescription}
+            value={<a href="/api/account/export" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">{settingsMessages.downloadJson}</a>}
           />
           <SettingRow
-            label="Delete individual entries"
-            description="Open any saved journal entry to delete that entry and its attached reflection records."
-            value={<a href="/dashboard" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">Past entries</a>}
+            label={settingsMessages.deleteEntries}
+            description={settingsMessages.deleteEntriesDescription}
+            value={<a href="/dashboard" className="font-medium text-[var(--clay)] hover:text-[var(--primary)]">{settingsMessages.pastEntries}</a>}
           />
           <SettingRow
-            label="Revoke active sessions"
-            description="Signs out this account across current app sessions."
+            label={settingsMessages.revokeSessions}
+            description={settingsMessages.revokeSessionsDescription}
             value={
               <form action={revokeSessionsAction}>
                 <RevokeSessionsButton action={revokeSessionsAction} />
@@ -498,23 +501,23 @@ export default async function SettingsPage({
       >
         <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--plum-soft)]">
-            Session management
+            {settingsMessages.sessionManagement}
           </p>
         </div>
         <div className="px-6">
           {params.session === "revoked" ? (
             <p className="mt-5 rounded-xl bg-[rgba(155,175,155,0.12)] px-4 py-3 text-[12px] font-medium text-[var(--sage)]">
-              Session revoked.
+              {settingsMessages.sessionRevoked}
             </p>
           ) : null}
           {params.session === "invalid" ? (
             <p className="mt-5 rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              That session could not be revoked. Refresh the page and try again.
+              {settingsMessages.sessionInvalid}
             </p>
           ) : null}
           {sessions.length === 0 ? (
             <p className="py-5 text-[12px] font-light text-[var(--plum-soft)]">
-              No active sessions were found.
+              {settingsMessages.noSessions}
             </p>
           ) : (
             <div className="divide-y" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
@@ -525,14 +528,16 @@ export default async function SettingsPage({
                   <div key={session.id} className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="text-[14px] font-medium text-[var(--primary)]">
-                        {session.scope === "admin" ? "Admin session" : "Web session"}
-                        {isCurrent ? " · current" : ""}
+                        {session.scope === "admin" ? settingsMessages.adminSession : settingsMessages.webSession}
+                        {isCurrent ? ` · ${settingsMessages.currentSession}` : ""}
                       </p>
                       <p className="mt-0.5 text-[12px] font-light text-[var(--plum-soft)]">
-                        Last seen {formatWebDateTime(session.lastSeenAt)} · Expires {formatWebDateTime(session.expiresAt)}
+                        {settingsMessages.lastSeenExpires
+                          .replace("{lastSeen}", formatWebDateTime(session.lastSeenAt))
+                          .replace("{expires}", formatWebDateTime(session.expiresAt))}
                       </p>
                       <p className="mt-0.5 text-[11px] font-light text-[var(--plum-soft)]/70">
-                        Created {formatWebDateTime(session.createdAt)}
+                        {settingsMessages.createdAt.replace("{created}", formatWebDateTime(session.createdAt))}
                       </p>
                     </div>
                     <form action={revokeSessionAction}>
@@ -542,7 +547,7 @@ export default async function SettingsPage({
                         className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] hover:bg-[rgba(43,27,53,0.04)]"
                         style={{ borderColor: "rgba(43,27,53,0.08)" }}
                       >
-                        {isCurrent ? "Sign out here" : "Revoke"}
+                        {isCurrent ? settingsMessages.signOutHere : settingsMessages.revoke}
                       </button>
                     </form>
                   </div>
@@ -562,29 +567,29 @@ export default async function SettingsPage({
       >
         <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(166,95,74,0.12)" }}>
           <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-            Delete account
+            {settingsMessages.deleteAccountSection}
           </p>
         </div>
         <form action={deleteAccountAction} className="px-6 py-5 space-y-4">
           <div>
-            <p className="text-[14px] font-medium text-[var(--primary)]">Delete this account and its private app data</p>
+            <p className="text-[14px] font-medium text-[var(--primary)]">{settingsMessages.deleteAccountTitle}</p>
             <p className="mt-0.5 max-w-2xl text-[12px] font-light leading-relaxed text-[var(--plum-soft)]">
-              This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.
+              {settingsMessages.deleteAccountDescription}
             </p>
           </div>
           {params.accountDelete === "incorrect" ? (
             <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Password is incorrect.
+              {settingsMessages.deletePasswordIncorrect}
             </p>
           ) : null}
           {params.accountDelete === "invalid" ? (
             <p className="rounded-xl bg-[rgba(166,95,74,0.10)] px-4 py-3 text-[12px] font-medium text-[var(--clay)]">
-              Enter your password and type DELETE to confirm account deletion.
+              {settingsMessages.deleteInvalid}
             </p>
           ) : null}
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
             <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
-              Password
+              {settingsMessages.password}
               <input
                 name="password"
                 type="password"
@@ -596,13 +601,13 @@ export default async function SettingsPage({
               />
             </label>
             <label className="grid gap-1 text-[12px] font-medium text-[var(--primary)]">
-              Type DELETE
+              {settingsMessages.typeDelete}
               <input
                 name="confirmation"
                 type="text"
                 required
                 pattern="DELETE"
-                title="Type DELETE in all caps to confirm."
+                title={settingsMessages.typeDeleteTitle}
                 autoComplete="off"
                 className="rounded-xl border bg-white px-3 py-2 text-[13px] font-light text-[var(--primary)] outline-none focus:border-[var(--clay)]"
                 style={{ borderColor: "rgba(43,27,53,0.12)" }}
@@ -612,7 +617,7 @@ export default async function SettingsPage({
               type="submit"
               className="rounded-full border border-[rgba(166,95,74,0.28)] px-5 py-2.5 text-[13px] font-medium text-[var(--clay)] hover:bg-[rgba(166,95,74,0.08)]"
             >
-              Delete account
+              {settingsMessages.deleteAccountButton}
             </button>
           </div>
         </form>

@@ -5,6 +5,9 @@
   "signIn": "登录",
   "createAccount": "创建账户",
   "useExistingAccount": "使用现有账户",
+  "nameLabel": "姓名",
+  "emailLabel": "电子邮件",
+  "passwordLabel": "密码",
   "landingEyebrow": "由 AI 驱动的身份反思",
   "landingNotJournal": "这不是一本日记。",
   "landingMeetYourself": "这是你与自己相遇的地方。",
@@ -16,7 +19,13 @@
   "tabSettings": "设置",
   "welcome": "欢迎",
   "welcomeName": "欢迎，{name}",
-  "@welcomeName": {"placeholders": {"name": {"type": "String"}}},
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "journalTitle": "今天有什么正在呈现？",
   "journalHelper": "写下一条诚实的记录。议会会映照模式、张力和一个扎实的下一步。",
   "journalPlaceholder": "写下当下存在的东西：情绪、观察、张力。不需要结构……",
@@ -26,5 +35,89 @@
   "languageTitle": "语言",
   "languageSubtitle": "控制应用语言，以及新的 AI 反思所使用的语言。",
   "patternMemory": "模式记忆",
-  "patternMemorySubtitle": "允许随着时间显示重复出现的信号。"
+  "patternMemorySubtitle": "允许随着时间显示重复出现的信号。",
+  "landingProblemEyebrow": "问题",
+  "landingProblemTitle": "你不是卡住了。你只是还没看清。",
+  "landingProblemBody": "你想过、分析过、反复回放过，但内在仍有某个部分在犹豫。",
+  "landingCouncilEyebrow": "如何运作",
+  "landingCouncilTitle": "认识你的内在议会",
+  "landingCouncilBody": "写下你心中的内容。四种内在视角会映照表面之下正在发生的事。",
+  "protectorRole": "保护者",
+  "protectorRoleBody": "显示恐惧在哪里阻碍了你。",
+  "conditionedSelfRole": "受制约的自我",
+  "conditionedSelfRoleBody": "揭示你尚未质疑的模式。",
+  "visionaryRole": "愿景者",
+  "visionaryRoleBody": "显示你正在成为谁。",
+  "truthSelfRole": "真实自我",
+  "truthSelfRoleBody": "穿透幻象。",
+  "landingExperienceEyebrow": "体验",
+  "landingExperienceTitle": "书写。看见。面对。选择。成为。",
+  "landingExperienceBody": "每次会话都沿着简单路径前进：没有噪音，没有负担，只有一个更清晰的下一步。",
+  "landingDifferentEyebrow": "有意不同",
+  "landingDifferentTitle": "不是又一个原地打转的地方。",
+  "landingDifferentBody": "这是身份反思系统、决策清晰引擎，也是成为自己的镜子。",
+  "landingFinalCta": "开始第一次反思",
+  "landingBack": "首页",
+  "continueLabel": "继续",
+  "tabHome": "首页",
+  "entries": "记录",
+  "guideStage": "引导阶段",
+  "noSavedTitle": "还没有保存的反思",
+  "today": "今天",
+  "askCouncil": "询问议会",
+  "reflecting": "正在反思...",
+  "wordCount": "{count} 个词",
+  "nothingSavedTitle": "还没有保存内容",
+  "savedReflectionTitle": "已保存的反思",
+  "feedbackSaved": "反馈已保存",
+  "feedbackNeeded": "需要反馈",
+  "gateSaved": "门槛已保存",
+  "gateOpen": "门槛开放",
+  "helpful": "有帮助",
+  "notAccurate": "不准确",
+  "tooIntense": "太强烈",
+  "unclear": "不清楚",
+  "unsupportedSource": "来源无依据",
+  "saving": "正在保存...",
+  "saveFeedback": "保存反馈",
+  "patternsTitle": "模式",
+  "patternsEmptyTitle": "模式会随时间浮现",
+  "yourGuide": "你的引导",
+  "tone": "语气",
+  "intensity": "强度",
+  "trait": "特质",
+  "retry": "重试",
+  "guideResponse": "引导回应",
+  "oneGroundedStep": "一个扎实步骤",
+  "sourceGrounding": "来源依据",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "退出登录",
+  "grounding": "安定支持",
+  "recentReflections": "最近的反思",
+  "firstEntryBody": "写下你的第一篇记录，开始建立你的练习。",
+  "savedReflections": "已保存的反思",
+  "patternsSubtitle": "是信号，不是诊断。只有模式重复出现后才会显示。",
+  "savedReflectionFallback": "已保存的反思",
+  "thresholdLabel": "门槛 · 第 {month} 月，第 {day} 天",
+  "noThresholdPrompt": "今天没有发布门槛提示。写下当下存在的内容，不必强行套用结构。",
+  "thresholdPurposeTheme": "目的",
+  "thresholdPurposeQuote": "灵魂先低语，命运才开口。",
+  "thresholdPurposeFrameOfThought": "目的很少以命令的形式到来。它常常始于一个安静的邀请。",
+  "thresholdPurposeSocraticQuestion": "你一直忽视了哪个邀请？",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -5,6 +5,9 @@
   "signIn": "Anmelden",
   "createAccount": "Konto erstellen",
   "useExistingAccount": "Bestehendes Konto nutzen",
+  "nameLabel": "Name",
+  "emailLabel": "E-Mail",
+  "passwordLabel": "Passwort",
   "landingEyebrow": "KI-gestützte Identitätsreflexion",
   "landingNotJournal": "Das ist kein Journal.",
   "landingMeetYourself": "Hier begegnest du dir selbst.",
@@ -25,5 +28,96 @@
   "languageTitle": "Sprache",
   "languageSubtitle": "Steuert die App-Sprache und die Sprache neuer KI-Reflexionen.",
   "patternMemory": "Mustergedächtnis",
-  "patternMemorySubtitle": "Wiederkehrende Signale dürfen mit der Zeit sichtbar werden."
+  "patternMemorySubtitle": "Wiederkehrende Signale dürfen mit der Zeit sichtbar werden.",
+  "landingProblemEyebrow": "Das Problem",
+  "landingProblemTitle": "Du steckst nicht fest. Du siehst noch nicht klar.",
+  "landingProblemBody": "Du hast darüber nachgedacht, es analysiert, es wiederholt, und doch zögert etwas in dir.",
+  "landingCouncilEyebrow": "So funktioniert es",
+  "landingCouncilTitle": "Lerne deinen Inneren Rat kennen",
+  "landingCouncilBody": "Du schreibst, was dich beschäftigt. Vier innere Perspektiven spiegeln, was sich unter der Oberfläche bewegt.",
+  "protectorRole": "Der Beschützer",
+  "protectorRoleBody": "Zeigt, wo Angst dich zurückhält.",
+  "conditionedSelfRole": "Das konditionierte Selbst",
+  "conditionedSelfRoleBody": "Zeigt Muster, die du nicht hinterfragt hast.",
+  "visionaryRole": "Der Visionär",
+  "visionaryRoleBody": "Zeigt, wer du wirst.",
+  "truthSelfRole": "Das wahre Selbst",
+  "truthSelfRoleBody": "Durchdringt die Illusion.",
+  "landingExperienceEyebrow": "Die Erfahrung",
+  "landingExperienceTitle": "Schreiben. Sehen. Begegnen. Wählen. Werden.",
+  "landingExperienceBody": "Jede Sitzung folgt einem einfachen Weg: kein Lärm, keine Überforderung, nur ein klarerer nächster Schritt.",
+  "landingDifferentEyebrow": "Anders gestaltet",
+  "landingDifferentTitle": "Nicht noch ein Ort, um dich im Kreis zu drehen.",
+  "landingDifferentBody": "Dies ist ein System für Identitätsreflexion, Klarheit in Entscheidungen und ein Spiegel für dein Werden.",
+  "landingFinalCta": "Erste Reflexion beginnen",
+  "landingBack": "Start",
+  "continueLabel": "Weiter",
+  "tabHome": "Home",
+  "entries": "Einträge",
+  "guideStage": "Guide-Stufe",
+  "noSavedTitle": "Noch keine gespeicherten Reflexionen",
+  "today": "Heute",
+  "askCouncil": "Den Rat fragen",
+  "reflecting": "Reflexion...",
+  "wordCount": "{count} Wörter",
+  "nothingSavedTitle": "Noch nichts gespeichert",
+  "savedReflectionTitle": "Gespeicherte Reflexion",
+  "feedbackSaved": "Feedback gespeichert",
+  "feedbackNeeded": "Feedback erforderlich",
+  "gateSaved": "Tor gespeichert",
+  "gateOpen": "Tor offen",
+  "helpful": "Hilfreich",
+  "notAccurate": "Nicht treffend",
+  "tooIntense": "Zu intensiv",
+  "unclear": "Unklar",
+  "unsupportedSource": "Nicht gestützte Quelle",
+  "saving": "Speichern...",
+  "saveFeedback": "Feedback speichern",
+  "patternsTitle": "Muster",
+  "patternsEmptyTitle": "Muster entstehen mit der Zeit",
+  "yourGuide": "Dein Guide",
+  "tone": "Ton",
+  "intensity": "Intensität",
+  "trait": "Eigenschaft",
+  "retry": "Erneut versuchen",
+  "guideResponse": "Antwort des Guides",
+  "oneGroundedStep": "Ein geerdeter Schritt",
+  "sourceGrounding": "Quellenverankerung",
+  "@wordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOut": "Abmelden",
+  "grounding": "Erdung",
+  "recentReflections": "Aktuelle Reflexionen",
+  "firstEntryBody": "Schreibe deinen ersten Eintrag, um deine Praxis aufzubauen.",
+  "savedReflections": "Gespeicherte Reflexionen",
+  "patternsSubtitle": "Signale, keine Diagnosen. Muster erscheinen erst, wenn sie wiederkehren.",
+  "savedReflectionFallback": "Gespeicherte Reflexion",
+  "thresholdLabel": "Schwelle · Monat {month}, Tag {day}",
+  "noThresholdPrompt": "Für heute ist kein Schwellen-Impuls veröffentlicht. Schreibe, was präsent ist, ohne eine Struktur zu erzwingen.",
+  "thresholdPurposeTheme": "SINN",
+  "thresholdPurposeQuote": "Die Seele flüstert, bevor das Schicksal spricht.",
+  "thresholdPurposeFrameOfThought": "Sinn kommt selten als Befehl. Oft beginnt er als leise Einladung.",
+  "thresholdPurposeSocraticQuestion": "Welche Einladung hast du ignoriert?",
+  "@thresholdLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "@welcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

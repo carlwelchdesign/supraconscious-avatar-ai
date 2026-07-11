@@ -23,6 +23,7 @@ export const MobileRegisterSchema = z.object({
 export const MobileLoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(1, "Password is required"),
+  preferredLanguage: z.string().optional(),
 })
 
 export const MobileConsentSchema = z.object({
@@ -85,9 +86,20 @@ export async function loginMobileUser(input: z.infer<typeof MobileLoginSchema>) 
   }
 
   const expectedRole = roleForEmail(user.email)
+  const selectedLanguage = input.preferredLanguage ? resolveSupportedLanguage(input.preferredLanguage) : null
   const effectiveUser = expectedRole === "super_admin" && user.role !== "super_admin"
-    ? await prisma.user.update({ where: { id: user.id }, data: { role: "super_admin" } })
-    : user
+    ? await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          role: "super_admin",
+          ...(selectedLanguage && user.preferredLanguage !== selectedLanguage
+            ? { preferredLanguage: selectedLanguage }
+            : {}),
+        },
+      })
+    : selectedLanguage && user.preferredLanguage !== selectedLanguage
+      ? await prisma.user.update({ where: { id: user.id }, data: { preferredLanguage: selectedLanguage } })
+      : user
 
   await createSession(effectiveUser.id, "web")
   return { ok: true as const, body: await getMobileSessionBody(effectiveUser.id) }
