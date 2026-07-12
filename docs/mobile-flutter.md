@@ -119,10 +119,21 @@ The backend remains responsible for durable state, AI orchestration, safety chec
 ## Release Path
 
 1. Complete Xcode first-launch setup for iOS validation.
-2. Add mobile-safe API contracts in the backend where server-rendered web actions are not suitable.
+2. Configure Google/Apple OAuth client IDs, native package identifiers, associated domains, and signing fingerprints before testing social login or native passkeys outside local preview.
 3. Build the MVP screens against the backend.
 4. Add release signing and CI for iOS and Android.
 5. Run TestFlight and Google Play internal testing with Carl and Maria before any public release.
+
+## Mobile Auth
+
+The app keeps cookie-backed sessions for MVP. Email/password login, Google login, and Apple login call mobile JSON endpoints. If a user has enrolled a passkey or YubiKey, the backend returns `status: "mfa_required"` and the client must complete passkey verification before the final session cookie is issued.
+
+Native passkeys require the production domain association files to match the signed app identifiers:
+
+- iOS bundle: `co.supraconscious.innerCouncilMobile`
+- Android package: `co.supraconscious.inner_council_mobile`
+
+Simulator support can be limited by platform WebAuthn behavior; verify the production association files before TestFlight or Play internal testing.
 
 ## Store Readiness
 

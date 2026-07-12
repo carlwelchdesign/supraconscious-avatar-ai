@@ -45,6 +45,10 @@ model User {
   safetyEvents     SafetyEvent[]
   subscriptions    Subscription[]
   sessions         Session[]
+  oauthAccounts    OAuthAccount[]
+  webAuthnCredentials WebAuthnCredential[]
+  pendingAuthChallenges PendingAuthChallenge[]
+  recoveryCodes    RecoveryCode[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
   voiceUsageBuckets VoiceUsageBucket[]
@@ -73,6 +77,9 @@ model Session {
   userId       String
   tokenHash    String   @unique
   scope        String   @default("web") // web, admin
+  authMethod   String   @default("password") // password, google, apple, recovery
+  mfaVerifiedAt DateTime?
+  mfaMethod    String?  // passkey, recovery_code
   expiresAt    DateTime
   lastSeenAt   DateTime @default(now())
   createdAt    DateTime @default(now())
@@ -82,6 +89,83 @@ model Session {
   @@index([userId])
   @@index([scope])
   @@index([expiresAt])
+}
+
+// OAuth account link - verified third-party identity bound to a user
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  email             String
+  emailVerified     Boolean  @default(false)
+  profile           Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([provider, email])
+}
+
+// WebAuthn/passkey credential - phishing-resistant authenticator registration
+model WebAuthnCredential {
+  id                 String    @id @default(cuid())
+  userId             String
+  credentialId       String    @unique
+  publicKey          Bytes
+  counter            BigInt    @default(0)
+  transports         String[]
+  deviceLabel        String
+  backedUp           Boolean   @default(false)
+  credentialDeviceType String?
+  lastUsedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastUsedAt])
+}
+
+// Pending auth challenge - short-lived login, MFA, OAuth, and WebAuthn state
+model PendingAuthChallenge {
+  id         String   @id @default(cuid())
+  userId     String?
+  tokenHash  String   @unique
+  type       String   // oauth_state, mfa, webauthn_registration, webauthn_authentication
+  scope      String   @default("web")
+  authMethod String?
+  challenge  String
+  redirectTo String   @default("/dashboard")
+  metadata   Json?
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+// Recovery code - one-time backup for accounts that enable passkey MFA
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    @unique
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([usedAt])
 }
 
 // Auth rate limit bucket - shared throttling across app instances

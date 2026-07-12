@@ -3,6 +3,8 @@ import "server-only"
 import { z } from "zod"
 import { requestEmailVerificationForUser } from "@inner-avatar/auth/account-email"
 import { PILOT_CONSENT_VERSION, OPTIONAL_PILOT_CONSENTS, REQUIRED_PILOT_CONSENTS } from "@inner-avatar/auth/consent"
+import { authenticateOAuthIdentity } from "@inner-avatar/auth/oauth"
+import { createMfaPendingAuth, userRequiresPasskeyMfa } from "@inner-avatar/auth/pending-auth"
 import { isAuthRateLimited, recordAuthFailure } from "@inner-avatar/auth/rate-limit"
 import { linkFounderParticipantIfConfigured } from "@inner-avatar/auth/redirects"
 import { createSession, destroySession, getCurrentUser, hashPassword, verifyPassword } from "@inner-avatar/auth/session"
@@ -10,7 +12,7 @@ import { emitPilotEvent } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import type { UserRole } from "@inner-avatar/types"
 import { resolveSupportedLanguage } from "@inner-avatar/types/language"
-import { buildMobileSessionResponse } from "./mobile-api"
+import { buildMobileMfaRequiredResponse, buildMobileSessionResponse } from "./mobile-api"
 import { readRequestLanguage } from "./language"
 
 export const MobileRegisterSchema = z.object({
@@ -23,6 +25,12 @@ export const MobileRegisterSchema = z.object({
 export const MobileLoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   password: z.string().min(1, "Password is required"),
+  preferredLanguage: z.string().optional(),
+})
+
+export const MobileOAuthSchema = z.object({
+  provider: z.enum(["google", "apple"]),
+  idToken: z.string().min(20),
   preferredLanguage: z.string().optional(),
 })
 
@@ -101,8 +109,32 @@ export async function loginMobileUser(input: z.infer<typeof MobileLoginSchema>) 
       ? await prisma.user.update({ where: { id: user.id }, data: { preferredLanguage: selectedLanguage } })
       : user
 
-  await createSession(effectiveUser.id, "web")
+  if (await userRequiresPasskeyMfa(effectiveUser.id)) {
+    await createMfaPendingAuth({
+      userId: effectiveUser.id,
+      authMethod: "password",
+      scope: "web",
+    })
+    return { ok: true as const, body: buildMobileMfaRequiredResponse() }
+  }
+
+  await createSession(effectiveUser.id, "web", { authMethod: "password" })
   return { ok: true as const, body: await getMobileSessionBody(effectiveUser.id) }
+}
+
+export async function loginMobileOAuth(input: z.infer<typeof MobileOAuthSchema>) {
+  const result = await authenticateOAuthIdentity({
+    provider: input.provider,
+    idToken: input.idToken,
+    preferredLanguage: input.preferredLanguage,
+    scope: "web",
+  })
+
+  if (result.mfaRequired) {
+    return { ok: true as const, body: buildMobileMfaRequiredResponse() }
+  }
+
+  return { ok: true as const, body: await getMobileSessionBody(result.user.id) }
 }
 
 export async function logoutMobileUser() {

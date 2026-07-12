@@ -88,6 +88,34 @@ class SessionController extends StateNotifier<AsyncValue<MobileSession>> {
     );
   }
 
+  Future<void> loginWithOAuth({
+    required String provider,
+    required String idToken,
+    String? preferredLanguage,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => _apiClient.loginWithOAuth(
+        provider: provider,
+        idToken: idToken,
+        preferredLanguage: preferredLanguage,
+      ),
+    );
+  }
+
+  Future<void> completePasskeyMfa({
+    required String challengeToken,
+    required Map<String, dynamic> response,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => _apiClient.completePasskeyMfa(
+        challengeToken: challengeToken,
+        response: response,
+      ),
+    );
+  }
+
   Future<void> acceptConsent({required bool patternMemoryGranted}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(

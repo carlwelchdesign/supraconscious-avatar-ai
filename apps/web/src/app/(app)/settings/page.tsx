@@ -1,10 +1,12 @@
 import { getCurrentSession, requireAppUser } from "@inner-avatar/auth/session"
+import { listPasskeys } from "@inner-avatar/auth/webauthn"
 import { isStripeConfigured } from "@inner-avatar/billing"
 import { prisma } from "@inner-avatar/db"
 import { formatWebDateTime } from "@/lib/date-format"
 import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 import { VoiceSettingsSection } from "@/components/voice/VoiceSettingsSection"
+import { PasskeySettings } from "@/components/auth/passkey-settings"
 import { ClearPatternMemoryButton } from "./clear-pattern-memory-button"
 import { RevokeSessionsButton } from "./revoke-sessions-button"
 import {
@@ -78,7 +80,7 @@ export default async function SettingsPage({
   const statusLabels = { on: commonMessages.on, off: commonMessages.off }
   const billingEnabled = isStripeConfigured()
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const [currentSession, subscription, sessions] = await Promise.all([
+  const [currentSession, subscription, sessions, passkeys] = await Promise.all([
     getCurrentSession("web"),
     prisma.subscription.findFirst({
       where: { userId: user.id },
@@ -95,6 +97,7 @@ export default async function SettingsPage({
         expiresAt: true,
       },
     }),
+    listPasskeys(user.id),
   ])
 
   return (
@@ -177,6 +180,15 @@ export default async function SettingsPage({
             </button>
           </div>
         </form>
+        <div className="border-t" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
+          <PasskeySettings
+            initialPasskeys={passkeys.map((passkey) => ({
+              ...passkey,
+              createdAt: passkey.createdAt.toISOString(),
+              lastUsedAt: passkey.lastUsedAt?.toISOString() ?? null,
+            }))}
+          />
+        </div>
       </div>
 
       {/* ── Reflection preferences ─────────────────────────────── */}

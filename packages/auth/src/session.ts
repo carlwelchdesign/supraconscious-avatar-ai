@@ -29,7 +29,11 @@ export function getSessionCookieName(scope: SessionScope = "web") {
   return SESSION_COOKIES[scope]
 }
 
-export async function createSession(userId: string, scope: SessionScope = "web") {
+export async function createSession(
+  userId: string,
+  scope: SessionScope = "web",
+  options: { authMethod?: string; mfaMethod?: string; mfaVerifiedAt?: Date | null } = {},
+) {
   const token = randomBytes(32).toString("base64url")
   const tokenHash = hashSessionToken(token)
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000)
@@ -39,6 +43,9 @@ export async function createSession(userId: string, scope: SessionScope = "web")
       userId,
       tokenHash,
       scope,
+      authMethod: options.authMethod ?? "password",
+      mfaMethod: options.mfaMethod ?? null,
+      mfaVerifiedAt: options.mfaVerifiedAt ?? null,
       expiresAt,
     },
   })

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/types.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../l10n/app_localizations.dart';
 import 'local_language_controller.dart';
@@ -93,6 +97,9 @@ class _MobileRootState extends ConsumerState<MobileRoot> {
             language: value.language,
             onBack: _showLanding,
           );
+        }
+        if (value.needsMfa) {
+          return const PasskeyMfaScreen();
         }
         if (value.needsOnboarding) {
           return ConsentScreen(consent: value.consent);
@@ -332,6 +339,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   late bool _register;
+  bool _socialPending = false;
+  String? _socialError;
+  static Future<void>? _googleInit;
 
   @override
   void initState() {
@@ -395,7 +405,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
+          if (_socialError != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _socialError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
           const SizedBox(height: 20),
+          OutlinedButton.icon(
+            onPressed: _socialPending ? null : _loginWithGoogle,
+            icon: const Icon(Icons.g_mobiledata),
+            label: const Text('Continue with Google'),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _socialPending ? null : _loginWithApple,
+            icon: const Icon(Icons.apple),
+            label: const Text('Continue with Apple'),
+          ),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: _submit,
             child: Text(_register ? l10n.createAccount : l10n.signIn),
@@ -429,6 +458,142 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         _password.text,
         preferredLanguage: preferredLanguage,
       );
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    await _runSocialLogin(() async {
+      _googleInit ??= GoogleSignIn.instance.initialize();
+      await _googleInit;
+      final account = await GoogleSignIn.instance.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Google did not return an identity token.');
+      }
+      await ref.read(sessionControllerProvider.notifier).loginWithOAuth(
+        provider: 'google',
+        idToken: idToken,
+        preferredLanguage: ref.read(localLanguageControllerProvider).code,
+      );
+    });
+  }
+
+  Future<void> _loginWithApple() async {
+    await _runSocialLogin(() async {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final idToken = credential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Apple did not return an identity token.');
+      }
+      await ref.read(sessionControllerProvider.notifier).loginWithOAuth(
+        provider: 'apple',
+        idToken: idToken,
+        preferredLanguage: ref.read(localLanguageControllerProvider).code,
+      );
+    });
+  }
+
+  Future<void> _runSocialLogin(Future<void> Function() action) async {
+    setState(() {
+      _socialPending = true;
+      _socialError = null;
+    });
+    try {
+      await action();
+    } catch (error) {
+      setState(() => _socialError = error.toString());
+    } finally {
+      if (mounted) setState(() => _socialPending = false);
+    }
+  }
+}
+
+class PasskeyMfaScreen extends ConsumerStatefulWidget {
+  const PasskeyMfaScreen({super.key});
+
+  @override
+  ConsumerState<PasskeyMfaScreen> createState() => _PasskeyMfaScreenState();
+}
+
+class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
+  bool _verifying = false;
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
+    return _FoundationFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 88),
+          const Icon(Icons.security, size: 64, color: Color(0xFF82D7C4)),
+          const SizedBox(height: 24),
+          Text(
+            'Verify your passkey',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: _verifying ? null : _verify,
+            icon: _verifying
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.key),
+            label: const Text('Use passkey'),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => ref.read(sessionControllerProvider.notifier).load(),
+            child: const Text('Back to sign in'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _verify() async {
+    setState(() {
+      _verifying = true;
+      _error = null;
+    });
+    try {
+      final api = ref.read(apiClientProvider);
+      final challenge = await api.startPasskeyMfa();
+      final authenticator = PasskeyAuthenticator();
+      final response = await authenticator.authenticate(
+        AuthenticateRequestType.fromJson(challenge.options),
+      );
+      await ref.read(sessionControllerProvider.notifier).completePasskeyMfa(
+        challengeToken: challenge.challengeToken,
+        response: response.toJson(),
+      );
+    } catch (error) {
+      setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
   }
 }

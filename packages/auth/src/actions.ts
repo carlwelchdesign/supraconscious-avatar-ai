@@ -12,6 +12,7 @@ import {
 } from "./account-email"
 import { verifyBotChallenge } from "./bot-challenge"
 import { createSession, destroySession, hashPassword, verifyPassword } from "./session"
+import { createMfaPendingAuth, userRequiresPasskeyMfa } from "./pending-auth"
 import { linkFounderParticipantIfConfigured, readPostLoginRedirect } from "./redirects"
 import { isAuthRateLimited, recordAuthFailure } from "./rate-limit"
 import { choosePostAuthRedirect, choosePostRegistrationRedirect } from "./safe-redirect"
@@ -152,6 +153,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     return { error: rateLimitMessage("web_login") }
   }
   let redirectTo = "/dashboard"
+  let mfaRedirectTo: string | null = null
 
   try {
     const user = await prisma.user.findUnique({
@@ -172,13 +174,24 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
       ? await prisma.user.update({ where: { id: roleUpdatedUser.id }, data: { preferredLanguage: selectedLanguage } })
       : roleUpdatedUser
 
-    await createSession(effectiveUser.id, "web")
     redirectTo = choosePostAuthRedirect(await readPostLoginRedirect(effectiveUser), parsed.data.next)
+    if (await userRequiresPasskeyMfa(effectiveUser.id)) {
+      await createMfaPendingAuth({
+        userId: effectiveUser.id,
+        authMethod: "password",
+        redirectTo,
+        scope: "web",
+      })
+      mfaRedirectTo = `/mfa?next=${encodeURIComponent(redirectTo)}`
+    } else {
+      await createSession(effectiveUser.id, "web", { authMethod: "password" })
+    }
   } catch (error) {
     await recordAuthFailure("web_login", parsed.data.email)
     return { error: authDatabaseErrorMessage(error) }
   }
 
+  if (mfaRedirectTo) redirect(mfaRedirectTo)
   redirect(redirectTo)
 }
 
@@ -210,6 +223,7 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
   if (await isAuthRateLimited("admin_login", parsed.data.email)) {
     return { error: rateLimitMessage("admin_login") }
   }
+  let mfaRedirectTo: string | null = null
 
   try {
     const user = await prisma.user.findUnique({
@@ -231,12 +245,23 @@ export async function adminLoginAction(_state: AuthActionState, formData: FormDa
       return { error: "Admin access is required." }
     }
 
-    await createSession(effectiveUser.id, "admin")
+    if (await userRequiresPasskeyMfa(effectiveUser.id)) {
+      await createMfaPendingAuth({
+        userId: effectiveUser.id,
+        authMethod: "password",
+        redirectTo: "/",
+        scope: "admin",
+      })
+      mfaRedirectTo = `/mfa?next=${encodeURIComponent("/")}`
+    } else {
+      await createSession(effectiveUser.id, "admin", { authMethod: "password" })
+    }
   } catch (error) {
     await recordAuthFailure("admin_login", parsed.data.email)
     return { error: authDatabaseErrorMessage(error) }
   }
 
+  if (mfaRedirectTo) redirect(mfaRedirectTo)
   redirect("/")
 }
 

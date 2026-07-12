@@ -63,6 +63,43 @@ class InnerCouncilApiClient {
     return MobileSession.fromJson(json);
   }
 
+  Future<MobileSession> loginWithOAuth({
+    required String provider,
+    required String idToken,
+    String? preferredLanguage,
+  }) async {
+    final json = await _send(
+      'POST',
+      '/api/mobile/auth/oauth',
+      body: {
+        'provider': provider,
+        'idToken': idToken,
+        'preferredLanguage': preferredLanguage ?? _currentLanguageCode(),
+      },
+    );
+    return MobileSession.fromJson(json);
+  }
+
+  Future<MobilePasskeyChallenge> startPasskeyMfa() async {
+    final json = await _send(
+      'POST',
+      '/api/auth/passkeys/authenticate/options',
+    );
+    return MobilePasskeyChallenge.fromJson(json);
+  }
+
+  Future<MobileSession> completePasskeyMfa({
+    required String challengeToken,
+    required Map<String, dynamic> response,
+  }) async {
+    await _send(
+      'POST',
+      '/api/auth/passkeys/authenticate/verify',
+      body: {'challengeToken': challengeToken, 'response': response},
+    );
+    return getSession();
+  }
+
   Future<MobileSession> acceptConsent({
     required bool patternMemoryGranted,
   }) async {
@@ -297,6 +334,7 @@ class MobileSession {
   final MobileConsent consent;
 
   bool get isUnauthenticated => status == 'unauthenticated';
+  bool get needsMfa => status == 'mfa_required';
   bool get needsOnboarding => status == 'onboarding_required';
   bool get isReady => status == 'ready';
 
@@ -314,6 +352,23 @@ class MobileSession {
       consent: MobileConsent.fromJson(
         json['consent'] as Map<String, dynamic>? ?? const {},
       ),
+    );
+  }
+}
+
+class MobilePasskeyChallenge {
+  const MobilePasskeyChallenge({
+    required this.challengeToken,
+    required this.options,
+  });
+
+  final String challengeToken;
+  final Map<String, dynamic> options;
+
+  factory MobilePasskeyChallenge.fromJson(Map<String, dynamic> json) {
+    return MobilePasskeyChallenge(
+      challengeToken: json['challengeToken'] as String? ?? '',
+      options: json['options'] as Map<String, dynamic>? ?? const {},
     );
   }
 }
