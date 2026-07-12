@@ -146,7 +146,19 @@
     "chooseNewPasswordDescription": "Χρησιμοποίησε τον ασφαλή σύνδεσμο επαναφοράς από το email σου.",
     "newPassword": "Νέος κωδικός",
     "confirmPassword": "Επιβεβαίωση κωδικού",
-    "backToSignIn": "Επιστροφή στη σύνδεση"
+    "backToSignIn": "Επιστροφή στη σύνδεση",
+    "continueWithGoogle": "Συνέχεια με Google",
+    "continueWithApple": "Συνέχεια με Apple",
+    "passwordDivider": "Κωδικός πρόσβασης",
+    "passkeyChallengeExpired": "Η πρόκληση passkey έληξε.",
+    "passkeyVerificationFailed": "Η επαλήθευση passkey απέτυχε.",
+    "verifyPasskeyTitle": "Επαλήθευση passkey",
+    "verifyPasskeyBody": "Αυτός ο λογαριασμός προστατεύεται με MFA ανθεκτικό στο phishing. Χρησιμοποίησε το YubiKey ή το passkey της συσκευής σου για να ολοκληρώσεις τη σύνδεση.",
+    "usePasskey": "Χρήση passkey",
+    "recoveryCode": "Κωδικός ανάκτησης",
+    "checking": "Έλεγχος...",
+    "useRecoveryCode": "Χρήση κωδικού ανάκτησης",
+    "enterRecoveryCode": "Πληκτρολόγησε έναν κωδικό ανάκτησης."
   },
   "appShell": {
     "innerCouncil": "Εσωτερικό Συμβούλιο",
@@ -398,7 +410,25 @@
     "password": "Κωδικός",
     "typeDelete": "Type DELETE",
     "typeDeleteTitle": "Type DELETE in all caps to confirm.",
-    "deleteAccountButton": "Διαγραφή λογαριασμού"
+    "deleteAccountButton": "Διαγραφή λογαριασμού",
+    "passkeys": {
+      "title": "Passkeys και κλειδιά ασφαλείας",
+      "description": "Πρόσθεσε YubiKey, Touch ID, Face ID ή άλλο passkey. Μόλις ενεργοποιηθεί, κάθε σύνδεση με κωδικό, Google ή Apple θα πρέπει να ολοκληρώνει αυτόν τον έλεγχο κατά του phishing.",
+      "addPasskey": "Προσθήκη passkey",
+      "securityKeyLabel": "Κλειδί ασφαλείας",
+      "startEnrollmentError": "Δεν ήταν δυνατή η έναρξη εγγραφής passkey.",
+      "enrollmentFailed": "Η εγγραφή passkey απέτυχε.",
+      "enrolledMessage": "Το passkey εγγράφηκε. Οι μελλοντικές συνδέσεις θα απαιτούν αυτόν τον έλεγχο ανθεκτικό στο phishing.",
+      "removePrompt": "Πληκτρολόγησε έναν κωδικό ανάκτησης πριν αφαιρέσεις το τελευταίο passkey.",
+      "removeFailed": "Δεν ήταν δυνατή η αφαίρεση του passkey.",
+      "removedMessage": "Το passkey αφαιρέθηκε.",
+      "saveRecoveryCodesTitle": "Αποθήκευσε τώρα αυτούς τους κωδικούς ανάκτησης.",
+      "saveRecoveryCodesBody": "Εμφανίζονται μία φορά και απαιτούνται αν χρειαστεί να αφαιρέσεις το τελευταίο passkey.",
+      "none": "Δεν έχουν εγγραφεί ακόμη passkeys.",
+      "added": "Προστέθηκε {date}",
+      "lastUsed": "Τελευταία χρήση {date}",
+      "remove": "Αφαίρεση"
+    }
   },
   "onboarding": {
     "eyebrow": "Πρώτη συνεδρία",

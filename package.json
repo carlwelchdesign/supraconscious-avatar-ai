@@ -33,6 +33,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
+    "check:localization": "node scripts/check-localization.mjs",
     "check:env": "node scripts/check-env-template.mjs",
     "test:auth": "node .yarn/releases/yarn-4.cjs --cwd packages/auth test",
     "test:web": "node .yarn/releases/yarn-4.cjs --cwd apps/web test",

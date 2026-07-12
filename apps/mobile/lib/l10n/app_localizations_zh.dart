@@ -301,6 +301,96 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get thresholdPurposeSocraticQuestion => '你一直忽视了哪个邀请？';
+
+  @override
+  String get continueWithGoogle => '使用 Google 继续';
+
+  @override
+  String get continueWithApple => '使用 Apple 继续';
+
+  @override
+  String get googleNoIdToken => 'Google 未返回身份令牌。';
+
+  @override
+  String get appleNoIdToken => 'Apple 未返回身份令牌。';
+
+  @override
+  String get verifyPasskeyTitle => '验证你的通行密钥';
+
+  @override
+  String get verifyPasskeyBody => '此账户受防钓鱼多重验证保护。请使用你的 YubiKey 或设备通行密钥完成登录。';
+
+  @override
+  String get usePasskey => '使用通行密钥';
+
+  @override
+  String get backToSignIn => '返回登录';
+
+  @override
+  String get sessionStatus => '会话状态';
+
+  @override
+  String get noteSaved => '备注已保存';
+
+  @override
+  String get feedbackLabel => '反馈';
+
+  @override
+  String get optionalFeedbackNote => '可选反馈备注';
+
+  @override
+  String get embodimentPrompt => '我今天可以实践的一个小转变';
+
+  @override
+  String get saveEmbodimentGate => '保存 embodied gate';
+
+  @override
+  String get feedbackSavedMessage => '反馈已保存。';
+
+  @override
+  String get embodimentSavedMessage => 'Embodiment gate 已保存。';
+
+  @override
+  String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';
+
+  @override
+  String get theFiveStages => '五个阶段';
+
+  @override
+  String get locked => '已锁定';
+
+  @override
+  String confidencePercent(int confidence) {
+    return '置信度 $confidence%';
+  }
+
+  @override
+  String get hide => '隐藏';
+
+  @override
+  String get restore => '恢复';
+
+  @override
+  String get councilReflection => '议会反思';
+
+  @override
+  String get brandName => 'Supraconscious';
+
+  @override
+  String get tagline => '书写。看清。自觉选择。';
+
+  @override
+  String apiLabel(String apiBaseUrl) {
+    return 'API：$apiBaseUrl';
+  }
+
+  @override
+  String get cosmicEyeSemanticLabel => '宇宙之眼图像';
+
+  @override
+  String feedbackTypeLabel(String label) {
+    return '$label';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -600,4 +690,94 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get thresholdPurposeSocraticQuestion => '你一直忽视了哪个邀请？';
+
+  @override
+  String get continueWithGoogle => '使用 Google 继续';
+
+  @override
+  String get continueWithApple => '使用 Apple 继续';
+
+  @override
+  String get googleNoIdToken => 'Google 未返回身份令牌。';
+
+  @override
+  String get appleNoIdToken => 'Apple 未返回身份令牌。';
+
+  @override
+  String get verifyPasskeyTitle => '验证你的通行密钥';
+
+  @override
+  String get verifyPasskeyBody => '此账户受防钓鱼多重验证保护。请使用你的 YubiKey 或设备通行密钥完成登录。';
+
+  @override
+  String get usePasskey => '使用通行密钥';
+
+  @override
+  String get backToSignIn => '返回登录';
+
+  @override
+  String get sessionStatus => '会话状态';
+
+  @override
+  String get noteSaved => '备注已保存';
+
+  @override
+  String get feedbackLabel => '反馈';
+
+  @override
+  String get optionalFeedbackNote => '可选反馈备注';
+
+  @override
+  String get embodimentPrompt => '我今天可以实践的一个小转变';
+
+  @override
+  String get saveEmbodimentGate => '保存 embodied gate';
+
+  @override
+  String get feedbackSavedMessage => '反馈已保存。';
+
+  @override
+  String get embodimentSavedMessage => 'Embodiment gate 已保存。';
+
+  @override
+  String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';
+
+  @override
+  String get theFiveStages => '五个阶段';
+
+  @override
+  String get locked => '已锁定';
+
+  @override
+  String confidencePercent(int confidence) {
+    return '置信度 $confidence%';
+  }
+
+  @override
+  String get hide => '隐藏';
+
+  @override
+  String get restore => '恢复';
+
+  @override
+  String get councilReflection => '议会反思';
+
+  @override
+  String get brandName => 'Supraconscious';
+
+  @override
+  String get tagline => '书写。看清。自觉选择。';
+
+  @override
+  String apiLabel(String apiBaseUrl) {
+    return 'API：$apiBaseUrl';
+  }
+
+  @override
+  String get cosmicEyeSemanticLabel => '宇宙之眼图像';
+
+  @override
+  String feedbackTypeLabel(String label) {
+    return '$label';
+  }
 }

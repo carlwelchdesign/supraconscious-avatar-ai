@@ -321,4 +321,98 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get thresholdPurposeSocraticQuestion =>
       'Welche Einladung hast du ignoriert?';
+
+  @override
+  String get continueWithGoogle => 'Mit Google fortfahren';
+
+  @override
+  String get continueWithApple => 'Mit Apple fortfahren';
+
+  @override
+  String get googleNoIdToken =>
+      'Google hat kein Identitätstoken zurückgegeben.';
+
+  @override
+  String get appleNoIdToken => 'Apple hat kein Identitätstoken zurückgegeben.';
+
+  @override
+  String get verifyPasskeyTitle => 'Passkey bestätigen';
+
+  @override
+  String get verifyPasskeyBody =>
+      'Dieses Konto ist mit phishing-resistenter MFA geschützt. Verwende deinen YubiKey oder den Geräte-Passkey, um die Anmeldung abzuschließen.';
+
+  @override
+  String get usePasskey => 'Passkey verwenden';
+
+  @override
+  String get backToSignIn => 'Zurück zur Anmeldung';
+
+  @override
+  String get sessionStatus => 'Sitzungsstatus';
+
+  @override
+  String get noteSaved => 'Notiz gespeichert';
+
+  @override
+  String get feedbackLabel => 'Feedback';
+
+  @override
+  String get optionalFeedbackNote => 'Optionale Feedback-Notiz';
+
+  @override
+  String get embodimentPrompt =>
+      'Eine kleine Veränderung, die ich heute leben kann';
+
+  @override
+  String get saveEmbodimentGate => 'Verkörperungs-Gate speichern';
+
+  @override
+  String get feedbackSavedMessage => 'Feedback gespeichert.';
+
+  @override
+  String get embodimentSavedMessage => 'Verkörperungs-Gate gespeichert.';
+
+  @override
+  String get patternsEmptyBody =>
+      'Schreib weiter. Wiederkehrende Signale erscheinen hier.';
+
+  @override
+  String get theFiveStages => 'Die fünf Stufen';
+
+  @override
+  String get locked => 'Gesperrt';
+
+  @override
+  String confidencePercent(int confidence) {
+    return 'Vertrauen $confidence %';
+  }
+
+  @override
+  String get hide => 'Ausblenden';
+
+  @override
+  String get restore => 'Wiederherstellen';
+
+  @override
+  String get councilReflection => 'Ratsreflexion';
+
+  @override
+  String get brandName => 'Supraconscious';
+
+  @override
+  String get tagline => 'Schreiben. Klar sehen. Bewusst wählen.';
+
+  @override
+  String apiLabel(String apiBaseUrl) {
+    return 'API: $apiBaseUrl';
+  }
+
+  @override
+  String get cosmicEyeSemanticLabel => 'Kosmisches Augenmotiv';
+
+  @override
+  String feedbackTypeLabel(String label) {
+    return '$label';
+  }
 }

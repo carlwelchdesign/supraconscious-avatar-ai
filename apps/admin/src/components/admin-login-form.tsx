@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Alert,
   Box,
@@ -16,6 +17,7 @@ import { adminLoginAction, type AuthActionState } from "@inner-avatar/auth/actio
 import { TurnstileWidget } from "./turnstile-widget"
 
 export function AdminLoginForm() {
+  const t = useTranslations()
   const [state, formAction, isPending] = useActionState<AuthActionState, FormData>(
     adminLoginAction,
     {},
@@ -37,22 +39,22 @@ export function AdminLoginForm() {
           <Stack spacing={3}>
             <Box sx={{ display: "none" }} aria-hidden="true">
               <label>
-                Website
+                {t("website")}
                 <input name="website" type="text" tabIndex={-1} autoComplete="off" />
               </label>
             </Box>
             <Stack spacing={1}>
               <Typography variant="h5" component="h1">
-                Admin Login
+                {t("loginTitle")}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Sign in with an account that has admin or super_admin access.
+                {t("loginSubtitle")}
               </Typography>
             </Stack>
 
             <TextField
               name="email"
-              label="Email"
+              label={t("email")}
               type="email"
               autoComplete="email"
               required
@@ -60,7 +62,7 @@ export function AdminLoginForm() {
             />
             <TextField
               name="password"
-              label="Password"
+              label={t("password")}
               type="password"
               autoComplete="current-password"
               required
@@ -79,7 +81,7 @@ export function AdminLoginForm() {
               startIcon={isPending ? <CircularProgress color="inherit" size={18} /> : null}
               fullWidth
             >
-              Sign In
+              {t("signIn")}
             </Button>
           </Stack>
         </Box>

@@ -146,7 +146,19 @@
     "chooseNewPasswordDescription": "Utilise le lien sécurisé de réinitialisation reçu par e-mail.",
     "newPassword": "Nouveau mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
-    "backToSignIn": "Retour à la connexion"
+    "backToSignIn": "Retour à la connexion",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithApple": "Continuer avec Apple",
+    "passwordDivider": "Mot de passe",
+    "passkeyChallengeExpired": "Le défi de passkey a expiré.",
+    "passkeyVerificationFailed": "La vérification de la passkey a échoué.",
+    "verifyPasskeyTitle": "Vérifiez votre passkey",
+    "verifyPasskeyBody": "Ce compte est protégé par une MFA résistante au phishing. Utilisez votre YubiKey ou la passkey de votre appareil pour terminer la connexion.",
+    "usePasskey": "Utiliser la passkey",
+    "recoveryCode": "Code de récupération",
+    "checking": "Vérification...",
+    "useRecoveryCode": "Utiliser le code de récupération",
+    "enterRecoveryCode": "Saisissez un code de récupération."
   },
   "appShell": {
     "innerCouncil": "Conseil Intérieur",
@@ -398,7 +410,25 @@
     "password": "Mot de passe",
     "typeDelete": "Type DELETE",
     "typeDeleteTitle": "Type DELETE in all caps to confirm.",
-    "deleteAccountButton": "Supprimer le compte"
+    "deleteAccountButton": "Supprimer le compte",
+    "passkeys": {
+      "title": "Passkeys et clés de sécurité",
+      "description": "Ajoutez une YubiKey, Touch ID, Face ID ou une autre passkey. Une fois inscrite, chaque connexion par mot de passe, Google ou Apple devra terminer cette vérification anti-hameçonnage.",
+      "addPasskey": "Ajouter une passkey",
+      "securityKeyLabel": "Clé de sécurité",
+      "startEnrollmentError": "Impossible de démarrer l’inscription de la passkey.",
+      "enrollmentFailed": "L’inscription de la passkey a échoué.",
+      "enrolledMessage": "Passkey inscrite. Les prochaines connexions exigeront cette vérification résistante au phishing.",
+      "removePrompt": "Saisissez un code de récupération avant de supprimer votre dernière passkey.",
+      "removeFailed": "Impossible de supprimer la passkey.",
+      "removedMessage": "Passkey supprimée.",
+      "saveRecoveryCodesTitle": "Enregistrez ces codes de récupération maintenant.",
+      "saveRecoveryCodesBody": "Ils ne sont affichés qu’une fois et seront nécessaires si vous devez supprimer votre dernière passkey.",
+      "none": "Aucune passkey n’est encore inscrite.",
+      "added": "Ajoutée le {date}",
+      "lastUsed": "Dernière utilisation le {date}",
+      "remove": "Supprimer"
+    }
   },
   "onboarding": {
     "eyebrow": "Première session",

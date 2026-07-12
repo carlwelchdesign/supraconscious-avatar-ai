@@ -81,10 +81,7 @@ class InnerCouncilApiClient {
   }
 
   Future<MobilePasskeyChallenge> startPasskeyMfa() async {
-    final json = await _send(
-      'POST',
-      '/api/auth/passkeys/authenticate/options',
-    );
+    final json = await _send('POST', '/api/auth/passkeys/authenticate/options');
     return MobilePasskeyChallenge.fromJson(json);
   }
 
@@ -263,12 +260,26 @@ class InnerCouncilApiClient {
       _storeCookies(response.headers['set-cookie']);
     } on TimeoutException {
       throw MobileApiException(
-        'Could not reach the backend at $baseUrl. Start the web app and try again.',
+        _localizedMobileApiCopy(
+          en: 'Could not reach the backend at $baseUrl. Start the web app and try again.',
+          es: 'No se pudo conectar con el servidor en $baseUrl. Inicia la app web e inténtalo de nuevo.',
+          el: 'Δεν ήταν δυνατή η σύνδεση με τον διακομιστή στο $baseUrl. Άνοιξε την εφαρμογή web και δοκίμασε ξανά.',
+          fr: 'Impossible de joindre le serveur sur $baseUrl. Lancez l’application web puis réessayez.',
+          de: 'Der Server unter $baseUrl ist nicht erreichbar. Starte die Web-App und versuche es erneut.',
+          zhHans: '无法连接到 $baseUrl 的后端。请先启动网页应用，然后重试。',
+        ),
         0,
       );
     } on http.ClientException catch (error) {
       throw MobileApiException(
-        'Could not reach the backend at $baseUrl. Start the web app and check the mobile preview URL. ${error.message}',
+        _localizedMobileApiCopy(
+          en: 'Could not reach the backend at $baseUrl. Start the web app and check the mobile preview URL. ${error.message}',
+          es: 'No se pudo conectar con el servidor en $baseUrl. Inicia la app web y revisa la URL de vista previa móvil. ${error.message}',
+          el: 'Δεν ήταν δυνατή η σύνδεση με τον διακομιστή στο $baseUrl. Άνοιξε την εφαρμογή web και έλεγξε τη διεύθυνση προεπισκόπησης για κινητό. ${error.message}',
+          fr: 'Impossible de joindre le serveur sur $baseUrl. Lancez l’application web et vérifiez l’URL d’aperçu mobile. ${error.message}',
+          de: 'Der Server unter $baseUrl ist nicht erreichbar. Starte die Web-App und prüfe die mobile Vorschau-URL. ${error.message}',
+          zhHans: '无法连接到 $baseUrl 的后端。请启动网页应用并检查移动预览网址。${error.message}',
+        ),
         0,
       );
     }
@@ -280,7 +291,7 @@ class InnerCouncilApiClient {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final error = decoded['error'];
       throw MobileApiException(
-        error is String ? error : 'Request failed.',
+        error is String ? error : _localizedRequestFailed(),
         response.statusCode,
       );
     }
@@ -316,6 +327,47 @@ class InnerCouncilApiClient {
 
     return const {'en', 'es', 'el', 'fr', 'de'}.contains(code) ? code : 'en';
   }
+}
+
+String _localizedRequestFailed() {
+  return _localizedMobileApiCopy(
+    en: 'Request failed.',
+    es: 'La solicitud falló.',
+    el: 'Το αίτημα απέτυχε.',
+    fr: 'La requête a échoué.',
+    de: 'Die Anfrage ist fehlgeschlagen.',
+    zhHans: '请求失败。',
+  );
+}
+
+String _localizedMobileApiCopy({
+  required String en,
+  required String es,
+  required String el,
+  required String fr,
+  required String de,
+  required String zhHans,
+}) {
+  final locale = PlatformDispatcher.instance.locale;
+  final code = locale.languageCode.toLowerCase();
+  final script = locale.scriptCode?.toLowerCase();
+  final country = locale.countryCode?.toLowerCase();
+
+  if (code == 'zh' &&
+      (script == null ||
+          script == 'hans' ||
+          country == 'cn' ||
+          country == 'sg')) {
+    return zhHans;
+  }
+
+  return switch (code) {
+    'es' => es,
+    'el' => el,
+    'fr' => fr,
+    'de' => de,
+    _ => en,
+  };
 }
 
 class MobileSession {
@@ -409,10 +461,7 @@ class MobileUser {
 }
 
 class MobileLanguageState {
-  const MobileLanguageState({
-    required this.current,
-    required this.supported,
-  });
+  const MobileLanguageState({required this.current, required this.supported});
 
   final String current;
   final List<MobileSupportedLanguage> supported;

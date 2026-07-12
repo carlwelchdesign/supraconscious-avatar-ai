@@ -146,7 +146,19 @@
     "chooseNewPasswordDescription": "Usa el enlace seguro de restablecimiento de tu email.",
     "newPassword": "Nueva contraseña",
     "confirmPassword": "Confirmar contraseña",
-    "backToSignIn": "Volver a iniciar sesión"
+    "backToSignIn": "Volver a iniciar sesión",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithApple": "Continuar con Apple",
+    "passwordDivider": "Contraseña",
+    "passkeyChallengeExpired": "El desafío de passkey caducó.",
+    "passkeyVerificationFailed": "La verificación de passkey falló.",
+    "verifyPasskeyTitle": "Verifica tu passkey",
+    "verifyPasskeyBody": "Esta cuenta está protegida con MFA resistente al phishing. Usa tu YubiKey o la passkey del dispositivo para terminar de iniciar sesión.",
+    "usePasskey": "Usar passkey",
+    "recoveryCode": "Código de recuperación",
+    "checking": "Comprobando...",
+    "useRecoveryCode": "Usar código de recuperación",
+    "enterRecoveryCode": "Introduce un código de recuperación."
   },
   "appShell": {
     "innerCouncil": "Consejo Interior",
@@ -398,7 +410,25 @@
     "password": "Password",
     "typeDelete": "Type DELETE",
     "typeDeleteTitle": "Type DELETE in all caps to confirm.",
-    "deleteAccountButton": "Eliminar cuenta"
+    "deleteAccountButton": "Eliminar cuenta",
+    "passkeys": {
+      "title": "Passkeys y llaves de seguridad",
+      "description": "Añade una YubiKey, Touch ID, Face ID u otra passkey. Una vez activada, cada inicio de sesión con contraseña, Google o Apple deberá completar esta comprobación anti-phishing.",
+      "addPasskey": "Añadir passkey",
+      "securityKeyLabel": "Llave de seguridad",
+      "startEnrollmentError": "No se pudo iniciar el registro de passkey.",
+      "enrollmentFailed": "El registro de passkey falló.",
+      "enrolledMessage": "Passkey registrada. Los futuros inicios de sesión requerirán esta comprobación resistente al phishing.",
+      "removePrompt": "Introduce un código de recuperación antes de eliminar tu última passkey.",
+      "removeFailed": "No se pudo eliminar la passkey.",
+      "removedMessage": "Passkey eliminada.",
+      "saveRecoveryCodesTitle": "Guarda estos códigos de recuperación ahora.",
+      "saveRecoveryCodesBody": "Se muestran una sola vez y son necesarios si debes eliminar tu última passkey.",
+      "none": "Aún no hay passkeys registradas.",
+      "added": "Añadida el {date}",
+      "lastUsed": "Último uso el {date}",
+      "remove": "Eliminar"
+    }
   },
   "onboarding": {
     "eyebrow": "Primera sesión",

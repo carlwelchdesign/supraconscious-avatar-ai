@@ -119,5 +119,54 @@
         "type": "String"
       }
     }
+  },
+  "continueWithGoogle": "Συνέχεια με Google",
+  "continueWithApple": "Συνέχεια με Apple",
+  "googleNoIdToken": "Η Google δεν επέστρεψε διακριτικό ταυτότητας.",
+  "appleNoIdToken": "Η Apple δεν επέστρεψε διακριτικό ταυτότητας.",
+  "verifyPasskeyTitle": "Επαλήθευση κλειδιού πρόσβασης",
+  "verifyPasskeyBody": "Αυτός ο λογαριασμός προστατεύεται με MFA ανθεκτικό στο phishing. Χρησιμοποίησε το YubiKey ή το κλειδί πρόσβασης της συσκευής για να ολοκληρώσεις τη σύνδεση.",
+  "usePasskey": "Χρήση κλειδιού πρόσβασης",
+  "backToSignIn": "Επιστροφή στη σύνδεση",
+  "sessionStatus": "Κατάσταση συνεδρίας",
+  "noteSaved": "σημείωση αποθηκεύτηκε",
+  "feedbackLabel": "Σχόλια",
+  "optionalFeedbackNote": "Προαιρετική σημείωση σχολίων",
+  "embodimentPrompt": "Μία μικρή μετατόπιση που μπορώ να ζήσω σήμερα",
+  "saveEmbodimentGate": "Αποθήκευση πύλης ενσώματης πράξης",
+  "feedbackSavedMessage": "Τα σχόλια αποθηκεύτηκαν.",
+  "embodimentSavedMessage": "Η πύλη ενσώματης πράξης αποθηκεύτηκε.",
+  "patternsEmptyBody": "Συνέχισε να γράφεις. Τα επαναλαμβανόμενα σήματα θα εμφανιστούν εδώ.",
+  "theFiveStages": "Τα πέντε στάδια",
+  "locked": "Κλειδωμένο",
+  "confidencePercent": "Βεβαιότητα {confidence}%",
+  "hide": "Απόκρυψη",
+  "restore": "Επαναφορά",
+  "councilReflection": "Αντανάκλαση συμβουλίου",
+  "brandName": "Supraconscious",
+  "tagline": "Γράψε. Δες καθαρά. Επίλεξε συνειδητά.",
+  "apiLabel": "API: {apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "Κοσμικό μάτι",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -319,4 +319,97 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get thresholdPurposeSocraticQuestion => 'Ποια πρόσκληση αγνοείς;';
+
+  @override
+  String get continueWithGoogle => 'Συνέχεια με Google';
+
+  @override
+  String get continueWithApple => 'Συνέχεια με Apple';
+
+  @override
+  String get googleNoIdToken => 'Η Google δεν επέστρεψε διακριτικό ταυτότητας.';
+
+  @override
+  String get appleNoIdToken => 'Η Apple δεν επέστρεψε διακριτικό ταυτότητας.';
+
+  @override
+  String get verifyPasskeyTitle => 'Επαλήθευση κλειδιού πρόσβασης';
+
+  @override
+  String get verifyPasskeyBody =>
+      'Αυτός ο λογαριασμός προστατεύεται με MFA ανθεκτικό στο phishing. Χρησιμοποίησε το YubiKey ή το κλειδί πρόσβασης της συσκευής για να ολοκληρώσεις τη σύνδεση.';
+
+  @override
+  String get usePasskey => 'Χρήση κλειδιού πρόσβασης';
+
+  @override
+  String get backToSignIn => 'Επιστροφή στη σύνδεση';
+
+  @override
+  String get sessionStatus => 'Κατάσταση συνεδρίας';
+
+  @override
+  String get noteSaved => 'σημείωση αποθηκεύτηκε';
+
+  @override
+  String get feedbackLabel => 'Σχόλια';
+
+  @override
+  String get optionalFeedbackNote => 'Προαιρετική σημείωση σχολίων';
+
+  @override
+  String get embodimentPrompt =>
+      'Μία μικρή μετατόπιση που μπορώ να ζήσω σήμερα';
+
+  @override
+  String get saveEmbodimentGate => 'Αποθήκευση πύλης ενσώματης πράξης';
+
+  @override
+  String get feedbackSavedMessage => 'Τα σχόλια αποθηκεύτηκαν.';
+
+  @override
+  String get embodimentSavedMessage => 'Η πύλη ενσώματης πράξης αποθηκεύτηκε.';
+
+  @override
+  String get patternsEmptyBody =>
+      'Συνέχισε να γράφεις. Τα επαναλαμβανόμενα σήματα θα εμφανιστούν εδώ.';
+
+  @override
+  String get theFiveStages => 'Τα πέντε στάδια';
+
+  @override
+  String get locked => 'Κλειδωμένο';
+
+  @override
+  String confidencePercent(int confidence) {
+    return 'Βεβαιότητα $confidence%';
+  }
+
+  @override
+  String get hide => 'Απόκρυψη';
+
+  @override
+  String get restore => 'Επαναφορά';
+
+  @override
+  String get councilReflection => 'Αντανάκλαση συμβουλίου';
+
+  @override
+  String get brandName => 'Supraconscious';
+
+  @override
+  String get tagline => 'Γράψε. Δες καθαρά. Επίλεξε συνειδητά.';
+
+  @override
+  String apiLabel(String apiBaseUrl) {
+    return 'API: $apiBaseUrl';
+  }
+
+  @override
+  String get cosmicEyeSemanticLabel => 'Κοσμικό μάτι';
+
+  @override
+  String feedbackTypeLabel(String label) {
+    return '$label';
+  }
 }

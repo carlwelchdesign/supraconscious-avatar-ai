@@ -22,10 +22,10 @@ class InnerCouncilMobileApp extends ConsumerWidget {
     final localeLanguageCode = localLanguage.hasExplicitPreference
         ? localLanguage.code
         : session?.authenticated == true
-            ? session!.language.current
-            : localLanguage.code;
+        ? session!.language.current
+        : localLanguage.code;
     return MaterialApp(
-      title: 'The Inner Council',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       locale: _localeFromLanguageCode(localeLanguageCode),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -416,13 +416,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           OutlinedButton.icon(
             onPressed: _socialPending ? null : _loginWithGoogle,
             icon: const Icon(Icons.g_mobiledata),
-            label: const Text('Continue with Google'),
+            label: Text(l10n.continueWithGoogle),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             onPressed: _socialPending ? null : _loginWithApple,
             icon: const Icon(Icons.apple),
-            label: const Text('Continue with Apple'),
+            label: Text(l10n.continueWithApple),
           ),
           const SizedBox(height: 12),
           FilledButton(
@@ -462,23 +462,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _loginWithGoogle() async {
+    final l10n = AppLocalizations.of(context);
     await _runSocialLogin(() async {
       _googleInit ??= GoogleSignIn.instance.initialize();
       await _googleInit;
       final account = await GoogleSignIn.instance.authenticate();
       final idToken = account.authentication.idToken;
       if (idToken == null || idToken.isEmpty) {
-        throw StateError('Google did not return an identity token.');
+        throw StateError(l10n.googleNoIdToken);
       }
-      await ref.read(sessionControllerProvider.notifier).loginWithOAuth(
-        provider: 'google',
-        idToken: idToken,
-        preferredLanguage: ref.read(localLanguageControllerProvider).code,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .loginWithOAuth(
+            provider: 'google',
+            idToken: idToken,
+            preferredLanguage: ref.read(localLanguageControllerProvider).code,
+          );
     });
   }
 
   Future<void> _loginWithApple() async {
+    final l10n = AppLocalizations.of(context);
     await _runSocialLogin(() async {
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -488,13 +492,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       );
       final idToken = credential.identityToken;
       if (idToken == null || idToken.isEmpty) {
-        throw StateError('Apple did not return an identity token.');
+        throw StateError(l10n.appleNoIdToken);
       }
-      await ref.read(sessionControllerProvider.notifier).loginWithOAuth(
-        provider: 'apple',
-        idToken: idToken,
-        preferredLanguage: ref.read(localLanguageControllerProvider).code,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .loginWithOAuth(
+            provider: 'apple',
+            idToken: idToken,
+            preferredLanguage: ref.read(localLanguageControllerProvider).code,
+          );
     });
   }
 
@@ -526,6 +532,7 @@ class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return _FoundationFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -534,13 +541,13 @@ class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
           const Icon(Icons.security, size: 64, color: Color(0xFF82D7C4)),
           const SizedBox(height: 24),
           Text(
-            'Verify your passkey',
+            l10n.verifyPasskeyTitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 12),
           Text(
-            'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.',
+            l10n.verifyPasskeyBody,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -562,12 +569,13 @@ class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.key),
-            label: const Text('Use passkey'),
+            label: Text(l10n.usePasskey),
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => ref.read(sessionControllerProvider.notifier).load(),
-            child: const Text('Back to sign in'),
+            onPressed: () =>
+                ref.read(sessionControllerProvider.notifier).load(),
+            child: Text(l10n.backToSignIn),
           ),
         ],
       ),
@@ -586,10 +594,12 @@ class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
       final response = await authenticator.authenticate(
         AuthenticateRequestType.fromJson(challenge.options),
       );
-      await ref.read(sessionControllerProvider.notifier).completePasskeyMfa(
-        challengeToken: challenge.challengeToken,
-        response: response.toJson(),
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .completePasskeyMfa(
+            challengeToken: challenge.challengeToken,
+            response: response.toJson(),
+          );
     } catch (error) {
       setState(() => _error = error.toString());
     } finally {
@@ -766,10 +776,7 @@ class DashboardTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         if (data.recentSessions.isEmpty)
-          _InfoCard(
-            title: l10n.noSavedTitle,
-            body: l10n.firstEntryBody,
-          )
+          _InfoCard(title: l10n.noSavedTitle, body: l10n.firstEntryBody)
         else
           for (final item in data.recentSessions)
             _SessionSummaryCard(session: item),
@@ -813,10 +820,7 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        Text(
-          l10n.journalHelper,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(l10n.journalHelper, style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 16),
         prompt.when(
           loading: () => const LinearProgressIndicator(),
@@ -1035,7 +1039,9 @@ class _SavedSessionDetailScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).savedReflectionTitle)),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).savedReflectionTitle),
+      ),
       body: FutureBuilder<MobileSavedSessionDetail>(
         future: _future,
         builder: (context, snapshot) {
@@ -1068,7 +1074,9 @@ class _SavedSessionDetailScreenState
               for (final message in session.messages)
                 _InfoCard(
                   title: message.displayName,
-                  body: message.abstained ? AppLocalizations.of(context).grounding : message.content,
+                  body: message.abstained
+                      ? AppLocalizations.of(context).grounding
+                      : message.content,
                 ),
               _SourceGroundingCard(sourceGrounding: session.sourceGrounding),
               _FeedbackEmbodimentSection(session: session, onSaved: _refresh),
@@ -1218,6 +1226,7 @@ class _FeedbackEmbodimentSectionState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.only(top: 12),
       child: Padding(
@@ -1226,38 +1235,38 @@ class _FeedbackEmbodimentSectionState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Session status',
+              l10n.sessionStatus,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              '${widget.session.feedback.isNotEmpty ? "Feedback saved" : "Feedback needed"} · ${widget.session.embodimentGateResponses.isNotEmpty ? "Gate saved" : "Gate open"}',
+              '${widget.session.feedback.isNotEmpty ? l10n.feedbackSaved : l10n.feedbackNeeded} · ${widget.session.embodimentGateResponses.isNotEmpty ? l10n.gateSaved : l10n.gateOpen}',
             ),
             if (widget.session.feedback.isNotEmpty) ...[
               const SizedBox(height: 8),
               for (final feedback in widget.session.feedback)
                 Text(
-                  '${_formatFeedbackType(feedback.feedbackType)}${feedback.hasNote ? " · note saved" : ""}',
+                  '${_formatFeedbackType(context, feedback.feedbackType)}${feedback.hasNote ? " · ${l10n.noteSaved}" : ""}',
                 ),
             ],
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _feedbackType,
-              decoration: const InputDecoration(labelText: 'Feedback'),
-              items: const [
-                DropdownMenuItem(value: 'helpful', child: Text('Helpful')),
+              decoration: InputDecoration(labelText: l10n.feedbackLabel),
+              items: [
+                DropdownMenuItem(value: 'helpful', child: Text(l10n.helpful)),
                 DropdownMenuItem(
                   value: 'not_accurate',
-                  child: Text('Not accurate'),
+                  child: Text(l10n.notAccurate),
                 ),
                 DropdownMenuItem(
                   value: 'too_intense',
-                  child: Text('Too intense'),
+                  child: Text(l10n.tooIntense),
                 ),
-                DropdownMenuItem(value: 'unclear', child: Text('Unclear')),
+                DropdownMenuItem(value: 'unclear', child: Text(l10n.unclear)),
                 DropdownMenuItem(
                   value: 'unsupported_source',
-                  child: Text('Unsupported source'),
+                  child: Text(l10n.unsupportedSource),
                 ),
               ],
               onChanged: (value) {
@@ -1269,23 +1278,23 @@ class _FeedbackEmbodimentSectionState
               controller: _feedbackNote,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Optional feedback note',
+              decoration: InputDecoration(
+                labelText: l10n.optionalFeedbackNote,
                 alignLabelWithHint: true,
               ),
             ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: _savingFeedback ? null : _saveFeedback,
-              child: Text(_savingFeedback ? 'Saving...' : 'Save feedback'),
+              child: Text(_savingFeedback ? l10n.saving : l10n.saveFeedback),
             ),
             const SizedBox(height: 18),
             TextField(
               controller: _embodiment,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'One small shift I can live today',
+              decoration: InputDecoration(
+                labelText: l10n.embodimentPrompt,
                 alignLabelWithHint: true,
               ),
             ),
@@ -1293,7 +1302,7 @@ class _FeedbackEmbodimentSectionState
             OutlinedButton(
               onPressed: _savingEmbodiment ? null : _saveEmbodiment,
               child: Text(
-                _savingEmbodiment ? 'Saving...' : 'Save embodiment gate',
+                _savingEmbodiment ? l10n.saving : l10n.saveEmbodimentGate,
               ),
             ),
             if (_message != null) ...[
@@ -1307,6 +1316,7 @@ class _FeedbackEmbodimentSectionState
   }
 
   Future<void> _saveFeedback() async {
+    final savedMessage = AppLocalizations.of(context).feedbackSavedMessage;
     setState(() {
       _savingFeedback = true;
       _message = null;
@@ -1320,7 +1330,7 @@ class _FeedbackEmbodimentSectionState
             note: _feedbackNote.text,
           );
       _feedbackNote.clear();
-      _message = 'Feedback saved.';
+      _message = savedMessage;
       widget.onSaved();
     } catch (error) {
       _message = error.toString();
@@ -1330,6 +1340,7 @@ class _FeedbackEmbodimentSectionState
   }
 
   Future<void> _saveEmbodiment() async {
+    final savedMessage = AppLocalizations.of(context).embodimentSavedMessage;
     final text = _embodiment.text.trim();
     if (text.isEmpty) return;
     setState(() {
@@ -1341,7 +1352,7 @@ class _FeedbackEmbodimentSectionState
           .read(apiClientProvider)
           .saveEmbodiment(councilSessionId: widget.session.id, text: text);
       _embodiment.clear();
-      _message = 'Embodiment gate saved.';
+      _message = savedMessage;
       widget.onSaved();
     } catch (error) {
       _message = error.toString();
@@ -1361,7 +1372,10 @@ class PatternsTab extends ConsumerWidget {
       value: patterns,
       onRefresh: () => ref.invalidate(patternsProvider),
       builder: (items) => [
-            Text(AppLocalizations.of(context).patternsTitle, style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          AppLocalizations.of(context).patternsTitle,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
         Text(
           AppLocalizations.of(context).patternsSubtitle,
@@ -1371,7 +1385,7 @@ class PatternsTab extends ConsumerWidget {
         if (items.isEmpty)
           _InfoCard(
             title: AppLocalizations.of(context).patternsEmptyTitle,
-            body: 'Keep writing. Recurring signals will appear here.',
+            body: AppLocalizations.of(context).patternsEmptyBody,
           )
         else
           for (final pattern in items) _PatternCard(pattern: pattern),
@@ -1392,11 +1406,15 @@ class GuideTab extends ConsumerWidget {
       builder: (data) {
         final current = _currentGuideStage(data);
         return [
-          Text(AppLocalizations.of(context).yourGuide, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            AppLocalizations.of(context).yourGuide,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
           if (current != null)
             _InfoCard(
-              title: '${current.name} · ${AppLocalizations.of(context).guideStage} ${data.currentStage}',
+              title:
+                  '${current.name} · ${AppLocalizations.of(context).guideStage} ${data.currentStage}',
               body: current.description,
             ),
           const SizedBox(height: 12),
@@ -1404,15 +1422,24 @@ class GuideTab extends ConsumerWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _StatCard(label: AppLocalizations.of(context).tone, value: data.avatarTone),
-              _StatCard(label: AppLocalizations.of(context).intensity, value: '${data.intensityLevel}/5'),
+              _StatCard(
+                label: AppLocalizations.of(context).tone,
+                value: data.avatarTone,
+              ),
+              _StatCard(
+                label: AppLocalizations.of(context).intensity,
+                value: '${data.intensityLevel}/5',
+              ),
               if (current != null)
-                _StatCard(label: AppLocalizations.of(context).trait, value: current.trait),
+                _StatCard(
+                  label: AppLocalizations.of(context).trait,
+                  value: current.trait,
+                ),
             ],
           ),
           const SizedBox(height: 24),
           Text(
-            'The five stages',
+            AppLocalizations.of(context).theFiveStages,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -1429,7 +1456,7 @@ class GuideTab extends ConsumerWidget {
                         ? stage.currentLabel
                         : stage.state == 'complete'
                         ? stage.completedLabel
-                        : 'Locked',
+                        : AppLocalizations.of(context).locked,
                   ),
                 ),
               ),
@@ -1474,7 +1501,7 @@ class _PatternCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text('Confidence $confidence%'),
+            Text(AppLocalizations.of(context).confidencePercent(confidence)),
             if (pattern.examples.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(pattern.examples.first),
@@ -1484,13 +1511,27 @@ class _PatternCard extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _PatternAction(pattern.id, 'helpful', 'Helpful'),
-                _PatternAction(pattern.id, 'not_accurate', 'Not accurate'),
-                _PatternAction(pattern.id, 'too_intense', 'Too intense'),
+                _PatternAction(
+                  pattern.id,
+                  'helpful',
+                  AppLocalizations.of(context).helpful,
+                ),
+                _PatternAction(
+                  pattern.id,
+                  'not_accurate',
+                  AppLocalizations.of(context).notAccurate,
+                ),
+                _PatternAction(
+                  pattern.id,
+                  'too_intense',
+                  AppLocalizations.of(context).tooIntense,
+                ),
                 _PatternAction(
                   pattern.id,
                   pattern.active ? 'suppress' : 'restore',
-                  pattern.active ? 'Hide' : 'Restore',
+                  pattern.active
+                      ? AppLocalizations.of(context).hide
+                      : AppLocalizations.of(context).restore,
                 ),
               ],
             ),
@@ -1538,7 +1579,10 @@ class SettingsTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Text(l10n.settingsTitle, style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          l10n.settingsTitle,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 16),
         _InfoCard(
           title: user?.email ?? l10n.accountFallback,
@@ -1572,10 +1616,7 @@ class SettingsTab extends ConsumerWidget {
 }
 
 class _LanguageSelector extends ConsumerWidget {
-  const _LanguageSelector({
-    required this.language,
-    this.compact = false,
-  });
+  const _LanguageSelector({required this.language, this.compact = false});
 
   final MobileLanguageState language;
   final bool compact;
@@ -1614,13 +1655,15 @@ class _LanguageSelector extends ConsumerWidget {
               borderRadius: BorderRadius.circular(16),
               dropdownColor: const Color(0xFF211A30),
               iconEnabledColor: const Color(0xFFE9D9B7),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFFFFF8EA),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFFFFF8EA)),
               selectedItemBuilder: (context) => supported
                   .map(
                     (item) => Row(
-                      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+                      mainAxisSize: compact
+                          ? MainAxisSize.max
+                          : MainAxisSize.min,
                       children: [
                         Text(item.flag, style: const TextStyle(fontSize: 18)),
                         const SizedBox(width: 8),
@@ -1792,7 +1835,7 @@ class _CouncilResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Council Reflection',
+              AppLocalizations.of(context).councilReflection,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -1841,15 +1884,16 @@ class _CouncilResultCard extends StatelessWidget {
   }
 }
 
-String _formatFeedbackType(String feedbackType) {
-  return feedbackType
-      .split('_')
-      .map(
-        (part) => part.isEmpty
-            ? part
-            : '${part[0].toUpperCase()}${part.substring(1)}',
-      )
-      .join(' ');
+String _formatFeedbackType(BuildContext context, String feedbackType) {
+  final l10n = AppLocalizations.of(context);
+  return switch (feedbackType) {
+    'helpful' => l10n.helpful,
+    'not_accurate' => l10n.notAccurate,
+    'too_intense' => l10n.tooIntense,
+    'unclear' => l10n.unclear,
+    'unsupported_source' => l10n.unsupportedSource,
+    _ => l10n.feedbackTypeLabel(feedbackType),
+  };
 }
 
 int _wordCount(String value) {
@@ -1899,7 +1943,7 @@ class _FoundationFrame extends StatelessWidget {
           Image.asset(
             'assets/images/echo-eye-cosmos.png',
             fit: BoxFit.cover,
-            semanticLabel: 'Cosmic eye artwork',
+            semanticLabel: AppLocalizations.of(context).cosmicEyeSemanticLabel,
           ),
           const DecoratedBox(
             decoration: BoxDecoration(
@@ -1958,7 +2002,7 @@ class _BrandHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Supraconscious',
+          AppLocalizations.of(context).brandName,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: const Color(0xFFD6C493),
             letterSpacing: 1.2,
@@ -1966,7 +2010,7 @@ class _BrandHeader extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'The Inner Council',
+          AppLocalizations.of(context).appTitle,
           style: Theme.of(context).textTheme.displayMedium?.copyWith(
             color: const Color(0xFFFFF8EA),
             fontWeight: FontWeight.w500,
@@ -1975,7 +2019,7 @@ class _BrandHeader extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'Write. See clearly. Choose consciously.',
+          AppLocalizations.of(context).tagline,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: const Color(0xFFE9D9B7),
             height: 1.24,
@@ -2002,7 +2046,7 @@ class _EnvironmentPill extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Text(
-          'API: $apiBaseUrl',
+          AppLocalizations.of(context).apiLabel(apiBaseUrl),
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: Theme.of(

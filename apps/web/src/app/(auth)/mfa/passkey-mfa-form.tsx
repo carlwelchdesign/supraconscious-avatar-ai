@@ -1,11 +1,13 @@
 "use client"
 
 import { startAuthentication } from "@simplewebauthn/browser"
+import { useTranslations } from "next-intl"
 import { useActionState, useState } from "react"
 import { Loader2, ShieldCheck } from "lucide-react"
 import { verifyRecoveryCodeAction, type MfaRecoveryState } from "./actions"
 
 export function PasskeyMfaForm() {
+  const t = useTranslations("auth")
   const [status, setStatus] = useState<"idle" | "verifying">("idle")
   const [error, setError] = useState("")
   const [state, formAction, isPending] = useActionState<MfaRecoveryState, FormData>(verifyRecoveryCodeAction, {})
@@ -16,7 +18,7 @@ export function PasskeyMfaForm() {
     try {
       const optionsResponse = await fetch("/api/auth/passkeys/authenticate/options", { method: "POST" })
       const options = await optionsResponse.json()
-      if (!optionsResponse.ok) throw new Error(options.error ?? "Passkey challenge expired.")
+      if (!optionsResponse.ok) throw new Error(options.error ?? t("passkeyChallengeExpired"))
 
       const response = await startAuthentication({ optionsJSON: options.options })
       const verifyResponse = await fetch("/api/auth/passkeys/authenticate/verify", {
@@ -25,10 +27,10 @@ export function PasskeyMfaForm() {
         body: JSON.stringify({ challengeToken: options.challengeToken, response }),
       })
       const result = await verifyResponse.json()
-      if (!verifyResponse.ok || !result.ok) throw new Error(result.error ?? "Passkey verification failed.")
+      if (!verifyResponse.ok || !result.ok) throw new Error(result.error ?? t("passkeyVerificationFailed"))
       window.location.assign(result.redirectTo ?? "/dashboard")
     } catch (passkeyError) {
-      setError(passkeyError instanceof Error ? passkeyError.message : "Passkey verification failed.")
+      setError(passkeyError instanceof Error ? passkeyError.message : t("passkeyVerificationFailed"))
     } finally {
       setStatus("idle")
     }
@@ -41,10 +43,10 @@ export function PasskeyMfaForm() {
           <ShieldCheck className="h-7 w-7" />
         </div>
         <h1 className="font-display text-[32px] font-light leading-tight text-[var(--primary)]">
-          Verify your passkey
+          {t("verifyPasskeyTitle")}
         </h1>
         <p className="mt-2 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-          This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.
+          {t("verifyPasskeyBody")}
         </p>
       </div>
 
@@ -61,13 +63,13 @@ export function PasskeyMfaForm() {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 text-[14px] font-medium text-[var(--cream)] transition-all hover:-translate-y-px hover:bg-[var(--plum-mid)] disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none"
         >
           {status === "verifying" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-          Use passkey
+          {t("usePasskey")}
         </button>
 
         <form action={formAction} className="space-y-3 border-t border-[rgba(43,27,53,0.08)] pt-4">
           <label className="block space-y-1.5">
             <span className="text-[12px] font-medium tracking-[0.04em] text-[var(--plum-soft)]">
-              Recovery code
+              {t("recoveryCode")}
             </span>
             <input
               name="code"
@@ -84,7 +86,7 @@ export function PasskeyMfaForm() {
             disabled={isPending}
             className="w-full rounded-full border border-[rgba(43,27,53,0.12)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary)] hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-50"
           >
-            {isPending ? "Checking..." : "Use recovery code"}
+            {isPending ? t("checking") : t("useRecoveryCode")}
           </button>
         </form>
       </div>

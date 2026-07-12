@@ -17,6 +17,7 @@ import {
 import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
 import { logOperationalError, readPublicErrorMessage } from "./lib/errors.js"
 import { buildHealthPayload, PUBLIC_NO_STORE_HEADERS } from "./lib/health-response.js"
+import { chatGptMessages, readRequestLanguageHeader } from "./lib/localization.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -38,7 +39,7 @@ app.use(express.json({ limit: '10mb' }))
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: (req: express.Request) => chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"])).rateLimit
 })
 app.use('/api/', limiter)
 
@@ -62,13 +63,13 @@ app.get('/health', (req, res) => {
 
 // MCP tools endpoint
 app.get('/mcp/tools', (req, res) => {
-  void req
+  const t = chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"]))
   res.set(PUBLIC_NO_STORE_HEADERS)
   res.json({
     tools: [
       {
         name: 'create_journal_entry',
-        description: 'Creates a journal entry for the authenticated user.',
+        description: t.tools.create_journal_entry,
         inputSchema: {
           type: 'object',
           properties: {
@@ -81,7 +82,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'analyze_journal_entry',
-        description: 'Analyzes a journal entry for emotional signals, language patterns, contradictions, and safety flags.',
+        description: t.tools.analyze_journal_entry,
         inputSchema: {
           type: 'object',
           properties: {
@@ -92,7 +93,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'generate_avatar_reflection',
-        description: 'Generates a short Supraconscious guide reflection for a journal entry.',
+        description: t.tools.generate_avatar_reflection,
         inputSchema: {
           type: 'object',
           properties: {
@@ -104,7 +105,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'generate_personalized_prompt',
-        description: 'Generates a symbolic but grounded journaling prompt based on the user\'s entry and detected pattern.',
+        description: t.tools.generate_personalized_prompt,
         inputSchema: {
           type: 'object',
           properties: {
@@ -117,7 +118,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'run_inner_council_reflection',
-        description: 'Runs the same Supraconscious Inner Council reflection flow used by the web journal, including safety handling, council voices, Integrator question, and source provenance.',
+        description: t.tools.run_inner_council_reflection,
         inputSchema: {
           type: 'object',
           properties: {
@@ -133,7 +134,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'get_recent_patterns',
-        description: 'Returns recent non-sensitive pattern summaries for the authenticated user.',
+        description: t.tools.get_recent_patterns,
         inputSchema: {
           type: 'object',
           properties: {
@@ -143,7 +144,7 @@ app.get('/mcp/tools', (req, res) => {
       },
       {
         name: 'save_reflection_session',
-        description: 'Saves the journal entry, analysis, guide response, and generated prompt as one reflection session.',
+        description: t.tools.save_reflection_session,
         inputSchema: {
           type: 'object',
           properties: {
@@ -165,6 +166,7 @@ app.post('/mcp/tools/:toolName',
   safetyMiddleware,
   async (req, res) => {
   try {
+    const t = chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"]))
     const { toolName } = req.params
     const input = req.body
 
@@ -187,7 +189,7 @@ app.post('/mcp/tools/:toolName',
       {
         const authenticatedUserId = (req as AuthenticatedRequest).userId
         if (!authenticatedUserId) {
-          return res.status(401).json({ error: 'Authentication required' })
+          return res.status(401).json({ error: t.authRequired })
         }
         result = await runInnerCouncilReflection(input, authenticatedUserId)
         break
@@ -199,22 +201,23 @@ app.post('/mcp/tools/:toolName',
         result = await saveReflectionSession(input, (req as AuthenticatedRequest).userId)
         break
       default:
-        return res.status(404).json({ error: 'Tool not found' })
+        return res.status(404).json({ error: t.toolNotFound })
     }
 
     res.json(result)
   } catch (error) {
+    const t = chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"]))
     logOperationalError('Tool execution error', error)
-    res.status(400).json({ error: readPublicErrorMessage(error) })
+    res.status(400).json({ error: readPublicErrorMessage(error, t.toolExecutionFailed) })
   }
 })
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  void req
   void next
+  const t = chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"]))
   logOperationalError('Server error', err)
-  res.status(500).json({ error: 'Internal server error' })
+  res.status(500).json({ error: t.internalServerError })
 })
 
 export function startChatGptApp(port: number = readServerPort()) {

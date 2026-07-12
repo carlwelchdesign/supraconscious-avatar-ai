@@ -119,5 +119,54 @@
         "type": "int"
       }
     }
+  },
+  "continueWithGoogle": "使用 Google 继续",
+  "continueWithApple": "使用 Apple 继续",
+  "googleNoIdToken": "Google 未返回身份令牌。",
+  "appleNoIdToken": "Apple 未返回身份令牌。",
+  "verifyPasskeyTitle": "验证你的通行密钥",
+  "verifyPasskeyBody": "此账户受防钓鱼多重验证保护。请使用你的 YubiKey 或设备通行密钥完成登录。",
+  "usePasskey": "使用通行密钥",
+  "backToSignIn": "返回登录",
+  "sessionStatus": "会话状态",
+  "noteSaved": "备注已保存",
+  "feedbackLabel": "反馈",
+  "optionalFeedbackNote": "可选反馈备注",
+  "embodimentPrompt": "我今天可以实践的一个小转变",
+  "saveEmbodimentGate": "保存 embodied gate",
+  "feedbackSavedMessage": "反馈已保存。",
+  "embodimentSavedMessage": "Embodiment gate 已保存。",
+  "patternsEmptyBody": "继续书写。反复出现的信号会显示在这里。",
+  "theFiveStages": "五个阶段",
+  "locked": "已锁定",
+  "confidencePercent": "置信度 {confidence}%",
+  "hide": "隐藏",
+  "restore": "恢复",
+  "councilReflection": "议会反思",
+  "brandName": "Supraconscious",
+  "tagline": "书写。看清。自觉选择。",
+  "apiLabel": "API：{apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "宇宙之眼图像",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }
