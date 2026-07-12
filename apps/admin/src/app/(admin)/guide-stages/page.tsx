@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { Input } from "@inner-avatar/ui/input"
 import { Textarea } from "@inner-avatar/ui/textarea"
-import { getGuideStageConfigs } from "@inner-avatar/ai"
+import { getGuideStageConfigs, type GuideStageDisplayConfig, type GuideStageTranslationField } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
+import { SUPPORTED_LANGUAGE_DETAILS, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@inner-avatar/types/language"
 import { AdminStatusBanner } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
 import { upsertAvatarStageAction } from "../avatar-stages/actions"
@@ -19,7 +20,7 @@ export default async function GuideStagesPage({
 }) {
   const { status } = await searchParams
   const statusMessage = status ? STAGE_STATUS_MESSAGES[status] : null
-  const stages = await getGuideStageConfigs(prisma)
+  const stages = await getGuideStageConfigs(prisma, "en")
 
   return (
     <div className="space-y-6">
@@ -42,46 +43,10 @@ export default async function GuideStagesPage({
             <CardContent>
               <form action={upsertAvatarStageAction} className="grid gap-3 md:grid-cols-2">
                 <input type="hidden" name="stage" value={stage.stage} />
-                <label className="grid gap-1 text-xs font-medium">
-                  Stage name
-                  <Input name="name" defaultValue={stage.name} required />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Trait label
-                  <Input name="trait" defaultValue={stage.trait} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium md:col-span-2">
-                  Stage description
-                  <Textarea name="description" defaultValue={stage.description} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Guide eyebrow
-                  <Input name="guideEyebrow" defaultValue={stage.guideEyebrow} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Timeline title
-                  <Input name="timelineTitle" defaultValue={stage.timelineTitle} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Guide title
-                  <Input name="guideTitle" defaultValue={stage.guideTitle} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Guide title emphasis
-                  <Input name="guideTitleEmphasis" defaultValue={stage.guideTitleEmphasis} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Current stage label
-                  <Input name="currentLabel" defaultValue={stage.currentLabel} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium">
-                  Completed stage label
-                  <Input name="completedLabel" defaultValue={stage.completedLabel} />
-                </label>
-                <label className="grid gap-1 text-xs font-medium md:col-span-2">
-                  Guide intro
-                  <Textarea name="guideIntro" defaultValue={stage.guideIntro} />
-                </label>
+                <StageLanguageFields stage={stage} language="en" />
+                {SUPPORTED_LANGUAGES.filter((language) => language !== "en").map((language) => (
+                  <StageLanguageFields key={language} stage={stage} language={language} />
+                ))}
                 <label className="grid gap-1 text-xs font-medium md:col-span-2">
                   Reason
                   <Input name="reason" placeholder="Reason required" required minLength={10} />
@@ -96,4 +61,72 @@ export default async function GuideStagesPage({
       </div>
     </div>
   )
+}
+
+function StageLanguageFields({
+  stage,
+  language,
+}: {
+  stage: GuideStageDisplayConfig
+  language: SupportedLanguage
+}) {
+  const languageDetails = SUPPORTED_LANGUAGE_DETAILS[language]
+  const prefix = language === "en" ? "" : `${language}__`
+
+  return (
+    <fieldset className="grid gap-3 rounded-lg border p-4 md:col-span-2 md:grid-cols-2">
+      <legend className="px-1 text-xs font-semibold">
+        {languageDetails.flag} {languageDetails.label}
+      </legend>
+      <label className="grid gap-1 text-xs font-medium">
+        Stage name
+        <Input name={`${prefix}name`} defaultValue={readStageField(stage, language, "name")} required={language === "en"} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Trait label
+        <Input name={`${prefix}trait`} defaultValue={readStageField(stage, language, "trait")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium md:col-span-2">
+        Stage description
+        <Textarea name={`${prefix}description`} defaultValue={readStageField(stage, language, "description")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Guide eyebrow
+        <Input name={`${prefix}guideEyebrow`} defaultValue={readStageField(stage, language, "guideEyebrow")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Timeline title
+        <Input name={`${prefix}timelineTitle`} defaultValue={readStageField(stage, language, "timelineTitle")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Guide title
+        <Input name={`${prefix}guideTitle`} defaultValue={readStageField(stage, language, "guideTitle")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Guide title emphasis
+        <Input name={`${prefix}guideTitleEmphasis`} defaultValue={readStageField(stage, language, "guideTitleEmphasis")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Current stage label
+        <Input name={`${prefix}currentLabel`} defaultValue={readStageField(stage, language, "currentLabel")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Completed stage label
+        <Input name={`${prefix}completedLabel`} defaultValue={readStageField(stage, language, "completedLabel")} />
+      </label>
+      <label className="grid gap-1 text-xs font-medium md:col-span-2">
+        Guide intro
+        <Textarea name={`${prefix}guideIntro`} defaultValue={readStageField(stage, language, "guideIntro")} />
+      </label>
+    </fieldset>
+  )
+}
+
+function readStageField(
+  stage: GuideStageDisplayConfig,
+  language: SupportedLanguage,
+  field: GuideStageTranslationField,
+) {
+  if (language === "en") return stage[field]
+  return stage.translations?.[language]?.[field] ?? ""
 }

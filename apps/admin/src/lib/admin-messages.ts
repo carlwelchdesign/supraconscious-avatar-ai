@@ -19,3 +19,7 @@ export function getAdminMessages(language: unknown) {
   return messages[resolveSupportedLanguage(language)] ?? messages[DEFAULT_LANGUAGE]
 }
 
+export function getAdminIntlMessages(language: unknown) {
+  const { phrases: _phrases, ...intlMessages } = getAdminMessages(language)
+  return intlMessages
+}

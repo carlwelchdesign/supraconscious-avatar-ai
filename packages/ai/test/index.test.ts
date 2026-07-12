@@ -281,6 +281,56 @@ test("guide stage config merges active metadata and ignores inactive rows", () =
   assert.equal(readGuideStageConfig(configs, 3).name, DEFAULT_GUIDE_STAGE_CONFIGS[2].name)
 })
 
+test("guide stage config resolves localized metadata with English fallback", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 2,
+      name: "Observer",
+      description: "A custom stage description.",
+      active: true,
+      metadata: {
+        trait: "Discernment",
+        currentLabel: "Current",
+        translations: {
+          es: {
+            name: "Testigo",
+            trait: "Observación",
+            guideTitle: "Una presencia interior,",
+            currentLabel: "Actual",
+          },
+        },
+      },
+    },
+  ], "es")
+
+  const stage = readGuideStageConfig(configs, 2)
+  assert.equal(stage.name, "Testigo")
+  assert.equal(stage.description, "A custom stage description.")
+  assert.equal(stage.trait, "Observación")
+  assert.equal(stage.guideTitle, "Una presencia interior,")
+  assert.equal(stage.guideTitleEmphasis, DEFAULT_GUIDE_STAGE_CONFIGS[1].guideTitleEmphasis)
+  assert.equal(stage.currentLabel, "Actual")
+})
+
+test("guide stage config does not apply unknown locale translations", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 1,
+      name: "Echo",
+      description: "English description.",
+      active: true,
+      metadata: {
+        translations: {
+          it: { name: "Eco" },
+          es: { name: "Eco" },
+        },
+      },
+    },
+  ], "it")
+
+  assert.equal(readGuideStageConfig(configs, 1).name, "Echo")
+})
+
 test("guide stage config falls back per missing or blank metadata field", () => {
   const configs = mergeGuideStageConfigs([
     {
