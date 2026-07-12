@@ -683,6 +683,30 @@ abstract class AppLocalizations {
   /// **'What invitation have you been ignoring?'**
   String get thresholdPurposeSocraticQuestion;
 
+  /// No description provided for @thresholdPurposeGiftTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'PURPOSE'**
+  String get thresholdPurposeGiftTheme;
+
+  /// No description provided for @thresholdPurposeGiftQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every gift carries responsibility.'**
+  String get thresholdPurposeGiftQuote;
+
+  /// No description provided for @thresholdPurposeGiftFrameOfThought.
+  ///
+  /// In en, this message translates to:
+  /// **'Awareness of a gift invites its expression.'**
+  String get thresholdPurposeGiftFrameOfThought;
+
+  /// No description provided for @thresholdPurposeGiftSocraticQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What gift are you not fully using?'**
+  String get thresholdPurposeGiftSocraticQuestion;
+
   /// No description provided for @continueWithGoogle.
   ///
   /// In en, this message translates to:

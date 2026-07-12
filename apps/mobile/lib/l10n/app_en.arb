@@ -110,6 +110,10 @@
   "thresholdPurposeQuote": "The soul whispers before destiny speaks.",
   "thresholdPurposeFrameOfThought": "Purpose rarely arrives as a command. It often begins as a quiet invitation.",
   "thresholdPurposeSocraticQuestion": "What invitation have you been ignoring?",
+  "thresholdPurposeGiftTheme": "PURPOSE",
+  "thresholdPurposeGiftQuote": "Every gift carries responsibility.",
+  "thresholdPurposeGiftFrameOfThought": "Awareness of a gift invites its expression.",
+  "thresholdPurposeGiftSocraticQuestion": "What gift are you not fully using?",
   "@thresholdLabel": {
     "placeholders": {
       "month": {

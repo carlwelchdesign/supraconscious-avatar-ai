@@ -321,6 +321,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Quelle invitation as-tu ignorée ?';
 
   @override
+  String get thresholdPurposeGiftTheme => 'BUT';
+
+  @override
+  String get thresholdPurposeGiftQuote =>
+      'Chaque don porte une responsabilité.';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought =>
+      'Prendre conscience d’un don invite à l’exprimer.';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion =>
+      'Quel don n’utilises-tu pas pleinement ?';
+
+  @override
   String get continueWithGoogle => 'Continuer avec Google';
 
   @override

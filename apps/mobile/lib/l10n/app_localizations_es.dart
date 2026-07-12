@@ -323,6 +323,20 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Qué invitación has estado ignorando?';
 
   @override
+  String get thresholdPurposeGiftTheme => 'PROPÓSITO';
+
+  @override
+  String get thresholdPurposeGiftQuote => 'Todo don conlleva responsabilidad.';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought =>
+      'La conciencia de un don invita a expresarlo.';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion =>
+      '¿Qué don no estás usando plenamente?';
+
+  @override
   String get continueWithGoogle => 'Continuar con Google';
 
   @override

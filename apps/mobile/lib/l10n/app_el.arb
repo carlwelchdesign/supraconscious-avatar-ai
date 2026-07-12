@@ -103,6 +103,10 @@
   "thresholdPurposeQuote": "Η ψυχή ψιθυρίζει πριν μιλήσει το πεπρωμένο.",
   "thresholdPurposeFrameOfThought": "Ο σκοπός σπάνια έρχεται ως εντολή. Συχνά αρχίζει ως μια ήσυχη πρόσκληση.",
   "thresholdPurposeSocraticQuestion": "Ποια πρόσκληση αγνοείς;",
+  "thresholdPurposeGiftTheme": "ΣΚΟΠΟΣ",
+  "thresholdPurposeGiftQuote": "Κάθε χάρισμα φέρει ευθύνη.",
+  "thresholdPurposeGiftFrameOfThought": "Η επίγνωση ενός χαρίσματος προσκαλεί την έκφρασή του.",
+  "thresholdPurposeGiftSocraticQuestion": "Ποιο χάρισμα δεν χρησιμοποιείς πλήρως;",
   "@thresholdLabel": {
     "placeholders": {
       "month": {

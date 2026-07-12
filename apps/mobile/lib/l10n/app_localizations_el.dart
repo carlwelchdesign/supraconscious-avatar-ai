@@ -321,6 +321,20 @@ class AppLocalizationsEl extends AppLocalizations {
   String get thresholdPurposeSocraticQuestion => 'Ποια πρόσκληση αγνοείς;';
 
   @override
+  String get thresholdPurposeGiftTheme => 'ΣΚΟΠΟΣ';
+
+  @override
+  String get thresholdPurposeGiftQuote => 'Κάθε χάρισμα φέρει ευθύνη.';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought =>
+      'Η επίγνωση ενός χαρίσματος προσκαλεί την έκφρασή του.';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion =>
+      'Ποιο χάρισμα δεν χρησιμοποιείς πλήρως;';
+
+  @override
   String get continueWithGoogle => 'Συνέχεια με Google';
 
   @override

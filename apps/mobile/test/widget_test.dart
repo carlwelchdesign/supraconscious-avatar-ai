@@ -65,6 +65,65 @@ void main() {
     expect(find.text('Sign in'), findsOneWidget);
   });
 
+  testWidgets('auth screen follows selected landing language', (tester) async {
+    await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('🇺🇸'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Español').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Iniciar sesión'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('El Consejo Interior'), findsOneWidget);
+    expect(
+      find.text('Escribe. Ve con claridad. Elige conscientemente.'),
+      findsOneWidget,
+    );
+    expect(find.text('Correo electrónico'), findsOneWidget);
+    expect(find.text('The Inner Council'), findsNothing);
+  });
+
+  testWidgets('journal tab follows selected auth language after login', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _testApp(
+        _FakeApiClient(
+          _unauthenticated(),
+          prompt: _purposeJournalPrompt(),
+          loginSession: _ready(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('🇺🇸'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Español').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Iniciar sesión'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), 'carl@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password');
+    final submitButton = find.widgetWithText(FilledButton, 'Iniciar sesión');
+    await tester.ensureVisible(submitButton);
+    await tester.tap(submitButton);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Diario'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¿Qué está presente hoy?'), findsOneWidget);
+    expect(find.text('Umbral · Mes 7, día 11'), findsOneWidget);
+    expect(
+      find.text('El alma susurra antes de que hable el destino.'),
+      findsOneWidget,
+    );
+    expect(find.text('The soul whispers before destiny speaks.'), findsNothing);
+  });
+
   testWidgets('bootstrap shows consent gate when onboarding is required', (
     tester,
   ) async {
@@ -126,7 +185,9 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      _testApp(_FakeApiClient(_readySpanish(), prompt: _purposeJournalPrompt())),
+      _testApp(
+        _FakeApiClient(_readySpanish(), prompt: _purposeJournalPrompt()),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -140,6 +201,29 @@ void main() {
     );
     expect(find.text('PROPÓSITO'), findsOneWidget);
     expect(find.text('PURPOSE'), findsNothing);
+  });
+
+  testWidgets('journal prompt card localizes gift responsibility prompt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _testApp(
+        _FakeApiClient(_readySpanish(), prompt: _purposeGiftJournalPrompt()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Diario'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Umbral · Mes 7, día 12'), findsOneWidget);
+    expect(find.text('Todo don conlleva responsabilidad.'), findsOneWidget);
+    expect(
+      find.text('La conciencia de un don invita a expresarlo.'),
+      findsOneWidget,
+    );
+    expect(find.text('¿Qué don no estás usando plenamente?'), findsOneWidget);
+    expect(find.text('Every gift carries responsibility.'), findsNothing);
   });
 
   test('journal analyze result parses council synthesis fallback', () {
@@ -267,11 +351,13 @@ void main() {
         'quote': 'A short approved quote.',
         'frameOfThought': 'Notice what is present.',
         'socraticQuestion': 'What are you not letting yourself say?',
+        'translationKey': 'purpose',
       },
     });
 
     expect(prompt.todayLabel, 'Friday, July 10');
     expect(prompt.prompt?.theme, 'Clarity');
+    expect(prompt.prompt?.translationKey, 'purpose');
     expect(
       prompt.prompt?.socraticQuestion,
       'What are you not letting yourself say?',
@@ -319,15 +405,40 @@ Widget _testApp(InnerCouncilApiClient client) {
 }
 
 class _FakeApiClient extends InnerCouncilApiClient {
-  _FakeApiClient(this._session, {MobileJournalPrompt? prompt})
-    : _prompt = prompt ?? _journalPrompt(),
-      super(baseUrl: 'http://localhost:3000');
+  _FakeApiClient(
+    this._session, {
+    MobileJournalPrompt? prompt,
+    this._loginSession,
+  }) : _prompt = prompt ?? _journalPrompt(),
+       super(baseUrl: 'http://localhost:3000');
 
   final MobileSession _session;
   final MobileJournalPrompt _prompt;
+  final MobileSession? _loginSession;
 
   @override
   Future<MobileSession> getSession() async => _session;
+
+  @override
+  Future<MobileSession> login({
+    required String email,
+    required String password,
+    String? preferredLanguage,
+  }) async {
+    final session = _loginSession ?? _session;
+    return session.copyWithLanguage(preferredLanguage);
+  }
+
+  @override
+  Future<MobileSession> register({
+    required String name,
+    required String email,
+    required String password,
+    String? preferredLanguage,
+  }) async {
+    final session = _loginSession ?? _session;
+    return session.copyWithLanguage(preferredLanguage);
+  }
 
   @override
   Future<MobileDashboard> getDashboard() async => const MobileDashboard(
@@ -371,6 +482,33 @@ class _FakeApiClient extends InnerCouncilApiClient {
   Future<MobileSession> updateLanguagePreference({
     required String preferredLanguage,
   }) async => _session;
+}
+
+extension on MobileSession {
+  MobileSession copyWithLanguage(String? preferredLanguage) {
+    final selectedLanguage = preferredLanguage ?? language.current;
+    return MobileSession(
+      authenticated: authenticated,
+      status: status,
+      user: user == null
+          ? null
+          : MobileUser(
+              email: user!.email,
+              name: user!.name,
+              patternMemoryEnabled: user!.patternMemoryEnabled,
+              avatarTone: user!.avatarTone,
+              intensityLevel: user!.intensityLevel,
+              currentLevel: user!.currentLevel,
+              avatarStage: user!.avatarStage,
+              preferredLanguage: selectedLanguage,
+            ),
+      language: MobileLanguageState(
+        current: selectedLanguage,
+        supported: language.supported,
+      ),
+      consent: consent,
+    );
+  }
 }
 
 const _languageState = MobileLanguageState(
@@ -531,6 +669,7 @@ MobileJournalPrompt _journalPrompt() {
       quote: 'A short approved quote.',
       frameOfThought: 'Notice what is present before solving it.',
       socraticQuestion: 'What are you not letting yourself say?',
+      translationKey: null,
     ),
   );
 }
@@ -550,6 +689,22 @@ MobileJournalPrompt _purposeJournalPrompt() {
       frameOfThought:
           'Purpose rarely arrives as a command. It often begins as a quiet invitation.',
       socraticQuestion: 'What invitation have you been ignoring?',
+      translationKey: 'purpose',
+    ),
+  );
+}
+
+MobileJournalPrompt _purposeGiftJournalPrompt() {
+  return const MobileJournalPrompt(
+    todayLabel: 'Sunday, July 12',
+    prompt: MobileThresholdPrompt(
+      month: 7,
+      day: 12,
+      theme: 'PURPOSE',
+      quote: 'Every gift carries responsibility.',
+      frameOfThought: 'Awareness of a gift invites its expression.',
+      socraticQuestion: 'What gift are you not fully using?',
+      translationKey: 'purposeGiftResponsibility',
     ),
   );
 }
