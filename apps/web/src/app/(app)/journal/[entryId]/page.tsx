@@ -26,7 +26,8 @@ export default async function JournalEntryPage({
   const [resolvedParams, query] = await Promise.all([params, searchParams])
   const entryNextPath = `/journal/${resolvedParams.entryId}${query.feedback ? `?feedback=${encodeURIComponent(query.feedback)}` : ""}`
   const user = await requireJournalAccessPageUser(entryNextPath)
-  const messages = getWebMessages(await resolveWebLanguage(user.preferredLanguage))
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
+  const messages = getWebMessages(currentLanguage)
   const journalMessages = messages.journal
   const sessionMessages = messages.sessionDetail
   const feedbackTypeLabels = sessionMessages.feedbackTypes as Record<string, string>
@@ -87,7 +88,7 @@ export default async function JournalEntryPage({
       },
       },
     }),
-    getGuideStageConfigs(prisma),
+    getGuideStageConfigs(prisma, currentLanguage),
   ])
 
   if (!entry) notFound()

@@ -1,4 +1,23 @@
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, resolveSupportedLanguage, type SupportedLanguage } from "@inner-avatar/types/language"
+
 export type GuideStageNumber = 1 | 2 | 3 | 4 | 5
+
+export const GUIDE_STAGE_TRANSLATION_FIELDS = [
+  "name",
+  "description",
+  "trait",
+  "guideEyebrow",
+  "guideTitle",
+  "guideTitleEmphasis",
+  "guideIntro",
+  "timelineTitle",
+  "currentLabel",
+  "completedLabel",
+] as const
+
+export type GuideStageTranslationField = (typeof GUIDE_STAGE_TRANSLATION_FIELDS)[number]
+export type GuideStageTranslation = Partial<Record<GuideStageTranslationField, string>>
+export type GuideStageTranslations = Partial<Record<SupportedLanguage, GuideStageTranslation>>
 
 export type GuideStageDisplayConfig = {
   stage: GuideStageNumber
@@ -12,6 +31,7 @@ export type GuideStageDisplayConfig = {
   timelineTitle: string
   currentLabel: string
   completedLabel: string
+  translations?: GuideStageTranslations
 }
 
 type AvatarStageConfigRow = {
@@ -111,7 +131,10 @@ export function normalizeGuideStage(stageNumber: number | null | undefined): Gui
   return Math.min(Math.max(stage, 1), 5) as GuideStageNumber
 }
 
-export async function getGuideStageConfigs(client: AvatarStageConfigReader): Promise<GuideStageDisplayConfig[]> {
+export async function getGuideStageConfigs(
+  client: AvatarStageConfigReader,
+  language?: SupportedLanguage | string | null,
+): Promise<GuideStageDisplayConfig[]> {
   const rows = await client.avatarStageConfig.findMany({
     orderBy: { stage: "asc" },
     select: {
@@ -123,14 +146,15 @@ export async function getGuideStageConfigs(client: AvatarStageConfigReader): Pro
     },
   })
 
-  return mergeGuideStageConfigs(rows)
+  return mergeGuideStageConfigs(rows, language)
 }
 
 export async function getGuideStageConfigForStage(
   client: AvatarStageConfigReader,
   stage: number | null | undefined,
+  language?: SupportedLanguage | string | null,
 ): Promise<GuideStageDisplayConfig> {
-  const configs = await getGuideStageConfigs(client)
+  const configs = await getGuideStageConfigs(client, language)
   return readGuideStageConfig(configs, stage)
 }
 
@@ -146,7 +170,11 @@ export function readGuideStageNames(configs: GuideStageDisplayConfig[]) {
   return DEFAULT_GUIDE_STAGE_CONFIGS.map((defaultConfig) => readGuideStageConfig(configs, defaultConfig.stage).name)
 }
 
-export function mergeGuideStageConfigs(rows: AvatarStageConfigRow[]): GuideStageDisplayConfig[] {
+export function mergeGuideStageConfigs(
+  rows: AvatarStageConfigRow[],
+  language?: SupportedLanguage | string | null,
+): GuideStageDisplayConfig[] {
+  const requestedLanguage = resolveSupportedLanguage(language ?? DEFAULT_LANGUAGE)
   const activeRows = new Map(
     rows
       .filter((row) => row.active)
@@ -158,7 +186,7 @@ export function mergeGuideStageConfigs(rows: AvatarStageConfigRow[]): GuideStage
     if (!row) return defaultConfig
 
     const metadata = readStageMetadata(row.metadata)
-    return {
+    const baseConfig = {
       stage: defaultConfig.stage,
       name: readText(row.name, defaultConfig.name),
       description: readText(row.description, defaultConfig.description),
@@ -171,6 +199,24 @@ export function mergeGuideStageConfigs(rows: AvatarStageConfigRow[]): GuideStage
       currentLabel: readText(metadata.currentLabel, defaultConfig.currentLabel),
       completedLabel: readText(metadata.completedLabel, defaultConfig.completedLabel),
     }
+
+    const translations = readStageTranslations(metadata.translations)
+    const localized = requestedLanguage === DEFAULT_LANGUAGE ? null : translations[requestedLanguage]
+
+    return {
+      ...baseConfig,
+      name: readText(localized?.name, baseConfig.name),
+      description: readText(localized?.description, baseConfig.description),
+      trait: readText(localized?.trait, baseConfig.trait),
+      guideEyebrow: readText(localized?.guideEyebrow, baseConfig.guideEyebrow),
+      guideTitle: readText(localized?.guideTitle, baseConfig.guideTitle),
+      guideTitleEmphasis: readText(localized?.guideTitleEmphasis, baseConfig.guideTitleEmphasis),
+      guideIntro: readText(localized?.guideIntro, baseConfig.guideIntro),
+      timelineTitle: readText(localized?.timelineTitle, baseConfig.timelineTitle),
+      currentLabel: readText(localized?.currentLabel, baseConfig.currentLabel),
+      completedLabel: readText(localized?.completedLabel, baseConfig.completedLabel),
+      translations,
+    }
   })
 }
 
@@ -180,6 +226,35 @@ function readStageMetadata(value: unknown): Partial<Record<keyof GuideStageDispl
     : {}
 }
 
+function readStageTranslations(value: unknown): GuideStageTranslations {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {}
+
+  const input = value as Record<string, unknown>
+  const translations: GuideStageTranslations = {}
+
+  for (const language of SUPPORTED_LANGUAGES) {
+    const rawTranslation = input[language]
+    if (!rawTranslation || typeof rawTranslation !== "object" || Array.isArray(rawTranslation)) continue
+
+    const rawFields = rawTranslation as Record<string, unknown>
+    const translation: GuideStageTranslation = {}
+    for (const field of GUIDE_STAGE_TRANSLATION_FIELDS) {
+      const text = readOptionalText(rawFields[field])
+      if (text) translation[field] = text
+    }
+
+    if (Object.keys(translation).length > 0) {
+      translations[language] = translation
+    }
+  }
+
+  return translations
+}
+
 function readText(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback
+}
+
+function readOptionalText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null
 }

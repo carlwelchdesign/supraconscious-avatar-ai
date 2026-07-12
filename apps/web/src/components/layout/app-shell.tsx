@@ -18,11 +18,10 @@ const navItems = [
 ]
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  const [user, guideStages] = await Promise.all([
-    getCurrentUser(),
-    getGuideStageConfigs(prisma),
-  ])
-  const messages = getWebMessages(await resolveWebLanguage(user?.preferredLanguage))
+  const user = await getCurrentUser()
+  const currentLanguage = await resolveWebLanguage(user?.preferredLanguage)
+  const guideStages = await getGuideStageConfigs(prisma, currentLanguage)
+  const messages = getWebMessages(currentLanguage)
   const shell = messages.appShell
   const guideStage = Math.min(Math.max(user?.avatarStage ?? 1, 1), 5)
   const guideStageName = readGuideStageConfig(guideStages, guideStage).name

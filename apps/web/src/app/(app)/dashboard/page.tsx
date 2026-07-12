@@ -15,6 +15,7 @@ export default async function DashboardPage({
 }) {
   const user = await requireJournalAccessPageUser("/dashboard")
   const query = await searchParams
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
 
   const [entryCount, patternCount, recentEntries, founderReadiness, guideStages] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
@@ -44,7 +45,7 @@ export default async function DashboardPage({
       userId: user.id,
       email: user.email,
     }),
-    getGuideStageConfigs(prisma),
+    getGuideStageConfigs(prisma, currentLanguage),
   ])
 
   const latestEntry = recentEntries[0] ?? null
@@ -59,7 +60,6 @@ export default async function DashboardPage({
   const founderFeedbackHref = founderReadiness.founderFeedbackHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const guideStageName = readGuideStageConfig(guideStages, guideStage).name
-  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
   const messages = getWebMessages(currentLanguage)
   const dashboard = messages.dashboard
   const dashboardMessage = readDashboardMessage(query, dashboard)
