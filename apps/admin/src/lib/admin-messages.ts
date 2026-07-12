@@ -19,3 +19,8 @@ export function getAdminMessages(language: unknown) {
   return messages[resolveSupportedLanguage(language)] ?? messages[DEFAULT_LANGUAGE]
 }
 
+export function getAdminIntlMessages(language: unknown) {
+  return Object.fromEntries(
+    Object.entries(getAdminMessages(language)).filter(([key]) => key !== "phrases"),
+  )
+}

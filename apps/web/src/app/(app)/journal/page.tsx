@@ -3,9 +3,11 @@ import { getGuideStageConfigs, readGuideStageNames, runFounderCalibrationJournal
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { getAppCalendarDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage } from "@/lib/language"
 
 export default async function JournalPage() {
   const user = await requireJournalAccessPageUser("/journal")
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
 
   const today = getAppCalendarDate()
   const month = today.month
@@ -33,7 +35,7 @@ export default async function JournalPage() {
       userId: user.id,
       email: user.email,
     }),
-    getGuideStageConfigs(prisma),
+    getGuideStageConfigs(prisma, currentLanguage),
   ])
   const todaysPrompt = monthPrompts.find((prompt) => prompt.day === day) ?? null
   const fallbackPrompt = todaysPrompt ? null : (monthPrompts[0] ?? null)

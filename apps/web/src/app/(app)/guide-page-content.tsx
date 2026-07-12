@@ -6,11 +6,10 @@ import { resolveWebLanguage } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
 export async function GuidePageContent() {
-  const [user, stages] = await Promise.all([
-    requireJournalAccessPageUser("/guide"),
-    getGuideStageConfigs(prisma),
-  ])
-  const guideMessages = getWebMessages(await resolveWebLanguage(user.preferredLanguage)).guide
+  const user = await requireJournalAccessPageUser("/guide")
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
+  const stages = await getGuideStageConfigs(prisma, currentLanguage)
+  const guideMessages = getWebMessages(currentLanguage).guide
   const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const stageIndex = guideStage - 1
   const currentStage = readGuideStageConfig(stages, guideStage)

@@ -7,10 +7,8 @@ import { privateJson } from "@/lib/private-json"
 
 export async function GET() {
   try {
-    const [user, stages] = await Promise.all([
-      requireJournalAccessUser(),
-      getGuideStageConfigs(prisma),
-    ])
+    const user = await requireJournalAccessUser()
+    const stages = await getGuideStageConfigs(prisma, user.preferredLanguage)
 
     return privateJson(buildMobileGuideResponse({ user, stages }))
   } catch (error) {

@@ -51,6 +51,7 @@ import {
   readFeedbackDisposition,
   readGuideStageConfig,
   readGuideStageNames,
+  parseGuideStageTranslationResult,
   resolvePilotEventInputHash,
   normalizeGuideStage,
   formatFounderCalibrationScenario,
@@ -281,6 +282,84 @@ test("guide stage config merges active metadata and ignores inactive rows", () =
   assert.equal(readGuideStageConfig(configs, 3).name, DEFAULT_GUIDE_STAGE_CONFIGS[2].name)
 })
 
+test("guide stage config resolves localized metadata with English fallback", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 2,
+      name: "Observer",
+      description: "A custom stage description.",
+      active: true,
+      metadata: {
+        trait: "Discernment",
+        currentLabel: "Current",
+        translations: {
+          es: {
+            name: "Testigo",
+            trait: "Observación",
+            guideTitle: "Una presencia interior,",
+            currentLabel: "Actual",
+          },
+        },
+      },
+    },
+  ], "es")
+
+  const stage = readGuideStageConfig(configs, 2)
+  assert.equal(stage.name, "Testigo")
+  assert.equal(stage.description, "A custom stage description.")
+  assert.equal(stage.trait, "Observación")
+  assert.equal(stage.guideTitle, "Una presencia interior,")
+  assert.equal(stage.guideTitleEmphasis, DEFAULT_GUIDE_STAGE_CONFIGS[1].guideTitleEmphasis)
+  assert.equal(stage.currentLabel, "Actual")
+})
+
+test("guide stage config does not apply unknown locale translations", () => {
+  const configs = mergeGuideStageConfigs([
+    {
+      stage: 1,
+      name: "Echo",
+      description: "English description.",
+      active: true,
+      metadata: {
+        translations: {
+          it: { name: "Eco" },
+          es: { name: "Eco" },
+        },
+      },
+    },
+  ], "it")
+
+  assert.equal(readGuideStageConfig(configs, 1).name, "Echo")
+})
+
+test("guide stage translation result parses complete structured output", () => {
+  const result = parseGuideStageTranslationResult(buildGuideStageTranslationResult())
+
+  assert.equal(result.stages.length, 5)
+  assert.equal(result.stages[0]?.translations.es.name, "es stage 1 name")
+  assert.equal(result.stages[4]?.translations["zh-Hans"].completedLabel, "zh-Hans stage 5 completedLabel")
+})
+
+test("guide stage translation result rejects missing stage numbers", () => {
+  const payload = buildGuideStageTranslationResult()
+  payload.stages = payload.stages.filter((stage) => stage.stage !== 5)
+
+  assert.throws(() => parseGuideStageTranslationResult(payload))
+})
+
+test("guide stage translation result rejects unsupported language codes", () => {
+  const payload = buildGuideStageTranslationResult()
+  payload.stages[0] = {
+    ...payload.stages[0],
+    translations: {
+      ...payload.stages[0].translations,
+      it: buildGuideStageTranslation("it", 1),
+    },
+  }
+
+  assert.throws(() => parseGuideStageTranslationResult(payload), /Unrecognized key/)
+})
+
 test("guide stage config falls back per missing or blank metadata field", () => {
   const configs = mergeGuideStageConfigs([
     {
@@ -303,6 +382,36 @@ test("guide stage config falls back per missing or blank metadata field", () => 
   assert.equal(normalizeGuideStage(3.4), 3)
   assert.equal(normalizeGuideStage(undefined), 1)
 })
+
+function buildGuideStageTranslationResult() {
+  return {
+    stages: [1, 2, 3, 4, 5].map((stage) => ({
+      stage,
+      translations: {
+        es: buildGuideStageTranslation("es", stage),
+        el: buildGuideStageTranslation("el", stage),
+        fr: buildGuideStageTranslation("fr", stage),
+        de: buildGuideStageTranslation("de", stage),
+        "zh-Hans": buildGuideStageTranslation("zh-Hans", stage),
+      },
+    })),
+  }
+}
+
+function buildGuideStageTranslation(language: string, stage: number) {
+  return {
+    name: `${language} stage ${stage} name`,
+    description: `${language} stage ${stage} description`,
+    trait: `${language} stage ${stage} trait`,
+    guideEyebrow: `${language} stage ${stage} guideEyebrow`,
+    guideTitle: `${language} stage ${stage} guideTitle`,
+    guideTitleEmphasis: `${language} stage ${stage} guideTitleEmphasis`,
+    guideIntro: `${language} stage ${stage} guideIntro`,
+    timelineTitle: `${language} stage ${stage} timelineTitle`,
+    currentLabel: `${language} stage ${stage} currentLabel`,
+    completedLabel: `${language} stage ${stage} completedLabel`,
+  }
+}
 
 test("account export payload includes core privacy and billing data", () => {
   const payload = buildAccountExportPayload({
