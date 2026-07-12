@@ -1,0 +1,14 @@
+.git
+.turbo
+.next
+node_modules
+apps/*/.next
+apps/*/node_modules
+apps/mobile/.dart_tool
+apps/mobile/build
+apps/mobile/ios/Flutter/ephemeral
+apps/mobile/android/.gradle
+coverage
+sources
+.DS_Store
+*.log

@@ -50,6 +50,19 @@ export function buildMobileSessionResponse(input: {
   }
 }
 
+export function buildMobileMfaRequiredResponse() {
+  return {
+    authenticated: false,
+    status: "mfa_required" as const,
+    user: null,
+    language: buildMobileLanguageState(null),
+    consent: buildMobileConsentState([]),
+    mfa: {
+      methods: ["passkey", "recovery_code"],
+    },
+  }
+}
+
 export function buildMobileUser(user: MobileUser) {
   return {
     id: user.id,

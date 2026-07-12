@@ -41,6 +41,26 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
         </p>
       </div>
 
+      <div className="space-y-3">
+        <a
+          href={buildOAuthHref("google", nextPath)}
+          className="flex w-full items-center justify-center rounded-full border border-[rgba(43,27,53,0.1)] bg-white px-6 py-3 text-[14px] font-medium text-[var(--primary)] hover:bg-[rgba(43,27,53,0.03)]"
+        >
+          Continue with Google
+        </a>
+        <a
+          href={buildOAuthHref("apple", nextPath)}
+          className="flex w-full items-center justify-center rounded-full border border-[rgba(43,27,53,0.1)] bg-white px-6 py-3 text-[14px] font-medium text-[var(--primary)] hover:bg-[rgba(43,27,53,0.03)]"
+        >
+          Continue with Apple
+        </a>
+        <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-[var(--plum-soft)]">
+          <span className="h-px flex-1 bg-[rgba(43,27,53,0.08)]" />
+          Password
+          <span className="h-px flex-1 bg-[rgba(43,27,53,0.08)]" />
+        </div>
+      </div>
+
       {/* Form */}
       <form
         action={formAction}
@@ -164,4 +184,11 @@ function buildAlternateHref(path: "/login" | "/register" | "/forgot-password" | 
   if (nextPath) params.set("next", nextPath)
   const query = params.toString()
   return query ? `${path}?${query}` : path
+}
+
+function buildOAuthHref(provider: "google" | "apple", nextPath: string) {
+  const params = new URLSearchParams()
+  if (nextPath) params.set("next", nextPath)
+  const query = params.toString()
+  return `/api/auth/oauth/${provider}/start${query ? `?${query}` : ""}`
 }

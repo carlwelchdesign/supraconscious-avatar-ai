@@ -2,15 +2,18 @@
 
 ## Overview
 
-The monorepo uses first-party email/password authentication. Clerk has been removed.
+The monorepo uses first-party email/password authentication, Google and Apple social login, and optional phishing-resistant MFA through WebAuthn/passkeys. Clerk has been removed.
 
 Auth code lives in `packages/auth`:
 
 - `actions.ts`: web register/login/logout and admin login/logout server actions.
 - `account-email.ts`: one-time email verification and password reset token lifecycle.
 - `email.ts`: transactional email delivery through Resend when configured.
+- `oauth.ts`: Google and Apple authorization-code and mobile identity-token login.
+- `pending-auth.ts`: short-lived OAuth state, MFA, and WebAuthn challenge storage.
 - `session.ts`: password hashing, scoped session cookie management, session lookup, and auth guards.
 - `user.ts`: compatibility exports for user guards.
+- `webauthn.ts`: passkey/YubiKey enrollment, assertion, recovery-code fallback, and audit logging.
 
 App route protection lives in:
 
@@ -46,6 +49,51 @@ Email or password is incorrect.
 ```
 
 Database/schema failures are caught and returned as form errors where possible.
+
+If the account has one or more enrolled passkeys, password login does not create the normal app session immediately. Instead it creates a short-lived pending MFA challenge cookie and redirects to `/mfa`. The normal `ia_web_session` is created only after successful passkey verification or one-time recovery-code use.
+
+## Social Login
+
+The public auth form offers Google and Apple login. Web flows use:
+
+- `/api/auth/oauth/google/start`
+- `/api/auth/oauth/google/callback`
+- `/api/auth/oauth/apple/start`
+- `/api/auth/oauth/apple/callback`
+
+Verified provider emails are linked to existing users when possible; otherwise a user is created with `emailVerified = true`. If that user has enrolled passkeys, the social login is held in the same pending MFA flow before a normal session is created.
+
+Mobile clients use `/api/mobile/auth/oauth` with a provider and verified identity token. Cookie-backed sessions remain the mobile session mechanism.
+
+Required provider configuration:
+
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOOGLE_OAUTH_IOS_CLIENT_ID`
+- `GOOGLE_OAUTH_ANDROID_CLIENT_ID`
+- `APPLE_OAUTH_CLIENT_ID`
+- `APPLE_IOS_BUNDLE_ID`
+- `APPLE_TEAM_ID`
+- `APPLE_KEY_ID`
+- `APPLE_PRIVATE_KEY`
+
+## Passkeys, YubiKeys, And Recovery Codes
+
+Signed-in users can enroll passkeys from `/settings`. Supported authenticators include YubiKey, Touch ID, Face ID, platform passkeys, and compatible security keys. Enrollment creates recovery codes the first time a user protects the account; these codes are shown once and are required before removing the last passkey.
+
+Once a passkey is enrolled, every password, Google, or Apple sign-in must complete WebAuthn verification before the final session is created. Security events are written to `AuditLog`, including enrollment, removal, successful MFA, failed MFA, OAuth linking, and recovery-code use.
+
+WebAuthn configuration:
+
+- `WEBAUTHN_RP_ID`: production relying-party ID, usually the apex domain.
+- `WEBAUTHN_EXPECTED_ORIGINS`: comma-separated trusted origins, such as `https://supraconscious.co,http://localhost:3000`.
+
+Native mobile passkey support also requires production association files:
+
+- `/.well-known/apple-app-site-association`
+- `/.well-known/assetlinks.json`
+
+Configure `IOS_BUNDLE_ID`, `APPLE_TEAM_ID`, `ANDROID_PACKAGE_NAME`, and `ANDROID_SHA256_CERT_FINGERPRINTS` before release signing.
 
 ## Admin Login
 
