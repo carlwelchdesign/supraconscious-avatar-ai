@@ -366,6 +366,7 @@ export function buildMobileJournalPromptResponse(input: {
     frameOfThought: string
     socraticQuestion: string
   } | null
+  translationKey?: "purpose" | "purposeGiftResponsibility" | null
 }) {
   return {
     todayLabel: input.todayLabel,
@@ -377,9 +378,41 @@ export function buildMobileJournalPromptResponse(input: {
           quote: input.prompt.quote,
           frameOfThought: input.prompt.frameOfThought,
           socraticQuestion: input.prompt.socraticQuestion,
+          translationKey: input.translationKey ?? readThresholdPromptTranslationKey(input.prompt),
         }
       : null,
   }
+}
+
+type MobileThresholdPromptForTranslation = {
+  theme: string
+  quote: string | null
+  frameOfThought: string
+  socraticQuestion: string
+}
+
+function readThresholdPromptTranslationKey(prompt: MobileThresholdPromptForTranslation): "purpose" | "purposeGiftResponsibility" | null {
+  const quote = prompt.quote?.trim().toLowerCase()
+  const frame = prompt.frameOfThought.trim().toLowerCase()
+  const question = prompt.socraticQuestion.trim().toLowerCase()
+
+  if (
+    quote === "every gift carries responsibility." ||
+    frame === "awareness of a gift invites its expression." ||
+    question === "what gift are you not fully using?"
+  ) {
+    return "purposeGiftResponsibility"
+  }
+
+  if (
+    quote === "the soul whispers before destiny speaks." ||
+    frame === "purpose rarely arrives as a command. it often begins as a quiet invitation." ||
+    question === "what invitation have you been ignoring?"
+  ) {
+    return "purpose"
+  }
+
+  return null
 }
 
 function readLatestConsentGrant(records: ConsentRecord[], type: string) {

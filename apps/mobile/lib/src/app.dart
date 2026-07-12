@@ -25,6 +25,7 @@ class InnerCouncilMobileApp extends ConsumerWidget {
         ? session!.language.current
         : localLanguage.code;
     return MaterialApp(
+      key: ValueKey(localeLanguageCode),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       locale: _localeFromLanguageCode(localeLanguageCode),
@@ -447,14 +448,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final preferredLanguage = ref.read(localLanguageControllerProvider).code;
     if (_register) {
       controller.register(
-        _name.text,
-        _email.text,
+        _name.text.trim(),
+        _email.text.trim(),
         _password.text,
         preferredLanguage: preferredLanguage,
       );
     } else {
       controller.login(
-        _email.text,
+        _email.text.trim(),
         _password.text,
         preferredLanguage: preferredLanguage,
       );
@@ -953,10 +954,21 @@ MobileThresholdPrompt _localizedThresholdPrompt(
   AppLocalizations l10n,
   MobileThresholdPrompt threshold,
 ) {
-  final isPurposePrompt =
-      threshold.theme.toLowerCase() == 'purpose' ||
-      threshold.quote == 'The soul whispers before destiny speaks.';
-  if (!isPurposePrompt) return threshold;
+  final translationKey = _thresholdTranslationKey(threshold);
+
+  if (translationKey == 'purposeGiftResponsibility') {
+    return MobileThresholdPrompt(
+      month: threshold.month,
+      day: threshold.day,
+      theme: l10n.thresholdPurposeGiftTheme,
+      quote: l10n.thresholdPurposeGiftQuote,
+      frameOfThought: l10n.thresholdPurposeGiftFrameOfThought,
+      socraticQuestion: l10n.thresholdPurposeGiftSocraticQuestion,
+      translationKey: translationKey,
+    );
+  }
+
+  if (translationKey != 'purpose') return threshold;
 
   return MobileThresholdPrompt(
     month: threshold.month,
@@ -965,7 +977,33 @@ MobileThresholdPrompt _localizedThresholdPrompt(
     quote: l10n.thresholdPurposeQuote,
     frameOfThought: l10n.thresholdPurposeFrameOfThought,
     socraticQuestion: l10n.thresholdPurposeSocraticQuestion,
+    translationKey: threshold.translationKey,
   );
+}
+
+String? _thresholdTranslationKey(MobileThresholdPrompt threshold) {
+  if (threshold.translationKey case final translationKey?) {
+    return translationKey;
+  }
+
+  final quote = threshold.quote?.trim().toLowerCase();
+  final frame = threshold.frameOfThought.trim().toLowerCase();
+  final question = threshold.socraticQuestion.trim().toLowerCase();
+
+  if (quote == 'every gift carries responsibility.' ||
+      frame == 'awareness of a gift invites its expression.' ||
+      question == 'what gift are you not fully using?') {
+    return 'purposeGiftResponsibility';
+  }
+
+  if (quote == 'the soul whispers before destiny speaks.' ||
+      frame ==
+          'purpose rarely arrives as a command. it often begins as a quiet invitation.' ||
+      question == 'what invitation have you been ignoring?') {
+    return 'purpose';
+  }
+
+  return null;
 }
 
 class SavedSessionsTab extends ConsumerWidget {

@@ -103,6 +103,10 @@
   "thresholdPurposeQuote": "L’âme murmure avant que le destin ne parle.",
   "thresholdPurposeFrameOfThought": "Le but arrive rarement comme un ordre. Il commence souvent comme une invitation silencieuse.",
   "thresholdPurposeSocraticQuestion": "Quelle invitation as-tu ignorée ?",
+  "thresholdPurposeGiftTheme": "BUT",
+  "thresholdPurposeGiftQuote": "Chaque don porte une responsabilité.",
+  "thresholdPurposeGiftFrameOfThought": "Prendre conscience d’un don invite à l’exprimer.",
+  "thresholdPurposeGiftSocraticQuestion": "Quel don n’utilises-tu pas pleinement ?",
   "@thresholdLabel": {
     "placeholders": {
       "month": {

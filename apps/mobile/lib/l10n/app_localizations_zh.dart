@@ -303,6 +303,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get thresholdPurposeSocraticQuestion => '你一直忽视了哪个邀请？';
 
   @override
+  String get thresholdPurposeGiftTheme => '目的';
+
+  @override
+  String get thresholdPurposeGiftQuote => '每一份天赋都承载责任。';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought => '意识到一份天赋，会邀请它表达出来。';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion => '你还没有充分使用哪一份天赋？';
+
+  @override
   String get continueWithGoogle => '使用 Google 继续';
 
   @override
@@ -690,6 +702,18 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get thresholdPurposeSocraticQuestion => '你一直忽视了哪个邀请？';
+
+  @override
+  String get thresholdPurposeGiftTheme => '目的';
+
+  @override
+  String get thresholdPurposeGiftQuote => '每一份天赋都承载责任。';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought => '意识到一份天赋，会邀请它表达出来。';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion => '你还没有充分使用哪一份天赋？';
 
   @override
   String get continueWithGoogle => '使用 Google 继续';

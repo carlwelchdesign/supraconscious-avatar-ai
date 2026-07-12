@@ -110,6 +110,10 @@
   "thresholdPurposeQuote": "灵魂先低语，命运才开口。",
   "thresholdPurposeFrameOfThought": "目的很少以命令的形式到来。它常常始于一个安静的邀请。",
   "thresholdPurposeSocraticQuestion": "你一直忽视了哪个邀请？",
+  "thresholdPurposeGiftTheme": "目的",
+  "thresholdPurposeGiftQuote": "每一份天赋都承载责任。",
+  "thresholdPurposeGiftFrameOfThought": "意识到一份天赋，会邀请它表达出来。",
+  "thresholdPurposeGiftSocraticQuestion": "你还没有充分使用哪一份天赋？",
   "@thresholdLabel": {
     "placeholders": {
       "month": {

@@ -1075,6 +1075,7 @@ class MobileThresholdPrompt {
     required this.quote,
     required this.frameOfThought,
     required this.socraticQuestion,
+    required this.translationKey,
   });
 
   final int month;
@@ -1083,6 +1084,7 @@ class MobileThresholdPrompt {
   final String? quote;
   final String frameOfThought;
   final String socraticQuestion;
+  final String? translationKey;
 
   factory MobileThresholdPrompt.fromJson(Map<String, dynamic> json) {
     return MobileThresholdPrompt(
@@ -1092,6 +1094,7 @@ class MobileThresholdPrompt {
       quote: json['quote'] as String?,
       frameOfThought: json['frameOfThought'] as String? ?? '',
       socraticQuestion: json['socraticQuestion'] as String? ?? '',
+      translationKey: json['translationKey'] as String?,
     );
   }
 }

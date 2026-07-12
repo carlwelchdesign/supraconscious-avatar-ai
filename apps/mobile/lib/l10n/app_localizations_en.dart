@@ -321,6 +321,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'What invitation have you been ignoring?';
 
   @override
+  String get thresholdPurposeGiftTheme => 'PURPOSE';
+
+  @override
+  String get thresholdPurposeGiftQuote => 'Every gift carries responsibility.';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought =>
+      'Awareness of a gift invites its expression.';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion =>
+      'What gift are you not fully using?';
+
+  @override
   String get continueWithGoogle => 'Continue with Google';
 
   @override

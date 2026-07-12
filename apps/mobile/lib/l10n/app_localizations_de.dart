@@ -323,6 +323,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Welche Einladung hast du ignoriert?';
 
   @override
+  String get thresholdPurposeGiftTheme => 'SINN';
+
+  @override
+  String get thresholdPurposeGiftQuote => 'Jede Gabe trägt Verantwortung.';
+
+  @override
+  String get thresholdPurposeGiftFrameOfThought =>
+      'Das Bewusstsein für eine Gabe lädt dazu ein, sie auszudrücken.';
+
+  @override
+  String get thresholdPurposeGiftSocraticQuestion =>
+      'Welche Gabe nutzt du nicht vollständig?';
+
+  @override
   String get continueWithGoogle => 'Mit Google fortfahren';
 
   @override

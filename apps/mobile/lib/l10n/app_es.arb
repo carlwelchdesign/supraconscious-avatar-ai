@@ -103,6 +103,10 @@
   "thresholdPurposeQuote": "El alma susurra antes de que hable el destino.",
   "thresholdPurposeFrameOfThought": "El propósito rara vez llega como una orden. A menudo comienza como una invitación silenciosa.",
   "thresholdPurposeSocraticQuestion": "¿Qué invitación has estado ignorando?",
+  "thresholdPurposeGiftTheme": "PROPÓSITO",
+  "thresholdPurposeGiftQuote": "Todo don conlleva responsabilidad.",
+  "thresholdPurposeGiftFrameOfThought": "La conciencia de un don invita a expresarlo.",
+  "thresholdPurposeGiftSocraticQuestion": "¿Qué don no estás usando plenamente?",
   "@thresholdLabel": {
     "placeholders": {
       "month": {

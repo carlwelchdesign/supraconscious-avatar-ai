@@ -296,8 +296,57 @@ test("mobile journal prompt response serializes threshold prompt", () => {
       quote: "A short approved quote.",
       frameOfThought: "Notice what is present before solving it.",
       socraticQuestion: "What are you not letting yourself say?",
+      translationKey: null,
     },
   })
+})
+
+test("mobile journal prompt response marks known translated threshold prompts", () => {
+  const response = buildMobileJournalPromptResponse({
+    todayLabel: "Saturday, July 11",
+    prompt: {
+      month: 7,
+      day: 11,
+      theme: "PURPOSE",
+      quote: "The soul whispers before destiny speaks.",
+      frameOfThought: "Purpose rarely arrives as a command. It often begins as a quiet invitation.",
+      socraticQuestion: "What invitation have you been ignoring?",
+    },
+  })
+
+  assert.equal(response.prompt?.translationKey, "purpose")
+})
+
+test("mobile journal prompt response marks gift responsibility threshold prompt", () => {
+  const response = buildMobileJournalPromptResponse({
+    todayLabel: "Sunday, July 12",
+    prompt: {
+      month: 7,
+      day: 12,
+      theme: "PURPOSE",
+      quote: "Every gift carries responsibility.",
+      frameOfThought: "Awareness of a gift invites its expression.",
+      socraticQuestion: "What gift are you not fully using?",
+    },
+  })
+
+  assert.equal(response.prompt?.translationKey, "purposeGiftResponsibility")
+})
+
+test("mobile journal prompt response does not translate unknown prompts by theme alone", () => {
+  const response = buildMobileJournalPromptResponse({
+    todayLabel: "Monday, July 13",
+    prompt: {
+      month: 7,
+      day: 13,
+      theme: "PURPOSE",
+      quote: "An untranslated purpose quote.",
+      frameOfThought: "An untranslated purpose frame.",
+      socraticQuestion: "An untranslated purpose question?",
+    },
+  })
+
+  assert.equal(response.prompt?.translationKey, null)
 })
 
 test("mobile journal prompt response allows no prompt", () => {

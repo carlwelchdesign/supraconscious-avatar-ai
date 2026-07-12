@@ -103,6 +103,10 @@
   "thresholdPurposeQuote": "Die Seele flüstert, bevor das Schicksal spricht.",
   "thresholdPurposeFrameOfThought": "Sinn kommt selten als Befehl. Oft beginnt er als leise Einladung.",
   "thresholdPurposeSocraticQuestion": "Welche Einladung hast du ignoriert?",
+  "thresholdPurposeGiftTheme": "SINN",
+  "thresholdPurposeGiftQuote": "Jede Gabe trägt Verantwortung.",
+  "thresholdPurposeGiftFrameOfThought": "Das Bewusstsein für eine Gabe lädt dazu ein, sie auszudrücken.",
+  "thresholdPurposeGiftSocraticQuestion": "Welche Gabe nutzt du nicht vollständig?",
   "@thresholdLabel": {
     "placeholders": {
       "month": {
