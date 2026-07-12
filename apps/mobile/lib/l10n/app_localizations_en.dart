@@ -319,4 +319,96 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get thresholdPurposeSocraticQuestion =>
       'What invitation have you been ignoring?';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get googleNoIdToken => 'Google did not return an identity token.';
+
+  @override
+  String get appleNoIdToken => 'Apple did not return an identity token.';
+
+  @override
+  String get verifyPasskeyTitle => 'Verify your passkey';
+
+  @override
+  String get verifyPasskeyBody =>
+      'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.';
+
+  @override
+  String get usePasskey => 'Use passkey';
+
+  @override
+  String get backToSignIn => 'Back to sign in';
+
+  @override
+  String get sessionStatus => 'Session status';
+
+  @override
+  String get noteSaved => 'note saved';
+
+  @override
+  String get feedbackLabel => 'Feedback';
+
+  @override
+  String get optionalFeedbackNote => 'Optional feedback note';
+
+  @override
+  String get embodimentPrompt => 'One small shift I can live today';
+
+  @override
+  String get saveEmbodimentGate => 'Save embodiment gate';
+
+  @override
+  String get feedbackSavedMessage => 'Feedback saved.';
+
+  @override
+  String get embodimentSavedMessage => 'Embodiment gate saved.';
+
+  @override
+  String get patternsEmptyBody =>
+      'Keep writing. Recurring signals will appear here.';
+
+  @override
+  String get theFiveStages => 'The five stages';
+
+  @override
+  String get locked => 'Locked';
+
+  @override
+  String confidencePercent(int confidence) {
+    return 'Confidence $confidence%';
+  }
+
+  @override
+  String get hide => 'Hide';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get councilReflection => 'Council Reflection';
+
+  @override
+  String get brandName => 'Supraconscious';
+
+  @override
+  String get tagline => 'Write. See clearly. Choose consciously.';
+
+  @override
+  String apiLabel(String apiBaseUrl) {
+    return 'API: $apiBaseUrl';
+  }
+
+  @override
+  String get cosmicEyeSemanticLabel => 'Cosmic eye artwork';
+
+  @override
+  String feedbackTypeLabel(String label) {
+    return '$label';
+  }
 }

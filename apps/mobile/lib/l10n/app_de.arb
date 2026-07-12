@@ -119,5 +119,54 @@
         "type": "String"
       }
     }
+  },
+  "continueWithGoogle": "Mit Google fortfahren",
+  "continueWithApple": "Mit Apple fortfahren",
+  "googleNoIdToken": "Google hat kein Identitätstoken zurückgegeben.",
+  "appleNoIdToken": "Apple hat kein Identitätstoken zurückgegeben.",
+  "verifyPasskeyTitle": "Passkey bestätigen",
+  "verifyPasskeyBody": "Dieses Konto ist mit phishing-resistenter MFA geschützt. Verwende deinen YubiKey oder den Geräte-Passkey, um die Anmeldung abzuschließen.",
+  "usePasskey": "Passkey verwenden",
+  "backToSignIn": "Zurück zur Anmeldung",
+  "sessionStatus": "Sitzungsstatus",
+  "noteSaved": "Notiz gespeichert",
+  "feedbackLabel": "Feedback",
+  "optionalFeedbackNote": "Optionale Feedback-Notiz",
+  "embodimentPrompt": "Eine kleine Veränderung, die ich heute leben kann",
+  "saveEmbodimentGate": "Verkörperungs-Gate speichern",
+  "feedbackSavedMessage": "Feedback gespeichert.",
+  "embodimentSavedMessage": "Verkörperungs-Gate gespeichert.",
+  "patternsEmptyBody": "Schreib weiter. Wiederkehrende Signale erscheinen hier.",
+  "theFiveStages": "Die fünf Stufen",
+  "locked": "Gesperrt",
+  "confidencePercent": "Vertrauen {confidence} %",
+  "hide": "Ausblenden",
+  "restore": "Wiederherstellen",
+  "councilReflection": "Ratsreflexion",
+  "brandName": "Supraconscious",
+  "tagline": "Schreiben. Klar sehen. Bewusst wählen.",
+  "apiLabel": "API: {apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "Kosmisches Augenmotiv",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }

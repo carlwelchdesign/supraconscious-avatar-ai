@@ -119,5 +119,54 @@
         "type": "String"
       }
     }
+  },
+  "continueWithGoogle": "Continuer avec Google",
+  "continueWithApple": "Continuer avec Apple",
+  "googleNoIdToken": "Google n’a pas renvoyé de jeton d’identité.",
+  "appleNoIdToken": "Apple n’a pas renvoyé de jeton d’identité.",
+  "verifyPasskeyTitle": "Vérifier votre clé d’accès",
+  "verifyPasskeyBody": "Ce compte est protégé par une MFA résistante au hameçonnage. Utilisez votre YubiKey ou la clé d’accès de l’appareil pour terminer la connexion.",
+  "usePasskey": "Utiliser la clé d’accès",
+  "backToSignIn": "Retour à la connexion",
+  "sessionStatus": "État de la session",
+  "noteSaved": "note enregistrée",
+  "feedbackLabel": "Retour",
+  "optionalFeedbackNote": "Note de retour facultative",
+  "embodimentPrompt": "Un petit changement que je peux vivre aujourd’hui",
+  "saveEmbodimentGate": "Enregistrer la porte d’incarnation",
+  "feedbackSavedMessage": "Retour enregistré.",
+  "embodimentSavedMessage": "Porte d’incarnation enregistrée.",
+  "patternsEmptyBody": "Continuez à écrire. Les signaux récurrents apparaîtront ici.",
+  "theFiveStages": "Les cinq étapes",
+  "locked": "Verrouillé",
+  "confidencePercent": "Confiance {confidence} %",
+  "hide": "Masquer",
+  "restore": "Restaurer",
+  "councilReflection": "Réflexion du conseil",
+  "brandName": "Supraconscious",
+  "tagline": "Écrivez. Voyez clairement. Choisissez consciemment.",
+  "apiLabel": "API : {apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "Illustration d’œil cosmique",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }

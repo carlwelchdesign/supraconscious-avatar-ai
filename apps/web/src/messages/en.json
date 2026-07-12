@@ -146,7 +146,19 @@
     "chooseNewPasswordDescription": "Use the secure reset link from your email.",
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
-    "backToSignIn": "Back to sign in"
+    "backToSignIn": "Back to sign in",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "passwordDivider": "Password",
+    "passkeyChallengeExpired": "Passkey challenge expired.",
+    "passkeyVerificationFailed": "Passkey verification failed.",
+    "verifyPasskeyTitle": "Verify your passkey",
+    "verifyPasskeyBody": "This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.",
+    "usePasskey": "Use passkey",
+    "recoveryCode": "Recovery code",
+    "checking": "Checking...",
+    "useRecoveryCode": "Use recovery code",
+    "enterRecoveryCode": "Enter a recovery code."
   },
   "appShell": {
     "innerCouncil": "Inner Council",
@@ -398,7 +410,25 @@
     "password": "Password",
     "typeDelete": "Type DELETE",
     "typeDeleteTitle": "Type DELETE in all caps to confirm.",
-    "deleteAccountButton": "Delete account"
+    "deleteAccountButton": "Delete account",
+    "passkeys": {
+      "title": "Passkeys and security keys",
+      "description": "Add a YubiKey, Touch ID, Face ID, or another passkey. Once enrolled, every password, Google, or Apple sign-in must complete this anti-phishing check.",
+      "addPasskey": "Add passkey",
+      "securityKeyLabel": "Security key",
+      "startEnrollmentError": "Could not start passkey enrollment.",
+      "enrollmentFailed": "Passkey enrollment failed.",
+      "enrolledMessage": "Passkey enrolled. Future sign-ins will require this phishing-resistant check.",
+      "removePrompt": "Enter a recovery code before removing your last passkey.",
+      "removeFailed": "Could not remove passkey.",
+      "removedMessage": "Passkey removed.",
+      "saveRecoveryCodesTitle": "Save these recovery codes now.",
+      "saveRecoveryCodesBody": "They are shown once and are required if you need to remove your last passkey.",
+      "none": "No passkeys are enrolled yet.",
+      "added": "Added {date}",
+      "lastUsed": "Last used {date}",
+      "remove": "Remove"
+    }
   },
   "onboarding": {
     "eyebrow": "First session",

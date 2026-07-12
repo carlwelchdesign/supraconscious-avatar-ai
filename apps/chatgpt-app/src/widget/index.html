@@ -17,36 +17,37 @@
             </header>
 
             <div id="journal-input-section" class="section">
-                <h2>Share what's on your mind</h2>
+                <h2 data-i18n="shareTitle">Share what's on your mind</h2>
                 <textarea
                     id="journal-text"
+                    data-i18n-placeholder="journalPlaceholder"
                     placeholder="Write about what's happening right now..."
                     rows="4"
                 ></textarea>
-                <button id="analyze-btn" class="btn-primary">Reflect</button>
+                <button id="analyze-btn" class="btn-primary" data-i18n="reflect">Reflect</button>
                 <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
             </div>
 
             <div id="reflection-section" class="section hidden">
                 <div id="avatar-reflection" class="reflection-card">
-                    <h3>Guide Reflection</h3>
+                    <h3 data-i18n="guideReflection">Guide Reflection</h3>
                     <div id="reflection-content"></div>
                 </div>
 
                 <div id="personalized-prompt" class="prompt-card">
-                    <h3>Personalized Prompt</h3>
+                    <h3 data-i18n="personalizedPrompt">Personalized Prompt</h3>
                     <div id="prompt-content"></div>
                 </div>
 
                 <div class="actions">
-                    <button id="save-btn" class="btn-secondary">Save to Supraconscious</button>
-                    <button id="continue-btn" class="btn-link">Continue in Full App</button>
+                    <button id="save-btn" class="btn-secondary" data-i18n="save">Save to Supraconscious</button>
+                    <button id="continue-btn" class="btn-link" data-i18n="continue">Continue in Full App</button>
                 </div>
             </div>
 
             <div id="loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Reflecting...</p>
+                <p data-i18n="reflecting">Reflecting...</p>
             </div>
         </div>
     </div>

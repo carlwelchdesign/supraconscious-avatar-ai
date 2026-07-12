@@ -1191,6 +1191,7 @@ __metadata:
     "@tailwindcss/postcss": "npm:^4.2.4"
     lucide-react: "npm:^1.12.0"
     next: "npm:16.2.4"
+    next-intl: "npm:^4.13.2"
     react: "npm:19.2.4"
     react-dom: "npm:19.2.4"
     tsx: "npm:^4.7.1"

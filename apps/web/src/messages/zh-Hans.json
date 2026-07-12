@@ -146,7 +146,19 @@
     "chooseNewPasswordDescription": "使用邮件中的安全重置链接。",
     "newPassword": "新密码",
     "confirmPassword": "确认密码",
-    "backToSignIn": "返回登录"
+    "backToSignIn": "返回登录",
+    "continueWithGoogle": "使用 Google 继续",
+    "continueWithApple": "使用 Apple 继续",
+    "passwordDivider": "密码",
+    "passkeyChallengeExpired": "通行密钥挑战已过期。",
+    "passkeyVerificationFailed": "通行密钥验证失败。",
+    "verifyPasskeyTitle": "验证你的通行密钥",
+    "verifyPasskeyBody": "此账户受抗钓鱼多重验证保护。请使用你的 YubiKey 或设备通行密钥完成登录。",
+    "usePasskey": "使用通行密钥",
+    "recoveryCode": "恢复代码",
+    "checking": "正在检查...",
+    "useRecoveryCode": "使用恢复代码",
+    "enterRecoveryCode": "请输入恢复代码。"
   },
   "appShell": {
     "innerCouncil": "内在议会",
@@ -398,7 +410,25 @@
     "password": "密码",
     "typeDelete": "Type DELETE",
     "typeDeleteTitle": "Type DELETE in all caps to confirm.",
-    "deleteAccountButton": "删除账户"
+    "deleteAccountButton": "删除账户",
+    "passkeys": {
+      "title": "通行密钥和安全密钥",
+      "description": "添加 YubiKey、Touch ID、Face ID 或其他通行密钥。启用后，每次使用密码、Google 或 Apple 登录都必须完成这项抗钓鱼验证。",
+      "addPasskey": "添加通行密钥",
+      "securityKeyLabel": "安全密钥",
+      "startEnrollmentError": "无法开始注册通行密钥。",
+      "enrollmentFailed": "通行密钥注册失败。",
+      "enrolledMessage": "通行密钥已注册。未来登录将需要这项抗钓鱼验证。",
+      "removePrompt": "删除最后一个通行密钥前，请输入恢复代码。",
+      "removeFailed": "无法删除通行密钥。",
+      "removedMessage": "通行密钥已删除。",
+      "saveRecoveryCodesTitle": "请立即保存这些恢复代码。",
+      "saveRecoveryCodesBody": "它们只会显示一次；如果你需要删除最后一个通行密钥，将需要它们。",
+      "none": "尚未注册通行密钥。",
+      "added": "添加于 {date}",
+      "lastUsed": "上次使用于 {date}",
+      "remove": "删除"
+    }
   },
   "onboarding": {
     "eyebrow": "第一次会话",

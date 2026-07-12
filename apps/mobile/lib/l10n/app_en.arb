@@ -119,5 +119,54 @@
         "type": "int"
       }
     }
+  },
+  "continueWithGoogle": "Continue with Google",
+  "continueWithApple": "Continue with Apple",
+  "googleNoIdToken": "Google did not return an identity token.",
+  "appleNoIdToken": "Apple did not return an identity token.",
+  "verifyPasskeyTitle": "Verify your passkey",
+  "verifyPasskeyBody": "This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.",
+  "usePasskey": "Use passkey",
+  "backToSignIn": "Back to sign in",
+  "sessionStatus": "Session status",
+  "noteSaved": "note saved",
+  "feedbackLabel": "Feedback",
+  "optionalFeedbackNote": "Optional feedback note",
+  "embodimentPrompt": "One small shift I can live today",
+  "saveEmbodimentGate": "Save embodiment gate",
+  "feedbackSavedMessage": "Feedback saved.",
+  "embodimentSavedMessage": "Embodiment gate saved.",
+  "patternsEmptyBody": "Keep writing. Recurring signals will appear here.",
+  "theFiveStages": "The five stages",
+  "locked": "Locked",
+  "confidencePercent": "Confidence {confidence}%",
+  "hide": "Hide",
+  "restore": "Restore",
+  "councilReflection": "Council Reflection",
+  "brandName": "Supraconscious",
+  "tagline": "Write. See clearly. Choose consciously.",
+  "apiLabel": "API: {apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "Cosmic eye artwork",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }

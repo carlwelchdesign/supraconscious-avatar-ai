@@ -682,6 +682,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What invitation have you been ignoring?'**
   String get thresholdPurposeSocraticQuestion;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get continueWithApple;
+
+  /// No description provided for @googleNoIdToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Google did not return an identity token.'**
+  String get googleNoIdToken;
+
+  /// No description provided for @appleNoIdToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple did not return an identity token.'**
+  String get appleNoIdToken;
+
+  /// No description provided for @verifyPasskeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your passkey'**
+  String get verifyPasskeyTitle;
+
+  /// No description provided for @verifyPasskeyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.'**
+  String get verifyPasskeyBody;
+
+  /// No description provided for @usePasskey.
+  ///
+  /// In en, this message translates to:
+  /// **'Use passkey'**
+  String get usePasskey;
+
+  /// No description provided for @backToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get backToSignIn;
+
+  /// No description provided for @sessionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Session status'**
+  String get sessionStatus;
+
+  /// No description provided for @noteSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'note saved'**
+  String get noteSaved;
+
+  /// No description provided for @feedbackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get feedbackLabel;
+
+  /// No description provided for @optionalFeedbackNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional feedback note'**
+  String get optionalFeedbackNote;
+
+  /// No description provided for @embodimentPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'One small shift I can live today'**
+  String get embodimentPrompt;
+
+  /// No description provided for @saveEmbodimentGate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save embodiment gate'**
+  String get saveEmbodimentGate;
+
+  /// No description provided for @feedbackSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback saved.'**
+  String get feedbackSavedMessage;
+
+  /// No description provided for @embodimentSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Embodiment gate saved.'**
+  String get embodimentSavedMessage;
+
+  /// No description provided for @patternsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep writing. Recurring signals will appear here.'**
+  String get patternsEmptyBody;
+
+  /// No description provided for @theFiveStages.
+  ///
+  /// In en, this message translates to:
+  /// **'The five stages'**
+  String get theFiveStages;
+
+  /// No description provided for @locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get locked;
+
+  /// No description provided for @confidencePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence {confidence}%'**
+  String confidencePercent(int confidence);
+
+  /// No description provided for @hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hide;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @councilReflection.
+  ///
+  /// In en, this message translates to:
+  /// **'Council Reflection'**
+  String get councilReflection;
+
+  /// No description provided for @brandName.
+  ///
+  /// In en, this message translates to:
+  /// **'Supraconscious'**
+  String get brandName;
+
+  /// No description provided for @tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Write. See clearly. Choose consciously.'**
+  String get tagline;
+
+  /// No description provided for @apiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'API: {apiBaseUrl}'**
+  String apiLabel(String apiBaseUrl);
+
+  /// No description provided for @cosmicEyeSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cosmic eye artwork'**
+  String get cosmicEyeSemanticLabel;
+
+  /// No description provided for @feedbackTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}'**
+  String feedbackTypeLabel(String label);
 }
 
 class _AppLocalizationsDelegate

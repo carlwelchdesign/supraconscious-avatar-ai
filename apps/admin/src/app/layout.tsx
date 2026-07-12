@@ -1,5 +1,9 @@
 import type { Metadata } from "next"
+import { NextIntlClientProvider } from "next-intl"
 import { MuiProvider } from "@/components/mui-provider"
+import { AdminAutoLocalizer } from "@/components/admin-auto-localizer"
+import { getAdminMessages } from "@/lib/admin-messages"
+import { readAdminLanguage } from "@/lib/language"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -7,11 +11,19 @@ export const metadata: Metadata = {
   description: "Internal administration for Supraconscious.",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await readAdminLanguage()
+  const messages = getAdminMessages(locale)
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <MuiProvider>{children}</MuiProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <MuiProvider>
+            <AdminAutoLocalizer />
+            {children}
+          </MuiProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

@@ -119,5 +119,54 @@
         "type": "String"
       }
     }
+  },
+  "continueWithGoogle": "Continuar con Google",
+  "continueWithApple": "Continuar con Apple",
+  "googleNoIdToken": "Google no devolvió un token de identidad.",
+  "appleNoIdToken": "Apple no devolvió un token de identidad.",
+  "verifyPasskeyTitle": "Verifica tu llave de acceso",
+  "verifyPasskeyBody": "Esta cuenta está protegida con MFA resistente al phishing. Usa tu YubiKey o la llave de acceso del dispositivo para terminar de iniciar sesión.",
+  "usePasskey": "Usar llave de acceso",
+  "backToSignIn": "Volver a iniciar sesión",
+  "sessionStatus": "Estado de la sesión",
+  "noteSaved": "nota guardada",
+  "feedbackLabel": "Comentarios",
+  "optionalFeedbackNote": "Nota opcional de comentarios",
+  "embodimentPrompt": "Un pequeño cambio que puedo vivir hoy",
+  "saveEmbodimentGate": "Guardar puerta de encarnación",
+  "feedbackSavedMessage": "Comentarios guardados.",
+  "embodimentSavedMessage": "Puerta de encarnación guardada.",
+  "patternsEmptyBody": "Sigue escribiendo. Las señales recurrentes aparecerán aquí.",
+  "theFiveStages": "Las cinco etapas",
+  "locked": "Bloqueada",
+  "confidencePercent": "Confianza {confidence}%",
+  "hide": "Ocultar",
+  "restore": "Restaurar",
+  "councilReflection": "Reflexión del consejo",
+  "brandName": "Supraconscious",
+  "tagline": "Escribe. Ve con claridad. Elige conscientemente.",
+  "apiLabel": "API: {apiBaseUrl}",
+  "cosmicEyeSemanticLabel": "Arte de ojo cósmico",
+  "feedbackTypeLabel": "{label}",
+  "@confidencePercent": {
+    "placeholders": {
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "@apiLabel": {
+    "placeholders": {
+      "apiBaseUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedbackTypeLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   }
 }
