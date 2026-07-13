@@ -46,6 +46,7 @@ const ChunkStateSchema = z.object({
 
 const RightsGrantSchema = z.object({
   sourceDocumentId: z.string().min(1),
+  sourceRightsGrantId: z.string().trim().optional(),
   ownerName: z.string().trim().min(2),
   grantType: z.string().trim().min(2).default("provided_by_owner"),
   allowedUses: z.array(z.string()).min(1),
@@ -53,7 +54,13 @@ const RightsGrantSchema = z.object({
   attributionRequired: z.union([z.literal("on"), z.null()]).optional(),
   attributionText: z.string().trim().optional(),
   status: z.enum(["needs_review", "approved", "paraphrase_only", "revoked", "expired", "blocked"]),
+  createNewGrant: z.union([z.literal("true"), z.null()]).optional(),
   reason: z.string().trim().min(10, "A rights review reason is required."),
+})
+
+const SourceBulkActionSchema = z.object({
+  sourceDocumentId: z.string().min(1),
+  reason: z.string().trim().min(10, "A review reason is required."),
 })
 
 export async function updateSourceDocumentStateAction(formData: FormData) {
@@ -320,7 +327,151 @@ export async function updateSourceChunkStateAction(formData: FormData) {
   redirect(sourceChunkActionHref("chunk_saved", parsed.data.sourceChunkId))
 }
 
-export async function upsertSourceRightsGrantAction(formData: FormData) {
+export async function approveSourceForInternalRagAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = SourceBulkActionSchema.safeParse(Object.fromEntries(formData))
+  const sourceDocumentId = readFormId(formData, "sourceDocumentId")
+  if (!parsed.success) redirect(sourceActionHref("source_rag_invalid", sourceDocumentId))
+
+  const source = await prisma.sourceDocument.findUnique({
+    where: { id: parsed.data.sourceDocumentId },
+    select: {
+      id: true,
+      author: true,
+      rightsGrants: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, ownerName: true, grantType: true, status: true, revokedAt: true, expiresAt: true },
+      },
+    },
+  })
+  if (!source) redirect(sourceActionHref("source_missing", parsed.data.sourceDocumentId))
+
+  const currentGrant = source.rightsGrants.find((grant) => isEditableRightsGrantStatus(grant.status))
+
+  await prisma.$transaction(async (tx) => {
+    const grant = currentGrant
+      ? await tx.sourceRightsGrant.update({
+          where: { id: currentGrant.id },
+          data: {
+            ownerName: currentGrant.ownerName || source.author || "Maria Olon Tsaroucha",
+            grantType: currentGrant.grantType || "provided_by_owner",
+            allowedUses: ["internal_retrieval", "paraphrase_generation"],
+            quoteAllowed: false,
+            attributionRequired: false,
+            attributionText: null,
+            status: "paraphrase_only",
+            reviewerId: actor.id,
+            reviewedAt: new Date(),
+            reason: parsed.data.reason,
+          },
+          select: { id: true },
+        })
+      : await tx.sourceRightsGrant.create({
+          data: {
+            sourceDocumentId: source.id,
+            ownerName: source.author || "Maria Olon Tsaroucha",
+            grantType: "provided_by_owner",
+            allowedUses: ["internal_retrieval", "paraphrase_generation"],
+            quoteAllowed: false,
+            attributionRequired: false,
+            status: "paraphrase_only",
+            reviewerId: actor.id,
+            reviewedAt: new Date(),
+            reason: parsed.data.reason,
+          },
+          select: { id: true },
+        })
+
+    await tx.sourceDocument.update({
+      where: { id: source.id },
+      data: { reviewState: "approved", rightsStatus: "paraphrase_only" },
+    })
+
+    await tx.auditLog.create({
+      data: {
+        actorId: actor.id,
+        action: "source_document.approve_internal_rag",
+        targetType: "SourceDocument",
+        targetId: source.id,
+        reason: parsed.data.reason,
+        metadata: {
+          sourceRightsGrantId: grant.id,
+          reviewState: "approved",
+          rightsStatus: "paraphrase_only",
+          allowedUses: ["internal_retrieval", "paraphrase_generation"],
+        },
+      },
+    })
+  })
+
+  revalidatePath("/sources")
+  redirect(sourceActionHref("source_rag_approved", parsed.data.sourceDocumentId))
+}
+
+export async function approveParsedSourceChunksAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = SourceBulkActionSchema.safeParse(Object.fromEntries(formData))
+  const sourceDocumentId = readFormId(formData, "sourceDocumentId")
+  if (!parsed.success) redirect(sourceActionHref("source_chunks_invalid", sourceDocumentId))
+
+  const source = await prisma.sourceDocument.findUnique({
+    where: { id: parsed.data.sourceDocumentId },
+    select: {
+      id: true,
+      reviewState: true,
+      rightsStatus: true,
+      rightsGrants: {
+        select: {
+          status: true,
+          allowedUses: true,
+          quoteAllowed: true,
+          expiresAt: true,
+          revokedAt: true,
+        },
+      },
+    },
+  })
+  if (!source) redirect(sourceActionHref("source_missing", parsed.data.sourceDocumentId))
+  if (!["approved", "approved_curriculum"].includes(source.reviewState) ||
+    !["approved", "paraphrase_only"].includes(source.rightsStatus) ||
+    !hasUsableSourceRightsGrant(source, "paraphrase_generation")) {
+    redirect(sourceActionHref("source_chunks_source_not_ready", source.id))
+  }
+
+  const result = await prisma.sourceChunk.updateMany({
+    where: {
+      sourceDocumentId: source.id,
+      reviewState: "parsed",
+      safetyIntensity: { not: "blocked" },
+    },
+    data: {
+      reviewState: "approved",
+      quotePermission: "paraphrase_only",
+      safetyIntensity: "normal",
+    },
+  })
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: actor.id,
+      action: "source_document.approve_parsed_chunks",
+      targetType: "SourceDocument",
+      targetId: source.id,
+      reason: parsed.data.reason,
+      metadata: {
+        updatedChunkCount: result.count,
+        reviewState: "approved",
+        quotePermission: "paraphrase_only",
+        safetyIntensity: "normal",
+      },
+    },
+  })
+
+  revalidatePath("/sources")
+  redirect(sourceActionHref("source_chunks_approved", source.id))
+}
+
+export async function saveSourceRightsGrantAction(formData: FormData) {
   const actor = await requireAdminUser()
   const sourceDocumentId = readFormId(formData, "sourceDocumentId")
   const parsed = RightsGrantSchema.safeParse({
@@ -331,26 +482,44 @@ export async function upsertSourceRightsGrantAction(formData: FormData) {
   })
   if (!parsed.success) redirect(sourceActionHref("rights_invalid", sourceDocumentId))
 
-  const grant = await prisma.sourceRightsGrant.create({
+  const requestedGrantId = parsed.data.sourceRightsGrantId || null
+  if (!requestedGrantId && parsed.data.createNewGrant !== "true") {
+    const activeGrant = await prisma.sourceRightsGrant.findFirst({
+      where: {
+        sourceDocumentId: parsed.data.sourceDocumentId,
+        status: { notIn: ["revoked", "expired", "blocked"] },
+      },
+      select: { id: true },
+    })
+    if (activeGrant) redirect(sourceActionHref("rights_duplicate", parsed.data.sourceDocumentId))
+  }
+
+  if (requestedGrantId) {
+    const existing = await prisma.sourceRightsGrant.findUnique({
+      where: { id: requestedGrantId },
+      select: { id: true, sourceDocumentId: true },
+    })
+    if (!existing || existing.sourceDocumentId !== parsed.data.sourceDocumentId) {
+      redirect(sourceActionHref("rights_missing", parsed.data.sourceDocumentId))
+    }
+  }
+
+  const grant = requestedGrantId ? await prisma.sourceRightsGrant.update({
+    where: { id: requestedGrantId },
+    data: buildRightsGrantData(parsed.data, actor.id),
+    select: { id: true },
+  }) : await prisma.sourceRightsGrant.create({
     data: {
       sourceDocumentId: parsed.data.sourceDocumentId,
-      ownerName: parsed.data.ownerName,
-      grantType: parsed.data.grantType,
-      allowedUses: parsed.data.allowedUses,
-      quoteAllowed: parsed.data.quoteAllowed === "on",
-      attributionRequired: parsed.data.attributionRequired === "on",
-      attributionText: parsed.data.attributionText,
-      status: parsed.data.status,
-      reviewerId: actor.id,
-      reviewedAt: new Date(),
-      reason: parsed.data.reason,
+      ...buildRightsGrantData(parsed.data, actor.id),
     },
+    select: { id: true },
   })
 
   await prisma.auditLog.create({
     data: {
       actorId: actor.id,
-      action: "source_rights_grant.create",
+      action: requestedGrantId ? "source_rights_grant.update" : "source_rights_grant.create",
       targetType: "SourceRightsGrant",
       targetId: grant.id,
       reason: parsed.data.reason,
@@ -367,6 +536,24 @@ export async function upsertSourceRightsGrantAction(formData: FormData) {
   redirect(sourceActionHref("rights_saved", parsed.data.sourceDocumentId))
 }
 
+function buildRightsGrantData(
+  input: z.infer<typeof RightsGrantSchema>,
+  reviewerId: string,
+) {
+  return {
+    ownerName: input.ownerName,
+    grantType: input.grantType,
+    allowedUses: input.allowedUses,
+    quoteAllowed: input.quoteAllowed === "on",
+    attributionRequired: input.attributionRequired === "on",
+    attributionText: input.attributionText || null,
+    status: input.status,
+    reviewerId,
+    reviewedAt: new Date(),
+    reason: input.reason,
+  }
+}
+
 function parseCsv(value: string | undefined) {
   const parsed = (value ?? "")
     .split(",")
@@ -377,6 +564,10 @@ function parseCsv(value: string | undefined) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value)
+}
+
+function isEditableRightsGrantStatus(status: string) {
+  return !["revoked", "expired", "blocked"].includes(status)
 }
 
 function readFormId(formData: FormData, key: string) {

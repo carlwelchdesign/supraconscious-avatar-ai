@@ -4,12 +4,15 @@ import { REASONING_SCOPES } from "@inner-avatar/ai"
 import { AdminStatusBanner, InlineActionHelp } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
+import { getSourceReadinessStatus } from "@/lib/source-readiness"
 import {
+  approveParsedSourceChunksAction,
+  approveSourceForInternalRagAction,
   parseSourceDocumentAction,
+  saveSourceRightsGrantAction,
   updateCurriculumDayStateAction,
   updateSourceChunkStateAction,
   updateSourceDocumentStateAction,
-  upsertSourceRightsGrantAction,
 } from "./actions"
 
 const SOURCE_STATES = ["imported", "parsed", "needs_review", "approved", "approved_curriculum", "deprecated", "blocked"]
@@ -33,6 +36,11 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
   source_parse_exists: { tone: "error", message: "This source already has sections or chunks." },
   source_parse_empty: { tone: "error", message: "No text was found in that source document." },
   source_parse_failed: { tone: "error", message: "Source document parsing failed. Confirm the file is available and readable." },
+  source_rag_approved: { tone: "success", message: "Source approved for internal RAG with paraphrase-only rights." },
+  source_rag_invalid: { tone: "error", message: "Approving for RAG needs a source and audit reason." },
+  source_chunks_approved: { tone: "success", message: "Parsed chunks approved for paraphrase retrieval." },
+  source_chunks_invalid: { tone: "error", message: "Chunk approval needs a source and audit reason." },
+  source_chunks_source_not_ready: { tone: "error", message: "Approve the source document and paraphrase rights before approving chunks." },
   curriculum_saved: { tone: "success", message: "Curriculum publish state saved." },
   curriculum_invalid: { tone: "error", message: "Curriculum update needs a valid state and reason." },
   chunk_saved: { tone: "success", message: "Source chunk state saved." },
@@ -42,6 +50,8 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
   chunk_quote_blocked: { tone: "error", message: "Quote-safe display requires approved direct-quote rights with quote permission." },
   rights_saved: { tone: "success", message: "Source rights grant saved." },
   rights_invalid: { tone: "error", message: "Rights grant needs an owner, allowed use, status, and reason." },
+  rights_missing: { tone: "error", message: "That rights grant is no longer available for this source." },
+  rights_duplicate: { tone: "error", message: "This source already has a current rights grant. Edit the current grant or use Create new rights grant intentionally." },
 }
 
 export default async function SourcesPage({
@@ -92,9 +102,23 @@ export default async function SourcesPage({
         importBatch: { select: { parserVersion: true } },
         rightsGrants: {
           orderBy: { createdAt: "desc" },
-          take: 2,
-          select: { id: true, ownerName: true, status: true, allowedUses: true, quoteAllowed: true, attributionRequired: true, reason: true, reviewedAt: true },
+          take: 5,
+          select: {
+            id: true,
+            ownerName: true,
+            grantType: true,
+            status: true,
+            allowedUses: true,
+            quoteAllowed: true,
+            attributionRequired: true,
+            attributionText: true,
+            reason: true,
+            reviewedAt: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
         },
+        chunks: { select: { id: true, reviewState: true, quotePermission: true, safetyIntensity: true } },
         _count: { select: { chunks: true, sections: true, curriculumDays: true } },
       },
     }),
@@ -221,13 +245,19 @@ export default async function SourcesPage({
         <CardContent className="space-y-3">
           {documents.length === 0 ? (
             <p className="text-sm text-muted-foreground">No source documents imported yet.</p>
-          ) : documents.map((document) => (
+          ) : documents.map((document) => {
+            const currentGrant = currentRightsGrant(document.rightsGrants)
+            const readiness = getSourceReadinessStatus(document)
+            return (
             <div id={`source-${document.id}`} key={document.id} className="scroll-mt-6 rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">{document.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {document.sourceType} · {reasoningScopeLabel(document.reasoningScope)} · {document.reviewState} · {document.rightsStatus}
-                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={readinessBadgeClass(readiness)}>{readinessLabel(readiness)}</span>
+                  <p className="text-xs text-muted-foreground">
+                    {document.sourceType} · {reasoningScopeLabel(document.reasoningScope)} · {document.reviewState} · {document.rightsStatus}
+                  </p>
+                </div>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {document._count.sections} sections · {document._count.chunks} chunks · {document._count.curriculumDays} curriculum days
@@ -268,28 +298,66 @@ export default async function SourcesPage({
                   </div>
                 </form>
               ) : null}
-              <form action={updateSourceDocumentStateAction} className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="mt-3 grid gap-3 rounded-md border bg-background p-3 md:grid-cols-2">
+                <form action={approveSourceForInternalRagAction} className="space-y-2">
+                  <input type="hidden" name="sourceDocumentId" value={document.id} />
+                  <p className="text-xs font-medium">Guided approval</p>
+                  <p className="text-xs text-muted-foreground">
+                    Approves this source for internal retrieval and paraphrase generation only. Direct quotes and curriculum display remain off.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input name="reason" placeholder="Approval reason required" required minLength={10} className="min-w-56 rounded-md border bg-background px-2 py-1 text-xs" />
+                    <SubmitButton pendingLabel="Approving...">Approve for internal RAG</SubmitButton>
+                  </div>
+                </form>
+                <form action={approveParsedSourceChunksAction} className="space-y-2">
+                  <input type="hidden" name="sourceDocumentId" value={document.id} />
+                  <p className="text-xs font-medium">Chunk approval</p>
+                  <p className="text-xs text-muted-foreground">
+                    Approves parsed chunks on this source for paraphrase retrieval after source rights are ready.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input name="reason" placeholder="Chunk approval reason required" required minLength={10} className="min-w-56 rounded-md border bg-background px-2 py-1 text-xs" />
+                    <SubmitButton pendingLabel="Approving chunks...">Approve parsed chunks</SubmitButton>
+                  </div>
+                </form>
+              </div>
+              <form action={updateSourceDocumentStateAction} className="mt-3 grid gap-2 rounded-md border bg-muted/20 p-3 md:grid-cols-4">
                 <input type="hidden" name="sourceDocumentId" value={document.id} />
-                <select name="reviewState" defaultValue={document.reviewState} className="rounded-md border bg-background px-2 py-1 text-xs">
-                  {SOURCE_STATES.map((state) => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
-                <select name="rightsStatus" defaultValue={document.rightsStatus} className="rounded-md border bg-background px-2 py-1 text-xs">
-                  {RIGHTS_STATES.map((state) => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
-                <select name="reasoningScope" defaultValue={document.reasoningScope} className="rounded-md border bg-background px-2 py-1 text-xs">
-                  {REASONING_SCOPES.map((scope) => (
-                    <option key={scope} value={scope}>{reasoningScopeLabel(scope)}</option>
-                  ))}
-                </select>
-                <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
-                <SubmitButton pendingLabel="Updating...">Update</SubmitButton>
+                <label className="grid gap-1 text-xs font-medium">
+                  Source document state
+                  <select name="reviewState" defaultValue={document.reviewState} className="rounded-md border bg-background px-2 py-1 text-xs">
+                    {SOURCE_STATES.map((state) => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Source rights status
+                  <select name="rightsStatus" defaultValue={document.rightsStatus} className="rounded-md border bg-background px-2 py-1 text-xs">
+                    {RIGHTS_STATES.map((state) => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Reasoning scope
+                  <select name="reasoningScope" defaultValue={document.reasoningScope} className="rounded-md border bg-background px-2 py-1 text-xs">
+                    {REASONING_SCOPES.map((scope) => (
+                      <option key={scope} value={scope}>{reasoningScopeLabel(scope)}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-medium">
+                  Audit reason
+                  <input name="reason" placeholder="Reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs" />
+                </label>
+                <div className="flex items-end">
+                  <SubmitButton pendingLabel="Updating...">Update source state</SubmitButton>
+                </div>
               </form>
               <div className="mt-3 rounded-md bg-muted/40 p-3">
-                <p className="text-xs font-medium">Rights grants</p>
+                <p className="text-xs font-medium">Rights grant</p>
                 {statusCode && statusCode.startsWith("rights_") ? (
                   <p className={[
                     "mt-2 rounded-md border px-3 py-2 text-xs",
@@ -299,51 +367,49 @@ export default async function SourcesPage({
                     {statusMessage?.message}
                   </p>
                 ) : null}
-                {document.rightsGrants.length === 0 ? (
-                  <p className="mt-1 text-xs text-muted-foreground">No structured rights grant yet.</p>
-                ) : document.rightsGrants.map((grant) => (
-                  <div key={grant.id} className="mt-2 rounded-md border bg-background/60 p-2 text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground">{grant.ownerName} · {grant.status}</p>
-                    <p className="mt-1">
-                      uses: {arrayText(grant.allowedUses) || "none"} · quote {grant.quoteAllowed ? "allowed" : "not allowed"} · attribution {grant.attributionRequired ? "required" : "not required"}
-                    </p>
-                    <p className="mt-1">reviewed {grant.reviewedAt ? formatAdminDateTime(grant.reviewedAt) : "not reviewed"}</p>
-                    {grant.reason ? <p className="mt-1">reason: {grant.reason.slice(0, 140)}{grant.reason.length > 140 ? "..." : ""}</p> : null}
-                  </div>
-                ))}
-                <form action={upsertSourceRightsGrantAction} className="mt-3 grid gap-2 md:grid-cols-2">
-                  <input type="hidden" name="sourceDocumentId" value={document.id} />
-                  <input name="ownerName" defaultValue="Maria Olon Tsaroucha" required minLength={2} className="rounded-md border bg-background px-2 py-1 text-xs" />
-                  <select name="status" defaultValue="needs_review" className="rounded-md border bg-background px-2 py-1 text-xs">
-                    {["needs_review", "approved", "paraphrase_only", "revoked", "expired", "blocked"].map((state) => (
-                      <option key={state} value={state}>{state}</option>
-                    ))}
-                  </select>
-                  <div className="flex flex-wrap gap-2 md:col-span-2">
-                    {ALLOWED_USES.map((use) => (
-                      <label key={use} className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <input type="checkbox" name="allowedUses" value={use} defaultChecked={use === "paraphrase_generation"} />
-                        {use}
-                      </label>
+                {currentGrant ? (
+                  <RightsGrantForm
+                    documentId={document.id}
+                    grant={currentGrant}
+                    submitLabel="Save current grant"
+                    createNew={false}
+                  />
+                ) : (
+                  <p className="mt-1 text-xs text-muted-foreground">No current rights grant yet. Create one below or use Approve for internal RAG.</p>
+                )}
+                {document.rightsGrants.length > 0 ? (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium">Grant history</p>
+                    {document.rightsGrants.map((grant) => (
+                      <div key={grant.id} className="rounded-md border bg-background/60 p-2 text-xs text-muted-foreground">
+                        <p className="font-medium text-foreground">{grant.ownerName} · {grant.status}</p>
+                        <p className="mt-1">
+                          uses: {arrayText(grant.allowedUses) || "none"} · quote {grant.quoteAllowed ? "allowed" : "not allowed"} · attribution {grant.attributionRequired ? "required" : "not required"}
+                        </p>
+                        <p className="mt-1">reviewed {grant.reviewedAt ? formatAdminDateTime(grant.reviewedAt) : "not reviewed"}</p>
+                        {grant.reason ? <p className="mt-1">reason: {grant.reason.slice(0, 140)}{grant.reason.length > 140 ? "..." : ""}</p> : null}
+                      </div>
                     ))}
                   </div>
-                  <InlineActionHelp>
-                    Rights grants require at least one allowed use. `paraphrase_generation` is selected by default because it is required before source material can support RAG reflections.
-                  </InlineActionHelp>
-                  <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <input type="checkbox" name="quoteAllowed" />
-                    quote allowed
-                  </label>
-                  <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <input type="checkbox" name="attributionRequired" />
-                    attribution required
-                  </label>
-                  <input name="reason" placeholder="Rights reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
-                  <SubmitButton pendingLabel="Adding grant...">Add rights grant</SubmitButton>
-                </form>
+                ) : null}
+                <details className="mt-3 rounded-md border bg-background/70 p-3">
+                  <summary className="cursor-pointer text-xs font-medium">Create new rights grant</summary>
+                  {currentGrant ? (
+                    <InlineActionHelp>
+                      A current grant already exists. Create a new grant only when you intentionally need a separate rights-history record.
+                    </InlineActionHelp>
+                  ) : null}
+                  <RightsGrantForm
+                    documentId={document.id}
+                    grant={null}
+                    submitLabel="Create new grant"
+                    createNew
+                  />
+                </details>
               </div>
             </div>
-          ))}
+          )
+          })}
         </CardContent>
       </Card>
 
@@ -469,8 +535,103 @@ export default async function SourcesPage({
   )
 }
 
+function RightsGrantForm({
+  documentId,
+  grant,
+  submitLabel,
+  createNew,
+}: {
+  documentId: string
+  grant: {
+    id: string
+    ownerName: string
+    grantType: string
+    status: string
+    allowedUses: unknown
+    quoteAllowed: boolean
+    attributionRequired: boolean
+    attributionText: string | null
+  } | null
+  submitLabel: string
+  createNew: boolean
+}) {
+  const allowedUses = parseStringArray(grant?.allowedUses)
+
+  return (
+    <form action={saveSourceRightsGrantAction} className="mt-3 grid gap-2 md:grid-cols-2">
+      <input type="hidden" name="sourceDocumentId" value={documentId} />
+      {grant ? <input type="hidden" name="sourceRightsGrantId" value={grant.id} /> : null}
+      {createNew ? <input type="hidden" name="createNewGrant" value="true" /> : null}
+      <label className="grid gap-1 text-xs font-medium">
+        Owner
+        <input name="ownerName" defaultValue={grant?.ownerName ?? "Maria Olon Tsaroucha"} required minLength={2} className="rounded-md border bg-background px-2 py-1 text-xs" />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Grant status
+        <select name="status" defaultValue={grant?.status ?? "needs_review"} className="rounded-md border bg-background px-2 py-1 text-xs">
+          {["needs_review", "approved", "paraphrase_only", "revoked", "expired", "blocked"].map((state) => (
+            <option key={state} value={state}>{state}</option>
+          ))}
+        </select>
+      </label>
+      <input type="hidden" name="grantType" value={grant?.grantType ?? "provided_by_owner"} />
+      <div className="flex flex-wrap gap-2 md:col-span-2">
+        {ALLOWED_USES.map((use) => (
+          <label key={use} className="flex items-center gap-1 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              name="allowedUses"
+              value={use}
+              defaultChecked={grant ? allowedUses.includes(use) : use === "paraphrase_generation"}
+            />
+            {use}
+          </label>
+        ))}
+      </div>
+      <InlineActionHelp>
+        For normal Maria manuscript RAG, use `internal_retrieval` and `paraphrase_generation`. Keep direct quotes and curriculum display off unless explicitly approved.
+      </InlineActionHelp>
+      <label className="flex items-center gap-1 text-xs text-muted-foreground">
+        <input type="checkbox" name="quoteAllowed" defaultChecked={grant?.quoteAllowed ?? false} />
+        quote allowed
+      </label>
+      <label className="flex items-center gap-1 text-xs text-muted-foreground">
+        <input type="checkbox" name="attributionRequired" defaultChecked={grant?.attributionRequired ?? false} />
+        attribution required
+      </label>
+      <input name="attributionText" placeholder="Attribution text, if required" defaultValue={grant?.attributionText ?? ""} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
+      <input name="reason" placeholder="Rights reason required" required minLength={10} className="rounded-md border bg-background px-2 py-1 text-xs md:col-span-2" />
+      <SubmitButton pendingLabel="Saving grant...">{submitLabel}</SubmitButton>
+    </form>
+  )
+}
+
 function arrayText(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").join(", ") : ""
+  return parseStringArray(value).join(", ")
+}
+
+function parseStringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
+}
+
+function currentRightsGrant<T extends { status: string }>(grants: T[]) {
+  return grants.find((grant) => !["revoked", "expired", "blocked"].includes(grant.status)) ?? null
+}
+
+function readinessLabel(status: ReturnType<typeof getSourceReadinessStatus>) {
+  if (status === "not_parsed") return "Not parsed"
+  if (status === "rights_pending") return "Rights pending"
+  if (status === "document_blocked") return "Document blocked"
+  if (status === "chunks_pending") return "Chunks pending"
+  return "Ready for RAG"
+}
+
+function readinessBadgeClass(status: ReturnType<typeof getSourceReadinessStatus>) {
+  const base = "rounded-full border px-2 py-0.5 text-xs font-medium"
+  if (status === "ready_for_rag") return `${base} border-emerald-500/30 bg-emerald-500/10 text-emerald-700`
+  if (status === "chunks_pending") return `${base} border-amber-500/30 bg-amber-500/10 text-amber-700`
+  if (status === "rights_pending") return `${base} border-amber-500/30 bg-amber-500/10 text-amber-700`
+  return `${base} border-destructive/25 bg-destructive/10 text-destructive`
 }
 
 function canParseDocument(document: { filePath: string | null; _count: { chunks: number; sections: number } }) {
