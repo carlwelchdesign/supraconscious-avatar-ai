@@ -29,7 +29,9 @@ export type ReasoningGraphViewData = {
 
 export function ReasoningGraphView({ graph }: { graph: ReasoningGraphViewData }) {
   const [selectedNodeId, setSelectedNodeId] = useState(graph.nodes[0]?.id ?? "")
+  const [activeViewId, setActiveViewId] = useState("")
   const canvasViews = useMemo(() => buildCanvasViews(graph), [graph])
+  const activeView = canvasViews.find((view) => view.id === activeViewId) ?? canvasViews[0]
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId) ?? graph.nodes[0]
   const connectedEdges = selectedNode
     ? graph.edges.filter((edge) => edge.fromNodeId === selectedNode.id || edge.toNodeId === selectedNode.id)
@@ -42,18 +44,35 @@ export function ReasoningGraphView({ graph }: { graph: ReasoningGraphViewData })
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-4">
-        {canvasViews.map((view) => (
-          <div key={view.id} className="overflow-hidden rounded-lg border bg-[#050807]">
+        <div className="flex flex-wrap gap-2 rounded-lg border bg-muted/30 p-2">
+          {canvasViews.map((view) => (
+            <button
+              key={view.id}
+              type="button"
+              onClick={() => setActiveViewId(view.id)}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+                view.id === activeView?.id
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-background/70 hover:text-foreground"
+              }`}
+            >
+              {view.title}
+            </button>
+          ))}
+        </div>
+        {activeView && (
+          <div className="overflow-hidden rounded-lg border bg-[#050807]">
             <ReasoningGraphCanvas
-              title={view.title}
-              description={view.description}
-              graph={view.graph}
-              layout={view.layout}
+              title={activeView.title}
+              description={activeView.description}
+              graph={activeView.graph}
+              layout={activeView.layout}
+              isPrimary={activeView.id === "network-1"}
               selectedNodeId={selectedNode?.id ?? ""}
               onSelectNode={setSelectedNodeId}
             />
           </div>
-        ))}
+        )}
       </div>
 
       <aside className="rounded-lg border bg-card p-4">
@@ -109,6 +128,7 @@ function ReasoningGraphCanvas({
   description,
   graph,
   layout,
+  isPrimary,
   selectedNodeId,
   onSelectNode,
 }: {
@@ -116,6 +136,7 @@ function ReasoningGraphCanvas({
   description: string
   graph: ReasoningGraphViewData
   layout: Map<string, { x: number; y: number; z: number }>
+  isPrimary: boolean
   selectedNodeId: string
   onSelectNode: (nodeId: string) => void
 }) {
@@ -152,11 +173,11 @@ function ReasoningGraphCanvas({
       const graphGroup = new THREE.Group()
       scene.add(graphGroup)
 
-      scene.add(new THREE.AmbientLight(0x8df5dd, 0.42))
-      const keyLight = new THREE.PointLight(0xa7f3d0, 1200, 1800)
+      scene.add(new THREE.AmbientLight(isPrimary ? 0xb9f6ff : 0x8df5dd, isPrimary ? 0.5 : 0.42))
+      const keyLight = new THREE.PointLight(isPrimary ? 0xfef3c7 : 0xa7f3d0, isPrimary ? 1550 : 1200, 1800)
       keyLight.position.set(260, 280, 520)
       scene.add(keyLight)
-      const violetLight = new THREE.PointLight(0xa78bfa, 650, 1600)
+      const violetLight = new THREE.PointLight(0xa78bfa, isPrimary ? 920 : 650, 1600)
       violetLight.position.set(-340, -180, 420)
       scene.add(violetLight)
 
@@ -168,13 +189,14 @@ function ReasoningGraphCanvas({
         const point = layout.get(node.id)
         if (!point) continue
         const radius = Math.min(24, 7 + Math.sqrt(node.weightedDegree) * 3.2)
+        const color = clusterColor(node.clusterKey, isPrimary)
         const material = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(clusterColor(node.clusterKey)),
-          emissive: new THREE.Color(clusterColor(node.clusterKey)),
-          emissiveIntensity: node.reviewState === "approved" ? 0.45 : 0.24,
-          metalness: 0.12,
+          color: new THREE.Color(color),
+          emissive: new THREE.Color(color),
+          emissiveIntensity: node.reviewState === "approved" ? (isPrimary ? 0.62 : 0.45) : (isPrimary ? 0.34 : 0.24),
+          metalness: isPrimary ? 0.18 : 0.12,
           opacity: node.reviewState === "rejected" ? 0.32 : 0.94,
-          roughness: 0.38,
+          roughness: isPrimary ? 0.28 : 0.38,
           transparent: true,
         })
         const mesh = new THREE.Mesh(nodeGeometry, material)
@@ -200,8 +222,8 @@ function ReasoningGraphCanvas({
         const halo = new THREE.Mesh(
           new THREE.SphereGeometry(1.25, 24, 18),
           new THREE.MeshBasicMaterial({
-            color: new THREE.Color(clusterColor(node.clusterKey)),
-            opacity: Math.min(0.32, 0.08 + node.bridgeScore * 0.02),
+            color: new THREE.Color(color),
+            opacity: Math.min(isPrimary ? 0.42 : 0.32, (isPrimary ? 0.12 : 0.08) + node.bridgeScore * 0.02),
             transparent: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
@@ -216,17 +238,35 @@ function ReasoningGraphCanvas({
         const from = layout.get(edge.fromNodeId)
         const to = layout.get(edge.toNodeId)
         if (!from || !to) continue
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(from.x, from.y, from.z),
-          new THREE.Vector3(to.x, to.y, to.z),
-        ])
-        const material = new THREE.LineBasicMaterial({
-          color: edge.reviewState === "approved" ? 0x86efac : 0x82a6bd,
-          opacity: Math.min(0.82, 0.18 + edge.weight * 0.09),
+        const fromVector = new THREE.Vector3(from.x, from.y, from.z)
+        const toVector = new THREE.Vector3(to.x, to.y, to.z)
+        const edgeColor = edge.reviewState === "approved"
+          ? (isPrimary ? 0xfde68a : 0x86efac)
+          : (isPrimary ? 0x93c5fd : 0x82a6bd)
+        const edgeOpacity = Math.min(isPrimary ? 0.96 : 0.82, (isPrimary ? 0.38 : 0.18) + edge.weight * (isPrimary ? 0.12 : 0.09) + edge.confidence * 0.12)
+        const material = isPrimary
+          ? new THREE.MeshBasicMaterial({
+            color: edgeColor,
+            opacity: edgeOpacity,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          })
+          : new THREE.LineBasicMaterial({
+          color: edgeColor,
+          opacity: edgeOpacity,
           transparent: true,
         })
-        const line = new THREE.Line(geometry, material)
-        graphGroup.add(line)
+        if (isPrimary) {
+          const curve = new THREE.LineCurve3(fromVector, toVector)
+          const geometry = new THREE.TubeGeometry(curve, 1, Math.min(4.8, 1.6 + edge.weight * 0.34 + edge.confidence), 8, false)
+          const tube = new THREE.Mesh(geometry, material)
+          graphGroup.add(tube)
+        } else {
+          const geometry = new THREE.BufferGeometry().setFromPoints([fromVector, toVector])
+          const line = new THREE.Line(geometry, material)
+          graphGroup.add(line)
+        }
       }
 
       const raycaster = new THREE.Raycaster()
@@ -240,7 +280,7 @@ function ReasoningGraphCanvas({
       function resize() {
         const parent = graphCanvas.parentElement
         const width = parent?.clientWidth ?? 900
-        const height = 620
+        const height = isPrimary ? 760 : 680
         renderer.setSize(width, height, false)
         camera.aspect = width / height
         camera.updateProjectionMatrix()
@@ -368,12 +408,12 @@ function ReasoningGraphCanvas({
       cancelled = true
       cleanup()
     }
-  }, [graph, layout, onSelectNode])
+  }, [graph, layout, isPrimary, onSelectNode])
 
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId)
 
   return (
-    <div className="relative h-[430px] w-full">
+    <div className={`relative w-full ${isPrimary ? "h-[640px] xl:h-[760px]" : "h-[600px] xl:h-[680px]"}`}>
       <canvas ref={canvasRef} aria-label="Interactive 3D reasoning graph" className="h-full w-full" />
       <div ref={labelLayerRef} className="pointer-events-none absolute inset-0 [&>button]:pointer-events-auto" />
       <div className="pointer-events-none absolute left-4 top-4 max-w-md rounded-md border border-white/10 bg-black/50 px-3 py-2 text-xs text-slate-200 shadow-lg backdrop-blur">
@@ -579,7 +619,9 @@ function buildLayout(graph: ReasoningGraphViewData) {
   return points
 }
 
-function clusterColor(clusterKey: number | null) {
-  const colors = ["#14b8a6", "#a78bfa", "#f59e0b", "#60a5fa", "#f472b6", "#84cc16", "#fb7185", "#38bdf8"]
+function clusterColor(clusterKey: number | null, highContrast = false) {
+  const colors = highContrast
+    ? ["#f97316", "#22d3ee", "#e879f9", "#a3e635", "#facc15", "#60a5fa", "#fb7185", "#34d399", "#c084fc", "#f472b6"]
+    : ["#14b8a6", "#a78bfa", "#f59e0b", "#60a5fa", "#f472b6", "#84cc16", "#fb7185", "#38bdf8"]
   return colors[Math.abs(clusterKey ?? 0) % colors.length]
 }
