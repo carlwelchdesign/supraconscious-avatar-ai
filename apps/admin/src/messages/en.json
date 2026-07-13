@@ -21,7 +21,8 @@
     "councilReview": "Council Review",
     "guideStages": "Guide Stages",
     "featureFlags": "Feature Flags",
-    "aiQuality": "AI Quality"
+    "aiQuality": "AI Quality",
+    "reasoningGraph": "Reasoning Graph"
   },
   "phrases": {
     "Admin Overview": "Admin Overview",

@@ -21,7 +21,8 @@
     "councilReview": "Council-Prüfung",
     "guideStages": "Guide-Stufen",
     "featureFlags": "Feature Flags",
-    "aiQuality": "KI-Qualität"
+    "aiQuality": "KI-Qualität",
+    "reasoningGraph": "Reasoning Graph"
   },
   "phrases": {
     "Admin Overview": "Admin-Übersicht",

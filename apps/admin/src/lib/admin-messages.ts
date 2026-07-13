@@ -20,6 +20,8 @@ export function getAdminMessages(language: unknown) {
 }
 
 export function getAdminIntlMessages(language: unknown) {
-  const { phrases: _phrases, ...intlMessages } = getAdminMessages(language)
+  const adminMessages = getAdminMessages(language)
+  const { phrases: _ignoredPhrases, ...intlMessages } = adminMessages
+  void _ignoredPhrases
   return intlMessages
 }

@@ -21,7 +21,8 @@
     "councilReview": "Revisión del consejo",
     "guideStages": "Etapas de guía",
     "featureFlags": "Flags de funciones",
-    "aiQuality": "Calidad de IA"
+    "aiQuality": "Calidad de IA",
+    "reasoningGraph": "Reasoning Graph"
   },
   "phrases": {
     "Admin Overview": "Resumen de administración",

@@ -21,7 +21,8 @@
     "councilReview": "议会审核",
     "guideStages": "指南阶段",
     "featureFlags": "功能开关",
-    "aiQuality": "AI 质量"
+    "aiQuality": "AI 质量",
+    "reasoningGraph": "Reasoning Graph"
   },
   "phrases": {
     "Admin Overview": "管理概览",
