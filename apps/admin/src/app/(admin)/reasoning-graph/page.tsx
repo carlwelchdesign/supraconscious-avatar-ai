@@ -55,7 +55,7 @@ export default async function ReasoningGraphPage({
       },
     }),
     prisma.reasoningGraphRun.findFirst({
-      where: { status: "failed" },
+      where: { status: "failed", NOT: { sourceScope: "approved_sources" } },
       orderBy: { createdAt: "desc" },
       select: { errorMessage: true, createdAt: true },
     }),
