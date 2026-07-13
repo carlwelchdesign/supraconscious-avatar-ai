@@ -273,7 +273,27 @@ export function validateReasoningGraphAiInsights(input: unknown, graph: Pick<Bui
 export function extractChunkConcepts(chunk: ReasoningGraphSourceChunk, limit = 10) {
   const tagged = parseStringArray(chunk.conceptTags)
   const phrases = extractConceptPhrases(chunk.text)
-  return Array.from(new Set([...tagged, ...phrases])).slice(0, limit)
+  return Array.from(new Set([...tagged, ...phrases]))
+    .filter(isReasoningGraphConceptAllowed)
+    .slice(0, limit)
+}
+
+export function isReasoningGraphConceptAllowed(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return false
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, " ")
+  const tokenized = normalized.replace(/[^a-z0-9]+/g, " ").trim()
+  const tokens = tokenized ? tokenized.split(/\s+/) : []
+
+  if (EXCLUDED_CONCEPT_LABELS.has(normalized) || EXCLUDED_CONCEPT_LABELS.has(tokenized)) return false
+  if (/\b[\w.%+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(trimmed)) return false
+  if (/\b\d{4}[-_/]\d{2}[-_/]\d{2}(?:t\d{2})?\b/i.test(trimmed)) return false
+  if (/\b\d{4}\b.*\b(input|output|fixture|test|scenario)\b/i.test(normalized)) return false
+  if (/\b(docx|pdf|png|jpeg|jpg|file|filename|path|fixture|test|example|email)\b/i.test(normalized)) return false
+  if (tokens.length === 0 || tokens.some((token) => token.length > 32)) return false
+  if (tokens.filter((token) => /^\d+$/.test(token)).length >= Math.max(1, Math.ceil(tokens.length / 2))) return false
+  if (tokens.length === 1 && tokens[0].length < 4) return false
+  return true
 }
 
 function extractConceptPhrases(text: string) {
@@ -466,4 +486,18 @@ const STOPWORDS = new Set([
   "that", "their", "them", "then", "there", "these", "they", "this", "those", "through", "under", "until", "very",
   "what", "when", "where", "which", "while", "with", "would", "your", "youre", "will", "only", "also", "often",
   "like", "such", "must", "within", "without", "toward", "towards", "inner", "council",
+])
+
+const EXCLUDED_CONCEPT_LABELS = new Set([
+  "admin",
+  "administrator",
+  "carl",
+  "carl welch",
+  "founder",
+  "founder calibration",
+  "maria",
+  "maria olon tsaroucha",
+  "reviewer",
+  "super admin",
+  "user",
 ])

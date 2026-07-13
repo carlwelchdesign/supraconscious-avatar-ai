@@ -65,7 +65,7 @@ Core models:
 
 ## Source RAG And Ontology GraphRAG
 
-The source corpus remains the grounding layer. Source documents are reviewed into sections and chunks, and the AI pipeline retrieves only eligible chunks based on approval state, rights, safety, feature flags, and validation policy.
+The source corpus remains the grounding layer. Source documents are reviewed into sections and chunks, and the AI pipeline retrieves only eligible chunks based on approval state, rights, safety, feature flags, and validation policy. `SourceDocument.reasoningScope` is separate from retrieval approval and controls whether approved source material is eligible for Maria ontology generation, product-doctrine diagnostics, curriculum review, reference-only use, or exclusion.
 
 The reasoning graph and ontology layer sits above that source corpus:
 

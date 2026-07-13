@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import {
   REASONING_GRAPH_PROMPT_VERSION,
+  ReasoningScopeSchema,
   buildApprovedDocumentWhere,
   buildReasoningGraphFromChunks,
   generateReasoningGraphAiInsights,
@@ -14,7 +15,7 @@ import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
 const GenerateGraphSchema = z.object({
-  sourceType: z.string().trim().default("all"),
+  sourceScope: z.union([ReasoningScopeSchema, z.literal("all")]).default("maria_materials"),
   maxChunks: z.coerce.number().int().min(10).max(500).default(180),
   reason: z.string().trim().min(10, "A generation reason is required."),
 })
@@ -31,14 +32,14 @@ export async function generateReasoningGraphAction(formData: FormData) {
   const parsed = GenerateGraphSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) redirect("/reasoning-graph?status=invalid")
 
-  const sourceType = parsed.data.sourceType === "all" ? undefined : parsed.data.sourceType
+  const sourceScope = parsed.data.sourceScope
   const chunks = await prisma.sourceChunk.findMany({
     where: {
       reviewState: { in: ["approved", "approved_curriculum"] },
       safetyIntensity: { not: "blocked" },
       sourceDocument: {
         ...buildApprovedDocumentWhere(),
-        ...(sourceType ? { sourceType } : {}),
+        ...(sourceScope === "all" ? {} : { reasoningScope: sourceScope }),
       },
     },
     orderBy: [{ sourcePriority: "desc" }, { createdAt: "asc" }],
@@ -76,7 +77,7 @@ export async function generateReasoningGraphAction(formData: FormData) {
         data: {
           createdById: actor.id,
           status: "completed",
-          sourceScope: sourceType ?? "approved_sources",
+          sourceScope,
           sourceDocumentIds: graph.sourceDocumentIds,
           model: null,
           promptVersion: REASONING_GRAPH_PROMPT_VERSION,
@@ -237,7 +238,7 @@ export async function generateReasoningGraphAction(formData: FormData) {
           targetId: run.id,
           reason: parsed.data.reason,
           metadata: {
-            sourceType: sourceType ?? "all",
+            sourceScope,
             chunkCount: chunks.length,
             nodeCount: graph.nodes.length,
             edgeCount: graph.edges.length,
@@ -253,7 +254,7 @@ export async function generateReasoningGraphAction(formData: FormData) {
       data: {
         createdById: actor.id,
         status: "failed",
-        sourceScope: sourceType ?? "approved_sources",
+        sourceScope,
         sourceDocumentIds: Array.from(new Set(chunks.map((chunk) => chunk.sourceDocumentId))),
         promptVersion: REASONING_GRAPH_PROMPT_VERSION,
         errorMessage: error instanceof Error ? error.message : "Unknown reasoning graph generation error.",

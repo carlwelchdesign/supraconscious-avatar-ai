@@ -39,6 +39,10 @@ Use `/reasoning-graph` to generate and inspect source-backed text networks:
 
 Graph generation should only use approved, rights-compatible source material. Failed generation should preserve the previous completed graph rather than replacing it with partial output.
 
+Source approval and ontology eligibility are separate controls. `SourceDocument.reasoningScope` decides whether a document belongs to `maria_materials`, `product_doctrine`, `curriculum`, `reference_only`, or `excluded`. The graph generator defaults to `maria_materials`; product-doctrine and all-scope runs are diagnostic and should not be promoted into the Maria ontology by accident.
+
+If the default Maria scope reports no source chunks, parse and approve manuscript chunks first. Do not use product-doctrine chunks as a fallback just to populate the ontology.
+
 Use `/reasoning-ontology` to curate durable records from generated candidates:
 
 - concepts with canonical labels, aliases, descriptions, evidence, and review state

@@ -42,6 +42,14 @@ export const SOURCE_TYPES = [
   "external",
 ] as const
 
+export const REASONING_SCOPES = [
+  "maria_materials",
+  "product_doctrine",
+  "curriculum",
+  "reference_only",
+  "excluded",
+] as const
+
 export const CONTENT_DOMAINS = [
   "inner_council",
   "embodiment_gate",
@@ -67,6 +75,7 @@ export const SourceReviewStateSchema = z.enum(SOURCE_REVIEW_STATES)
 export const SourceRightsStateSchema = z.enum(SOURCE_RIGHTS_STATES)
 export const QuotePermissionSchema = z.enum(QUOTE_PERMISSIONS)
 export const SourceTypeSchema = z.enum(SOURCE_TYPES)
+export const ReasoningScopeSchema = z.enum(REASONING_SCOPES)
 export const SourceAllowedUseSchema = z.enum(SOURCE_ALLOWED_USES)
 export const SafetyIntensitySchema = z.enum(SAFETY_INTENSITIES)
 
@@ -86,6 +95,14 @@ export type SourceRightsState = z.infer<typeof SourceRightsStateSchema>
 export type QuotePermission = z.infer<typeof QuotePermissionSchema>
 export type SourceAllowedUse = z.infer<typeof SourceAllowedUseSchema>
 export type SourceType = z.infer<typeof SourceTypeSchema>
+export type ReasoningScope = z.infer<typeof ReasoningScopeSchema>
+
+export function defaultReasoningScopeForSourceType(sourceType: SourceType): ReasoningScope {
+  if (sourceType === "manuscript") return "maria_materials"
+  if (sourceType === "product_doctrine") return "product_doctrine"
+  if (sourceType === "curriculum") return "curriculum"
+  return "excluded"
+}
 
 export type SourcePolicyDocument = {
   reviewState: string

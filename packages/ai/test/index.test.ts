@@ -52,12 +52,14 @@ import {
   readGuideStageConfig,
   readGuideStageNames,
   buildReasoningGraphFromChunks,
+  defaultReasoningScopeForSourceType,
   buildCouncilPromptInput,
   generateReasoningGraphAiInsights,
   validateReasoningGraphAiInsights,
   validateReasoningOntologyProposal,
   retrieveApprovedOntologyNeighborhood,
   generateReasoningOntologyProposal,
+  isReasoningGraphConceptAllowed,
   resolvePilotEventInputHash,
   normalizeGuideStage,
   formatFounderCalibrationScenario,
@@ -272,6 +274,35 @@ test("reasoning graph builder creates weighted source-backed concept edges", () 
   assert.deepEqual(edge.sourceChunkIds.sort(), ["chunk-1", "chunk-2"])
   assert.ok(graph.clusters.length >= 1)
   assert.ok(graph.insights.some((insight) => insight.sourceChunkIds.length > 0))
+})
+
+test("reasoning graph builder excludes founder names and noisy artifact labels", () => {
+  assert.equal(isReasoningGraphConceptAllowed("Carl"), false)
+  assert.equal(isReasoningGraphConceptAllowed("maria@example.com"), false)
+  assert.equal(isReasoningGraphConceptAllowed("2026-04-04t16 Input Want"), false)
+  assert.equal(isReasoningGraphConceptAllowed("Embodiment Practice"), true)
+
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Product example",
+      text: "Carl studies embodiment practice. Embodiment practice connects purpose and grounded action.",
+      conceptTags: ["Carl", "embodiment practice", "2026-04-04t16 Input Want", "purpose"],
+    },
+    {
+      id: "chunk-2",
+      sourceDocumentId: "doc-1",
+      title: "Product example",
+      text: "Maria reviews embodiment practice and purpose without turning names into concepts.",
+      conceptTags: ["Maria", "embodiment practice", "purpose", "carl@example.com"],
+    },
+  ], { maxNodes: 20, conceptsPerChunk: 8 })
+
+  assert.equal(graph.nodes.some((node) => node.key === "carl" || node.key === "maria"), false)
+  assert.equal(graph.nodes.some((node) => node.label.includes("2026")), false)
+  assert.equal(graph.edges.some((edge) => edge.fromKey === "carl" || edge.toKey === "carl"), false)
+  assert.ok(graph.nodes.some((node) => node.key === "embodiment-practice"))
 })
 
 test("reasoning graph AI insights must cite known graph evidence", () => {
@@ -679,6 +710,10 @@ test("source importer classifies corpus paths conservatively", () => {
   assert.equal(classifySourcePath("BOOKS /SUPRACONSCIOUS.docx").sourceType, "manuscript")
   assert.equal(classifySourcePath("AVATAR IMAGES/echo.png").sourceType, "image")
   assert.equal(classifySourcePath("The Inner Council_.docx").sourceType, "product_doctrine")
+  assert.equal(defaultReasoningScopeForSourceType("manuscript"), "maria_materials")
+  assert.equal(defaultReasoningScopeForSourceType("product_doctrine"), "product_doctrine")
+  assert.equal(defaultReasoningScopeForSourceType("curriculum"), "curriculum")
+  assert.equal(defaultReasoningScopeForSourceType("image"), "excluded")
 })
 
 test("citation validator removes citations outside retrieved context", () => {

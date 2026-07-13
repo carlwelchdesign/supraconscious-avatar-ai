@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { REASONING_SCOPES } from "@inner-avatar/ai"
 import { AdminStatusBanner, InlineActionHelp } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
@@ -72,6 +73,7 @@ export default async function SourcesPage({
         id: true,
         title: true,
         sourceType: true,
+        reasoningScope: true,
         rightsStatus: true,
         reviewState: true,
         updatedAt: true,
@@ -211,7 +213,7 @@ export default async function SourcesPage({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">{document.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {document.sourceType} · {document.reviewState} · {document.rightsStatus}
+                  {document.sourceType} · {reasoningScopeLabel(document.reasoningScope)} · {document.reviewState} · {document.rightsStatus}
                 </p>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -227,6 +229,11 @@ export default async function SourcesPage({
                 <select name="rightsStatus" defaultValue={document.rightsStatus} className="rounded-md border bg-background px-2 py-1 text-xs">
                   {RIGHTS_STATES.map((state) => (
                     <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+                <select name="reasoningScope" defaultValue={document.reasoningScope} className="rounded-md border bg-background px-2 py-1 text-xs">
+                  {REASONING_SCOPES.map((scope) => (
+                    <option key={scope} value={scope}>{reasoningScopeLabel(scope)}</option>
                   ))}
                 </select>
                 <input name="reason" placeholder="Reason required" required minLength={10} className="min-w-48 rounded-md border bg-background px-2 py-1 text-xs" />
@@ -415,6 +422,15 @@ export default async function SourcesPage({
 
 function arrayText(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").join(", ") : ""
+}
+
+function reasoningScopeLabel(scope: string) {
+  if (scope === "maria_materials") return "Maria materials"
+  if (scope === "product_doctrine") return "Product doctrine"
+  if (scope === "curriculum") return "Curriculum"
+  if (scope === "reference_only") return "Reference only"
+  if (scope === "excluded") return "Excluded"
+  return scope
 }
 
 function parseMonthParam(value: string | undefined) {

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { canDisplaySourceQuote, evaluateSourceEligibility, hasUsableSourceRightsGrant } from "@inner-avatar/ai"
+import { ReasoningScopeSchema, canDisplaySourceQuote, evaluateSourceEligibility, hasUsableSourceRightsGrant } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -11,6 +11,7 @@ const SourceStateSchema = z.object({
   sourceDocumentId: z.string().min(1),
   reviewState: z.enum(["imported", "parsed", "needs_review", "approved", "approved_curriculum", "deprecated", "blocked"]),
   rightsStatus: z.enum(["needs_review", "approved", "paraphrase_only", "blocked"]),
+  reasoningScope: ReasoningScopeSchema,
   reason: z.string().trim().min(10, "A review reason is required."),
 })
 
@@ -79,6 +80,7 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
     data: {
       reviewState: parsed.data.reviewState,
       rightsStatus: parsed.data.rightsStatus,
+      reasoningScope: parsed.data.reasoningScope,
     },
   })
 
@@ -92,6 +94,7 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
       metadata: {
         reviewState: parsed.data.reviewState,
         rightsStatus: parsed.data.rightsStatus,
+        reasoningScope: parsed.data.reasoningScope,
       },
     },
   })

@@ -4,6 +4,8 @@ import { prisma } from "@inner-avatar/db"
 import {
   SOURCE_POLICY_VERSION,
   SourceRightsGrantInputSchema,
+  defaultReasoningScopeForSourceType,
+  type ReasoningScope,
   type SourceType,
 } from "./source-policy.js"
 
@@ -12,6 +14,7 @@ export type SourceDocumentInput = {
   author?: string
   work?: string
   sourceType: SourceType
+  reasoningScope?: ReasoningScope
   filePath?: string
   text?: string
   rightsStatus?: string
@@ -100,6 +103,7 @@ export async function registerSourceDocument(input: SourceDocumentInput) {
       author: input.author,
       work: input.work,
       sourceType: input.sourceType,
+      reasoningScope: input.reasoningScope ?? defaultReasoningScopeForSourceType(input.sourceType),
       filePath: input.filePath,
       importBatchId: input.importBatchId,
       checksum,
@@ -112,6 +116,7 @@ export async function registerSourceDocument(input: SourceDocumentInput) {
       author: input.author,
       work: input.work,
       sourceType: input.sourceType,
+      reasoningScope: input.reasoningScope ?? defaultReasoningScopeForSourceType(input.sourceType),
       filePath: input.filePath,
       importBatchId: input.importBatchId,
       rightsStatus: input.rightsStatus ?? "needs_review",

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
+import { REASONING_SCOPES } from "@inner-avatar/ai"
 import { AdminStatusBanner } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
@@ -9,7 +10,7 @@ import { ReasoningGraphView, type ReasoningGraphViewData } from "./reasoning-gra
 const STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
   generated: { tone: "success", message: "Reasoning graph generated from approved source material." },
   invalid: { tone: "error", message: "Graph generation needs a valid source scope, chunk limit, and reason." },
-  no_sources: { tone: "error", message: "No approved, rights-compatible source chunks are available for this graph." },
+  no_sources: { tone: "error", message: "No approved, rights-compatible source chunks are available for that reasoning scope. Parse and approve source chunks for the selected scope, or choose a diagnostic scope intentionally." },
   failed: { tone: "error", message: "Reasoning graph generation failed. The previous completed graph was preserved." },
   review_saved: { tone: "success", message: "Reasoning graph review state saved." },
   review_invalid: { tone: "error", message: "Review update needs a valid target, state, and reason." },
@@ -22,9 +23,9 @@ export default async function ReasoningGraphPage({
 }) {
   const { status } = await searchParams
   const statusMessage = status ? STATUS_MESSAGES[status] : null
-  const [latestRun, failedRun, sourceTypes] = await Promise.all([
+  const [latestRun, failedRun, sourceScopes] = await Promise.all([
     prisma.reasoningGraphRun.findFirst({
-      where: { status: "completed" },
+      where: { status: "completed", NOT: { sourceScope: "approved_sources" } },
       orderBy: { createdAt: "desc" },
       include: {
         clusters: { orderBy: [{ size: "desc" }, { clusterKey: "asc" }] },
@@ -59,10 +60,10 @@ export default async function ReasoningGraphPage({
       select: { errorMessage: true, createdAt: true },
     }),
     prisma.sourceDocument.groupBy({
-      by: ["sourceType"],
+      by: ["reasoningScope"],
       where: { reviewState: { in: ["approved", "approved_curriculum"] }, rightsStatus: { in: ["approved", "paraphrase_only"] } },
       _count: { _all: true },
-      orderBy: { sourceType: "asc" },
+      orderBy: { reasoningScope: "asc" },
     }),
   ])
   const graph = latestRun ? toGraphViewData(latestRun) : null
@@ -72,7 +73,7 @@ export default async function ReasoningGraphPage({
       <div>
         <h1 className="text-2xl font-semibold">Reasoning Graph</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-          Source-backed text-network analysis for Maria materials. The graph shows concepts, clusters, bridges, and structural gaps with evidence links back to approved source chunks.
+          Source-backed text-network analysis for selected corpus scopes. The default Maria materials scope is intended for ontology curation; other scopes are for review and diagnostics.
         </p>
       </div>
 
@@ -88,14 +89,14 @@ export default async function ReasoningGraphPage({
         <CardContent>
           <form action={generateReasoningGraphAction} className="grid gap-3 md:grid-cols-[1fr_160px_1fr_auto]">
             <label className="grid gap-1 text-xs font-medium">
-              Source scope
-              <select name="sourceType" defaultValue="all" className="rounded-md border bg-background px-3 py-2 text-sm">
-                <option value="all">All approved source types</option>
-                {sourceTypes.map((sourceType) => (
-                  <option key={sourceType.sourceType} value={sourceType.sourceType}>
-                    {sourceType.sourceType} ({sourceType._count._all})
+              Reasoning scope
+              <select name="sourceScope" defaultValue="maria_materials" className="rounded-md border bg-background px-3 py-2 text-sm">
+                {REASONING_SCOPES.map((scope) => (
+                  <option key={scope} value={scope}>
+                    {reasoningScopeLabel(scope)} ({sourceScopes.find((item) => item.reasoningScope === scope)?._count._all ?? 0})
                   </option>
                 ))}
+                <option value="all">All approved scopes (diagnostic)</option>
               </select>
             </label>
             <label className="grid gap-1 text-xs font-medium">
@@ -138,7 +139,7 @@ export default async function ReasoningGraphPage({
             <CardHeader>
               <CardTitle>Graph canvas</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Latest completed run: {formatAdminDateTime(latestRun.createdAt)} · scope {latestRun.sourceScope}
+                Latest completed run: {formatAdminDateTime(latestRun.createdAt)} · scope {reasoningScopeLabel(latestRun.sourceScope)}
               </p>
             </CardHeader>
             <CardContent>
@@ -210,6 +211,16 @@ export default async function ReasoningGraphPage({
       )}
     </div>
   )
+}
+
+function reasoningScopeLabel(scope: string) {
+  if (scope === "maria_materials") return "Maria materials"
+  if (scope === "product_doctrine") return "Product doctrine"
+  if (scope === "curriculum") return "Curriculum"
+  if (scope === "reference_only") return "Reference only"
+  if (scope === "excluded") return "Excluded"
+  if (scope === "all") return "All approved scopes"
+  return scope
 }
 
 function Metric({ title, value }: { title: string; value: string | number }) {
