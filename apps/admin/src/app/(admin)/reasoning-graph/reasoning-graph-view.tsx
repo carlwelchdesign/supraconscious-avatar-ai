@@ -392,48 +392,27 @@ function ReasoningGraphCanvas({
 }
 
 function buildCanvasViews(graph: ReasoningGraphViewData) {
-  const fullGraph = limitGraph(graph, selectTopNodeIds(graph.nodes, 34, "weighted"), 90)
-  const bridgeGraph = limitGraph(graph, selectBridgeNodeIds(graph), 70)
-  const clusterGraph = limitGraph(graph, selectClusterNodeIds(graph), 90)
+  const components = splitConnectedComponents(graph)
+    .map((component) => trimConnectedGraph(component, 38, 90))
+    .filter((component) => component.nodes.length > 0)
 
-  return [
-    {
-      id: "full-network",
-      title: "Core concept network",
-      description: "The strongest concepts and their direct relationships across Maria's approved material.",
-      graph: fullGraph,
-      layout: buildLayout(fullGraph),
-    },
-    {
-      id: "bridges",
-      title: "Bridge concepts",
-      description: "Concepts that connect otherwise separate areas. These are useful for reasoning paths and stakeholder outcomes.",
-      graph: bridgeGraph,
-      layout: buildLayout(bridgeGraph),
-    },
-    {
-      id: "clusters",
-      title: "Cluster neighborhoods",
-      description: "The strongest concepts inside each theme cluster, rendered as one model with cluster colors.",
-      graph: clusterGraph,
-      layout: buildLayout(clusterGraph),
-    },
-  ]
+  return components.slice(0, 3).map((component, index) => {
+    const topLabels = [...component.nodes]
+      .sort((left, right) => right.weightedDegree - left.weightedDegree || right.bridgeScore - left.bridgeScore)
+      .slice(0, 3)
+      .map((node) => node.label)
+      .join(", ")
+    return {
+      id: `network-${index + 1}`,
+      title: `Network ${index + 1}`,
+      description: topLabels ? `Connected component centered on: ${topLabels}.` : "Connected component from the reasoning graph.",
+      graph: component,
+      layout: buildLayout(component),
+    }
+  })
 }
 
-function limitGraph(graph: ReasoningGraphViewData, nodeIds: Set<string>, maxEdges: number): ReasoningGraphViewData {
-  const nodes = graph.nodes.filter((node) => nodeIds.has(node.id))
-  const sortedEdges = graph.edges
-    .filter((edge) => nodeIds.has(edge.fromNodeId) && nodeIds.has(edge.toNodeId))
-    .sort((left, right) => right.weight - left.weight || right.confidence - left.confidence)
-    .slice(0, maxEdges)
-
-  return keepLargestConnectedComponent({ nodes, edges: sortedEdges })
-}
-
-function keepLargestConnectedComponent(graph: ReasoningGraphViewData): ReasoningGraphViewData {
-  if (graph.nodes.length <= 1) return graph
-
+function splitConnectedComponents(graph: ReasoningGraphViewData): ReasoningGraphViewData[] {
   const adjacency = new Map<string, Set<string>>()
   for (const node of graph.nodes) {
     adjacency.set(node.id, new Set())
@@ -463,19 +442,54 @@ function keepLargestConnectedComponent(graph: ReasoningGraphViewData): Reasoning
     components.push(component)
   }
 
-  const componentScores = components.map((component) => {
+  return components.map((component) => {
     const componentIds = new Set(component)
-    const score = graph.nodes
-      .filter((node) => componentIds.has(node.id))
-      .reduce((total, node) => total + node.weightedDegree + node.bridgeScore, 0)
-    return { componentIds, score, size: component.length }
-  })
-  const largest = componentScores.sort((left, right) => right.size - left.size || right.score - left.score)[0]
-  if (!largest) return graph
+    const nodes = graph.nodes.filter((node) => componentIds.has(node.id))
+    const edges = graph.edges.filter((edge) => componentIds.has(edge.fromNodeId) && componentIds.has(edge.toNodeId))
+    return { nodes, edges }
+  }).sort((left, right) => componentScore(right) - componentScore(left))
+}
 
-  const nodes = graph.nodes.filter((node) => largest.componentIds.has(node.id))
-  const edges = graph.edges.filter((edge) => largest.componentIds.has(edge.fromNodeId) && largest.componentIds.has(edge.toNodeId))
+function trimConnectedGraph(graph: ReasoningGraphViewData, maxNodes: number, maxEdges: number): ReasoningGraphViewData {
+  if (graph.nodes.length <= maxNodes) {
+    return {
+      nodes: graph.nodes,
+      edges: graph.edges.sort((left, right) => right.weight - left.weight || right.confidence - left.confidence).slice(0, maxEdges),
+    }
+  }
+
+  const nodeById = new Map(graph.nodes.map((node) => [node.id, node]))
+  const edgeByNode = new Map<string, typeof graph.edges>()
+  for (const edge of graph.edges) {
+    edgeByNode.set(edge.fromNodeId, [...(edgeByNode.get(edge.fromNodeId) ?? []), edge])
+    edgeByNode.set(edge.toNodeId, [...(edgeByNode.get(edge.toNodeId) ?? []), edge])
+  }
+
+  const seed = [...graph.nodes].sort((left, right) => right.weightedDegree - left.weightedDegree || right.bridgeScore - left.bridgeScore)[0]
+  if (!seed) return { nodes: [], edges: [] }
+
+  const selectedIds = new Set([seed.id])
+  const frontier = [...(edgeByNode.get(seed.id) ?? [])]
+  while (frontier.length > 0 && selectedIds.size < maxNodes) {
+    frontier.sort((left, right) => right.weight - left.weight || right.confidence - left.confidence)
+    const edge = frontier.shift()
+    if (!edge) break
+    const nextId = selectedIds.has(edge.fromNodeId) ? edge.toNodeId : edge.fromNodeId
+    if (selectedIds.has(nextId) || !nodeById.has(nextId)) continue
+    selectedIds.add(nextId)
+    frontier.push(...(edgeByNode.get(nextId) ?? []))
+  }
+
+  const nodes = graph.nodes.filter((node) => selectedIds.has(node.id))
+  const edges = graph.edges
+    .filter((edge) => selectedIds.has(edge.fromNodeId) && selectedIds.has(edge.toNodeId))
+    .sort((left, right) => right.weight - left.weight || right.confidence - left.confidence)
+    .slice(0, maxEdges)
   return { nodes, edges }
+}
+
+function componentScore(graph: ReasoningGraphViewData) {
+  return graph.nodes.reduce((total, node) => total + node.weightedDegree + node.bridgeScore, 0) + graph.nodes.length * 10 + graph.edges.length
 }
 
 function selectTopNodeIds(nodes: ReasoningGraphViewData["nodes"], count: number, metric: "weighted" | "bridge") {
@@ -485,36 +499,6 @@ function selectTopNodeIds(nodes: ReasoningGraphViewData["nodes"], count: number,
       : right.weightedDegree - left.weightedDegree || right.degree - left.degree
   ))
   return new Set(sorted.slice(0, count).map((node) => node.id))
-}
-
-function selectBridgeNodeIds(graph: ReasoningGraphViewData) {
-  const nodeIds = selectTopNodeIds(graph.nodes, 24, "bridge")
-  for (const edge of graph.edges) {
-    const fromNode = graph.nodes.find((node) => node.id === edge.fromNodeId)
-    const toNode = graph.nodes.find((node) => node.id === edge.toNodeId)
-    if (!fromNode || !toNode || fromNode.clusterKey === toNode.clusterKey) continue
-    if (nodeIds.has(fromNode.id) || nodeIds.has(toNode.id)) {
-      nodeIds.add(fromNode.id)
-      nodeIds.add(toNode.id)
-    }
-    if (nodeIds.size >= 34) break
-  }
-  return nodeIds
-}
-
-function selectClusterNodeIds(graph: ReasoningGraphViewData) {
-  const grouped = new Map<number, ReasoningGraphViewData["nodes"]>()
-  for (const node of graph.nodes) {
-    const key = node.clusterKey ?? 0
-    grouped.set(key, [...(grouped.get(key) ?? []), node])
-  }
-  const nodeIds = new Set<string>()
-  for (const nodes of grouped.values()) {
-    for (const node of [...nodes].sort((left, right) => right.weightedDegree - left.weightedDegree).slice(0, 7)) {
-      nodeIds.add(node.id)
-    }
-  }
-  return nodeIds
 }
 
 function selectLabeledNodeIds(graph: ReasoningGraphViewData) {
