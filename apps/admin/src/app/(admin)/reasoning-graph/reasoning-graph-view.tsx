@@ -29,7 +29,7 @@ export type ReasoningGraphViewData = {
 
 export function ReasoningGraphView({ graph }: { graph: ReasoningGraphViewData }) {
   const [selectedNodeId, setSelectedNodeId] = useState(graph.nodes[0]?.id ?? "")
-  const layout = useMemo(() => buildLayout(graph), [graph])
+  const canvasViews = useMemo(() => buildCanvasViews(graph), [graph])
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId) ?? graph.nodes[0]
   const connectedEdges = selectedNode
     ? graph.edges.filter((edge) => edge.fromNodeId === selectedNode.id || edge.toNodeId === selectedNode.id)
@@ -41,13 +41,19 @@ export function ReasoningGraphView({ graph }: { graph: ReasoningGraphViewData })
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="overflow-hidden rounded-lg border bg-[#050807]">
-        <ReasoningGraphCanvas
-          graph={graph}
-          layout={layout}
-          selectedNodeId={selectedNode?.id ?? ""}
-          onSelectNode={setSelectedNodeId}
-        />
+      <div className="space-y-4">
+        {canvasViews.map((view) => (
+          <div key={view.id} className="overflow-hidden rounded-lg border bg-[#050807]">
+            <ReasoningGraphCanvas
+              title={view.title}
+              description={view.description}
+              graph={view.graph}
+              layout={view.layout}
+              selectedNodeId={selectedNode?.id ?? ""}
+              onSelectNode={setSelectedNodeId}
+            />
+          </div>
+        ))}
       </div>
 
       <aside className="rounded-lg border bg-card p-4">
@@ -99,17 +105,22 @@ export function ReasoningGraphView({ graph }: { graph: ReasoningGraphViewData })
 }
 
 function ReasoningGraphCanvas({
+  title,
+  description,
   graph,
   layout,
   selectedNodeId,
   onSelectNode,
 }: {
+  title: string
+  description: string
   graph: ReasoningGraphViewData
   layout: Map<string, { x: number; y: number; z: number }>
   selectedNodeId: string
   onSelectNode: (nodeId: string) => void
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const labelLayerRef = useRef<HTMLDivElement | null>(null)
   const selectedNodeRef = useRef(selectedNodeId)
 
   useEffect(() => {
@@ -122,7 +133,8 @@ function ReasoningGraphCanvas({
 
     async function mountScene() {
       const canvas = canvasRef.current
-      if (!canvas) return
+      const labelLayer = labelLayerRef.current
+      if (!canvas || !labelLayer) return
       const graphCanvas = canvas
       const THREE = await import("three")
       if (cancelled) return
@@ -149,7 +161,9 @@ function ReasoningGraphCanvas({
       scene.add(violetLight)
 
       const nodeMeshes = new Map<string, Mesh>()
+      const labelElements = new Map<string, HTMLButtonElement>()
       const nodeGeometry = new THREE.SphereGeometry(1, 24, 18)
+      const labeledNodeIds = new Set(selectLabeledNodeIds(graph))
       for (const node of graph.nodes) {
         const point = layout.get(node.id)
         if (!point) continue
@@ -169,6 +183,19 @@ function ReasoningGraphCanvas({
         mesh.userData.nodeId = node.id
         graphGroup.add(mesh)
         nodeMeshes.set(node.id, mesh)
+
+        if (labeledNodeIds.has(node.id)) {
+          const labelButton = document.createElement("button")
+          labelButton.type = "button"
+          labelButton.textContent = node.label
+          labelButton.className = "absolute max-w-40 truncate rounded-full border border-white/10 bg-black/60 px-2 py-1 text-left text-[11px] font-medium text-slate-100 shadow-lg backdrop-blur transition"
+          labelButton.addEventListener("click", (event) => {
+            event.stopPropagation()
+            onSelectNode(node.id)
+          })
+          labelLayer.appendChild(labelButton)
+          labelElements.set(node.id, labelButton)
+        }
 
         const halo = new THREE.Mesh(
           new THREE.SphereGeometry(1.25, 24, 18),
@@ -267,6 +294,28 @@ function ReasoningGraphCanvas({
         camera.position.z = Math.max(360, Math.min(1300, camera.position.z + event.deltaY * 0.85))
       }
 
+      function updateLabels() {
+        const width = graphCanvas.clientWidth
+        const height = graphCanvas.clientHeight
+        for (const [nodeId, element] of labelElements.entries()) {
+          const mesh = nodeMeshes.get(nodeId)
+          if (!mesh) continue
+          const selected = nodeId === selectedNodeRef.current
+          const position = mesh.position.clone()
+          graphGroup.localToWorld(position)
+          position.project(camera)
+          const visible = position.z > -1 && position.z < 1
+          const x = (position.x * 0.5 + 0.5) * width
+          const y = (-position.y * 0.5 + 0.5) * height
+          element.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0) translate(-50%, -50%)`
+          element.style.opacity = visible ? (selected ? "1" : "0.76") : "0"
+          element.style.zIndex = selected ? "20" : String(Math.max(1, Math.round((1 - position.z) * 10)))
+          element.style.borderColor = selected ? "rgba(248, 250, 252, 0.85)" : "rgba(255, 255, 255, 0.12)"
+          element.style.background = selected ? "rgba(20, 184, 166, 0.88)" : "rgba(0, 0, 0, 0.6)"
+          element.style.color = selected ? "#04110f" : "#e2e8f0"
+        }
+      }
+
       resize()
       window.addEventListener("resize", resize)
       graphCanvas.addEventListener("pointerdown", handlePointerDown)
@@ -287,6 +336,7 @@ function ReasoningGraphCanvas({
           }
         }
         renderer.render(scene, camera)
+        updateLabels()
       }
       animate()
 
@@ -297,6 +347,7 @@ function ReasoningGraphCanvas({
         graphCanvas.removeEventListener("pointermove", handlePointerMove)
         graphCanvas.removeEventListener("pointerup", handlePointerUp)
         graphCanvas.removeEventListener("wheel", handleWheel)
+        labelLayer.textContent = ""
         graphGroup.traverse((object) => {
           if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
             object.geometry.dispose()
@@ -322,11 +373,13 @@ function ReasoningGraphCanvas({
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId)
 
   return (
-    <div className="relative h-[620px] w-full">
+    <div className="relative h-[430px] w-full">
       <canvas ref={canvasRef} aria-label="Interactive 3D reasoning graph" className="h-full w-full" />
-      <div className="pointer-events-none absolute left-4 top-4 rounded-md border border-white/10 bg-black/45 px-3 py-2 text-xs text-slate-200 shadow-lg">
-        <p className="font-medium">3D reasoning graph</p>
-        <p className="mt-1 text-slate-400">Drag to rotate · scroll to zoom · click a concept</p>
+      <div ref={labelLayerRef} className="pointer-events-none absolute inset-0 [&>button]:pointer-events-auto" />
+      <div className="pointer-events-none absolute left-4 top-4 max-w-md rounded-md border border-white/10 bg-black/50 px-3 py-2 text-xs text-slate-200 shadow-lg backdrop-blur">
+        <p className="font-medium">{title}</p>
+        <p className="mt-1 text-slate-400">{description}</p>
+        <p className="mt-2 text-slate-500">Drag to rotate · scroll to zoom · click a label or node</p>
       </div>
       {selectedNode && (
         <div className="pointer-events-none absolute bottom-4 left-4 max-w-sm rounded-md border border-white/10 bg-black/55 px-3 py-2 text-xs text-slate-200 shadow-lg">
@@ -336,6 +389,91 @@ function ReasoningGraphCanvas({
       )}
     </div>
   )
+}
+
+function buildCanvasViews(graph: ReasoningGraphViewData) {
+  const fullGraph = limitGraph(graph, selectTopNodeIds(graph.nodes, 34, "weighted"), 90)
+  const bridgeGraph = limitGraph(graph, selectBridgeNodeIds(graph), 70)
+  const clusterGraph = limitGraph(graph, selectClusterNodeIds(graph), 90)
+
+  return [
+    {
+      id: "full-network",
+      title: "Core concept network",
+      description: "The strongest concepts and their direct relationships across Maria's approved material.",
+      graph: fullGraph,
+      layout: buildLayout(fullGraph),
+    },
+    {
+      id: "bridges",
+      title: "Bridge concepts",
+      description: "Concepts that connect otherwise separate areas. These are useful for reasoning paths and stakeholder outcomes.",
+      graph: bridgeGraph,
+      layout: buildLayout(bridgeGraph),
+    },
+    {
+      id: "clusters",
+      title: "Cluster neighborhoods",
+      description: "The strongest concepts inside each theme cluster, shown as smaller neighborhoods instead of one tangled graph.",
+      graph: clusterGraph,
+      layout: buildLayout(clusterGraph),
+    },
+  ]
+}
+
+function limitGraph(graph: ReasoningGraphViewData, nodeIds: Set<string>, maxEdges: number): ReasoningGraphViewData {
+  const nodes = graph.nodes.filter((node) => nodeIds.has(node.id))
+  const sortedEdges = graph.edges
+    .filter((edge) => nodeIds.has(edge.fromNodeId) && nodeIds.has(edge.toNodeId))
+    .sort((left, right) => right.weight - left.weight || right.confidence - left.confidence)
+    .slice(0, maxEdges)
+
+  return { nodes, edges: sortedEdges }
+}
+
+function selectTopNodeIds(nodes: ReasoningGraphViewData["nodes"], count: number, metric: "weighted" | "bridge") {
+  const sorted = [...nodes].sort((left, right) => (
+    metric === "bridge"
+      ? right.bridgeScore - left.bridgeScore || right.betweenness - left.betweenness
+      : right.weightedDegree - left.weightedDegree || right.degree - left.degree
+  ))
+  return new Set(sorted.slice(0, count).map((node) => node.id))
+}
+
+function selectBridgeNodeIds(graph: ReasoningGraphViewData) {
+  const nodeIds = selectTopNodeIds(graph.nodes, 24, "bridge")
+  for (const edge of graph.edges) {
+    const fromNode = graph.nodes.find((node) => node.id === edge.fromNodeId)
+    const toNode = graph.nodes.find((node) => node.id === edge.toNodeId)
+    if (!fromNode || !toNode || fromNode.clusterKey === toNode.clusterKey) continue
+    if (nodeIds.has(fromNode.id) || nodeIds.has(toNode.id)) {
+      nodeIds.add(fromNode.id)
+      nodeIds.add(toNode.id)
+    }
+    if (nodeIds.size >= 34) break
+  }
+  return nodeIds
+}
+
+function selectClusterNodeIds(graph: ReasoningGraphViewData) {
+  const grouped = new Map<number, ReasoningGraphViewData["nodes"]>()
+  for (const node of graph.nodes) {
+    const key = node.clusterKey ?? 0
+    grouped.set(key, [...(grouped.get(key) ?? []), node])
+  }
+  const nodeIds = new Set<string>()
+  for (const nodes of grouped.values()) {
+    for (const node of [...nodes].sort((left, right) => right.weightedDegree - left.weightedDegree).slice(0, 7)) {
+      nodeIds.add(node.id)
+    }
+  }
+  return nodeIds
+}
+
+function selectLabeledNodeIds(graph: ReasoningGraphViewData) {
+  const requiredLabels = selectTopNodeIds(graph.nodes, 18, "weighted")
+  const bridgeLabels = selectTopNodeIds(graph.nodes, 8, "bridge")
+  return new Set([...requiredLabels, ...bridgeLabels])
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
