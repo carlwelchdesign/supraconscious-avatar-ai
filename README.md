@@ -1,8 +1,8 @@
 # Supraconscious Avatar AI
 
-Supraconscious Avatar AI is a multi-app AI journaling platform for guided Inner Council reflection, source-grounded response generation, founder calibration, and administrative content governance.
+Supraconscious Avatar AI is a multi-app AI journaling platform for guided Inner Council reflection, source-grounded response generation, founder calibration, reasoning-ontology review, and administrative content governance.
 
-The system combines a Next.js user app, a separate internal admin/CMS console, an Express-based ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, prompt governance, source provenance, LangSmith-ready observability, and Docker-ready deployment.
+The system combines a Next.js user app, a separate internal admin/CMS console, an Express-based ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, admin-curated GraphRAG foundations, prompt governance, source provenance, LangSmith-ready observability, and Docker-ready deployment.
 
 A Flutter mobile client is scaffolded under `apps/mobile` for future Apple App Store and Google Play release while keeping the existing backend, admin/CMS, and RAG governance surfaces as the system of record.
 
@@ -20,11 +20,13 @@ Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis 
 
 - **Agentic Inner Council flow**: journal input is classified, analyzed, routed through bounded council roles, synthesized into one integrator question, and saved with trace metadata.
 - **Policy-first RAG**: approved source documents are parsed into documents, sections, and chunks; retrieval is gated by source state, rights metadata, quote permissions, safety intensity, feature flags, and trace validation.
+- **Admin reasoning graph**: approved Maria/source materials can be transformed into source-backed concept networks, clusters, bridges, gaps, and stakeholder outcome paths for admin review.
+- **Feature-flagged GraphRAG runtime**: approved ontology neighborhoods can supplement council generation behind `ontology_rag_enabled`, while source citation validation and existing RAG fallbacks remain in force.
 - **Vector-DB-ready content model**: `SourceDocument`, `SourceSection`, and `SourceChunk` provide the provenance and chunk-review layer required for a future embeddings/vector search backend without bypassing review controls.
 - **MCP integration**: `apps/chatgpt-app` exposes MCP-compatible tools, including `run_inner_council_reflection`, so external AI clients can call the same council pipeline used by the web app.
 - **LangSmith observability**: optional metadata-only LangSmith tracing wraps the Inner Council service boundary, preserving hashed inputs, model/prompt versions, source ids, validation status, latency, and safe run metadata without exporting raw journal/source/prompt text.
 - **LangGraph decision**: the current orchestrator remains a typed service pipeline; LangGraph is deferred until the product needs graph-native branching, resumable state, retries, or human-in-the-loop execution beyond the existing admin review workflows.
-- **Admin as specialized CMS**: the admin app manages source review, prompt templates, feature flags, guide-stage metadata, RAG readiness, safety review, founder calibration, quality labels, users, and subscriptions.
+- **Admin as specialized CMS**: the admin app manages source review, prompt templates, feature flags, guide-stage metadata, reasoning graph/ontology review, RAG readiness, safety review, founder calibration, quality labels, users, and subscriptions.
 - **Admin action feedback**: high-use CMS/review actions use server-action status banners, pending submit states, anchored redirects, and clearer local validation guidance.
 - **Prompt calibration workflow**: admin-managed `PromptTemplate` records, generation traces, golden examples, and founder calibration reports support controlled prompt iteration.
 - **Privacy-aware operations**: sensitive journal text is hidden from admin list views by default; review workflows use audit logs, metadata-first reports, scoped sessions, and explicit reveal paths.
@@ -57,6 +59,8 @@ flowchart LR
   Web --> DB
   MCP --> DB
   Sources["Reviewed source corpus\nDocs, sections, chunks"] --> DB
+  Ontology["Approved reasoning ontology\nConcepts, relationships, gaps"] --> DB
+  Ontology --> AI
 ```
 
 The production-facing flow is intentionally service-boundary driven:
@@ -64,10 +68,11 @@ The production-facing flow is intentionally service-boundary driven:
 1. Web or MCP submits a reflection request.
 2. Safety classification determines whether normal reflection can continue.
 3. Structured journal analysis and optional retrieval context are generated.
-4. Council roles produce bounded outputs.
-5. The integrator synthesizes one question and an embodiment step.
-6. Generation traces, source provenance, feedback, and review metadata are persisted.
-7. Admin reviews content, prompts, source readiness, quality labels, and operational health.
+4. When enabled, approved ontology neighborhoods add GraphRAG reasoning context and source-chunk boosts.
+5. Council roles produce bounded outputs.
+6. The integrator synthesizes one question and an embodiment step.
+7. Generation traces, source provenance, ontology trace metadata, feedback, and review metadata are persisted.
+8. Admin reviews content, prompts, source readiness, ontology-assisted sessions, quality labels, and operational health.
 
 When `LANGSMITH_TRACING=true` and a LangSmith key is configured, the Inner Council service also records an optional external trace. The exported payload is metadata-only by default: hashes, ids, timings, prompt/model versions, source provenance ids/titles, validation status, and selected safe counters. Raw journal text, feedback notes, prompt content, source chunk text, and full council output remain inside the application database.
 
@@ -78,6 +83,8 @@ When `LANGSMITH_TRACING=true` and a LangSmith key is configured, the Inner Counc
 Current admin-owned surfaces include:
 
 - source document, section, and chunk review
+- reasoning graph generation and graph-canvas review
+- reasoning ontology curation and approved concept/relationship review
 - RAG readiness and rollback controls
 - prompt template management
 - feature flag management
@@ -91,6 +98,8 @@ Current admin-owned surfaces include:
 Admin is deployed separately from the public app and uses a separate admin-scoped session cookie.
 
 Admin mutations use Next.js server actions rather than Redux/Zustand. High-use review forms provide visible pending states, success/error status banners, and anchored redirects back to the affected source/session where practical.
+
+The reasoning graph surface is admin-only. Generated graph runs are draft analysis history; only explicitly approved ontology records are eligible for future runtime use. The graph canvas separates the top connected networks into tabs and keeps node selection tied to source-backed detail panels.
 
 ## LangSmith And LangGraph
 
@@ -121,6 +130,10 @@ The data model is prepared for vector search:
 - downstream citation validation restricts outputs to selected chunks
 
 Future embeddings or vector DB work should plug into `retrieveCouncilContext()` and preserve the same eligibility and trace contracts.
+
+GraphRAG support builds on the same governance model. Admins can generate source-backed reasoning graphs, curate durable ontology records, and keep unreviewed graph output out of public responses. Runtime ontology retrieval is disabled by default with `ontology_rag_enabled=false`; when enabled, council generation receives compact approved concept, relationship, bridge, gap, stakeholder-path, and evidence metadata as reasoning context. It is advisory context, not a replacement for source-grounded citation rules.
+
+GraphRAG retrieval writes `ontology_retrieval` generation traces so reviewers can see selected concept ids, relationship ids, path summaries, evidence chunk ids, feature-flag state, and fallback reasons.
 
 ## MCP / ChatGPT App
 
@@ -210,3 +223,10 @@ The repo also supports standalone Docker images for web, admin, and ChatGPT/MCP.
 - [ChatGPT MCP App](docs/chatgpt-mcp-app.md)
 - [Container and Kubernetes Readiness](docs/container-and-kubernetes.md)
 - [Flutter Mobile App](docs/mobile-flutter.md)
+
+Recent implementation plans:
+
+- [Admin Reasoning Graph](plans/admin-reasoning-graph-plan.md)
+- [Reasoning Ontology + GraphRAG](plans/reasoning-ontology-graphrag-plan.md)
+- [GraphRAG Runtime Integration](plans/graphrag-runtime-integration-plan.md)
+- [GraphRAG Mainline Recovery + Canvas Tabs](plans/graphrag-mainline-recovery-canvas-tabs-plan.md)
