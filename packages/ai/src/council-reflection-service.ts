@@ -5,6 +5,7 @@ import { generateAvatarResponse } from "./generate-avatar-response.js"
 import { generateCouncilRun } from "./generate-council-run.js"
 import { generateSymbolicPrompt } from "./generate-symbolic-prompt.js"
 import { retrieveCouncilContext } from "./source-context.js"
+import { buildGraphRagContext, type GraphRagContext } from "./reasoning-ontology.js"
 import { buildSourceProvenanceMessage, SOURCE_PROVENANCE_PILOT_SCOPE } from "./source-provenance.js"
 import { shouldWritePatternMemory, updatePatternMemory } from "./pattern-memory.js"
 import { checkAndAdvanceProgression } from "./progression.js"
@@ -290,14 +291,22 @@ async function runCouncilMode(
 ) {
   const responseLanguage = resolveReflectionLanguage(user, input)
   const calibrationScenario = readFounderCalibrationScenario(input.calibrationScenario)
+  const graphRagStart = Date.now()
+  const graphRagContext = await safelyBuildGraphRagContext(input.text, analysis, input.ragEnabled, graphRagStart)
   const retrievalStart = Date.now()
   const sourceContext = input.ragEnabled
-    ? await retrieveCouncilContext(input.text, { safetySeverity: safety.severity })
+    ? await retrieveCouncilContext(input.text, {
+        safetySeverity: safety.severity,
+        boostedSourceChunkIds: graphRagContext.enabled ? graphRagContext.sourceChunkIds : [],
+      })
     : []
   const retrievalLatencyMs = Date.now() - retrievalStart
   const sourceMode = input.ragEnabled
     ? sourceContext.length > 0 ? "rag" : "no_eligible_source"
     : "none"
+  const promptGraphRagContext = sourceContext.length > 0 && graphRagContext.trace.status === "selected"
+    ? graphRagContext
+    : null
   recordLangSmithEvent(langsmith, "rag_retrieved", {
     requestId: input.requestId,
     userId: user.id,
@@ -306,6 +315,11 @@ async function runCouncilMode(
     sourceMode,
     safetySeverity: safety.severity,
     selectedCount: sourceContext.length,
+    ontologyAssisted: Boolean(promptGraphRagContext),
+    ontologyStatus: graphRagContext.trace.status,
+    ontologySelectedConceptCount: graphRagContext.trace.selectedConceptIds.length,
+    ontologySelectedRelationshipCount: graphRagContext.trace.selectedRelationshipIds.length,
+    ontologySelectedSourceChunkCount: graphRagContext.trace.selectedSourceChunkIds.length,
     selectedSources: sourceContext.map((chunk) => ({
       id: chunk.id,
       sourceDocumentId: chunk.sourceDocumentId,
@@ -330,7 +344,15 @@ async function runCouncilMode(
       safetySeverity: safety.severity,
       featureFlags,
       requestId: input.requestId,
-      properties: { selectedCount: sourceContext.length, latencyMs: retrievalLatencyMs, calibrationScenario },
+      properties: {
+        selectedCount: sourceContext.length,
+        latencyMs: retrievalLatencyMs,
+        calibrationScenario,
+        ontologyAssisted: Boolean(promptGraphRagContext),
+        ontologyStatus: graphRagContext.trace.status,
+        ontologySelectedConceptCount: graphRagContext.trace.selectedConceptIds.length,
+        ontologySelectedRelationshipCount: graphRagContext.trace.selectedRelationshipIds.length,
+      },
     })
   }
 
@@ -364,6 +386,7 @@ async function runCouncilMode(
     currentLevel: user.currentLevel,
     avatarStage: user.avatarStage,
     sourceContext,
+    graphRagContext: promptGraphRagContext,
     promptTemplate: councilPromptTemplate,
     language: responseLanguage,
   })
@@ -382,6 +405,9 @@ async function runCouncilMode(
     warnings: validation.warnings,
     citationCoverage: validation.citationCoverage,
     evidenceCoverage: validation.evidenceCoverage,
+    ontologyAssisted: Boolean(promptGraphRagContext),
+    selectedOntologyConceptIds: promptGraphRagContext?.trace.selectedConceptIds ?? [],
+    selectedOntologyRelationshipIds: promptGraphRagContext?.trace.selectedRelationshipIds ?? [],
     latencyMs: councilLatencyMs,
     calibrationScenario,
   })
@@ -390,6 +416,7 @@ async function runCouncilMode(
     data: buildAnalysisData(user.id, journalEntry.id, analysis),
   })
   const retrievalTraceCreates = buildRetrievalTraceCreates(user.id, input.text, sourceContext, input.ragEnabled, retrievalLatencyMs, langsmith, input.requestId)
+  const graphRagTraceCreate = buildGraphRagTraceCreate(user.id, input.text, graphRagContext, promptGraphRagContext, langsmith, input.requestId)
 
   const councilSession = await prisma.councilSession.create({
     data: {
@@ -474,6 +501,19 @@ async function runCouncilMode(
               pilotValidation: validation,
               promptTemplate: { key: councilPromptTemplate.key, version: councilPromptTemplate.version, source: councilPromptTemplate.source },
               calibration: { scenario: calibrationScenario },
+              graphRag: promptGraphRagContext
+                ? {
+                    assisted: true,
+                    selectedConceptIds: promptGraphRagContext.trace.selectedConceptIds,
+                    selectedRelationshipIds: promptGraphRagContext.trace.selectedRelationshipIds,
+                    selectedSourceChunkIds: promptGraphRagContext.trace.selectedSourceChunkIds,
+                    pathSummaries: promptGraphRagContext.trace.pathSummaries,
+                  }
+                : {
+                    assisted: false,
+                    status: graphRagContext.trace.status,
+                    fallbackReason: graphRagContext.trace.fallbackReason,
+                  },
               langsmith: buildGenerationTraceLangSmithMetadata(langsmith, {
                 step: "council",
                 requestId: input.requestId,
@@ -490,6 +530,9 @@ async function runCouncilMode(
                 citationCoverage: validation.citationCoverage,
                 evidenceCoverage: validation.evidenceCoverage,
                 selectedSourceIds: sourceContext.map((chunk) => chunk.id),
+                ontologyAssisted: Boolean(promptGraphRagContext),
+                selectedOntologyConceptIds: promptGraphRagContext?.trace.selectedConceptIds ?? [],
+                selectedOntologyRelationshipIds: promptGraphRagContext?.trace.selectedRelationshipIds ?? [],
                 latencyMs: councilLatencyMs,
                 calibrationScenario,
               }),
@@ -498,6 +541,7 @@ async function runCouncilMode(
             latencyMs: councilLatencyMs,
           },
           ...retrievalTraceCreates.map((trace) => ({ ...trace, promptVersion: councilPromptVersion })),
+          ...(graphRagTraceCreate ? [{ ...graphRagTraceCreate, promptVersion: councilPromptVersion }] : []),
         ],
       },
     },
@@ -624,6 +668,122 @@ async function maybeUpdateMemory(user: CouncilReflectionUser, journalEntryId: st
   return shouldWritePatternMemory(user.patternMemoryEnabled)
     ? updatePatternMemory(user.id, journalEntryId, analysis)
     : Promise.resolve()
+}
+
+async function safelyBuildGraphRagContext(
+  text: string,
+  analysis: Awaited<ReturnType<typeof analyzeEntry>>,
+  ragEnabled: boolean,
+  startedAt: number,
+): Promise<GraphRagContext> {
+  if (!ragEnabled) {
+    return {
+      enabled: false,
+      concepts: [],
+      relationships: [],
+      paths: [],
+      gaps: [],
+      stakeholderPaths: [],
+      bridgeQuestions: [],
+      sourceChunkIds: [],
+      trace: {
+        enabled: false,
+        status: "disabled",
+        queryTerms: [],
+        selectedConceptIds: [],
+        selectedRelationshipIds: [],
+        selectedSourceChunkIds: [],
+        pathSummaries: [],
+        fallbackReason: "Source RAG is disabled for this run.",
+        latencyMs: Date.now() - startedAt,
+      },
+    }
+  }
+
+  try {
+    return await buildGraphRagContext(text, { analysis })
+  } catch (error) {
+    return {
+      enabled: true,
+      concepts: [],
+      relationships: [],
+      paths: [],
+      gaps: [],
+      stakeholderPaths: [],
+      bridgeQuestions: [],
+      sourceChunkIds: [],
+      trace: {
+        enabled: true,
+        status: "failed",
+        queryTerms: [],
+        selectedConceptIds: [],
+        selectedRelationshipIds: [],
+        selectedSourceChunkIds: [],
+        pathSummaries: [],
+        fallbackReason: error instanceof Error ? error.message : "GraphRAG retrieval failed.",
+        latencyMs: Date.now() - startedAt,
+      },
+    }
+  }
+}
+
+function buildGraphRagTraceCreate(
+  userId: string,
+  text: string,
+  graphRagContext: GraphRagContext,
+  promptGraphRagContext: GraphRagContext | null,
+  langsmith?: LangSmithTraceContext,
+  requestId?: string,
+) {
+  if (graphRagContext.trace.status === "disabled") return null
+
+  return {
+    userId,
+    traceType: "ontology_retrieval",
+    inputHash: hashPilotInput(text),
+    outputJson: {
+      status: graphRagContext.trace.status,
+      enabled: graphRagContext.enabled,
+      assisted: Boolean(promptGraphRagContext),
+      queryTerms: graphRagContext.trace.queryTerms,
+      selectedConceptIds: graphRagContext.trace.selectedConceptIds,
+      selectedRelationshipIds: graphRagContext.trace.selectedRelationshipIds,
+      selectedSourceChunkIds: graphRagContext.trace.selectedSourceChunkIds,
+      pathSummaries: graphRagContext.trace.pathSummaries,
+      concepts: graphRagContext.concepts.map((concept) => ({
+        id: concept.id,
+        label: concept.label,
+        score: concept.score,
+        evidenceSourceChunkIds: concept.evidence.map((item) => item.sourceChunkId).filter(Boolean),
+      })),
+      relationships: graphRagContext.relationships.map((relationship) => ({
+        id: relationship.id,
+        fromLabel: relationship.fromLabel,
+        toLabel: relationship.toLabel,
+        relationType: relationship.relationType,
+        confidence: relationship.confidence,
+        score: relationship.score,
+      })),
+      gaps: graphRagContext.gaps,
+      stakeholderPaths: graphRagContext.stakeholderPaths,
+      fallbackReason: graphRagContext.trace.fallbackReason,
+      langsmith: langsmith
+        ? buildGenerationTraceLangSmithMetadata(langsmith, {
+            step: "ontology_retrieval",
+            requestId,
+            status: graphRagContext.trace.status,
+            assisted: Boolean(promptGraphRagContext),
+            selectedConceptCount: graphRagContext.trace.selectedConceptIds.length,
+            selectedRelationshipCount: graphRagContext.trace.selectedRelationshipIds.length,
+            selectedSourceChunkCount: graphRagContext.trace.selectedSourceChunkIds.length,
+            latencyMs: graphRagContext.trace.latencyMs,
+          })
+        : undefined,
+    },
+    validationStatus: promptGraphRagContext ? "selected" : graphRagContext.trace.status,
+    fallbackReason: graphRagContext.trace.fallbackReason,
+    latencyMs: graphRagContext.trace.latencyMs,
+  }
 }
 
 function buildRetrievalTraceCreates(
