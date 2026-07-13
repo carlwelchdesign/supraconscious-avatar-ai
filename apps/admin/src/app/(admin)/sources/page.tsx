@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { prisma } from "@inner-avatar/db"
-import { REASONING_SCOPES } from "@inner-avatar/ai"
+import { REASONING_SCOPES, isSupportedSourceTextFile } from "@inner-avatar/ai"
 import { AdminStatusBanner, InlineActionHelp } from "@/components/admin-status-banner"
 import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
@@ -32,7 +32,7 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
   source_rights_missing: { tone: "error", message: "Add a current paraphrase-compatible rights grant before approving this source." },
   source_parsed: { tone: "success", message: "Source document parsed into reviewable chunks." },
   source_parse_invalid: { tone: "error", message: "Source parsing needs a source and audit reason." },
-  source_parse_unsupported: { tone: "error", message: "Only registered DOCX source documents can be parsed here." },
+  source_parse_unsupported: { tone: "error", message: "Only registered DOCX or PDF source documents can be parsed here." },
   source_parse_exists: { tone: "error", message: "This source already has sections or chunks." },
   source_parse_empty: { tone: "error", message: "No text was found in that source document." },
   source_parse_failed: { tone: "error", message: "Source document parsing failed. Confirm the file is available and readable." },
@@ -284,7 +284,7 @@ export default async function SourcesPage({
                   <input type="hidden" name="sourceDocumentId" value={document.id} />
                   <p className="text-xs font-medium text-amber-900 dark:text-amber-200">No reviewable chunks yet</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Parse this DOCX into source chunks first. This creates reviewable material only; it does not approve rights, retrieval, quotes, or curriculum display.
+                    Parse this source file into reviewable chunks first. This creates reviewable material only; it does not approve rights, retrieval, quotes, or curriculum display.
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <input
@@ -635,7 +635,7 @@ function readinessBadgeClass(status: ReturnType<typeof getSourceReadinessStatus>
 }
 
 function canParseDocument(document: { filePath: string | null; _count: { chunks: number; sections: number } }) {
-  return Boolean(document.filePath?.toLowerCase().endsWith(".docx")) &&
+  return isSupportedSourceTextFile(document.filePath) &&
     document._count.chunks === 0 &&
     document._count.sections === 0
 }

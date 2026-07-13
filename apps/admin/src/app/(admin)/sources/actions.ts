@@ -7,10 +7,11 @@ import { z } from "zod"
 import {
   ReasoningScopeSchema,
   canDisplaySourceQuote,
-  createSourceSectionWithChunks,
+  createSourceSectionsWithChunks,
   evaluateSourceEligibility,
-  extractDocxParagraphs,
+  extractSourceText,
   hasUsableSourceRightsGrant,
+  isSupportedSourceTextFile,
 } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -142,35 +143,29 @@ export async function parseSourceDocumentAction(formData: FormData) {
   })
 
   if (!source) redirect(sourceActionHref("source_missing", parsed.data.sourceDocumentId))
-  if (!source.filePath || !source.filePath.toLowerCase().endsWith(".docx")) {
+  const sourceFilePath = source.filePath
+  if (!isSupportedSourceTextFile(sourceFilePath)) {
     redirect(sourceActionHref("source_parse_unsupported", source.id))
   }
   if (source._count.chunks > 0 || source._count.sections > 0) {
     redirect(sourceActionHref("source_parse_exists", source.id))
   }
 
-  let paragraphs: string[]
+  let extracted: Awaited<ReturnType<typeof extractSourceText>>
   try {
-    await access(source.filePath)
-    paragraphs = await extractDocxParagraphs(source.filePath)
+    await access(sourceFilePath)
+    extracted = await extractSourceText(sourceFilePath, source.title, source.sourceType)
   } catch {
     redirect(sourceActionHref("source_parse_failed", source.id))
   }
 
-  const canonicalText = paragraphs.join("\n").trim()
-  if (!canonicalText) redirect(sourceActionHref("source_parse_empty", source.id))
+  const sections = extracted.sections.filter((section) => section.canonicalText.trim().length > 0)
+  if (sections.length === 0) redirect(sourceActionHref("source_parse_empty", source.id))
 
   try {
-    await createSourceSectionWithChunks(
+    const result = await createSourceSectionsWithChunks(
       source.id,
-      {
-        headingPath: [source.title],
-        sectionType: source.sourceType,
-        paragraphStart: 1,
-        paragraphEnd: paragraphs.length,
-        canonicalText,
-        reviewState: "parsed",
-      },
+      sections.map((section) => ({ ...section, reviewState: "parsed" })),
       2200,
     )
 
@@ -182,7 +177,10 @@ export async function parseSourceDocumentAction(formData: FormData) {
           ...(isRecord(source.metadata) ? source.metadata : {}),
           parsedBy: "admin.parseSourceDocumentAction",
           parsedAt: new Date().toISOString(),
-          paragraphCount: paragraphs.length,
+          parser: extracted.parser,
+          paragraphCount: extracted.paragraphCount,
+          sectionCount: result.sections.length,
+          chunkCount: result.chunks.length,
         },
       },
     })
@@ -197,7 +195,10 @@ export async function parseSourceDocumentAction(formData: FormData) {
         metadata: {
           sourceType: source.sourceType,
           filePath: source.filePath,
-          paragraphCount: paragraphs.length,
+          parser: extracted.parser,
+          paragraphCount: extracted.paragraphCount,
+          sectionCount: result.sections.length,
+          chunkCount: result.chunks.length,
         },
       },
     })

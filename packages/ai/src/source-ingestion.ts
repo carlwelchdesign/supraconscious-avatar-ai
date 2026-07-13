@@ -203,25 +203,40 @@ export async function createSourceSectionWithChunks(
   section: SourceSectionInput,
   chunkSize = 2800,
 ) {
+  const result = await createSourceSectionsWithChunks(sourceDocumentId, [section], chunkSize)
+  return { section: result.sections[0]!, chunks: result.chunks }
+}
+
+export async function createSourceSectionsWithChunks(
+  sourceDocumentId: string,
+  sections: SourceSectionInput[],
+  chunkSize = 2800,
+) {
   await prisma.sourceChunk.deleteMany({ where: { sourceDocumentId } })
   await prisma.sourceSection.deleteMany({ where: { sourceDocumentId } })
 
-  const createdSection = await prisma.sourceSection.create({
-    data: {
-      sourceDocumentId,
-      headingPath: section.headingPath,
-      sectionType: section.sectionType ?? "section",
-      paragraphStart: section.paragraphStart,
-      paragraphEnd: section.paragraphEnd,
-      canonicalText: section.canonicalText,
-      reviewState: section.reviewState ?? "parsed",
-    },
-  })
+  const createdSections = []
+  const createdChunks = []
+  const totalChunkCount = sections.reduce((sum, section) => sum + splitIntoChunks(section.canonicalText, chunkSize).length, 0)
+  let chunkOffset = 0
 
-  const chunks = splitIntoChunks(section.canonicalText, chunkSize)
-  const createdChunks = await Promise.all(
-    chunks.map((chunkText, index) =>
-      prisma.sourceChunk.create({
+  for (const section of sections) {
+    const createdSection = await prisma.sourceSection.create({
+      data: {
+        sourceDocumentId,
+        headingPath: section.headingPath,
+        sectionType: section.sectionType ?? "section",
+        paragraphStart: section.paragraphStart,
+        paragraphEnd: section.paragraphEnd,
+        canonicalText: section.canonicalText,
+        reviewState: section.reviewState ?? "parsed",
+      },
+    })
+    createdSections.push(createdSection)
+
+    const chunks = splitIntoChunks(section.canonicalText, chunkSize)
+    for (const chunkText of chunks) {
+      const createdChunk = await prisma.sourceChunk.create({
         data: {
           sourceDocumentId,
           sourceSectionId: createdSection.id,
@@ -229,14 +244,16 @@ export async function createSourceSectionWithChunks(
           quoteSafeExcerpt: chunkText.slice(0, 240),
           tokenCount: Math.ceil(chunkText.length / 4),
           chunkKind: "semantic",
-          sourcePriority: chunks.length - index,
+          sourcePriority: Math.max(0, totalChunkCount - chunkOffset),
           reviewState: "parsed",
         },
-      }),
-    ),
-  )
+      })
+      createdChunks.push(createdChunk)
+      chunkOffset += 1
+    }
+  }
 
-  return { section: createdSection, chunks: createdChunks }
+  return { sections: createdSections, chunks: createdChunks }
 }
 
 export async function upsertCurriculumDay(sourceDocumentId: string | null, input: CurriculumDayInput) {

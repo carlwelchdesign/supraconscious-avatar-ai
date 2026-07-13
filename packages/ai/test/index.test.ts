@@ -62,6 +62,7 @@ import {
   isReasoningGraphConceptAllowed,
   resolvePilotEventInputHash,
   normalizeGuideStage,
+  normalizePdfTextToParagraphs,
   formatFounderCalibrationScenario,
   sanitizeProperties,
   sanitizeLangSmithMetadata,
@@ -708,12 +709,20 @@ test("monthly DOCX curriculum parser creates reviewable days", () => {
 test("source importer classifies corpus paths conservatively", () => {
   assert.equal(classifySourcePath("YEARLY QUOTES , FRAME/JULY.docx").sourceType, "curriculum")
   assert.equal(classifySourcePath("BOOKS /SUPRACONSCIOUS.docx").sourceType, "manuscript")
+  assert.equal(classifySourcePath("ΟRIGINAL MANUSCRIPTS /SUPRA_GUARDIANS (8).pdf").sourceType, "manuscript")
   assert.equal(classifySourcePath("AVATAR IMAGES/echo.png").sourceType, "image")
   assert.equal(classifySourcePath("The Inner Council_.docx").sourceType, "product_doctrine")
   assert.equal(defaultReasoningScopeForSourceType("manuscript"), "maria_materials")
   assert.equal(defaultReasoningScopeForSourceType("product_doctrine"), "product_doctrine")
   assert.equal(defaultReasoningScopeForSourceType("curriculum"), "curriculum")
   assert.equal(defaultReasoningScopeForSourceType("image"), "excluded")
+})
+
+test("PDF text normalization creates clean review paragraphs", () => {
+  assert.deepEqual(
+    normalizePdfTextToParagraphs(" First line   wraps\n  into second line\n\n\nNext   paragraph "),
+    ["First line wraps into second line", "Next paragraph"],
+  )
 })
 
 test("citation validator removes citations outside retrieved context", () => {
