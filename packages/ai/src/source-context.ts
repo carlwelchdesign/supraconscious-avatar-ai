@@ -36,14 +36,31 @@ export async function getApprovedSourceContext(query: string, limit = 4): Promis
 
 export async function retrieveCouncilContext(
   query: string,
-  options: { limit?: number; safetySeverity?: "none" | "low" | "medium" | "high" } = {},
+  options: { limit?: number; safetySeverity?: "none" | "low" | "medium" | "high"; boostedSourceChunkIds?: string[] } = {},
 ): Promise<CouncilRetrievedContext[]> {
   const limit = options.limit ?? 4
   const where = buildApprovedSourceWhere(query)
   const terms = extractSearchTerms(query)
+  const boostedIds = Array.from(new Set(options.boostedSourceChunkIds ?? [])).slice(0, 12)
 
   const chunks = await prisma.sourceChunk.findMany({
-    where,
+    where: boostedIds.length
+      ? {
+          AND: [
+            {
+              OR: [
+                where,
+                { id: { in: boostedIds } },
+              ],
+            },
+            {
+              reviewState: { in: ["approved", "approved_curriculum"] },
+              safetyIntensity: { not: "blocked" },
+              sourceDocument: buildApprovedDocumentWhere(),
+            },
+          ],
+        }
+      : where,
     take: Math.max(limit * 4, limit),
     orderBy: [{ sourcePriority: "desc" }, { createdAt: "asc" }],
     include: {
@@ -73,6 +90,10 @@ export async function retrieveCouncilContext(
         safetySeverity: options.safetySeverity,
       })
       const score = scoreChunk(chunk, terms)
+      if (boostedIds.includes(chunk.id)) {
+        score.score += 12
+        score.matchedFields = Array.from(new Set([...score.matchedFields, "ontologyEvidence"]))
+      }
       return { chunk, policy, score }
     })
     .filter((item) => item.policy.eligible)

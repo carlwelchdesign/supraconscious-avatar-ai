@@ -52,6 +52,7 @@ import {
   readGuideStageConfig,
   readGuideStageNames,
   buildReasoningGraphFromChunks,
+  buildCouncilPromptInput,
   generateReasoningGraphAiInsights,
   validateReasoningGraphAiInsights,
   validateReasoningOntologyProposal,
@@ -70,6 +71,7 @@ import {
   validateCouncilPromptTemplate,
   validateCouncilRunForPilot,
   validateCouncilSourceCitations,
+  type GraphRagContext,
   withLangSmithRun,
   type EntryAnalysis,
   type SafetyCheck,
@@ -703,6 +705,113 @@ test("citation validator repairs source-grounded runs with a synthesis citation"
 
   assert.deepEqual(validated.messages.flatMap((message) => message.sourceChunkIds), [])
   assert.deepEqual(validated.synthesis.sourceChunkIds, ["top_chunk"])
+})
+
+test("council prompt payload includes compact GraphRAG context when enabled", () => {
+  const graphRagContext: GraphRagContext = {
+    enabled: true,
+    concepts: [{
+      id: "concept-purpose",
+      label: "Purpose",
+      description: "Purpose as an embodied direction.",
+      aliases: ["calling"],
+      pinned: true,
+      score: 9.2,
+      evidence: [{ sourceChunkId: "chunk-1", excerpt: "Purpose requires practice." }],
+      clusterLabels: ["Direction"],
+      outcomeLabels: ["Grounded action"],
+    }],
+    relationships: [{
+      id: "rel-1",
+      fromConceptId: "concept-purpose",
+      toConceptId: "concept-practice",
+      fromLabel: "Purpose",
+      toLabel: "Practice",
+      relationType: "practice_to_outcome",
+      rationale: "Purpose becomes visible through practice.",
+      confidence: 0.82,
+      score: 7.1,
+      evidence: [{ sourceChunkId: "chunk-1", excerpt: "Purpose requires practice." }],
+    }],
+    paths: [{
+      conceptIds: ["concept-purpose", "concept-practice"],
+      relationshipIds: ["rel-1"],
+      labels: ["Purpose", "Practice"],
+      relationTypes: ["practice_to_outcome"],
+      summary: "Purpose -> practice_to_outcome -> Practice",
+      score: 7.1,
+      evidenceSourceChunkIds: ["chunk-1"],
+    }],
+    gaps: [{
+      title: "Grounded action",
+      summary: "The next action is underconnected.",
+      missingAreas: ["measurable next step"],
+      supportingConceptIds: ["concept-purpose"],
+    }],
+    stakeholderPaths: [{
+      id: "outcome-1",
+      label: "Grounded action",
+      summary: "Move insight into action.",
+      missingAreas: ["measurable next step"],
+      conceptIds: ["concept-purpose"],
+      evidenceSourceChunkIds: ["chunk-1"],
+    }],
+    bridgeQuestions: ["What bridge makes purpose practical?"],
+    sourceChunkIds: ["chunk-1"],
+    trace: {
+      enabled: true,
+      status: "selected",
+      queryTerms: ["purpose"],
+      selectedConceptIds: ["concept-purpose"],
+      selectedRelationshipIds: ["rel-1"],
+      selectedSourceChunkIds: ["chunk-1"],
+      pathSummaries: ["Purpose -> practice_to_outcome -> Practice"],
+      latencyMs: 12,
+    },
+  }
+
+  const payload = buildCouncilPromptInput("I want purpose to become action.", analysis, { ...highSafety, severity: "low", flags: [], allowReflectiveFlow: true }, {
+    tone: "warm",
+    intensity: 4,
+    currentLevel: 1,
+    avatarStage: 1,
+    sourceContext: [{ id: "chunk-1", title: "Maria notes", text: "Purpose requires practice." }],
+    graphRagContext,
+  }, "en")
+
+  assert.equal(payload.graphRagContext?.concepts[0]?.label, "Purpose")
+  assert.equal(payload.graphRagContext?.relationships[0]?.relationType, "practice_to_outcome")
+  assert.deepEqual(payload.graphRagContext?.paths[0]?.evidenceSourceChunkIds, ["chunk-1"])
+})
+
+test("council prompt payload omits disabled GraphRAG context", () => {
+  const payload = buildCouncilPromptInput("I want purpose to become action.", analysis, { ...highSafety, severity: "low", flags: [], allowReflectiveFlow: true }, {
+    tone: "warm",
+    intensity: 4,
+    currentLevel: 1,
+    avatarStage: 1,
+    graphRagContext: {
+      enabled: false,
+      concepts: [],
+      relationships: [],
+      paths: [],
+      gaps: [],
+      stakeholderPaths: [],
+      bridgeQuestions: [],
+      sourceChunkIds: [],
+      trace: {
+        enabled: false,
+        status: "disabled",
+        queryTerms: [],
+        selectedConceptIds: [],
+        selectedRelationshipIds: [],
+        selectedSourceChunkIds: [],
+        pathSummaries: [],
+      },
+    },
+  }, "en")
+
+  assert.equal(payload.graphRagContext, null)
 })
 
 test("source policy version is stable for traces", () => {

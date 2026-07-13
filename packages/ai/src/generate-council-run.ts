@@ -6,6 +6,7 @@ import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-
 import {
   type CouncilRetrievedContext,
 } from "./source-context.js"
+import type { GraphRagContext } from "./reasoning-ontology.js"
 import {
   CouncilRunSchema,
   type CouncilMessage,
@@ -38,6 +39,7 @@ export type CouncilOptions = {
     sourcePolicyVersion?: string
     displayExcerpt?: string | null
   }>
+  graphRagContext?: GraphRagContext | null
   language?: ResponseLanguage
 }
 
@@ -56,6 +58,8 @@ Council rules:
 - The Supraconscious Guide synthesizes with exactly one integrator question.
 - Do not diagnose, prescribe treatment, predict fate, claim certainty, say "Maria says", or use channeling language.
 - If source context is insufficient, do not invent doctrine.
+- If reasoning ontology context is provided, use it only as source-backed reasoning context. It is not doctrine, not certainty, and not a substitute for source citations.
+- Ignore ontology concepts, relationships, gaps, or paths that are unsupported by the retrieved source context.
 - If safety is medium, soften Shadow/Truth-style confrontation and favor grounding.
 
 Return only the structured CouncilRun object.`
@@ -86,15 +90,7 @@ ${languageInstruction(language)}`,
       },
       {
         role: "user",
-        content: JSON.stringify({
-          journalEntry: text,
-          analysis,
-          safety,
-          preferences: options,
-          language,
-          councilRoles: COUNCIL_ROLES,
-          sourceContext: options.sourceContext ?? [],
-        }),
+        content: JSON.stringify(buildCouncilPromptInput(text, analysis, safety, options, language)),
       },
     ],
     text: {
@@ -110,6 +106,60 @@ ${languageInstruction(language)}`,
     enforceCouncilShape(response.output_parsed, analysis, language),
     options.sourceContext ?? [],
   )
+}
+
+export function buildCouncilPromptInput(
+  text: string,
+  analysis: EntryAnalysis,
+  safety: SafetyCheck,
+  options: CouncilOptions,
+  language: ResponseLanguage,
+) {
+  return {
+    journalEntry: text,
+    analysis,
+    safety,
+    preferences: {
+      tone: options.tone,
+      intensity: options.intensity,
+      currentLevel: options.currentLevel,
+      avatarStage: options.avatarStage,
+    },
+    language,
+    councilRoles: COUNCIL_ROLES,
+    sourceContext: options.sourceContext ?? [],
+    graphRagContext: options.graphRagContext?.enabled
+      ? {
+          concepts: options.graphRagContext.concepts.map((concept) => ({
+            id: concept.id,
+            label: concept.label,
+            description: concept.description,
+            aliases: concept.aliases,
+            clusterLabels: concept.clusterLabels,
+            outcomeLabels: concept.outcomeLabels,
+          })),
+          relationships: options.graphRagContext.relationships.map((relationship) => ({
+            id: relationship.id,
+            fromLabel: relationship.fromLabel,
+            toLabel: relationship.toLabel,
+            relationType: relationship.relationType,
+            rationale: relationship.rationale,
+            confidence: relationship.confidence,
+          })),
+          paths: options.graphRagContext.paths.map((path) => ({
+            summary: path.summary,
+            relationTypes: path.relationTypes,
+            evidenceSourceChunkIds: path.evidenceSourceChunkIds,
+          })),
+          gaps: options.graphRagContext.gaps,
+          stakeholderPaths: options.graphRagContext.stakeholderPaths.map((path) => ({
+            label: path.label,
+            summary: path.summary,
+            missingAreas: path.missingAreas,
+          })),
+        }
+      : null,
+  }
 }
 
 export function buildLocalCouncilRun(text: string, analysis: EntryAnalysis, language: ResponseLanguage = "en"): CouncilRun {
