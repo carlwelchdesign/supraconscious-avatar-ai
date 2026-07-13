@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises"
 import { extname } from "node:path"
-import { PDFParse } from "pdf-parse"
 import { extractDocxParagraphs } from "./curriculum-docx.js"
 
 export type ExtractedSourceTextSection = {
@@ -42,6 +41,7 @@ export async function extractSourceText(filePath: string, title: string, section
 }
 
 export async function extractPdfSourceText(filePath: string, title: string, sectionType: string): Promise<ExtractedSourceText> {
+  const { PDFParse } = await import("pdf-parse")
   const buffer = await readFile(filePath)
   const parser = new PDFParse({ data: new Uint8Array(buffer) })
   try {
