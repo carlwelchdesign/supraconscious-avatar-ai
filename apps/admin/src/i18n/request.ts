@@ -1,9 +1,8 @@
 import { getRequestConfig } from "next-intl/server"
 import { getAdminIntlMessages } from "@/lib/admin-messages"
-import { readAdminLanguage } from "@/lib/language"
 
 export default getRequestConfig(async () => {
-  const locale = await readAdminLanguage()
+  const locale = "en"
 
   return {
     locale,

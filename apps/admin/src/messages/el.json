@@ -21,7 +21,9 @@
     "councilReview": "Ανασκόπηση συμβουλίου",
     "guideStages": "Στάδια οδηγού",
     "featureFlags": "Feature flags",
-    "aiQuality": "Ποιότητα AI"
+    "aiQuality": "Ποιότητα AI",
+    "reasoningGraph": "Reasoning Graph",
+    "reasoningOntology": "Reasoning Ontology"
   },
   "phrases": {
     "Admin Overview": "Επισκόπηση διαχείρισης",

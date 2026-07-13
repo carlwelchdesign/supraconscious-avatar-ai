@@ -59,6 +59,11 @@ model User {
   embodimentGateResponses EmbodimentGateResponse[]
   sourceDocuments  SourceDocument[]
   sourceImportBatches SourceImportBatch[]
+  reasoningGraphRuns ReasoningGraphRun[]
+  reasoningOntologyConceptsCreated ReasoningOntologyConcept[] @relation("ReasoningOntologyConceptCreatedBy")
+  reasoningOntologyRelationshipsCreated ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipCreatedBy")
+  reasoningOntologyClustersCreated ReasoningOntologyCluster[] @relation("ReasoningOntologyClusterCreatedBy")
+  reasoningOntologyOutcomesCreated ReasoningOntologyOutcome[] @relation("ReasoningOntologyOutcomeCreatedBy")
   generationTraces GenerationTrace[]
   pilotCohortsCreated PilotCohort[] @relation("PilotCohortCreatedBy")
   pilotEnrollments PilotEnrollment[]
@@ -712,6 +717,8 @@ model SourceDocument {
   chunks     SourceChunk[]
   curriculumDays CurriculumDay[]
   rightsGrants SourceRightsGrant[]
+  reasoningGraphEvidence ReasoningGraphEvidence[]
+  reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceType])
   @@index([reviewState])
@@ -812,11 +819,345 @@ model SourceChunk {
   sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
   sourceSection  SourceSection? @relation(fields: [sourceSectionId], references: [id], onDelete: SetNull)
   traces         GenerationTrace[]
+  reasoningGraphEvidence ReasoningGraphEvidence[]
+  reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceDocumentId])
   @@index([sourceSectionId])
   @@index([reviewState])
   @@index([chunkKind])
+}
+
+// Reasoning graph run - admin-generated text-network map over approved source material
+model ReasoningGraphRun {
+  id                String    @id @default(cuid())
+  createdById       String?
+  status            String    @default("completed") // completed, failed
+  sourceScope       String    @default("approved_sources")
+  sourceDocumentIds String[]
+  model             String?
+  promptVersion     String?
+  nodeCount         Int       @default(0)
+  edgeCount         Int       @default(0)
+  clusterCount      Int       @default(0)
+  insightCount      Int       @default(0)
+  metadata          Json?
+  errorMessage      String?   @db.Text
+  createdAt         DateTime  @default(now())
+  completedAt       DateTime?
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  nodes     ReasoningGraphNode[]
+  edges     ReasoningGraphEdge[]
+  clusters  ReasoningGraphCluster[]
+  insights  ReasoningGraphInsight[]
+  evidence  ReasoningGraphEvidence[]
+
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Reasoning graph cluster - detected community of related concepts
+model ReasoningGraphCluster {
+  id          String   @id @default(cuid())
+  runId       String
+  clusterKey  Int
+  label       String
+  summary     String?  @db.Text
+  size        Int      @default(0)
+  metrics     Json?
+  createdAt   DateTime @default(now())
+
+  run   ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodes ReasoningGraphNode[]
+  ontologyClusters ReasoningOntologyCluster[]
+
+  @@unique([runId, clusterKey])
+  @@index([runId])
+}
+
+// Reasoning graph node - concept, claim, goal, result, or source-backed idea
+model ReasoningGraphNode {
+  id              String   @id @default(cuid())
+  runId           String
+  clusterId       String?
+  nodeKey         String
+  nodeType        String   @default("concept")
+  label           String
+  normalizedLabel String
+  summary         String?  @db.Text
+  degree          Int      @default(0)
+  weightedDegree  Float    @default(0)
+  betweenness     Float    @default(0)
+  bridgeScore     Float    @default(0)
+  reviewState     String   @default("unreviewed") // unreviewed, approved, rejected, needs_revision
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  run          ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  cluster      ReasoningGraphCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  outgoingEdges ReasoningGraphEdge[] @relation("ReasoningGraphEdgeFrom")
+  incomingEdges ReasoningGraphEdge[] @relation("ReasoningGraphEdgeTo")
+  evidence     ReasoningGraphEvidence[]
+  ontologyConcepts ReasoningOntologyConcept[]
+
+  @@unique([runId, nodeKey])
+  @@index([runId])
+  @@index([clusterId])
+  @@index([nodeType])
+  @@index([reviewState])
+}
+
+// Reasoning graph edge - weighted relationship between source-backed ideas
+model ReasoningGraphEdge {
+  id           String   @id @default(cuid())
+  runId        String
+  fromNodeId   String
+  toNodeId     String
+  edgeKey      String
+  relationType String   @default("co_occurs")
+  weight       Int      @default(1)
+  confidence   Float    @default(0)
+  rationale    String?  @db.Text
+  reviewState  String   @default("unreviewed") // unreviewed, approved, rejected, needs_revision
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  run      ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  fromNode ReasoningGraphNode @relation("ReasoningGraphEdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode   ReasoningGraphNode @relation("ReasoningGraphEdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  evidence ReasoningGraphEvidence[]
+  ontologyRelationships ReasoningOntologyRelationship[]
+
+  @@unique([runId, edgeKey])
+  @@index([runId])
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@index([relationType])
+  @@index([reviewState])
+}
+
+// Reasoning graph insight - generated or deterministic interpretation of graph structure
+model ReasoningGraphInsight {
+  id          String   @id @default(cuid())
+  runId       String
+  insightType String
+  title       String
+  summary     String   @db.Text
+  confidence  Float    @default(0)
+  reviewState String   @default("unreviewed") // unreviewed, approved, rejected, needs_revision
+  nodeIds     Json?
+  edgeIds     Json?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  run      ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  evidence ReasoningGraphEvidence[]
+  ontologyOutcomes ReasoningOntologyOutcome[]
+
+  @@index([runId])
+  @@index([insightType])
+  @@index([reviewState])
+}
+
+// Reasoning graph evidence - source trace behind nodes, edges, and insights
+model ReasoningGraphEvidence {
+  id               String   @id @default(cuid())
+  runId            String
+  nodeId           String?
+  edgeId           String?
+  insightId        String?
+  sourceDocumentId String?
+  sourceChunkId    String?
+  evidenceKind     String   @default("source_chunk")
+  excerpt          String?  @db.Text
+  weight           Float    @default(1)
+  metadata         Json?
+  createdAt        DateTime @default(now())
+
+  run            ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  node           ReasoningGraphNode? @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  edge           ReasoningGraphEdge? @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  insight        ReasoningGraphInsight? @relation(fields: [insightId], references: [id], onDelete: Cascade)
+  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourceChunk    SourceChunk? @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+
+  @@index([runId])
+  @@index([nodeId])
+  @@index([edgeId])
+  @@index([insightId])
+  @@index([sourceDocumentId])
+  @@index([sourceChunkId])
+}
+
+// Durable approved ontology concept promoted from generated reasoning graph candidates
+model ReasoningOntologyConcept {
+  id              String   @id @default(cuid())
+  conceptKey      String   @unique
+  canonicalLabel  String
+  aliases         String[] @default([])
+  description     String?  @db.Text
+  reviewState     String   @default("approved") // approved, rejected, needs_revision, archived
+  pinned          Boolean  @default(false)
+  sourceGraphNodeId String?
+  metadata        Json?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy User? @relation("ReasoningOntologyConceptCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphNode ReasoningGraphNode? @relation(fields: [sourceGraphNodeId], references: [id], onDelete: SetNull)
+  outgoingRelationships ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipFrom")
+  incomingRelationships ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipTo")
+  clusterMemberships ReasoningOntologyClusterConcept[]
+  outcomeLinks ReasoningOntologyOutcomeConcept[]
+  evidence ReasoningOntologyEvidence[]
+
+  @@index([conceptKey])
+  @@index([reviewState])
+  @@index([pinned])
+  @@index([sourceGraphNodeId])
+  @@index([createdById])
+}
+
+// Durable typed relationship between approved ontology concepts
+model ReasoningOntologyRelationship {
+  id              String   @id @default(cuid())
+  relationshipKey String  @unique
+  fromConceptId   String
+  toConceptId     String
+  relationType    String  // causal, hierarchical, associative, tension, practice_to_outcome, supports, gap_bridge
+  rationale       String? @db.Text
+  confidence      Float   @default(0)
+  reviewState     String  @default("approved") // approved, rejected, needs_revision, archived
+  sourceGraphEdgeId String?
+  metadata        Json?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy User? @relation("ReasoningOntologyRelationshipCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  fromConcept ReasoningOntologyConcept @relation("ReasoningOntologyRelationshipFrom", fields: [fromConceptId], references: [id], onDelete: Cascade)
+  toConcept ReasoningOntologyConcept @relation("ReasoningOntologyRelationshipTo", fields: [toConceptId], references: [id], onDelete: Cascade)
+  sourceGraphEdge ReasoningGraphEdge? @relation(fields: [sourceGraphEdgeId], references: [id], onDelete: SetNull)
+  evidence ReasoningOntologyEvidence[]
+
+  @@index([fromConceptId])
+  @@index([toConceptId])
+  @@index([relationType])
+  @@index([reviewState])
+  @@index([sourceGraphEdgeId])
+  @@index([createdById])
+}
+
+// Durable curated theme or cluster inside the approved ontology
+model ReasoningOntologyCluster {
+  id              String   @id @default(cuid())
+  clusterKey      String   @unique
+  label           String
+  summary         String?  @db.Text
+  reviewState     String   @default("approved")
+  sourceGraphClusterId String?
+  metadata        Json?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy User? @relation("ReasoningOntologyClusterCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphCluster ReasoningGraphCluster? @relation(fields: [sourceGraphClusterId], references: [id], onDelete: SetNull)
+  concepts ReasoningOntologyClusterConcept[]
+  evidence ReasoningOntologyEvidence[]
+
+  @@index([reviewState])
+  @@index([sourceGraphClusterId])
+  @@index([createdById])
+}
+
+model ReasoningOntologyClusterConcept {
+  id        String @id @default(cuid())
+  clusterId String
+  conceptId String
+  weight    Float  @default(1)
+  createdAt DateTime @default(now())
+
+  cluster ReasoningOntologyCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  concept ReasoningOntologyConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@unique([clusterId, conceptId])
+  @@index([conceptId])
+}
+
+// Durable stakeholder outcome path curated from graph insights
+model ReasoningOntologyOutcome {
+  id              String   @id @default(cuid())
+  outcomeKey      String   @unique
+  label           String
+  summary         String?  @db.Text
+  missingAreas    String[] @default([])
+  reviewState     String   @default("approved")
+  sourceGraphInsightId String?
+  metadata        Json?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy User? @relation("ReasoningOntologyOutcomeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphInsight ReasoningGraphInsight? @relation(fields: [sourceGraphInsightId], references: [id], onDelete: SetNull)
+  concepts ReasoningOntologyOutcomeConcept[]
+  evidence ReasoningOntologyEvidence[]
+
+  @@index([reviewState])
+  @@index([sourceGraphInsightId])
+  @@index([createdById])
+}
+
+model ReasoningOntologyOutcomeConcept {
+  id        String @id @default(cuid())
+  outcomeId String
+  conceptId String
+  role      String @default("supports") // supports, missing, bridge
+  weight    Float  @default(1)
+  createdAt DateTime @default(now())
+
+  outcome ReasoningOntologyOutcome @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  concept ReasoningOntologyConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@unique([outcomeId, conceptId, role])
+  @@index([conceptId])
+}
+
+// Source provenance for approved ontology records
+model ReasoningOntologyEvidence {
+  id             String   @id @default(cuid())
+  conceptId      String?
+  relationshipId String?
+  clusterId      String?
+  outcomeId      String?
+  sourceDocumentId String?
+  sourceChunkId  String?
+  evidenceKind   String   @default("source_chunk")
+  excerpt        String?  @db.Text
+  weight         Float    @default(1)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  concept ReasoningOntologyConcept? @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  relationship ReasoningOntologyRelationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  cluster ReasoningOntologyCluster? @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  outcome ReasoningOntologyOutcome? @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourceChunk SourceChunk? @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+
+  @@index([conceptId])
+  @@index([relationshipId])
+  @@index([clusterId])
+  @@index([outcomeId])
+  @@index([sourceDocumentId])
+  @@index([sourceChunkId])
 }
 
 // Curriculum day - structured monthly quote/frame/question content

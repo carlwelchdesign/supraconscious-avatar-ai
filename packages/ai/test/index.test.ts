@@ -51,6 +51,12 @@ import {
   readFeedbackDisposition,
   readGuideStageConfig,
   readGuideStageNames,
+  buildReasoningGraphFromChunks,
+  generateReasoningGraphAiInsights,
+  validateReasoningGraphAiInsights,
+  validateReasoningOntologyProposal,
+  retrieveApprovedOntologyNeighborhood,
+  generateReasoningOntologyProposal,
   resolvePilotEventInputHash,
   normalizeGuideStage,
   formatFounderCalibrationScenario,
@@ -233,12 +239,188 @@ test("source provenance copy distinguishes disabled retrieval from no eligible s
   assert.match(buildSourceProvenanceMessage("grounding"), /grounding and safety guidance/)
 })
 
+test("reasoning graph builder creates weighted source-backed concept edges", () => {
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Embodiment practice connects purpose and creative responsibility. Purpose requires embodied choice.",
+      conceptTags: ["embodiment practice", "purpose"],
+    },
+    {
+      id: "chunk-2",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Embodiment practice turns purpose into grounded action for stakeholders.",
+      conceptTags: ["embodiment practice", "purpose"],
+    },
+  ], { maxNodes: 20, conceptsPerChunk: 6 })
+
+  const purpose = graph.nodes.find((node) => node.key === "purpose")
+  const embodiment = graph.nodes.find((node) => node.key === "embodiment-practice")
+  assert.ok(purpose)
+  assert.ok(embodiment)
+  assert.ok(purpose.sourceChunkIds.includes("chunk-1"))
+  assert.ok(purpose.sourceChunkIds.includes("chunk-2"))
+
+  const edge = graph.edges.find((item) => item.key === "embodiment-practice__purpose")
+  assert.ok(edge)
+  assert.equal(edge.weight, 2)
+  assert.deepEqual(edge.sourceChunkIds.sort(), ["chunk-1", "chunk-2"])
+  assert.ok(graph.clusters.length >= 1)
+  assert.ok(graph.insights.some((insight) => insight.sourceChunkIds.length > 0))
+})
+
+test("reasoning graph AI insights must cite known graph evidence", () => {
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  assert.doesNotThrow(() => validateReasoningGraphAiInsights({
+    insights: [{
+      insightType: "cluster_summary",
+      title: "Purpose and embodiment",
+      summary: "The graph links purpose to embodied practice through approved source evidence.",
+      confidence: 0.7,
+      nodeKeys: ["purpose"],
+      edgeKeys: [],
+      sourceChunkIds: ["chunk-1"],
+    }],
+  }, graph))
+
+  assert.throws(() => validateReasoningGraphAiInsights({
+    insights: [{
+      insightType: "cluster_summary",
+      title: "Unsupported",
+      summary: "This insight has no valid source evidence.",
+      confidence: 0.7,
+      nodeKeys: ["purpose"],
+      edgeKeys: [],
+      sourceChunkIds: ["missing-chunk"],
+    }],
+  }, graph), /unknown source evidence/i)
+})
+
+test("reasoning graph AI insight generation is optional when OpenAI is not configured", async () => {
+  const previousKey = process.env.OPENAI_API_KEY
+  process.env.OPENAI_API_KEY = ""
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  const result = await generateReasoningGraphAiInsights(graph)
+  assert.equal(result.status, "unavailable")
+  assert.deepEqual(result.insights, [])
+  if (previousKey === undefined) {
+    delete process.env.OPENAI_API_KEY
+  } else {
+    process.env.OPENAI_API_KEY = previousKey
+  }
+})
+
+test("reasoning ontology proposals must cite known graph nodes and evidence", () => {
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  assert.doesNotThrow(() => validateReasoningOntologyProposal({
+    concepts: [{
+      nodeKey: "purpose",
+      canonicalLabel: "Purpose",
+      aliases: ["Calling"],
+      description: "A source-backed concept for meaningful direction.",
+      sourceChunkIds: ["chunk-1"],
+    }],
+    relationships: [{
+      fromNodeKey: "purpose",
+      toNodeKey: "embodiment-practice",
+      relationType: "practice_to_outcome",
+      rationale: "The source links purpose to embodied practice.",
+      confidence: 0.72,
+      sourceChunkIds: ["chunk-1"],
+    }],
+  }, graph))
+
+  assert.throws(() => validateReasoningOntologyProposal({
+    relationships: [{
+      fromNodeKey: "purpose",
+      toNodeKey: "missing-node",
+      relationType: "supports",
+      rationale: "Unsupported node should fail.",
+      confidence: 0.7,
+      sourceChunkIds: ["chunk-1"],
+    }],
+  }, graph), /unknown node/i)
+
+  assert.throws(() => validateReasoningOntologyProposal({
+    concepts: [{
+      nodeKey: "purpose",
+      canonicalLabel: "Purpose",
+      aliases: [],
+      description: "Unsupported evidence should fail.",
+      sourceChunkIds: ["missing-chunk"],
+    }],
+  }, graph), /unknown source evidence/i)
+})
+
+test("approved ontology retrieval is gated off by default", async () => {
+  const result = await retrieveApprovedOntologyNeighborhood("purpose and embodiment", { enabled: false })
+
+  assert.equal(result.enabled, false)
+  assert.deepEqual(result.concepts, [])
+  assert.deepEqual(result.relationships, [])
+  assert.deepEqual(result.bridgeQuestions, [])
+})
+
+test("reasoning ontology proposal generation is optional when OpenAI is not configured", async () => {
+  const previousKey = process.env.OPENAI_API_KEY
+  process.env.OPENAI_API_KEY = ""
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  const result = await generateReasoningOntologyProposal(graph)
+  assert.equal(result.status, "unavailable")
+  assert.equal(result.proposal, null)
+  if (previousKey === undefined) {
+    delete process.env.OPENAI_API_KEY
+  } else {
+    process.env.OPENAI_API_KEY = previousKey
+  }
+})
+
 test("inner council feature flags seed with conservative RAG defaults", () => {
   const flags = Object.fromEntries(INNER_COUNCIL_FEATURE_FLAGS.map((flag) => [flag.key, flag.enabled]))
   assert.equal(flags.council_mode, true)
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
+  assert.equal(flags.ontology_rag_enabled, false)
 })
 
 test("guide stage config falls back to five defaults", () => {

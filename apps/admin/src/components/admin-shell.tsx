@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
-import { BarChart3, BookOpen, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Shield, Sparkles, Users } from "lucide-react"
+import { BarChart3, BookOpen, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Network, Shield, Sparkles, Users } from "lucide-react"
 import { adminLogoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 
@@ -14,6 +14,8 @@ const nav = [
   { href: "/calibration", labelKey: "founderCalibration", icon: Sparkles },
   { href: "/prompts", labelKey: "prompts", icon: MessageSquareText },
   { href: "/sources", labelKey: "sources", icon: BookOpen },
+  { href: "/reasoning-graph", labelKey: "reasoningGraph", icon: Network },
+  { href: "/reasoning-ontology", labelKey: "reasoningOntology", icon: Network },
   { href: "/sources/readiness", labelKey: "ragReadiness", icon: Shield },
   { href: "/council", labelKey: "councilReview", icon: Sparkles },
   { href: "/guide-stages", labelKey: "guideStages", icon: BarChart3 },
