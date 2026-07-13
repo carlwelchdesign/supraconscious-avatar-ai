@@ -71,9 +71,9 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
       messages: { select: { role: true, displayName: true, content: true, confidence: true, abstained: true, sourceChunkIds: true } },
       synthesis: { select: { integratorQuestion: true, integrationStep: true, sourceChunkIds: true } },
       generationTraces: {
-        where: { traceType: { in: ["council", "synthesis", "retrieval"] } },
+        where: { traceType: { in: ["council", "synthesis", "retrieval", "ontology_retrieval"] } },
         orderBy: { createdAt: "desc" },
-        take: 8,
+        take: 10,
         select: {
           id: true,
           traceType: true,
@@ -172,6 +172,15 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
         ) : sessions.map((session) => {
           const observer = session.observerSignal as { coreTension?: string; emotionalTone?: string }
           const safety = session.safetySnapshot as { severity?: string; flags?: string[] }
+          const ontologyTrace = session.generationTraces.find((trace) => trace.traceType === "ontology_retrieval")
+          const ontologyOutput = ontologyTrace?.outputJson as {
+            assisted?: boolean
+            status?: string
+            selectedConceptIds?: string[]
+            selectedRelationshipIds?: string[]
+            selectedSourceChunkIds?: string[]
+            pathSummaries?: string[]
+          } | null | undefined
           return (
             <Card key={session.id}>
               <CardHeader>
@@ -189,6 +198,9 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                   <span>source: {session.sourceMode}</span>
                   <span>feedback: {session.feedback.map((item) => item.feedbackType).join(", ") || "none"}</span>
                   <span>{session._count.generationTraces} traces</span>
+                  {ontologyTrace ? (
+                    <span>ontology: {ontologyOutput?.assisted ? "assisted" : ontologyOutput?.status ?? "not used"}</span>
+                  ) : null}
                   <span>{session._count.embodimentGateResponses} gate responses</span>
                   <span>safety: {safety.severity ?? "unknown"}</span>
                   <span>entry: {session.journalEntryId}</span>
@@ -319,6 +331,15 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                           metadataOnly?: boolean
                           policyVersion?: string
                         }
+                        assisted?: boolean
+                        status?: string
+                        queryTerms?: string[]
+                        selectedConceptIds?: string[]
+                        selectedRelationshipIds?: string[]
+                        selectedSourceChunkIds?: string[]
+                        pathSummaries?: string[]
+                        concepts?: Array<{ id: string; label: string; score?: number; evidenceSourceChunkIds?: string[] }>
+                        relationships?: Array<{ id: string; fromLabel: string; toLabel: string; relationType: string; confidence?: number; score?: number }>
                       } | null
                       const displayExcerptSuppressed = trace.traceType === "retrieval" &&
                         output?.allowedUse === "paraphrase_generation" &&
@@ -339,6 +360,33 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                               {displayExcerptSuppressed && (
                                 <p>Display excerpt suppressed by paraphrase-only rights.</p>
                               )}
+                            </div>
+                          )}
+                          {trace.traceType === "ontology_retrieval" && (
+                            <div className="mt-1 space-y-1">
+                              <p>
+                                ontology {output?.assisted ? "assisted this run" : "not sent to prompt"} · status {output?.status ?? trace.validationStatus}
+                              </p>
+                              <p>
+                                concepts: {(output?.selectedConceptIds ?? []).length} · relationships: {(output?.selectedRelationshipIds ?? []).length} · source chunks: {(output?.selectedSourceChunkIds ?? []).length}
+                              </p>
+                              {output?.queryTerms && output.queryTerms.length > 0 ? (
+                                <p>terms: {output.queryTerms.join(", ")}</p>
+                              ) : null}
+                              {output?.concepts && output.concepts.length > 0 ? (
+                                <p>
+                                  selected concepts: {output.concepts.slice(0, 5).map((concept) => `${concept.label}${typeof concept.score === "number" ? ` (${concept.score})` : ""}`).join(", ")}
+                                </p>
+                              ) : null}
+                              {output?.relationships && output.relationships.length > 0 ? (
+                                <p>
+                                  relationships: {output.relationships.slice(0, 4).map((relationship) => `${relationship.fromLabel} -> ${relationship.relationType} -> ${relationship.toLabel}`).join("; ")}
+                                </p>
+                              ) : null}
+                              {output?.pathSummaries && output.pathSummaries.length > 0 ? (
+                                <p>paths: {output.pathSummaries.slice(0, 4).join("; ")}</p>
+                              ) : null}
+                              {trace.fallbackReason ? <p>fallback: {trace.fallbackReason}</p> : null}
                             </div>
                           )}
                           {output?.matchedTerms && output.matchedTerms.length > 0 && (
