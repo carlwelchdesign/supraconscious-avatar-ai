@@ -428,7 +428,54 @@ function limitGraph(graph: ReasoningGraphViewData, nodeIds: Set<string>, maxEdge
     .sort((left, right) => right.weight - left.weight || right.confidence - left.confidence)
     .slice(0, maxEdges)
 
-  return { nodes, edges: sortedEdges }
+  return keepLargestConnectedComponent({ nodes, edges: sortedEdges })
+}
+
+function keepLargestConnectedComponent(graph: ReasoningGraphViewData): ReasoningGraphViewData {
+  if (graph.nodes.length <= 1) return graph
+
+  const adjacency = new Map<string, Set<string>>()
+  for (const node of graph.nodes) {
+    adjacency.set(node.id, new Set())
+  }
+  for (const edge of graph.edges) {
+    adjacency.get(edge.fromNodeId)?.add(edge.toNodeId)
+    adjacency.get(edge.toNodeId)?.add(edge.fromNodeId)
+  }
+
+  const visited = new Set<string>()
+  const components: string[][] = []
+  for (const node of graph.nodes) {
+    if (visited.has(node.id)) continue
+    const component: string[] = []
+    const queue = [node.id]
+    visited.add(node.id)
+    while (queue.length > 0) {
+      const currentId = queue.shift()
+      if (!currentId) continue
+      component.push(currentId)
+      for (const nextId of adjacency.get(currentId) ?? []) {
+        if (visited.has(nextId)) continue
+        visited.add(nextId)
+        queue.push(nextId)
+      }
+    }
+    components.push(component)
+  }
+
+  const componentScores = components.map((component) => {
+    const componentIds = new Set(component)
+    const score = graph.nodes
+      .filter((node) => componentIds.has(node.id))
+      .reduce((total, node) => total + node.weightedDegree + node.bridgeScore, 0)
+    return { componentIds, score, size: component.length }
+  })
+  const largest = componentScores.sort((left, right) => right.size - left.size || right.score - left.score)[0]
+  if (!largest) return graph
+
+  const nodes = graph.nodes.filter((node) => largest.componentIds.has(node.id))
+  const edges = graph.edges.filter((edge) => largest.componentIds.has(edge.fromNodeId) && largest.componentIds.has(edge.toNodeId))
+  return { nodes, edges }
 }
 
 function selectTopNodeIds(nodes: ReasoningGraphViewData["nodes"], count: number, metric: "weighted" | "bridge") {
