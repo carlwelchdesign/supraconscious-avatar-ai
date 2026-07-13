@@ -8,7 +8,7 @@ The repo is a Yarn workspaces + Turborepo monorepo with two independently deploy
 - `apps/admin`: internal admin panel with its own `/login`, own session cookie, own route protection, and its own deployment target.
 - `packages/db`: Prisma schema at `packages/db/prisma/schema.prisma`, Prisma client singleton, and shared DB access.
 - `packages/auth`: password hashing, login/register/logout server actions, scoped session cookies, and RBAC guards.
-- `packages/ai`: OpenAI client helper, Zod schemas, safety classifier, analysis, Inner Council and guide response generation, prompt generation, pattern memory, and progression logic.
+- `packages/ai`: OpenAI client helper, Zod schemas, safety classifier, analysis, Inner Council and guide response generation, source RAG, approved-ontology GraphRAG retrieval, prompt generation, pattern memory, and progression logic.
 - `packages/billing`: Stripe checkout, billing portal, webhook sync helpers, plan mapping, and subscription status normalization.
 - `packages/ui`: shared UI primitives and visual components used by both apps.
 - `packages/types`: shared TypeScript unions such as `UserRole` and `SessionScope`.
@@ -31,7 +31,7 @@ The admin app owns internal operations routes:
 
 - `/login`: admin login.
 - `/`: admin dashboard.
-- `/users`, `/subscriptions`, `/safety`, `/health`, `/prompts`, `/guide-stages`, `/feature-flags`, `/ai-quality`. `/avatar-stages` redirects to `/guide-stages` for older admin links.
+- `/users`, `/subscriptions`, `/safety`, `/health`, `/prompts`, `/guide-stages`, `/feature-flags`, `/reasoning-graph`, `/reasoning-ontology`, `/ai-quality`, `/council`. `/avatar-stages` redirects to `/guide-stages` for older admin links.
 
 The web app must not contain `/admin` routes. Admin functionality is not bundled into the public app.
 
@@ -60,6 +60,22 @@ Core models:
 - `PromptTemplate`: admin-managed prompt/system text.
 - `FeatureFlag`: admin-managed product gates.
 - `AvatarStageConfig`: editable admin metadata for guide stages. The model name retains legacy `Avatar` wording for compatibility.
+- `ReasoningGraphRun`, graph node/edge/cluster/insight/evidence models: generated source-backed graph analysis history for admin review.
+- Reasoning ontology concept, relationship, cluster, gap, bridge, outcome, and evidence models: approved curated graph records that may be used by GraphRAG when feature-flagged on.
+
+## Source RAG And Ontology GraphRAG
+
+The source corpus remains the grounding layer. Source documents are reviewed into sections and chunks, and the AI pipeline retrieves only eligible chunks based on approval state, rights, safety, feature flags, and validation policy.
+
+The reasoning graph and ontology layer sits above that source corpus:
+
+1. Admins generate graph runs from approved source chunks.
+2. Generated runs expose concept networks, clusters, bridge concepts, gaps, and stakeholder paths for review.
+3. Admins curate durable ontology records from those candidates.
+4. Runtime GraphRAG can retrieve approved ontology neighborhoods only when `ontology_rag_enabled` is on.
+5. Ontology evidence chunk ids can boost or supplement source retrieval, but user-facing citations still come from approved retrieved source chunks.
+
+Unreviewed graph-run candidates never enter public AI prompts. If GraphRAG retrieval fails or is disabled, the council flow falls back to the normal source-RAG path.
 
 ## Styling
 

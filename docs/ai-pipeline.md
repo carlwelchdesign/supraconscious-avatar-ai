@@ -49,6 +49,8 @@ The sanitizer blocks raw journal text, raw feedback notes, source chunk text, di
 
 LangSmith linkage is stored under `GenerationTrace.outputJson.langsmith`; no schema columns are required. Internal `GenerationTrace` records remain the canonical trace source.
 
+GraphRAG retrieval writes separate internal `GenerationTrace` records with `traceType = "ontology_retrieval"`. Those records capture feature-flag state, selected approved concept ids, relationship ids, bridge/path summaries, evidence source chunk ids, and fallback reasons. They are meant for internal review and do not replace source citation traces.
+
 Environment:
 
 ```env
@@ -111,6 +113,42 @@ High severity blocks normal symbolic reflection and returns a grounded support r
 - summary
 
 This structured output is persisted in `EntryAnalysis` and used by downstream generation.
+
+## Source RAG And GraphRAG
+
+The baseline council flow uses source RAG from reviewed source chunks. `retrieveCouncilContext()` applies source eligibility rules before any source can influence a response:
+
+- source document/chunk approval state
+- rights and quote permissions
+- safety intensity
+- feature flag state
+- source-mode and validation policy
+- traceable selected chunk ids
+
+GraphRAG is an additional reasoning layer, not a replacement for source RAG. It is disabled by default through the `ontology_rag_enabled` feature flag. When disabled, the council flow behaves like the normal source-RAG pipeline.
+
+When `ontology_rag_enabled` is enabled, the runtime builds a compact `GraphRagContext` from approved ontology records only:
+
+- detected concepts and aliases relevant to the journal entry
+- approved typed relationships between those concepts
+- one-to-two-hop bridge paths
+- approved cluster, gap, and stakeholder-outcome context
+- evidence source chunk ids attached to the ontology records
+- retrieval trace metadata for review
+
+The ontology context is advisory reasoning context. Council prompts instruct the model to use it as a source-backed map of relationships, not as unquestionable fact. User-facing claims still need support from approved retrieved source chunks, and citation validation still rejects unknown or unselected source ids.
+
+GraphRAG can boost or supplement source retrieval by passing ontology evidence chunk ids into the source-context retrieval path. This keeps the output grounded in the same approved source corpus while allowing the system to reason across curated concept relationships.
+
+Fallback behavior is intentionally conservative:
+
+- if `ontology_rag_enabled` is false, no ontology records enter the prompt
+- if ontology retrieval fails, the council flow falls back to normal source RAG
+- if the entry is in a high-safety grounding path, GraphRAG context is omitted
+- if a candidate ontology record is unapproved, rejected, or missing source evidence, it is excluded
+- if selected ontology evidence cannot be matched to approved source chunks, it is ignored
+
+Reviewers can inspect ontology-assisted sessions through generation traces and admin Council Review metadata. Saved historical sessions are not rewritten when GraphRAG behavior changes.
 
 ## Guide Response
 

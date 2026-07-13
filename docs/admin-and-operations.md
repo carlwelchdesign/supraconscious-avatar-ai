@@ -16,11 +16,39 @@ Current admin routes:
 - `/prompts`: prompt template create/list/edit.
 - `/guide-stages`: editable guide stage metadata. `/avatar-stages` redirects here for older admin links.
 - `/feature-flags`: feature flag create/list/update.
+- `/reasoning-graph`: source-backed concept-network generation, graph review, graph canvas tabs, and reasoning insights.
+- `/reasoning-ontology`: approved concept, relationship, gap, bridge, and stakeholder-path curation.
 - `/ai-quality`: metadata-only AI output review.
+- `/council`: council/session review, including source-grounding traces and ontology-assisted GraphRAG traces when present.
 - `/calibration/setup`: Carl/Maria founder participant setup, readiness checklist, safe handoff links, and scenario coverage.
 - `/calibration/live`: Carl/Maria live calibration review cockpit with raw journal text hidden by default.
 
 Admin review and CMS-style actions use server actions. High-use forms show pending submit states, top-level status banners, and local validation help where required fields are easy to miss. Source and chunk review actions redirect back near the edited record with anchors when practical.
+
+## Reasoning Graph And Ontology Operations
+
+The reasoning graph is an admin-only analysis surface for approved Maria/source materials. It is not a public product feature and does not affect user-facing AI responses by itself.
+
+Use `/reasoning-graph` to generate and inspect source-backed text networks:
+
+- source chunks are transformed into concept nodes and weighted co-occurrence edges
+- graph runs preserve source provenance, metrics, clusters, bridges, gaps, and insight metadata
+- the graph canvas is split into `Network 1`, `Network 2`, and `Network 3` tabs so each connected network can be reviewed separately
+- Network 1 uses stronger cluster coloring and more prominent edges because it is usually the densest and most useful graph
+- clicking a node keeps the selected-node detail panel tied to connected ideas, source excerpts, and graph metrics
+
+Graph generation should only use approved, rights-compatible source material. Failed generation should preserve the previous completed graph rather than replacing it with partial output.
+
+Use `/reasoning-ontology` to curate durable records from generated candidates:
+
+- concepts with canonical labels, aliases, descriptions, evidence, and review state
+- typed relationships such as causal, hierarchical, associative, tension, practice-to-outcome, supports, and gap-bridge
+- clusters/themes with summaries and central concepts
+- stakeholder outcome paths with supporting concepts and missing/gap areas
+
+Generated graph runs are draft analysis history. Only approved ontology records may enter runtime GraphRAG prompts. Admins remain the architect: AI may propose structure, but humans approve, reject, rename, merge, and pin what becomes canonical.
+
+Runtime GraphRAG remains feature-flagged through `ontology_rag_enabled`. Keep it disabled by default until the approved ontology has been reviewed against source evidence.
 
 ## Founder Calibration Operations
 
@@ -106,6 +134,20 @@ When optional LangSmith tracing is enabled, admin `/council` shows LangSmith met
 - metadata-only flag
 
 Raw journal text, source chunk text, prompt content, and full council output are not sent to LangSmith by default and should not be added to admin review reasons.
+
+## Council Review GraphRAG Traces
+
+Admin `/council` also distinguishes normal source-grounded sessions from ontology-assisted sessions when GraphRAG has been enabled.
+
+For ontology-assisted sessions, reviewers should be able to inspect:
+
+- selected approved concept ids and labels
+- selected approved relationship ids and typed relationship summaries
+- bridge/path summaries used as reasoning context
+- evidence source chunk ids used to boost or supplement source retrieval
+- whether GraphRAG was enabled, disabled, omitted for safety, or skipped because of a fallback
+
+These traces are stored in internal `GenerationTrace` records with `traceType = "ontology_retrieval"`. They are review metadata, not user-facing content. If ontology retrieval fails, the session should still complete through the existing source-RAG flow and the fallback reason should be visible in review.
 
 ## Operational Checks
 
