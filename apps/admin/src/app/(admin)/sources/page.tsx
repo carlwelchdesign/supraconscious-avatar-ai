@@ -5,6 +5,7 @@ import { AdminStatusBanner, InlineActionHelp } from "@/components/admin-status-b
 import { SubmitButton } from "@/components/submit-button"
 import { formatAdminDateTime } from "@/lib/date-format"
 import {
+  parseSourceDocumentAction,
   updateCurriculumDayStateAction,
   updateSourceChunkStateAction,
   updateSourceDocumentStateAction,
@@ -26,6 +27,12 @@ const SOURCE_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; messag
   source_invalid: { tone: "error", message: "Source document update needs a valid state and reason." },
   source_missing: { tone: "error", message: "That source document is no longer available." },
   source_rights_missing: { tone: "error", message: "Add a current paraphrase-compatible rights grant before approving this source." },
+  source_parsed: { tone: "success", message: "Source document parsed into reviewable chunks." },
+  source_parse_invalid: { tone: "error", message: "Source parsing needs a source and audit reason." },
+  source_parse_unsupported: { tone: "error", message: "Only registered DOCX source documents can be parsed here." },
+  source_parse_exists: { tone: "error", message: "This source already has sections or chunks." },
+  source_parse_empty: { tone: "error", message: "No text was found in that source document." },
+  source_parse_failed: { tone: "error", message: "Source document parsing failed. Confirm the file is available and readable." },
   curriculum_saved: { tone: "success", message: "Curriculum publish state saved." },
   curriculum_invalid: { tone: "error", message: "Curriculum update needs a valid state and reason." },
   chunk_saved: { tone: "success", message: "Source chunk state saved." },
@@ -72,11 +79,17 @@ export default async function SourcesPage({
       select: {
         id: true,
         title: true,
+        author: true,
+        work: true,
         sourceType: true,
         reasoningScope: true,
         rightsStatus: true,
         reviewState: true,
+        language: true,
+        filePath: true,
+        metadata: true,
         updatedAt: true,
+        importBatch: { select: { parserVersion: true } },
         rightsGrants: {
           orderBy: { createdAt: "desc" },
           take: 2,
@@ -219,6 +232,42 @@ export default async function SourcesPage({
               <p className="mt-1 text-xs text-muted-foreground">
                 {document._count.sections} sections · {document._count.chunks} chunks · {document._count.curriculumDays} curriculum days
               </p>
+              <div className="mt-3 grid gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground md:grid-cols-2">
+                <p>
+                  <span className="font-medium text-foreground">Author:</span> {document.author || "Unknown"}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Work:</span> {document.work || "Not specified"}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Language:</span> {document.language}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Parser:</span> {document.importBatch?.parserVersion || "Registered only"}
+                </p>
+                <p className="break-all md:col-span-2">
+                  <span className="font-medium text-foreground">File:</span> {sourcePathLabel(document)}
+                </p>
+              </div>
+              {canParseDocument(document) ? (
+                <form action={parseSourceDocumentAction} className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                  <input type="hidden" name="sourceDocumentId" value={document.id} />
+                  <p className="text-xs font-medium text-amber-900 dark:text-amber-200">No reviewable chunks yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Parse this DOCX into source chunks first. This creates reviewable material only; it does not approve rights, retrieval, quotes, or curriculum display.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <input
+                      name="reason"
+                      placeholder="Parsing reason required"
+                      required
+                      minLength={10}
+                      className="min-w-64 rounded-md border bg-background px-2 py-1 text-xs"
+                    />
+                    <SubmitButton pendingLabel="Parsing...">Parse into chunks</SubmitButton>
+                  </div>
+                </form>
+              ) : null}
               <form action={updateSourceDocumentStateAction} className="mt-3 flex flex-wrap items-center gap-2">
                 <input type="hidden" name="sourceDocumentId" value={document.id} />
                 <select name="reviewState" defaultValue={document.reviewState} className="rounded-md border bg-background px-2 py-1 text-xs">
@@ -422,6 +471,22 @@ export default async function SourcesPage({
 
 function arrayText(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").join(", ") : ""
+}
+
+function canParseDocument(document: { filePath: string | null; _count: { chunks: number; sections: number } }) {
+  return Boolean(document.filePath?.toLowerCase().endsWith(".docx")) &&
+    document._count.chunks === 0 &&
+    document._count.sections === 0
+}
+
+function sourcePathLabel(document: { filePath: string | null; metadata: unknown }) {
+  return readMetadataString(document.metadata, "relativePath") ?? document.filePath ?? "No file path recorded"
+}
+
+function readMetadataString(metadata: unknown, key: string) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null
+  const value = (metadata as Record<string, unknown>)[key]
+  return typeof value === "string" && value ? value : null
 }
 
 function reasoningScopeLabel(scope: string) {

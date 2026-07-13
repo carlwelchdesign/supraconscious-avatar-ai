@@ -1,9 +1,17 @@
 "use server"
 
+import { access } from "node:fs/promises"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { ReasoningScopeSchema, canDisplaySourceQuote, evaluateSourceEligibility, hasUsableSourceRightsGrant } from "@inner-avatar/ai"
+import {
+  ReasoningScopeSchema,
+  canDisplaySourceQuote,
+  createSourceSectionWithChunks,
+  evaluateSourceEligibility,
+  extractDocxParagraphs,
+  hasUsableSourceRightsGrant,
+} from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -13,6 +21,11 @@ const SourceStateSchema = z.object({
   rightsStatus: z.enum(["needs_review", "approved", "paraphrase_only", "blocked"]),
   reasoningScope: ReasoningScopeSchema,
   reason: z.string().trim().min(10, "A review reason is required."),
+})
+
+const ParseSourceDocumentSchema = z.object({
+  sourceDocumentId: z.string().min(1),
+  reason: z.string().trim().min(10, "A parsing reason is required."),
 })
 
 const CurriculumStateSchema = z.object({
@@ -101,6 +114,92 @@ export async function updateSourceDocumentStateAction(formData: FormData) {
 
   revalidatePath("/sources")
   redirect(sourceActionHref("source_saved", parsed.data.sourceDocumentId))
+}
+
+export async function parseSourceDocumentAction(formData: FormData) {
+  const actor = await requireAdminUser()
+  const parsed = ParseSourceDocumentSchema.safeParse(Object.fromEntries(formData))
+  const sourceDocumentId = readFormId(formData, "sourceDocumentId")
+  if (!parsed.success) redirect(sourceActionHref("source_parse_invalid", sourceDocumentId))
+
+  const source = await prisma.sourceDocument.findUnique({
+    where: { id: parsed.data.sourceDocumentId },
+    select: {
+      id: true,
+      title: true,
+      sourceType: true,
+      filePath: true,
+      metadata: true,
+      _count: { select: { chunks: true, sections: true } },
+    },
+  })
+
+  if (!source) redirect(sourceActionHref("source_missing", parsed.data.sourceDocumentId))
+  if (!source.filePath || !source.filePath.toLowerCase().endsWith(".docx")) {
+    redirect(sourceActionHref("source_parse_unsupported", source.id))
+  }
+  if (source._count.chunks > 0 || source._count.sections > 0) {
+    redirect(sourceActionHref("source_parse_exists", source.id))
+  }
+
+  let paragraphs: string[]
+  try {
+    await access(source.filePath)
+    paragraphs = await extractDocxParagraphs(source.filePath)
+  } catch {
+    redirect(sourceActionHref("source_parse_failed", source.id))
+  }
+
+  const canonicalText = paragraphs.join("\n").trim()
+  if (!canonicalText) redirect(sourceActionHref("source_parse_empty", source.id))
+
+  try {
+    await createSourceSectionWithChunks(
+      source.id,
+      {
+        headingPath: [source.title],
+        sectionType: source.sourceType,
+        paragraphStart: 1,
+        paragraphEnd: paragraphs.length,
+        canonicalText,
+        reviewState: "parsed",
+      },
+      2200,
+    )
+
+    await prisma.sourceDocument.update({
+      where: { id: source.id },
+      data: {
+        reviewState: "parsed",
+        metadata: {
+          ...(isRecord(source.metadata) ? source.metadata : {}),
+          parsedBy: "admin.parseSourceDocumentAction",
+          parsedAt: new Date().toISOString(),
+          paragraphCount: paragraphs.length,
+        },
+      },
+    })
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: actor.id,
+        action: "source_document.parse_chunks",
+        targetType: "SourceDocument",
+        targetId: source.id,
+        reason: parsed.data.reason,
+        metadata: {
+          sourceType: source.sourceType,
+          filePath: source.filePath,
+          paragraphCount: paragraphs.length,
+        },
+      },
+    })
+  } catch {
+    redirect(sourceActionHref("source_parse_failed", source.id))
+  }
+
+  revalidatePath("/sources")
+  redirect(sourceActionHref("source_parsed", source.id))
 }
 
 export async function updateCurriculumDayStateAction(formData: FormData) {
@@ -274,6 +373,10 @@ function parseCsv(value: string | undefined) {
     .map((item) => item.trim())
     .filter(Boolean)
   return parsed.length > 0 ? parsed : undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value)
 }
 
 function readFormId(formData: FormData, key: string) {
