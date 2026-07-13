@@ -414,7 +414,7 @@ function buildCanvasViews(graph: ReasoningGraphViewData) {
     {
       id: "clusters",
       title: "Cluster neighborhoods",
-      description: "The strongest concepts inside each theme cluster, shown as smaller neighborhoods instead of one tangled graph.",
+      description: "The strongest concepts inside each theme cluster, rendered as one model with cluster colors.",
       graph: clusterGraph,
       layout: buildLayout(clusterGraph),
     },
@@ -486,33 +486,65 @@ function Metric({ label, value }: { label: string; value: string | number }) {
 }
 
 function buildLayout(graph: ReasoningGraphViewData) {
-  const clusters = Array.from(new Set(graph.nodes.map((node) => node.clusterKey ?? 0))).sort((left, right) => left - right)
-  const clusterIndex = new Map(clusters.map((key, index) => [key, index]))
   const points = new Map<string, { x: number; y: number; z: number }>()
-  const clusterRadius = 250
-  const grouped = new Map<number, typeof graph.nodes>()
-  for (const node of graph.nodes) {
-    const key = node.clusterKey ?? 0
-    grouped.set(key, [...(grouped.get(key) ?? []), node])
+  const sortedNodes = [...graph.nodes].sort((left, right) => right.weightedDegree - left.weightedDegree || left.label.localeCompare(right.label))
+  const nodeIndex = new Map(sortedNodes.map((node, index) => [node.id, index]))
+  const adjacency = new Map<string, Set<string>>()
+
+  for (const edge of graph.edges) {
+    adjacency.set(edge.fromNodeId, new Set([...(adjacency.get(edge.fromNodeId) ?? []), edge.toNodeId]))
+    adjacency.set(edge.toNodeId, new Set([...(adjacency.get(edge.toNodeId) ?? []), edge.fromNodeId]))
   }
-  for (const [clusterKey, nodes] of grouped.entries()) {
-    const index = clusterIndex.get(clusterKey) ?? 0
-    const phi = Math.acos(1 - (2 * (index + 0.5)) / Math.max(1, clusters.length))
+
+  sortedNodes.forEach((node, index) => {
+    const degree = adjacency.get(node.id)?.size ?? 0
+    const radius = Math.max(72, 270 - Math.min(210, node.weightedDegree * 7 + degree * 11))
+    const phi = Math.acos(1 - (2 * (index + 0.5)) / Math.max(1, sortedNodes.length))
     const theta = Math.PI * (1 + Math.sqrt(5)) * index
-    const groupX = Math.cos(theta) * Math.sin(phi) * clusterRadius
-    const groupY = Math.sin(theta) * Math.sin(phi) * clusterRadius
-    const groupZ = Math.cos(phi) * clusterRadius
-    nodes.forEach((node, nodeIndex) => {
-      const localAngle = (Math.PI * 2 * nodeIndex) / Math.max(1, nodes.length)
-      const localZAngle = (Math.PI * nodeIndex) / Math.max(1, nodes.length - 1)
-      const localRadius = Math.min(104, 34 + nodes.length * 3.2)
-      points.set(node.id, {
-        x: groupX + Math.cos(localAngle) * Math.sin(localZAngle || 0.8) * localRadius,
-        y: groupY + Math.sin(localAngle) * Math.sin(localZAngle || 0.8) * localRadius,
-        z: groupZ + Math.cos(localZAngle || 0.8) * localRadius,
-      })
+    points.set(node.id, {
+      x: Math.cos(theta) * Math.sin(phi) * radius,
+      y: Math.sin(theta) * Math.sin(phi) * radius,
+      z: Math.cos(phi) * radius,
     })
+  })
+
+  for (let iteration = 0; iteration < 24; iteration += 1) {
+    const nextPoints = new Map(points)
+    for (const edge of graph.edges) {
+      const from = points.get(edge.fromNodeId)
+      const to = points.get(edge.toNodeId)
+      if (!from || !to) continue
+      const fromRank = nodeIndex.get(edge.fromNodeId) ?? 0
+      const toRank = nodeIndex.get(edge.toNodeId) ?? 0
+      const pull = Math.min(0.18, 0.035 + edge.weight * 0.012)
+      const centerBias = Math.max(0.45, 1 - Math.abs(fromRank - toRank) / Math.max(1, sortedNodes.length))
+      const adjustedPull = pull * centerBias
+      const nextFrom = nextPoints.get(edge.fromNodeId) ?? from
+      const nextTo = nextPoints.get(edge.toNodeId) ?? to
+
+      nextPoints.set(edge.fromNodeId, {
+        x: nextFrom.x + (to.x - from.x) * adjustedPull,
+        y: nextFrom.y + (to.y - from.y) * adjustedPull,
+        z: nextFrom.z + (to.z - from.z) * adjustedPull,
+      })
+      nextPoints.set(edge.toNodeId, {
+        x: nextTo.x + (from.x - to.x) * adjustedPull,
+        y: nextTo.y + (from.y - to.y) * adjustedPull,
+        z: nextTo.z + (from.z - to.z) * adjustedPull,
+      })
+    }
+
+    for (const [nodeId, point] of nextPoints.entries()) {
+      const magnitude = Math.max(1, Math.hypot(point.x, point.y, point.z))
+      const targetRadius = 68 + ((nodeIndex.get(nodeId) ?? 0) / Math.max(1, sortedNodes.length - 1)) * 210
+      points.set(nodeId, {
+        x: (point.x / magnitude) * targetRadius,
+        y: (point.y / magnitude) * targetRadius,
+        z: (point.z / magnitude) * targetRadius,
+      })
+    }
   }
+
   return points
 }
 
