@@ -15,6 +15,7 @@ const nav = [
   { href: "/prompts", labelKey: "prompts", icon: MessageSquareText },
   { href: "/sources", labelKey: "sources", icon: BookOpen },
   { href: "/reasoning-graph", labelKey: "reasoningGraph", icon: Network },
+  { href: "/reasoning-ontology", labelKey: "reasoningOntology", icon: Network },
   { href: "/sources/readiness", labelKey: "ragReadiness", icon: Shield },
   { href: "/council", labelKey: "councilReview", icon: Sparkles },
   { href: "/guide-stages", labelKey: "guideStages", icon: BarChart3 },

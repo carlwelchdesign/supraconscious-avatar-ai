@@ -22,7 +22,8 @@
     "guideStages": "Guide Stages",
     "featureFlags": "Feature Flags",
     "aiQuality": "AI Quality",
-    "reasoningGraph": "Reasoning Graph"
+    "reasoningGraph": "Reasoning Graph",
+    "reasoningOntology": "Reasoning Ontology"
   },
   "phrases": {
     "Admin Overview": "Admin Overview",

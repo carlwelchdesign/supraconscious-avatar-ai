@@ -22,7 +22,8 @@
     "guideStages": "Etapas de guía",
     "featureFlags": "Flags de funciones",
     "aiQuality": "Calidad de IA",
-    "reasoningGraph": "Reasoning Graph"
+    "reasoningGraph": "Reasoning Graph",
+    "reasoningOntology": "Reasoning Ontology"
   },
   "phrases": {
     "Admin Overview": "Resumen de administración",

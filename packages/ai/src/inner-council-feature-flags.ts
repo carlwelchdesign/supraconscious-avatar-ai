@@ -21,6 +21,11 @@ export const INNER_COUNCIL_FEATURE_FLAGS = [
     enabled: false,
     description: "Enable admin quality labels, eval review, and release gates.",
   },
+  {
+    key: "ontology_rag_enabled",
+    enabled: false,
+    description: "Allow approved reasoning ontology neighborhoods to be retrieved for future council generation.",
+  },
 ] as const
 
 export async function seedInnerCouncilFeatureFlags() {

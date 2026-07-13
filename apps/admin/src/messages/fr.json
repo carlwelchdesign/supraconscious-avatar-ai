@@ -22,7 +22,8 @@
     "guideStages": "Étapes du guide",
     "featureFlags": "Fonctionnalités",
     "aiQuality": "Qualité IA",
-    "reasoningGraph": "Reasoning Graph"
+    "reasoningGraph": "Reasoning Graph",
+    "reasoningOntology": "Reasoning Ontology"
   },
   "phrases": {
     "Admin Overview": "Vue d’ensemble admin",

@@ -54,6 +54,9 @@ import {
   buildReasoningGraphFromChunks,
   generateReasoningGraphAiInsights,
   validateReasoningGraphAiInsights,
+  validateReasoningOntologyProposal,
+  retrieveApprovedOntologyNeighborhood,
+  generateReasoningOntologyProposal,
   resolvePilotEventInputHash,
   normalizeGuideStage,
   formatFounderCalibrationScenario,
@@ -328,12 +331,96 @@ test("reasoning graph AI insight generation is optional when OpenAI is not confi
   }
 })
 
+test("reasoning ontology proposals must cite known graph nodes and evidence", () => {
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  assert.doesNotThrow(() => validateReasoningOntologyProposal({
+    concepts: [{
+      nodeKey: "purpose",
+      canonicalLabel: "Purpose",
+      aliases: ["Calling"],
+      description: "A source-backed concept for meaningful direction.",
+      sourceChunkIds: ["chunk-1"],
+    }],
+    relationships: [{
+      fromNodeKey: "purpose",
+      toNodeKey: "embodiment-practice",
+      relationType: "practice_to_outcome",
+      rationale: "The source links purpose to embodied practice.",
+      confidence: 0.72,
+      sourceChunkIds: ["chunk-1"],
+    }],
+  }, graph))
+
+  assert.throws(() => validateReasoningOntologyProposal({
+    relationships: [{
+      fromNodeKey: "purpose",
+      toNodeKey: "missing-node",
+      relationType: "supports",
+      rationale: "Unsupported node should fail.",
+      confidence: 0.7,
+      sourceChunkIds: ["chunk-1"],
+    }],
+  }, graph), /unknown node/i)
+
+  assert.throws(() => validateReasoningOntologyProposal({
+    concepts: [{
+      nodeKey: "purpose",
+      canonicalLabel: "Purpose",
+      aliases: [],
+      description: "Unsupported evidence should fail.",
+      sourceChunkIds: ["missing-chunk"],
+    }],
+  }, graph), /unknown source evidence/i)
+})
+
+test("approved ontology retrieval is gated off by default", async () => {
+  const result = await retrieveApprovedOntologyNeighborhood("purpose and embodiment", { enabled: false })
+
+  assert.equal(result.enabled, false)
+  assert.deepEqual(result.concepts, [])
+  assert.deepEqual(result.relationships, [])
+  assert.deepEqual(result.bridgeQuestions, [])
+})
+
+test("reasoning ontology proposal generation is optional when OpenAI is not configured", async () => {
+  const previousKey = process.env.OPENAI_API_KEY
+  process.env.OPENAI_API_KEY = ""
+  const graph = buildReasoningGraphFromChunks([
+    {
+      id: "chunk-1",
+      sourceDocumentId: "doc-1",
+      title: "Maria notes",
+      text: "Purpose connects embodiment practice with grounded stakeholder outcomes.",
+      conceptTags: ["purpose", "embodiment practice"],
+    },
+  ])
+
+  const result = await generateReasoningOntologyProposal(graph)
+  assert.equal(result.status, "unavailable")
+  assert.equal(result.proposal, null)
+  if (previousKey === undefined) {
+    delete process.env.OPENAI_API_KEY
+  } else {
+    process.env.OPENAI_API_KEY = previousKey
+  }
+})
+
 test("inner council feature flags seed with conservative RAG defaults", () => {
   const flags = Object.fromEntries(INNER_COUNCIL_FEATURE_FLAGS.map((flag) => [flag.key, flag.enabled]))
   assert.equal(flags.council_mode, true)
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
+  assert.equal(flags.ontology_rag_enabled, false)
 })
 
 test("guide stage config falls back to five defaults", () => {

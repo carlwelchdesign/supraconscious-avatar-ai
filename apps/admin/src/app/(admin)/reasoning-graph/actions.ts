@@ -8,6 +8,7 @@ import {
   buildApprovedDocumentWhere,
   buildReasoningGraphFromChunks,
   generateReasoningGraphAiInsights,
+  generateReasoningOntologyProposal,
 } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
@@ -67,6 +68,7 @@ export async function generateReasoningGraphAction(formData: FormData) {
       insights: [],
       errorMessage: error instanceof Error ? error.message : "AI insight generation failed.",
     }))
+    const ontologyProposalResult = await generateReasoningOntologyProposal(graph)
     const insights = [...graph.insights, ...aiInsightResult.insights]
 
     await prisma.$transaction(async (tx) => {
@@ -86,6 +88,9 @@ export async function generateReasoningGraphAction(formData: FormData) {
             ...graph.metadata,
             aiInsightStatus: aiInsightResult.status,
             aiInsightError: "errorMessage" in aiInsightResult ? aiInsightResult.errorMessage : undefined,
+            ontologyProposalStatus: ontologyProposalResult.status,
+            ontologyProposalError: ontologyProposalResult.errorMessage,
+            ontologyProposal: ontologyProposalResult.proposal,
           },
           completedAt: new Date(),
         },
