@@ -65,7 +65,7 @@ LANGCHAIN_TRACING_V2="false"
 LANGCHAIN_PROJECT="inner-avatar-dev"
 ```
 
-Use `node .yarn/releases/yarn-4.cjs test:langsmith` to verify no-op behavior and sanitizer coverage without calling the external service.
+Use `yarn test:langsmith` to verify no-op behavior and sanitizer coverage without calling the external service.
 
 ## LangGraph Decision
 

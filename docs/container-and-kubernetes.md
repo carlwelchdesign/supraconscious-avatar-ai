@@ -9,7 +9,7 @@ Start by copying `.env.example` to `.env` and replacing the placeholder secrets/
 Check Docker Desktop / daemon readiness:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:check
+yarn docker:check
 ```
 
 The Docker build and Compose scripts run this preflight first. If Docker Desktop is closed, stuck, or the socket is not responding, the script fails quickly with a daemon-readiness message instead of leaving the build command hanging.
@@ -17,23 +17,23 @@ The Docker build and Compose scripts run this preflight first. If Docker Desktop
 Build individual images:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:build:web
-node .yarn/releases/yarn-4.cjs docker:build:admin
-node .yarn/releases/yarn-4.cjs docker:build:chatgpt
+yarn docker:build:web
+yarn docker:build:admin
+yarn docker:build:chatgpt
 ```
 
 Prepare the local Compose database schema explicitly:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:compose:migrate
+yarn docker:compose:migrate
 ```
 
-For local-only schema experiments that intentionally use Prisma `db push`, run `node .yarn/releases/yarn-4.cjs docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
+For local-only schema experiments that intentionally use Prisma `db push`, run `yarn docker:compose:db-push`. Shared development, staging-like Compose runs, and production releases should use migrations.
 
 Validate the Compose file without expanding local secrets. This check does not require the Docker daemon to be running:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:compose:config
+yarn docker:compose:config
 ```
 
 Do not paste normal `docker compose config` output into tickets or logs when `.env` contains real API keys. The safe script above keeps variable placeholders visible instead of printing secret values.
@@ -41,13 +41,13 @@ Do not paste normal `docker compose config` output into tickets or logs when `.e
 Run the local container stack:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:compose:up
+yarn docker:compose:up
 ```
 
 Stop the stack:
 
 ```bash
-node .yarn/releases/yarn-4.cjs docker:compose:down
+yarn docker:compose:down
 ```
 
 The Compose stack exposes:

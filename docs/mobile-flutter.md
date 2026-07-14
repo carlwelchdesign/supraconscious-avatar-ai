@@ -16,12 +16,12 @@ Flutter is installed outside the repository. Use the root scripts below before w
 Recommended local checks:
 
 ```bash
-node .yarn/releases/yarn-4.cjs mobile:check
-node .yarn/releases/yarn-4.cjs mobile:doctor
-node .yarn/releases/yarn-4.cjs mobile:pub-get
-node .yarn/releases/yarn-4.cjs mobile:analyze
-node .yarn/releases/yarn-4.cjs mobile:test
-node .yarn/releases/yarn-4.cjs mobile:build:android
+yarn mobile:check
+yarn mobile:doctor
+yarn mobile:pub-get
+yarn mobile:analyze
+yarn mobile:test
+yarn mobile:build:android
 ```
 
 `mobile:check` verifies that `flutter` is available on `PATH`. `mobile:doctor` runs Flutter's own environment diagnostics after that preflight passes.
@@ -33,7 +33,7 @@ Run Flutter preview commands from `apps/mobile`.
 Start the backend separately from the repository root before testing authenticated flows:
 
 ```bash
-node .yarn/releases/yarn-4.cjs dev:web
+yarn dev:web
 ```
 
 Android emulator preview uses the host-loopback alias:

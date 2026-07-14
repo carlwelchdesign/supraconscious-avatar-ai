@@ -82,13 +82,13 @@ For local/dev scripts, the root `.env.example` includes additional helper variab
 ## Install and Run
 
 ```bash
-node .yarn/releases/yarn-4.cjs install --immutable
-node .yarn/releases/yarn-4.cjs db:generate
-node .yarn/releases/yarn-4.cjs dev:web
-node .yarn/releases/yarn-4.cjs dev:admin
+yarn install --immutable
+yarn db:generate
+yarn dev:web
+yarn dev:admin
 ```
 
-Do not use ambient Yarn 1 for installation. This workspace uses `workspace:*` dependencies and the repository-pinned Yarn 4 launcher avoids registry lookup failures for internal packages.
+Use Corepack-managed Yarn locally. This workspace declares `yarn@4.6.0` in `package.json`, so `corepack enable` followed by plain `yarn ...` commands avoids Yarn 1 registry lookup failures for internal `workspace:*` packages.
 
 The web app runs on port `3000`. The admin app runs on port `3001`.
 
@@ -101,15 +101,15 @@ If the admin app runs somewhere other than `http://localhost:3001`, update `NEXT
 For local schema sync against disposable development data:
 
 ```bash
-node .yarn/releases/yarn-4.cjs db:generate
-node .yarn/releases/yarn-4.cjs db:push
+yarn db:generate
+yarn db:push
 ```
 
 For CI, staging, production, or any shared database, apply checked-in migrations instead:
 
 ```bash
-node .yarn/releases/yarn-4.cjs db:generate
-node .yarn/releases/yarn-4.cjs db:migrate:deploy
+yarn db:generate
+yarn db:migrate:deploy
 ```
 
 Use destructive Prisma flags only when intentionally dropping or replacing data.
@@ -119,11 +119,11 @@ Use destructive Prisma flags only when intentionally dropping or replacing data.
 Run:
 
 ```bash
-node .yarn/releases/yarn-4.cjs check:env
-node .yarn/releases/yarn-4.cjs lint
-node .yarn/releases/yarn-4.cjs typecheck
-node .yarn/releases/yarn-4.cjs build:web
-node .yarn/releases/yarn-4.cjs build:admin
+yarn check:env
+yarn lint
+yarn typecheck
+yarn build:web
+yarn build:admin
 ```
 
 `check:env` verifies that `.env.example` lists the direct runtime environment variables used by app, package, and script code.
@@ -131,7 +131,7 @@ node .yarn/releases/yarn-4.cjs build:admin
 For the founder calibration code path, run the full verifier:
 
 ```bash
-node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
+yarn verify:founder-calibration-code
 ```
 
 This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG and pilot evals, founder calibration fixtures/regression, founder reports, web/admin/ChatGPT typechecks and builds, and ChatGPT app tests. It proves the code path is ready.
@@ -139,7 +139,7 @@ This checks Prisma generation, auth tests, web API-policy tests, AI tests, RAG a
 To mirror CI locally, including the Docker image job, run:
 
 ```bash
-node .yarn/releases/yarn-4.cjs verify:ci
+yarn verify:ci
 ```
 
 `verify:ci` validates Prisma, applies migrations to the configured database, runs the founder calibration verifier, validates the Docker Compose config, and builds production Docker images for web, admin, and ChatGPT/MCP. Use `verify:founder-calibration-code` when Docker is not installed or when you only need the app-level checks.
@@ -147,7 +147,7 @@ node .yarn/releases/yarn-4.cjs verify:ci
 Before asking Carl and Maria to start live sessions, print the current launch packet:
 
 ```bash
-node .yarn/releases/yarn-4.cjs packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
+yarn packet:founder-calibration --web-url http://localhost:3000 --admin-url http://localhost:3001
 ```
 
 Founder reports are operational visibility. A feedback type is enough to keep Carl/Maria calibration moving; notes and ready/golden reviews are useful only when they capture a specific tuning detail or strong example.
@@ -155,8 +155,8 @@ Founder reports are operational visibility. A feedback type is enough to keep Ca
 To build and test the ChatGPT MCP server package locally:
 
 ```bash
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
+yarn --cwd apps/chatgpt-app build
+yarn --cwd apps/chatgpt-app test
 ```
 
 The current preferred MCP tool is `run_inner_council_reflection`; it uses the same Inner Council service as the web journal. The older analysis/avatar/prompt tools remain available for compatibility.
@@ -204,12 +204,12 @@ The repository includes production Dockerfiles for web, admin, and ChatGPT/MCP p
 
 ```bash
 cp .env.example .env
-node .yarn/releases/yarn-4.cjs verify:docker
-node .yarn/releases/yarn-4.cjs docker:build:web
-node .yarn/releases/yarn-4.cjs docker:build:admin
-node .yarn/releases/yarn-4.cjs docker:build:chatgpt
-node .yarn/releases/yarn-4.cjs docker:compose:migrate
-node .yarn/releases/yarn-4.cjs docker:compose:up
+yarn verify:docker
+yarn docker:build:web
+yarn docker:build:admin
+yarn docker:build:chatgpt
+yarn docker:compose:migrate
+yarn docker:compose:up
 ```
 
 `verify:docker` is the Docker-only CI parity check. It validates Compose and builds all three runtime images without running application tests.
@@ -233,13 +233,13 @@ The repository also keeps a focused CI workflow for the ChatGPT MCP app image.
 
 CI notes:
 
-- The workflow runs `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build` and `node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test` before building the Docker image.
+- The workflow runs `yarn --cwd apps/chatgpt-app build` and `yarn --cwd apps/chatgpt-app test` before building the Docker image.
 
 Vercel notes:
 
 - The root `vercel.json` is configured for the web app project. It installs with the bundled Yarn 4 launcher, builds `apps/web`, and tells Vercel to read the Next.js output from `apps/web/.next`.
 - `apps/web/vercel.json` and `apps/admin/vercel.json` support optional Vercel projects whose root directory is set to the app folder. They `cd` back to the monorepo root for install/build and use `.next` as the app-relative output directory.
-- Vercel's build machines may default to Yarn v1 which cannot resolve `workspace:*` protocol. Do not use ambient `yarn install`; call `node .yarn/releases/yarn-4.cjs install --immutable`.
+- Vercel's build machines may default to Yarn v1, which cannot resolve `workspace:*` protocol. Keep Vercel project commands pointed at the checked-in Yarn 4 launcher, as shown above and in `vercel.json`.
 - `bash ./scripts/vercel-build.sh` is a broad helper that builds web, admin, and ChatGPT/MCP. Use it only for an intentional all-app build, not for the default web-only Vercel project.
 
 The repository intentionally does not use an install lifecycle hook to invoke Yarn from inside Yarn; Vercel should call the bundled launcher explicitly through the install/build commands above.
@@ -247,8 +247,8 @@ The repository intentionally does not use an install lifecycle hook to invoke Ya
 Set production database schema before using the apps:
 
 ```bash
-node .yarn/releases/yarn-4.cjs db:generate
-node .yarn/releases/yarn-4.cjs db:migrate:deploy
+yarn db:generate
+yarn db:migrate:deploy
 ```
 
 Configure the Stripe webhook endpoint for the web deployment:

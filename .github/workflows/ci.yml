@@ -45,67 +45,70 @@ jobs:
           node-version: "20"
           cache: "yarn"
 
-      - name: Verify pinned Yarn
-        run: node .yarn/releases/yarn-4.cjs --version
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Verify Yarn
+        run: yarn --version
 
       - name: Install dependencies
-        run: node .yarn/releases/yarn-4.cjs install --immutable
+        run: yarn install --immutable
 
       - name: Validate environment template
-        run: node .yarn/releases/yarn-4.cjs check:env
+        run: yarn check:env
 
       - name: Validate Prisma schema
-        run: node .yarn/releases/yarn-4.cjs prisma validate
+        run: yarn prisma validate
 
       - name: Apply database migrations
-        run: node .yarn/releases/yarn-4.cjs db:migrate:deploy
+        run: yarn db:migrate:deploy
 
       - name: Typecheck
-        run: node .yarn/releases/yarn-4.cjs typecheck
+        run: yarn typecheck
 
       - name: Lint
-        run: node .yarn/releases/yarn-4.cjs lint
+        run: yarn lint
 
       - name: Run auth tests
-        run: node .yarn/releases/yarn-4.cjs test:auth
+        run: yarn test:auth
 
       - name: Run web tests
-        run: node .yarn/releases/yarn-4.cjs test:web
+        run: yarn test:web
 
       - name: Run admin tests
-        run: node .yarn/releases/yarn-4.cjs test:admin
+        run: yarn test:admin
 
       - name: Run AI tests
-        run: node .yarn/releases/yarn-4.cjs test:ai
+        run: yarn test:ai
 
       - name: Run RAG evals
-        run: node .yarn/releases/yarn-4.cjs test:rag
+        run: yarn test:rag
 
       - name: Run internal RAG smoke
-        run: node .yarn/releases/yarn-4.cjs smoke:rag
+        run: yarn smoke:rag
 
       - name: Run pilot evals
-        run: node .yarn/releases/yarn-4.cjs test:pilot
+        run: yarn test:pilot
 
       - name: Run founder calibration checks
         run: |
-          node .yarn/releases/yarn-4.cjs test:founder-calibration
-          node .yarn/releases/yarn-4.cjs test:founder-calibration-regression
-          node .yarn/releases/yarn-4.cjs report:founder-calibration-setup
-          node .yarn/releases/yarn-4.cjs report:founder-calibration
-          node .yarn/releases/yarn-4.cjs report:founder-calibration-comparison
+          yarn test:founder-calibration
+          yarn test:founder-calibration-regression
+          yarn report:founder-calibration-setup
+          yarn report:founder-calibration
+          yarn report:founder-calibration-comparison
 
       - name: Run ChatGPT app tests
-        run: node .yarn/releases/yarn-4.cjs test:chatgpt
+        run: yarn test:chatgpt
 
       - name: Build web
-        run: node .yarn/releases/yarn-4.cjs build:web
+        run: yarn build:web
 
       - name: Build admin
-        run: node .yarn/releases/yarn-4.cjs build:admin
+        run: yarn build:admin
 
       - name: Build ChatGPT app
-        run: node .yarn/releases/yarn-4.cjs build:chatgpt
+        run: yarn build:chatgpt
 
   docker:
     name: Build Docker images
@@ -122,11 +125,14 @@ jobs:
           node-version: "20"
           cache: "yarn"
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: node .yarn/releases/yarn-4.cjs install --immutable
+        run: yarn install --immutable
 
       - name: Validate Docker Compose config
-        run: node .yarn/releases/yarn-4.cjs docker:compose:config
+        run: yarn docker:compose:config
 
       - name: Build web image
         run: docker build -f apps/web/Dockerfile -t inner-avatar-web:${{ github.sha }} .

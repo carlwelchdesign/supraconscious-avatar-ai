@@ -26,19 +26,19 @@ This document describes the ChatGPT MCP server added in Phase 5 and finalized in
 Run the app locally in development mode (uses `tsx`):
 
 ```bash
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app dev
+yarn --cwd apps/chatgpt-app dev
 ```
 
 To compile TypeScript and produce a production artifact:
 
 ```bash
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
+yarn --cwd apps/chatgpt-app build
 ```
 
 Run the test suite:
 
 ```bash
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
+yarn --cwd apps/chatgpt-app test
 ```
 
 All tests pass locally: 36 passing tests at the time of writing.
@@ -71,12 +71,13 @@ The workflow is at `.github/workflows/chatgpt-app-deploy.yml` and does:
 - Build Docker image
 - The broader `.github/workflows/ci.yml` workflow also builds the web, admin, and ChatGPT Docker images.
 
-If your CI host does not support Corepack, use the repository Yarn launcher:
+Use Corepack-managed Yarn locally and in CI:
 
 ```bash
-node .yarn/releases/yarn-4.cjs install --immutable
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
-node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app test
+corepack enable
+yarn install --immutable
+yarn --cwd apps/chatgpt-app build
+yarn --cwd apps/chatgpt-app test
 ```
 
 ## Runtime configuration
@@ -87,7 +88,7 @@ The server expects runtime access to dependent workspace packages (`@inner-avata
 
 ## Troubleshooting
 
-- If Docker build fails due to Yarn lockfile or peer issues, run `node .yarn/releases/yarn-4.cjs install --immutable` locally. If the lockfile truly needs to change after dependency edits, run the same pinned launcher without `--immutable`, review and commit the lockfile, then retry the Docker build.
+- If Docker build fails due to Yarn lockfile or peer issues, run `yarn install --immutable` locally. If the lockfile truly needs to change after dependency edits, run `yarn install`, review and commit the lockfile, then retry the Docker build.
 - ESM resolution required explicit `.js` extensions in internal package exports; the workspace packages include `type: "module"` and imports use `.js` extensions for Node16+ resolution.
 
 ## Next steps

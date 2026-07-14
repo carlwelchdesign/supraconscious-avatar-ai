@@ -150,39 +150,43 @@ Hosted tool execution should set `CHATGPT_APP_API_TOKEN`; health and tool metada
 
 ## Commands
 
-Use the repository Yarn launcher. Do not use ambient Yarn 1.
+Use Corepack-managed Yarn. This repo declares `yarn@4.6.0` in `package.json`, so local commands should use plain `yarn`.
 
 ```bash
-node .yarn/releases/yarn-4.cjs install --immutable
-node .yarn/releases/yarn-4.cjs db:generate
+corepack enable
+```
 
-node .yarn/releases/yarn-4.cjs dev:web
-node .yarn/releases/yarn-4.cjs dev:admin
-node .yarn/releases/yarn-4.cjs dev:chatgpt
-node .yarn/releases/yarn-4.cjs dev:founder-calibration
+```bash
+yarn install --immutable
+yarn db:generate
 
-node .yarn/releases/yarn-4.cjs check:env
-node .yarn/releases/yarn-4.cjs typecheck
-node .yarn/releases/yarn-4.cjs lint
-node .yarn/releases/yarn-4.cjs test:web
-node .yarn/releases/yarn-4.cjs test:admin
-node .yarn/releases/yarn-4.cjs test:ai
-node .yarn/releases/yarn-4.cjs test:rag
-node .yarn/releases/yarn-4.cjs test:langsmith
-node .yarn/releases/yarn-4.cjs test:chatgpt
+yarn dev:web
+yarn dev:admin
+yarn dev:chatgpt
+yarn dev:founder-calibration
 
-node .yarn/releases/yarn-4.cjs build:web
-node .yarn/releases/yarn-4.cjs build:admin
-node .yarn/releases/yarn-4.cjs build:chatgpt
+yarn check:env
+yarn typecheck
+yarn lint
+yarn test:web
+yarn test:admin
+yarn test:ai
+yarn test:rag
+yarn test:langsmith
+yarn test:chatgpt
 
-node .yarn/releases/yarn-4.cjs mobile:check
-node .yarn/releases/yarn-4.cjs mobile:doctor
-node .yarn/releases/yarn-4.cjs mobile:analyze
-node .yarn/releases/yarn-4.cjs mobile:test
-node .yarn/releases/yarn-4.cjs mobile:build:android
+yarn build:web
+yarn build:admin
+yarn build:chatgpt
 
-node .yarn/releases/yarn-4.cjs verify:founder-calibration-code
-node .yarn/releases/yarn-4.cjs verify:ci
+yarn mobile:check
+yarn mobile:doctor
+yarn mobile:analyze
+yarn mobile:test
+yarn mobile:build:android
+
+yarn verify:founder-calibration-code
+yarn verify:ci
 ```
 
 `verify:founder-calibration-code` runs the full application code path used by CI. `verify:ci` adds Docker Compose validation and production image builds for web, admin, and ChatGPT/MCP.
@@ -190,12 +194,12 @@ node .yarn/releases/yarn-4.cjs verify:ci
 ## Docker
 
 ```bash
-node .yarn/releases/yarn-4.cjs verify:docker
-node .yarn/releases/yarn-4.cjs docker:build:web
-node .yarn/releases/yarn-4.cjs docker:build:admin
-node .yarn/releases/yarn-4.cjs docker:build:chatgpt
-node .yarn/releases/yarn-4.cjs docker:compose:up
-node .yarn/releases/yarn-4.cjs docker:compose:down
+yarn verify:docker
+yarn docker:build:web
+yarn docker:build:admin
+yarn docker:build:chatgpt
+yarn docker:compose:up
+yarn docker:compose:down
 ```
 
 Compose includes:

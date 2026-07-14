@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.tools
-    command: ["node", ".yarn/releases/yarn-4.cjs", "db:push"]
+    command: ["yarn", "db:push"]
     environment:
       DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql://inner_avatar:inner_avatar_dev@postgres:5432/inner_avatar?sslmode=disable}
     depends_on:

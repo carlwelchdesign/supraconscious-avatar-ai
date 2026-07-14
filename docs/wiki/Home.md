@@ -34,4 +34,4 @@ Supraconscious Avatar AI is a production-oriented AI journaling monorepo. It com
 - Keep `packages/db/prisma/schema.prisma` and docs in sync.
 - Keep auth docs updated when session, password, or admin logic changes.
 - Keep AI docs updated when model names, schemas, safety behavior, RAG policy, MCP tools, or prompt rules change.
-- Run `node .yarn/releases/yarn-4.cjs build:web` and `node .yarn/releases/yarn-4.cjs build:admin` before deploying.
+- Run `yarn build:web` and `yarn build:admin` before deploying.

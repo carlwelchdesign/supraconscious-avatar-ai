@@ -18,7 +18,7 @@ COPY packages/db/prisma ./packages/db/prisma
 COPY packages/types/package.json ./packages/types/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 
-RUN node .yarn/releases/yarn-4.cjs install --immutable
+RUN corepack enable && yarn install --immutable
 
 FROM node:20-bookworm-slim AS builder
 
@@ -36,7 +36,7 @@ COPY --from=deps /app/prisma.config.ts ./prisma.config.ts
 COPY packages ./packages
 COPY apps/admin ./apps/admin
 
-RUN node .yarn/releases/yarn-4.cjs --cwd apps/admin build
+RUN corepack enable && yarn --cwd apps/admin build
 
 FROM node:20-bookworm-slim AS runtime
 

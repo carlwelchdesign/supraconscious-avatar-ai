@@ -18,7 +18,7 @@ COPY packages/types/package.json ./packages/types/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/config/package.json ./packages/config/package.json
 
-RUN node .yarn/releases/yarn-4.cjs install --immutable
+RUN corepack enable && yarn install --immutable
 
 FROM node:20-alpine AS builder
 
@@ -41,7 +41,7 @@ COPY packages/types ./packages/types
 COPY packages/ui ./packages/ui
 COPY packages/config ./packages/config
 
-RUN node .yarn/releases/yarn-4.cjs --cwd apps/chatgpt-app build
+RUN corepack enable && yarn --cwd apps/chatgpt-app build
 
 FROM node:20-alpine AS runtime
 WORKDIR /app
