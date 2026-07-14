@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { Prisma } from "@prisma/client"
+import { isReasoningGraphConceptAllowed } from "@inner-avatar/ai"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 
@@ -97,9 +98,10 @@ export async function createReasoningOntologyBridgeAction(formData: FormData) {
 async function promoteConcept(nodeId: string, actorId: string, reason: string) {
   const node = await prisma.reasoningGraphNode.findUnique({
     where: { id: nodeId },
-    include: { evidence: true },
+    include: { evidence: { include: { sourceDocument: true } } },
   })
   if (!node) redirect("/reasoning-ontology?status=invalid")
+  if (!isPromotableGraphNode(node)) redirect("/reasoning-ontology?status=not_promotable")
 
   const concept = await prisma.reasoningOntologyConcept.upsert({
     where: { conceptKey: node.nodeKey },
@@ -131,10 +133,11 @@ async function promoteRelationship(edgeId: string, actorId: string, reason: stri
     include: {
       fromNode: { include: { evidence: true } },
       toNode: { include: { evidence: true } },
-      evidence: true,
+      evidence: { include: { sourceDocument: true } },
     },
   })
   if (!edge) redirect("/reasoning-ontology?status=invalid")
+  if (!isPromotableGraphEdge(edge)) redirect("/reasoning-ontology?status=not_promotable")
 
   const [fromConcept, toConcept] = await Promise.all([
     ensureConceptFromNode(edge.fromNode, actorId),
@@ -172,9 +175,10 @@ async function promoteRelationship(edgeId: string, actorId: string, reason: stri
 async function promoteCluster(clusterId: string, actorId: string, reason: string) {
   const cluster = await prisma.reasoningGraphCluster.findUnique({
     where: { id: clusterId },
-    include: { nodes: { include: { evidence: true } } },
+    include: { nodes: { include: { evidence: { include: { sourceDocument: true } } } } },
   })
   if (!cluster) redirect("/reasoning-ontology?status=invalid")
+  if (!cluster.nodes.some(isPromotableGraphNode)) redirect("/reasoning-ontology?status=not_promotable")
 
   const ontologyCluster = await prisma.reasoningOntologyCluster.upsert({
     where: { clusterKey: `graph-cluster-${cluster.runId}-${cluster.clusterKey}` },
@@ -196,7 +200,7 @@ async function promoteCluster(clusterId: string, actorId: string, reason: string
     },
   })
 
-  for (const node of cluster.nodes.slice(0, 12)) {
+  for (const node of cluster.nodes.filter(isPromotableGraphNode).slice(0, 12)) {
     const concept = await ensureConceptFromNode(node, actorId)
     await prisma.reasoningOntologyClusterConcept.upsert({
       where: { clusterId_conceptId: { clusterId: ontologyCluster.id, conceptId: concept.id } },
@@ -210,9 +214,10 @@ async function promoteCluster(clusterId: string, actorId: string, reason: string
 async function promoteOutcome(insightId: string, actorId: string, reason: string) {
   const insight = await prisma.reasoningGraphInsight.findUnique({
     where: { id: insightId },
-    include: { evidence: true },
+    include: { evidence: { include: { sourceDocument: true } } },
   })
   if (!insight) redirect("/reasoning-ontology?status=invalid")
+  if (!hasMariaMaterialsEvidence(insight.evidence)) redirect("/reasoning-ontology?status=not_promotable")
 
   const outcome = await prisma.reasoningOntologyOutcome.upsert({
     where: { outcomeKey: `graph-insight-${insight.id}` },
@@ -293,6 +298,34 @@ function normalizeRelationType(value: string) {
   return RelationshipTypes.includes(value as typeof RelationshipTypes[number])
     ? value
     : "associative"
+}
+
+function isPromotableGraphNode(node: {
+  label: string
+  nodeKey: string
+  evidence: Array<{ sourceDocument: { reasoningScope: string } | null }>
+}) {
+  return isReasoningGraphConceptAllowed(node.label) &&
+    isReasoningGraphConceptAllowed(node.nodeKey) &&
+    hasMariaMaterialsEvidence(node.evidence)
+}
+
+function isPromotableGraphEdge(edge: {
+  weight: number
+  fromNode: { label: string; nodeKey: string }
+  toNode: { label: string; nodeKey: string }
+  evidence: Array<{ sourceDocument: { reasoningScope: string } | null }>
+}) {
+  return edge.weight >= 2 &&
+    isReasoningGraphConceptAllowed(edge.fromNode.label) &&
+    isReasoningGraphConceptAllowed(edge.fromNode.nodeKey) &&
+    isReasoningGraphConceptAllowed(edge.toNode.label) &&
+    isReasoningGraphConceptAllowed(edge.toNode.nodeKey) &&
+    hasMariaMaterialsEvidence(edge.evidence)
+}
+
+function hasMariaMaterialsEvidence(evidence: Array<{ sourceDocument: { reasoningScope: string } | null }>) {
+  return evidence.length > 0 && evidence.every((item) => item.sourceDocument?.reasoningScope === "maria_materials")
 }
 
 function relationshipKeyFor(fromKey: string, toKey: string, relationType: string) {

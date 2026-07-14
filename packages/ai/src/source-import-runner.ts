@@ -31,7 +31,7 @@ export type SourceImportResult = {
 
 const MONTHLY_DIR_FRAGMENT = "YEARLY QUOTES"
 const IMAGE_DIR_FRAGMENT = "AVATAR IMAGES"
-const MANUSCRIPT_FRAGMENTS = ["BOOKS", "ORIGINAL MANUSCRIPTS"]
+const MANUSCRIPT_FRAGMENTS = ["BOOKS", "ORIGINAL MANUSCRIPTS", "RIGINAL MANUSCRIPTS"]
 
 export async function importSourceCorpus(sourceRoot: string): Promise<SourceImportResult> {
   const resolvedRoot = resolve(sourceRoot)

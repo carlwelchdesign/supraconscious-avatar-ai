@@ -702,6 +702,7 @@ model SourceDocument {
   author       String?
   work         String?
   sourceType   String // manuscript, curriculum, product_doctrine, image, external
+  reasoningScope String @default("excluded") // maria_materials, product_doctrine, curriculum, reference_only, excluded
   filePath     String?  @db.Text
   checksum     String?  @unique
   language     String   @default("en")
@@ -721,6 +722,7 @@ model SourceDocument {
   reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceType])
+  @@index([reasoningScope])
   @@index([reviewState])
   @@index([rightsStatus])
   @@index([importBatchId])
