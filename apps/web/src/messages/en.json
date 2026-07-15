@@ -28,8 +28,10 @@
     "nav": {
       "problem": "Problem",
       "council": "Council",
-      "experience": "Experience"
+      "experience": "Experience",
+      "pricing": "Pricing"
     },
+    "viewPlans": "View plans",
     "problem": "The problem",
     "problemTitleA": "You are not stuck.",
     "problemTitleB": "You are not seeing clearly.",
@@ -107,6 +109,9 @@
     ],
     "trustStatement": "Trusted by leaders, creators, and individuals ready to stop avoiding themselves.",
     "trustSubtext": "Testimonials and authority proof can be added here.",
+    "pricingEyebrow": "Plans",
+    "pricingTitle": "Start free. Upgrade when the practice deepens.",
+    "pricingBody": "See the plan that fits your reflection rhythm before you create an account. Checkout stays on the dedicated pricing page.",
     "finalTitleA": "You do not need another system.",
     "finalTitleB": "You need to see.",
     "finalBody": "You already know more than you think. This is where you finally face it.",

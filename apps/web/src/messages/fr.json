@@ -28,8 +28,10 @@
     "nav": {
       "problem": "Problème",
       "council": "Conseil",
-      "experience": "Expérience"
+      "experience": "Expérience",
+      "pricing": "Tarifs"
     },
+    "viewPlans": "Voir les offres",
     "problem": "Le problème",
     "problemTitleA": "Tu n'es pas bloqué.",
     "problemTitleB": "Tu ne vois pas clairement.",
@@ -107,6 +109,9 @@
     ],
     "trustStatement": "Adopté par des leaders, des créateurs et des personnes prêtes à cesser de s'éviter.",
     "trustSubtext": "Les témoignages et preuves d'autorité peuvent être ajoutés ici.",
+    "pricingEyebrow": "Offres",
+    "pricingTitle": "Commence gratuitement. Passe à l'offre supérieure quand la pratique s'approfondit.",
+    "pricingBody": "Découvre l'offre adaptée à ton rythme de réflexion avant de créer un compte. Le paiement reste sur la page tarifs dédiée.",
     "finalTitleA": "Tu n'as pas besoin d'un autre système.",
     "finalTitleB": "Tu as besoin de voir.",
     "finalBody": "Tu sais déjà plus que tu ne le crois. C'est ici que tu y fais enfin face.",

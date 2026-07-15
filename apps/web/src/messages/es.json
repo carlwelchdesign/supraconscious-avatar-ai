@@ -28,8 +28,10 @@
     "nav": {
       "problem": "Problema",
       "council": "Consejo",
-      "experience": "Experiencia"
+      "experience": "Experiencia",
+      "pricing": "Precios"
     },
+    "viewPlans": "Ver planes",
     "problem": "El problema",
     "problemTitleA": "No estás atascado.",
     "problemTitleB": "No estás viendo con claridad.",
@@ -107,6 +109,9 @@
     ],
     "trustStatement": "Usado por líderes, creadores y personas listas para dejar de evitarse.",
     "trustSubtext": "Los testimonios y pruebas de autoridad pueden añadirse aquí.",
+    "pricingEyebrow": "Planes",
+    "pricingTitle": "Empieza gratis. Mejora cuando la práctica se profundice.",
+    "pricingBody": "Ve qué plan encaja con tu ritmo de reflexión antes de crear una cuenta. El checkout permanece en la página de precios.",
     "finalTitleA": "No necesitas otro sistema.",
     "finalTitleB": "Necesitas ver.",
     "finalBody": "Ya sabes más de lo que crees. Aquí es donde finalmente lo enfrentas.",

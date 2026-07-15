@@ -2,26 +2,12 @@ import Link from "next/link"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { isStripeConfigured } from "@inner-avatar/billing"
+import { getPricingPageContent, prisma, type PricingPageContent } from "@inner-avatar/db"
 import { resolveWebLanguage } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 import { startCheckoutAction } from "./actions"
 
-const plans = [
-  {
-    key: "free",
-    featured: false,
-  },
-  {
-    key: "starter",
-    plan: "starter",
-    featured: true,
-  },
-  {
-    key: "pro",
-    plan: "pro",
-    featured: false,
-  },
-] as const
+export const dynamic = "force-dynamic"
 
 export default async function PricingPage({
   searchParams,
@@ -30,7 +16,7 @@ export default async function PricingPage({
 }) {
   const user = await getCurrentUser()
   const language = await resolveWebLanguage(user?.preferredLanguage)
-  const pricing = getWebMessages(language).pricing
+  const pricing = await getPricingPageContent(prisma, getWebMessages(language).pricing)
   const billingEnabled = isStripeConfigured()
 
   return (
@@ -68,8 +54,7 @@ export default async function PricingPage({
         ) : null}
 
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {plans.map((plan) => {
-            const planMessages = pricing.plans[plan.key]
+          {pricing.plans.map((plan) => {
             const cadence = plan.key === "free" ? pricing.cadenceAlways : pricing.cadenceMonth
             return (
             <section
@@ -88,23 +73,23 @@ export default async function PricingPage({
               )}
               <div>
                 <p className={plan.featured ? "text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--clay-light)]" : "text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--clay)]"}>
-                  {planMessages.name}
+                  {plan.name}
                 </p>
                 <div className="mt-5 flex items-end gap-2">
                   <span className={plan.featured ? "font-display text-[56px] font-light leading-none text-[var(--cream)]" : "font-display text-[56px] font-light leading-none text-[var(--primary)]"}>
-                    {planMessages.price}
+                    {plan.price}
                   </span>
                   <span className={plan.featured ? "pb-1 text-[13px] font-light text-[var(--cream)]/55" : "pb-1 text-[13px] font-light text-[var(--plum-soft)]"}>
                     / {cadence}
                   </span>
                 </div>
                 <p className={plan.featured ? "mt-5 text-[14px] font-light leading-relaxed text-[var(--cream)]/68" : "mt-5 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]"}>
-                  {planMessages.description}
+                  {plan.description}
                 </p>
               </div>
 
               <ul className="mt-8 space-y-3">
-                {planMessages.features.map((feature) => (
+                {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
                     <span
                       className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -118,9 +103,9 @@ export default async function PricingPage({
               </ul>
 
               <div className="mt-auto pt-8">
-                {"plan" in plan ? (
+                {plan.billingPlan ? (
                   <form action={startCheckoutAction}>
-                    <input type="hidden" name="plan" value={plan.plan} />
+                    <input type="hidden" name="plan" value={plan.billingPlan} />
                     <button
                       type="submit"
                       disabled={!billingEnabled}
@@ -130,7 +115,7 @@ export default async function PricingPage({
                       }
                       style={plan.featured ? undefined : { borderColor: "rgba(43,27,53,0.1)" }}
                     >
-                      {user ? planMessages.cta : pricing.signInFor.replace("{plan}", planMessages.name)}
+                      {user ? plan.cta : pricing.signInFor.replace("{plan}", plan.name)}
                       <ArrowRight className="h-4 w-4" />
                     </button>
                     {!billingEnabled ? (
@@ -145,7 +130,7 @@ export default async function PricingPage({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-5 py-3 text-[13px] font-medium text-[var(--primary)] transition-all hover:-translate-y-px"
                     style={{ borderColor: "rgba(43,27,53,0.1)" }}
                   >
-                    {user ? pricing.continueFree : planMessages.cta}
+                    {user ? pricing.continueFree : plan.cta}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 )}
@@ -163,7 +148,7 @@ async function PricingStatus({
   pricing,
 }: {
   searchParams: Promise<{ checkout?: string }>
-  pricing: ReturnType<typeof getWebMessages>["pricing"]
+  pricing: PricingPageContent
 }) {
   const params = await searchParams
   if (params.checkout !== "unavailable" && params.checkout !== "invalid-plan" && params.checkout !== "cancelled") {
