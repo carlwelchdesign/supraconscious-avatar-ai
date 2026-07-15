@@ -28,8 +28,10 @@
     "nav": {
       "problem": "问题",
       "council": "议会",
-      "experience": "体验"
+      "experience": "体验",
+      "pricing": "定价"
     },
+    "viewPlans": "查看方案",
     "problem": "问题",
     "problemTitleA": "你并不是卡住了。",
     "problemTitleB": "你只是还没有看清。",
@@ -107,6 +109,9 @@
     ],
     "trustStatement": "受到准备停止回避自己的领导者、创作者和个人信任。",
     "trustSubtext": "推荐语和权威证明可在此添加。",
+    "pricingEyebrow": "方案",
+    "pricingTitle": "免费开始。练习加深时再升级。",
+    "pricingBody": "创建账户前，先查看哪个方案适合你的反思节奏。结账仍保留在专门的定价页面。",
     "finalTitleA": "你不需要另一个系统。",
     "finalTitleB": "你需要看见。",
     "finalBody": "你知道的比你以为的更多。这里是你终于面对它的地方。",

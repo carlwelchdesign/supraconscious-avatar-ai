@@ -63,6 +63,7 @@ import {
   resolvePilotEventInputHash,
   normalizeGuideStage,
   normalizePdfTextToParagraphs,
+  parseObsidianMarkdown,
   formatFounderCalibrationScenario,
   sanitizeProperties,
   sanitizeLangSmithMetadata,
@@ -716,6 +717,62 @@ test("source importer classifies corpus paths conservatively", () => {
   assert.equal(defaultReasoningScopeForSourceType("product_doctrine"), "product_doctrine")
   assert.equal(defaultReasoningScopeForSourceType("curriculum"), "curriculum")
   assert.equal(defaultReasoningScopeForSourceType("image"), "excluded")
+})
+
+test("Obsidian parser imports only explicitly opted-in notes", () => {
+  const skipped = parseObsidianMarkdown("# Draft\n\nNot ready.", "Draft.md")
+  const imported = parseObsidianMarkdown(`---
+inner_avatar_import: true
+---
+
+# Ready Note
+
+This note is ready for source review.`, "Ready Note.md")
+
+  assert.equal(skipped.shouldImport, false)
+  assert.equal(imported.shouldImport, true)
+  assert.equal(imported.title, "Ready Note")
+  assert.match(imported.body, /^# Ready Note/)
+  assert.equal(imported.body.includes("inner_avatar_import"), false)
+})
+
+test("Obsidian parser preserves core metadata and links", () => {
+  const note = parseObsidianMarkdown(`---
+inner_avatar_import: true
+title: Council Doctrine
+sourceType: manuscript
+reasoningScope: maria_materials
+author: Maria Olon Tsaroucha
+work: Founder Vault
+language: en
+tags: [inner-council, source]
+aliases:
+  - Council Source
+---
+
+# Ignored Heading
+
+See [[Shadow Work|shadow work]] and [reference](https://example.com/source).`, "Sources/Council Doctrine.md")
+
+  assert.equal(note.title, "Council Doctrine")
+  assert.equal(note.sourceType, "manuscript")
+  assert.equal(note.reasoningScope, "maria_materials")
+  assert.equal(note.author, "Maria Olon Tsaroucha")
+  assert.deepEqual(note.tags, ["inner-council", "source"])
+  assert.deepEqual(note.aliases, ["Council Source"])
+  assert.deepEqual(note.wikiLinks, ["Shadow Work"])
+  assert.deepEqual(note.markdownLinks, ["https://example.com/source"])
+})
+
+test("Obsidian parser defaults opted-in notes to product doctrine scope", () => {
+  const note = parseObsidianMarkdown(`---
+inner_avatar_import: true
+---
+
+No explicit source type.`, "Product Thought.md")
+
+  assert.equal(note.sourceType, "product_doctrine")
+  assert.equal(note.reasoningScope, "product_doctrine")
 })
 
 test("PDF text normalization creates clean review paragraphs", () => {

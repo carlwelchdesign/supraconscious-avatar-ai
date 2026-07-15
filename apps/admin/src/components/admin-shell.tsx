@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
-import { BarChart3, BookOpen, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Network, Shield, Sparkles, Users } from "lucide-react"
+import { BarChart3, BookOpen, CreditCard, FileWarning, Flag, HeartPulse, LogOut, MessageSquareText, Network, Shield, Sparkles, Tags, Users } from "lucide-react"
 import { adminLogoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 
@@ -8,6 +8,7 @@ const nav = [
   { href: "/", labelKey: "overview", icon: Shield },
   { href: "/users", labelKey: "users", icon: Users },
   { href: "/subscriptions", labelKey: "subscriptions", icon: CreditCard },
+  { href: "/pricing", labelKey: "pricing", icon: Tags },
   { href: "/safety", labelKey: "safety", icon: FileWarning },
   { href: "/health", labelKey: "systemHealth", icon: HeartPulse },
   { href: "/pilot", labelKey: "pilotReadiness", icon: BarChart3 },

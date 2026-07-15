@@ -11,6 +11,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Voice Features](voice.md): microphone transcription, text-to-speech playback, preferences, and API routes.
 - [Voice Browser Troubleshooting](voice-browser-troubleshooting.md): browser and device-specific microphone/playback support notes.
 - [Admin and Operations](admin-and-operations.md): separate admin app, privacy controls, audit logging, users, subscriptions, safety, prompt templates, feature flags, and operational checks.
+- [Obsidian Vault Import](obsidian-vault-import.md): local-only Obsidian authoring workflow for importing opted-in Markdown notes into source review.
 - [Container and Kubernetes Readiness](container-and-kubernetes.md): Docker images, Compose testing, runtime environment, and future Kubernetes scaling model.
 - [Flutter Mobile App](mobile-flutter.md): App Store/Google Play plan, local Flutter tooling, mobile workspace shape, and wearable deferral.
 - [Wiki Home](wiki/Home.md): GitHub-wiki-style navigation page that can be copied into an actual GitHub Wiki.

@@ -4,6 +4,8 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import { Prisma, PrismaClient } from "@prisma/client"
 import { config as loadDotenv } from "dotenv"
 
+export * from "./pricing-content.js"
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
@@ -14,7 +16,7 @@ function getPrismaClient() {
   }
 
   loadLocalEnvFallback()
-  const connectionString = process.env.DATABASE_URL
+  const connectionString = normalizeDatabaseConnectionString(process.env.DATABASE_URL)
 
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set")
@@ -63,6 +65,28 @@ export const prisma = new Proxy({} as PrismaClient, {
 })
 
 export default prisma
+
+export function normalizeDatabaseConnectionString(connectionString: string | undefined) {
+  if (!connectionString) return connectionString
+
+  try {
+    const parsed = new URL(connectionString)
+    const sslMode = parsed.searchParams.get("sslmode")?.trim().toLowerCase()
+    const useLibpqCompat = parsed.searchParams.get("uselibpqcompat")?.trim().toLowerCase()
+
+    if (
+      useLibpqCompat !== "true" &&
+      (sslMode === "prefer" || sslMode === "require" || sslMode === "verify-ca")
+    ) {
+      parsed.searchParams.set("sslmode", "verify-full")
+      return parsed.toString()
+    }
+  } catch {
+    return connectionString
+  }
+
+  return connectionString
+}
 
 function prismaLogLevels(): Prisma.LogLevel[] {
   if (process.env.PRISMA_QUERY_LOGGING === "true") return ["query", "error", "warn"]

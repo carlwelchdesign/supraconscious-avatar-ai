@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "../../node_modules/.bin/tsc --noEmit",
+    "import:obsidian": "tsx scripts/import-obsidian-vault.ts",
     "import:sources": "tsx scripts/import-sources.ts",
     "lint": "../../node_modules/.bin/eslint .",
     "seed:pilot": "tsx scripts/seed-internal-pilot.ts",

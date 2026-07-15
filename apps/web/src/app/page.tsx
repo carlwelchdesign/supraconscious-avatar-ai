@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
+import { getPricingPageContent, prisma, type PricingPageContent } from "@inner-avatar/db"
 import { LanguagePicker } from "@/components/landing/language-picker"
 import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
@@ -29,6 +30,7 @@ export default async function Home() {
   const messages = getWebMessages(currentLanguage)
   const common = messages.common
   const landing = messages.landing
+  const pricing = await getPricingPageContent(prisma, messages.pricing)
   const primaryHref = user ? "/journal" : "/register"
   const primaryCta = user ? common.continueReflection : common.startReflection
   const finalCta = user ? common.continueReflection : landing.finalCta
@@ -45,6 +47,7 @@ export default async function Home() {
               [landing.nav.problem, "#problem"],
               [landing.nav.council, "#council"],
               [landing.nav.experience, "#experience"],
+              [landing.nav.pricing, "/pricing"],
             ].map(([label, href]) => (
               <Link
                 key={href}
@@ -108,6 +111,13 @@ export default async function Home() {
               <CtaLink href={primaryHref} variant="light">
                 {primaryCta}
               </CtaLink>
+              <Link
+                href="/pricing"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--cream)]/22 px-6 py-3 text-sm font-medium text-[var(--cream)] transition hover:-translate-y-0.5 hover:border-[var(--cream)]/42 hover:bg-[var(--cream)]/8 focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+              >
+                {landing.viewPlans}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
               <Link
                 href="#problem"
                 className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-[var(--cream)]/72 transition hover:text-[var(--cream)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
@@ -289,6 +299,8 @@ export default async function Home() {
         </div>
       </section>
 
+      <PricingPreview pricing={pricing} landing={landing} />
+
       <section className="bg-[var(--primary)] px-5 py-28 text-center text-[var(--cream)] md:px-8 lg:py-36">
         <div className="mx-auto max-w-3xl">
           <h2 className="font-display text-[clamp(46px,6vw,86px)] font-light leading-[1.02]">
@@ -319,5 +331,68 @@ export default async function Home() {
         </div>
       </footer>
     </main>
+  )
+}
+
+function PricingPreview({
+  pricing,
+  landing,
+}: {
+  pricing: PricingPageContent
+  landing: ReturnType<typeof getWebMessages>["landing"]
+}) {
+  return (
+    <section id="pricing" className="border-y border-[var(--border)] bg-[var(--pearl)] px-5 py-20 md:px-8 lg:py-28">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.pricingEyebrow}</p>
+            <h2 className="font-display text-[clamp(38px,5vw,64px)] font-light leading-[1.06] text-[var(--primary)]">
+              {landing.pricingTitle}
+            </h2>
+          </div>
+          <div className="max-w-2xl lg:justify-self-end">
+            <p className="text-[17px] font-light leading-[1.75] text-[var(--plum-soft)]">
+              {landing.pricingBody}
+            </p>
+            <Link
+              href="/pricing"
+              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--cream)] transition hover:-translate-y-px hover:bg-[var(--plum-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--clay)]"
+            >
+              {landing.viewPlans}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {pricing.plans.map((plan) => (
+            <article
+              key={plan.key}
+              className="flex min-h-52 flex-col rounded-lg border border-[var(--border)] bg-[var(--cream)] p-6 shadow-[0_12px_38px_rgba(43,27,53,0.05)]"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--clay)]">{plan.name}</p>
+                  <div className="mt-4 flex items-end gap-2">
+                    <span className="font-display text-5xl font-light leading-none text-[var(--primary)]">{plan.price}</span>
+                    <span className="pb-1 text-xs font-light text-[var(--plum-soft)]">
+                      / {plan.key === "free" ? pricing.cadenceAlways : pricing.cadenceMonth}
+                    </span>
+                  </div>
+                </div>
+                {plan.featured ? (
+                  <span className="rounded-full bg-[var(--clay)]/12 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--clay)]">
+                    {pricing.recommended}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-5 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">{plan.description}</p>
+              <p className="mt-auto pt-6 text-[13px] font-medium text-[var(--primary)]">{plan.cta}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }

@@ -28,8 +28,10 @@
     "nav": {
       "problem": "Problem",
       "council": "Rat",
-      "experience": "Erfahrung"
+      "experience": "Erfahrung",
+      "pricing": "Preise"
     },
+    "viewPlans": "Pläne ansehen",
     "problem": "Das Problem",
     "problemTitleA": "Du steckst nicht fest.",
     "problemTitleB": "Du siehst nicht klar.",
@@ -107,6 +109,9 @@
     ],
     "trustStatement": "Genutzt von Führungskräften, Kreativen und Menschen, die bereit sind, sich nicht länger auszuweichen.",
     "trustSubtext": "Testimonials und Autoritätsnachweise können hier ergänzt werden.",
+    "pricingEyebrow": "Pläne",
+    "pricingTitle": "Starte kostenlos. Upgrade, wenn die Praxis tiefer wird.",
+    "pricingBody": "Sieh dir an, welcher Plan zu deinem Reflexionsrhythmus passt, bevor du ein Konto erstellst. Der Checkout bleibt auf der eigenen Preisseite.",
     "finalTitleA": "Du brauchst kein weiteres System.",
     "finalTitleB": "Du musst sehen.",
     "finalBody": "Du weißt bereits mehr, als du denkst. Hier begegnest du dem endlich.",

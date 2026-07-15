@@ -330,6 +330,54 @@ model AvatarStageConfig {
   @@index([active])
 }
 
+// Pricing page config - admin-managed public pricing page copy
+model PricingPageConfig {
+  id                    String   @id @default(cuid())
+  key                   String   @unique @default("default")
+  active                Boolean  @default(true)
+  eyebrow               String?
+  titleA                String?
+  titleB                String?
+  body                  String?  @db.Text
+  recommendedLabel      String?
+  cadenceAlways         String?
+  cadenceMonth          String?
+  billingDisabledNotice String?  @db.Text
+  checkoutDisabled      String?
+  signInFor             String?
+  continueFree          String?
+  statusInvalidPlan     String?  @db.Text
+  statusCancelled       String?  @db.Text
+  statusUnavailable     String?  @db.Text
+  metadata              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([active])
+}
+
+// Pricing plan config - admin-managed display cards for the public pricing page
+model PricingPlanConfig {
+  id           String   @id @default(cuid())
+  planKey      String   @unique
+  displayOrder Int      @default(0)
+  visible      Boolean  @default(true)
+  featured     Boolean  @default(false)
+  name         String?
+  price        String?
+  description  String?  @db.Text
+  features     Json?
+  cta          String?
+  billingPlan  String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([visible])
+  @@index([displayOrder])
+  @@index([billingPlan])
+}
+
 // Journal entry - raw user input
 model JournalEntry {
   id        String   @id @default(cuid())
