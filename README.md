@@ -16,6 +16,37 @@ Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis 
 
 `ai` `journaling` `reflection` `saas` `nextjs` `react` `typescript` `postgresql` `prisma` `openai` `rag` `vector-database` `mcp` `cms` `admin-dashboard` `docker` `kubernetes-ready`
 
+## Product Screenshots
+
+The screenshots below use public pages or privacy-safe application states without saved journal content or account details.
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/readme/landing-page.png" alt="Supraconscious landing page" />
+      <br />
+      <sub><strong>Landing page</strong> — product positioning and primary reflection entry point.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/images/readme/pricing-page.png" alt="Supraconscious pricing page" />
+      <br />
+      <sub><strong>Pricing</strong> — CMS-backed plan comparison and billing availability.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/readme/journal-workspace.png" alt="Supraconscious guided journal workspace" />
+      <br />
+      <sub><strong>Journal workspace</strong> — guided reflection scenarios and the daily writing frame.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/images/readme/privacy-settings.png" alt="Supraconscious privacy and preferences settings" />
+      <br />
+      <sub><strong>Privacy and preferences</strong> — language, passkeys, safety, memory, and account controls.</sub>
+    </td>
+  </tr>
+</table>
+
 ## Technical Highlights
 
 - **Agentic Inner Council flow**: journal input is classified, analyzed, routed through bounded council roles, synthesized into one integrator question, and saved with trace metadata.
