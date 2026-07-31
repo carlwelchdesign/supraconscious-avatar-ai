@@ -8,6 +8,7 @@
     "./founder-calibration-scenarios": "./src/founder-calibration-scenarios.ts",
     "./founder-feedback-notes": "./src/founder-feedback-notes.ts",
     "./founder-context-registry": "./src/founder-context-registry.ts",
+    "./founder-decision-registry": "./src/founder-decision-registry.ts",
     "./openai": "./src/openai.ts",
     "./response-language": "./src/response-language.ts",
     "./schemas": "./src/schemas.ts"
