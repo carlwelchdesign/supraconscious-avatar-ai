@@ -15,7 +15,12 @@ import {
   buildJournalEntryCreateArgs,
   buildSourceProvenanceMessage,
   buildFounderCalibrationSetupReportFromSnapshot,
+  authorizeDoctrineRevision,
+  buildDoctrineTraceMetadata,
   CURATED_PROMPTS,
+  DIMENSION_CONTRACT,
+  DOCTRINE_CONTRACT,
+  DOCTRINE_CONTRACT_VERSION,
   FOUNDER_CONTEXT_SOURCES,
   FOUNDER_CONTEXT_REGISTRY_VERSION,
   FOUNDER_DECISIONS,
@@ -85,6 +90,7 @@ import {
   evaluateFounderDecisionGates,
   resolveFounderDecision,
   validateFounderDecisionRegistry,
+  validatePublicCopyAgainstDoctrine,
   type GraphRagContext,
   withLangSmithRun,
   type EntryAnalysis,
@@ -163,6 +169,59 @@ test("founder decisions require a dated answer and rationale before clearing gat
 
   assert.equal(gates.gates.returning_user_progression, true)
   assert.equal(gates.gates.prompt_release, false)
+})
+
+test("doctrine contract defines seven equal dimensions and a constant Guide", () => {
+  assert.equal(DOCTRINE_CONTRACT_VERSION, "supraconscious-doctrine-v1")
+  assert.equal(Object.keys(DIMENSION_CONTRACT).length, 7)
+  assert.equal(DOCTRINE_CONTRACT.entry.term, "Mirror")
+  assert.equal(DOCTRINE_CONTRACT.observer.isDimension, false)
+  assert.equal(DOCTRINE_CONTRACT.guide.persona, "constant")
+  assert.equal(DOCTRINE_CONTRACT.guide.progressionOwner, "user")
+  assert.equal(DOCTRINE_CONTRACT.promptPolicy.modelMayRewrite, false)
+  assert.equal(DOCTRINE_CONTRACT.agency.embodimentIsOptional, true)
+})
+
+test("new public copy rejects superseded doctrine while historical payloads remain renderable", () => {
+  const rejected = validatePublicCopyAgainstDoctrine(
+    "Maria teaches that the Inner Council unlocks the Clear Mirror level.",
+  )
+  const historical = validatePublicCopyAgainstDoctrine(
+    "Maria teaches that the Inner Council unlocks the Clear Mirror level.",
+    { contentMode: "historical_payload" },
+  )
+
+  assert.equal(rejected.valid, false)
+  assert.ok(rejected.issues.includes("direct_maria_attribution"))
+  assert.ok(rejected.issues.includes("removed_public_term:Inner Council"))
+  assert.ok(rejected.issues.includes("removed_public_term:Clear Mirror"))
+  assert.equal(historical.valid, true)
+})
+
+test("doctrine trace metadata is versioned and revisions require Maria approval evidence", () => {
+  assert.deepEqual(buildDoctrineTraceMetadata({ traceType: "reflection" }), {
+    doctrineVersion: "supraconscious-doctrine-v1",
+    guidePersona: "constant",
+    frameworkName: "The Seven Dimensions of the Supraconscious",
+    traceType: "reflection",
+  })
+  assert.throws(
+    () =>
+      authorizeDoctrineRevision("supraconscious-doctrine-v2", {
+        approvedBy: "Maria",
+        approvedAt: "not-a-date",
+        reason: "",
+      }),
+    /invalid_doctrine_revision_approval/,
+  )
+  assert.equal(
+    authorizeDoctrineRevision("supraconscious-doctrine-v2", {
+      approvedBy: "Maria",
+      approvedAt: "2026-07-30",
+      reason: "Founder-approved contract revision.",
+    }).proposedVersion,
+    "supraconscious-doctrine-v2",
+  )
 })
 
 const analysis: EntryAnalysis = {
