@@ -18,6 +18,8 @@ import {
   CURATED_PROMPTS,
   FOUNDER_CONTEXT_SOURCES,
   FOUNDER_CONTEXT_REGISTRY_VERSION,
+  FOUNDER_DECISIONS,
+  FOUNDER_DECISION_REGISTRY_VERSION,
   LOCKED_DOCTRINE,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
@@ -80,6 +82,9 @@ import {
   validateCouncilRunForPilot,
   validateCouncilSourceCitations,
   validateFounderContextRegistry,
+  evaluateFounderDecisionGates,
+  resolveFounderDecision,
+  validateFounderDecisionRegistry,
   type GraphRagContext,
   withLangSmithRun,
   type EntryAnalysis,
@@ -120,6 +125,44 @@ test("curated founder prompt registry contains exact governed metadata for 10 ph
     ),
     true,
   )
+})
+
+test("founder decision registry keeps all ten unresolved decisions explicit", () => {
+  const validation = validateFounderDecisionRegistry()
+  const gates = evaluateFounderDecisionGates()
+
+  assert.equal(FOUNDER_DECISION_REGISTRY_VERSION, "founder-decisions-v1")
+  assert.equal(validation.valid, true, validation.errors.join(", "))
+  assert.equal(FOUNDER_DECISIONS.length, 10)
+  assert.equal(gates.pendingCount, 10)
+  assert.equal(gates.gates.internal_schema, true)
+  assert.equal(gates.gates.prompt_release, false)
+  assert.equal(gates.gates.returning_user_progression, false)
+  assert.equal(gates.gates.broader_pilot, false)
+})
+
+test("founder decisions require a dated answer and rationale before clearing gates", () => {
+  assert.throws(
+    () =>
+      resolveFounderDecision("dimension_selection_rule", {
+        status: "approved",
+        decision: " ",
+        rationale: "Founder confirmation.",
+        decidedAt: "2026-07-30",
+      }),
+    /invalid_founder_decision_resolution/,
+  )
+
+  const resolved = resolveFounderDecision("dimension_selection_rule", {
+    status: "approved",
+    decision: "Use only the approved founder rule.",
+    rationale: "Recorded as a test fixture, not a production founder answer.",
+    decidedAt: "2026-07-30",
+  })
+  const gates = evaluateFounderDecisionGates(resolved)
+
+  assert.equal(gates.gates.returning_user_progression, true)
+  assert.equal(gates.gates.prompt_release, false)
 })
 
 const analysis: EntryAnalysis = {
