@@ -2,45 +2,54 @@ import { zodTextFormat } from "openai/helpers/zod"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import { SafetyCheckSchema, type SafetyCheck } from "./schemas.js"
+import { detectHighRiskCategories, enforceSafetyShortCircuit } from "./safety-policy.js"
 
 export async function classifyJournalSafety(text: string, language: ResponseLanguage = "en"): Promise<SafetyCheck> {
-  if (!isOpenAIConfigured()) {
-    return classifyJournalSafetyLocally(text, language)
+  const deterministic = classifyJournalSafetyLocally(text, language)
+  if (detectHighRiskCategories(text).length > 0) {
+    return deterministic
   }
 
-  const response = await getOpenAIClient().responses.parse({
-    model: reflectiveModel,
-    input: [
-      {
-        role: "system",
-        content:
-          `Classify journaling text for safety. Do not diagnose. Identify crisis, self-harm, harm-to-others, abuse/coercion, psychosis-like destabilization, severe dissociation, minors, or unsafe dependency patterns. Return grounded, concise handling guidance.
+  if (!isOpenAIConfigured()) {
+    return deterministic
+  }
+
+  try {
+    const response = await getOpenAIClient().responses.parse({
+      model: reflectiveModel,
+      input: [
+        {
+          role: "system",
+          content:
+            `Classify journaling text for safety. Do not diagnose. Identify crisis, self-harm, harm-to-others, abuse/coercion, psychosis-like destabilization, severe dissociation, minors, or unsafe dependency patterns. Return grounded, concise handling guidance.
 
 ${languageInstruction(language)}`,
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+      text: {
+        format: zodTextFormat(SafetyCheckSchema, "safety_check"),
       },
-      {
-        role: "user",
-        content: text,
-      },
-    ],
-    text: {
-      format: zodTextFormat(SafetyCheckSchema, "safety_check"),
-    },
-  })
+    })
 
-  if (!response.output_parsed) {
-    throw new Error("Safety classifier returned no structured output.")
+    if (!response.output_parsed) {
+      return deterministic
+    }
+
+    return enforceSafetyShortCircuit(text, response.output_parsed, language)
+  } catch {
+    return deterministic
   }
-
-  return response.output_parsed
 }
 
 function classifyJournalSafetyLocally(text: string, language: ResponseLanguage): SafetyCheck {
   const copy = localAiCopy(language).safety
   const normalized = text.toLowerCase()
-  const highRisk = ["kill myself", "suicide", "end my life", "hurt myself", "harm myself", "hurt someone", "kill them"]
   const mediumRisk = ["can't go on", "not safe", "dissociate", "dissociation", "unreal", "abuse", "coerced"]
-  const highFlags = highRisk.filter((phrase) => normalized.includes(phrase))
+  const highFlags = detectHighRiskCategories(text)
   const mediumFlags = mediumRisk.filter((phrase) => normalized.includes(phrase))
 
   if (highFlags.length) {

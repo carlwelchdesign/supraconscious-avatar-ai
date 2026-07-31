@@ -34,3 +34,34 @@ test('safety middleware does not attach _safety when no text is provided', async
   assert.strictEqual(nextCalled, true)
   assert.strictEqual(req.body._safety, undefined)
 })
+
+test('safety middleware fails closed when classification is unavailable', async () => {
+  const req = { body: { text: 'I need help' } } as any
+  let nextCalled = false
+  let statusCode = 0
+  let payload: unknown
+  const res = {
+    status(code: number) {
+      statusCode = code
+      return this
+    },
+    json(value: unknown) {
+      payload = value
+      return this
+    }
+  } as any
+
+  const middleware = createSafetyMiddleware(async () => {
+    throw new Error('classifier unavailable')
+  })
+
+  await middleware(req, res, () => {
+    nextCalled = true
+  })
+
+  assert.strictEqual(nextCalled, false)
+  assert.strictEqual(statusCode, 503)
+  assert.deepStrictEqual(payload, {
+    error: 'Reflection is temporarily unavailable because the safety check could not be completed.'
+  })
+})

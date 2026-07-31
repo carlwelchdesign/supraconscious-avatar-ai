@@ -82,7 +82,7 @@ export async function runInnerCouncilReflection(
     }) as CouncilReflectionResult
 
     return {
-      pilotScope: "This uses the same Inner Council flow as the web journal. The guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority.",
+      pilotScope: "This uses the same reflection flow as the web journal. The Guide follows the versioned Supraconscious doctrine; it is not therapy, crisis monitoring, or spiritual authority.",
       journalEntryId: result.journalEntry.id,
       safety: {
         severity: result.safety.severity,

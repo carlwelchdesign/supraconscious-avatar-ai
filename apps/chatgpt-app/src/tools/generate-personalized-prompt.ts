@@ -1,5 +1,11 @@
 import { z } from "zod"
-import { generateSymbolicPrompt, classifyJournalSafety, analyzeEntry } from "@inner-avatar/ai"
+import {
+  buildCrisisGroundingContent,
+  generateSymbolicPrompt,
+  classifyJournalSafety,
+  analyzeEntry,
+  shouldShortCircuitReflection,
+} from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
 const GeneratePersonalizedPromptSchema = z.object({
@@ -52,13 +58,14 @@ export async function generatePersonalizedPrompt(input: unknown, userIdOrDeps: s
 
     const safety = await classifyFn(text)
 
-    if (safety.severity === "high") {
+    if (shouldShortCircuitReflection(safety)) {
+      const grounding = buildCrisisGroundingContent(safety)
       return {
-        title: "Return to the Room",
-        context: "When the entry feels urgent or unsafe, the first reflection is orientation.",
-        materialsAndPreparation: "A visible object, a steady surface, and one sentence.",
-        execution: "Look around and name five things you can see. Place one hand on a surface and write where you are.",
-        integration: "What is one next step that keeps you connected to real support?"
+        title: grounding.openingLine,
+        context: grounding.userMessage,
+        materialsAndPreparation: grounding.immediateAction,
+        execution: grounding.connectionAction,
+        integration: grounding.closingLine,
       }
     }
 

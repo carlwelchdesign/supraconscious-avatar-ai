@@ -1,5 +1,10 @@
 import { z } from "zod"
-import { generateAvatarResponse, classifyJournalSafety } from "@inner-avatar/ai"
+import {
+  buildCrisisGroundingContent,
+  generateAvatarResponse,
+  classifyJournalSafety,
+  shouldShortCircuitReflection,
+} from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
 const GenerateAvatarReflectionSchema = z.object({
@@ -48,15 +53,16 @@ export async function generateAvatarReflection(input: unknown, userIdOrDeps: str
 
     const safety = await classifyFn(text)
 
-    if (safety.severity === "high") {
+    if (shouldShortCircuitReflection(safety)) {
+      const grounding = buildCrisisGroundingContent(safety)
       return {
         pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
-        openingLine: "Pause here.",
-        mirror: "This entry contains content that needs immediate attention. Please reach out to a trusted friend, family member, or professional for support.",
-        patternName: "Grounding",
-        socraticQuestion: "Can you name one place of support available to you right now?",
-        integrationStep: "Take a moment to breathe and remember you're not alone in this.",
-        closingLine: "Do not solve everything in this moment."
+        openingLine: grounding.openingLine,
+        mirror: grounding.userMessage,
+        patternName: grounding.patternName,
+        socraticQuestion: grounding.immediateAction,
+        integrationStep: grounding.connectionAction,
+        closingLine: grounding.closingLine,
       }
     }
 
