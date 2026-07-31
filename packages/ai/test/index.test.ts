@@ -15,6 +15,10 @@ import {
   buildJournalEntryCreateArgs,
   buildSourceProvenanceMessage,
   buildFounderCalibrationSetupReportFromSnapshot,
+  CURATED_PROMPTS,
+  FOUNDER_CONTEXT_SOURCES,
+  FOUNDER_CONTEXT_REGISTRY_VERSION,
+  LOCKED_DOCTRINE,
   buildFounderCalibrationSetupInputFromEnv,
   buildParticipantRequests,
   buildFounderParticipantAuditMetadata,
@@ -74,11 +78,48 @@ import {
   validateCouncilPromptTemplate,
   validateCouncilRunForPilot,
   validateCouncilSourceCitations,
+  validateFounderContextRegistry,
   type GraphRagContext,
   withLangSmithRun,
   type EntryAnalysis,
   type SafetyCheck,
 } from "../src/index.js"
+
+test("founder context registry preserves the locked doctrine and four-source precedence", () => {
+  const result = validateFounderContextRegistry()
+
+  assert.equal(FOUNDER_CONTEXT_REGISTRY_VERSION, "founder-context-v1")
+  assert.equal(result.valid, true, result.errors.join(", "))
+  assert.equal(result.sourceCount, 4)
+  assert.deepEqual(FOUNDER_CONTEXT_SOURCES.map((source) => source.precedence), [1, 2, 3, 4])
+  assert.equal(FOUNDER_CONTEXT_SOURCES.every((source) => source.retrievalState === "blocked"), true)
+  assert.equal(LOCKED_DOCTRINE.entryTerm, "Mirror")
+  assert.equal(LOCKED_DOCTRINE.guidePersona, "constant")
+  assert.equal(LOCKED_DOCTRINE.directMariaAttribution, "prohibited")
+})
+
+test("curated founder prompt registry contains exact governed metadata for 10 physical and 14 mental prompts", () => {
+  const result = validateFounderContextRegistry()
+
+  assert.equal(result.valid, true, result.errors.join(", "))
+  assert.equal(result.promptCount, 24)
+  assert.equal(result.physicalCount, 10)
+  assert.equal(result.mentalCount, 14)
+  assert.equal(new Set(CURATED_PROMPTS.map((prompt) => prompt.key)).size, 24)
+  assert.equal(
+    CURATED_PROMPTS.every(
+      (prompt) =>
+        prompt.version === 1 &&
+        prompt.sourceWork.length > 0 &&
+        prompt.originalExercise.length > 0 &&
+        prompt.dimensions.length > 0 &&
+        prompt.approvalState === "founder_supplied" &&
+        prompt.rightsState === "needs_legal_review" &&
+        prompt.retrievalState === "blocked",
+    ),
+    true,
+  )
+})
 
 const analysis: EntryAnalysis = {
   emotionalSignals: {
