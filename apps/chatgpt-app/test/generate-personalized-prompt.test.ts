@@ -42,13 +42,19 @@ test('generatePersonalizedPrompt returns grounding prompt for crisis', async () 
   const result = await generatePersonalizedPrompt(
     { text: 'I might be in danger' },
     {
-      classifyJournalSafety: async () => ({ severity: 'high', flags: [] }),
+      classifyJournalSafety: async () => ({
+        severity: 'high',
+        flags: ['immediate_danger'],
+        recommendedAction: 'Use immediate support.',
+        userMessage: 'Pause reflection and contact immediate support.',
+        allowReflectiveFlow: false
+      }),
       analyzeEntry: async () => ({}) as any,
       generateSymbolicPrompt: async () => ({}) as any,
       prisma: {} as any
     }
   )
 
-  assert.strictEqual(result.title, 'Return to the Room')
-  assert.ok(result.execution.includes('Look around'))
+  assert.strictEqual(result.title, 'Pause here.')
+  assert.match(result.context, /support/i)
 })

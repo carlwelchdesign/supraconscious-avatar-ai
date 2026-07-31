@@ -12,6 +12,7 @@
     "./doctrine-contract": "./src/doctrine-contract.ts",
     "./openai": "./src/openai.ts",
     "./response-language": "./src/response-language.ts",
+    "./safety-policy": "./src/safety-policy.ts",
     "./schemas": "./src/schemas.ts"
   },
   "scripts": {

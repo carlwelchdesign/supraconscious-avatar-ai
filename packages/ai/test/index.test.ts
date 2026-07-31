@@ -40,6 +40,8 @@ import {
   DEFAULT_COUNCIL_SYSTEM_PROMPT,
   buildGroundingCouncilRun,
   buildLocalCouncilRun,
+  buildCrisisGroundingContent,
+  detectHighRiskCategories,
   evaluatePilotExpansionReadinessSnapshot,
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
@@ -80,6 +82,8 @@ import {
   sanitizeLangSmithMetadata,
   setLangSmithClientFactoryForTests,
   SOURCE_POLICY_VERSION,
+  SAFETY_POLICY_VERSION,
+  shouldShortCircuitReflection,
   shouldWritePatternMemory,
   resetLangSmithClientFactoryForTests,
   runLangSmithObservabilityCheck,
@@ -96,6 +100,36 @@ import {
   type EntryAnalysis,
   type SafetyCheck,
 } from "../src/index.js"
+
+test("deterministic safety policy short-circuits every P0 high-risk category", () => {
+  const cases = [
+    ["acute_crisis", "I can't go on and I need urgent help."],
+    ["self_harm", "I am going to kill myself tonight."],
+    ["harm_to_others", "I am going to hurt someone right now."],
+    ["immediate_danger", "I am not safe right now and need help."],
+    ["severe_dissociation", "I can't tell what's real and I am losing time right now."],
+    ["psychosis_like_destabilization", "The voices are commanding me to attack someone."],
+    ["psychosis_like_destabilization", "They are tracking me and no one believes me."],
+  ] as const
+
+  for (const [category, text] of cases) {
+    assert.equal(detectHighRiskCategories(text).includes(category), true, category)
+  }
+
+  assert.equal(SAFETY_POLICY_VERSION, "supraconscious-safety-short-circuit-v1")
+})
+
+test("crisis grounding is plain and excludes reflective mechanics", () => {
+  const grounding = buildCrisisGroundingContent({
+    userMessage: "Pause reflection and contact immediate support.",
+  })
+  const combined = Object.values(grounding).join(" ")
+
+  assert.equal(shouldShortCircuitReflection({ severity: "high", allowReflectiveFlow: true }), true)
+  assert.equal(shouldShortCircuitReflection({ severity: "medium", allowReflectiveFlow: false }), true)
+  assert.doesNotMatch(combined, /\b(?:dimension|story|fear|ego|genius|visuali[sz]e|close your eyes|act as if)\b/i)
+  assert.match(combined, /support|emergency|crisis/i)
+})
 
 test("founder context registry preserves the locked doctrine and four-source precedence", () => {
   const result = validateFounderContextRegistry()

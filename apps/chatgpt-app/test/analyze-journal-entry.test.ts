@@ -69,6 +69,31 @@ test('analyzeJournalEntry returns mapped results for valid text input', async ()
   })
 })
 
+test('analyzeJournalEntry suppresses interpretation during a safety short-circuit', async () => {
+  let analyzeCalled = false
+  const output = await analyzeJournalEntry(
+    { text: 'I cannot tell what is real right now.' },
+    {
+      classifyJournalSafety: async () => ({
+        severity: 'high',
+        flags: ['severe_dissociation'],
+        recommendedAction: 'Use immediate support.',
+        userMessage: 'Pause reflection and contact immediate support.',
+        allowReflectiveFlow: false
+      }),
+      analyzeEntry: async () => {
+        analyzeCalled = true
+        return mappedAnalysis
+      }
+    }
+  )
+
+  assert.strictEqual(analyzeCalled, false)
+  assert.strictEqual(output.safetyStatus, 'crisis')
+  assert.deepStrictEqual(output.behavioralPatterns, [])
+  assert.match(output.summary, /support/i)
+})
+
 test('analyzeJournalEntry requires authentication for saved entry reads', async () => {
   await assert.rejects(
     async () => analyzeJournalEntry({ entryId: 'entry-1' }, {

@@ -40,7 +40,8 @@ test('runInnerCouncilReflection uses user preferences and feature flags', async 
   assert.equal(result.councilSession?.integratorQuestion, 'What truth can you practice gently today?')
   assert.equal(result.sourceProvenance.sourceMode, 'rag')
   assert.equal(result.sourceProvenance.sources[0]?.title, 'Inner Council Doctrine')
-  assert.match(result.pilotScope, /not Maria/)
+  assert.match(result.pilotScope, /versioned Supraconscious doctrine/)
+  assert.doesNotMatch(result.pilotScope, /Maria/)
 })
 
 test('runInnerCouncilReflection requires an authenticated user record', async () => {

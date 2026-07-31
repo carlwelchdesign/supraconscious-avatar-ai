@@ -1,5 +1,10 @@
 import { z } from "zod"
-import { analyzeEntry, classifyJournalSafety } from "@inner-avatar/ai"
+import {
+  analyzeEntry,
+  buildCrisisGroundingContent,
+  classifyJournalSafety,
+  shouldShortCircuitReflection,
+} from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
 const AnalyzeJournalEntrySchema = z.object({
@@ -46,6 +51,20 @@ export async function analyzeJournalEntry(input: unknown, userIdOrDeps: string |
     }
 
     const safety = await classifyFn(text)
+
+    if (shouldShortCircuitReflection(safety)) {
+      const grounding = buildCrisisGroundingContent(safety)
+      return {
+        pilotScope: "Legacy analysis-only tool during the internal pilot. Reflection is paused when immediate support comes first.",
+        safetyStatus: "crisis",
+        emotionalSignals: [],
+        languagePatterns: [],
+        behavioralPatterns: [],
+        contradictions: [],
+        suggestedLevel: 1,
+        summary: [grounding.userMessage, grounding.immediateAction, grounding.connectionAction].join(" "),
+      }
+    }
 
     const analysis = await analyzeFn(text, safety)
 

@@ -35,8 +35,9 @@ export function createSafetyMiddleware(classifyFn: ClassifyJournalSafetyFn = cla
       next()
     } catch (error) {
       logOperationalError('Safety middleware error', error)
-      // Don't fail the request, just log and continue
-      next()
+      res.status(503).json({
+        error: "Reflection is temporarily unavailable because the safety check could not be completed."
+      })
     }
   }
 }

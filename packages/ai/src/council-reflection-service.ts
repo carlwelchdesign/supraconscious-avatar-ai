@@ -10,6 +10,7 @@ import { buildSourceProvenanceMessage, SOURCE_PROVENANCE_PILOT_SCOPE } from "./s
 import { shouldWritePatternMemory, updatePatternMemory } from "./pattern-memory.js"
 import { checkAndAdvanceProgression } from "./progression.js"
 import { classifyJournalSafety } from "./safety-classifier.js"
+import { buildCrisisGroundingContent, shouldShortCircuitReflection } from "./safety-policy.js"
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
@@ -124,18 +125,19 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     })
   }
 
-  if (!safety.allowReflectiveFlow || safety.severity === "high") {
+  if (shouldShortCircuitReflection(safety)) {
     const copy = localAiCopy(responseLanguage)
+    const grounding = buildCrisisGroundingContent(safety, responseLanguage)
     const avatarResponse = await prisma.avatarResponse.create({
       data: {
         userId: user.id,
         journalEntryId: journalEntry.id,
-        openingLine: copy.council.pauseHere,
-        mirror: safety.userMessage,
-        patternName: copy.groundingPattern,
-        socraticQuestion: copy.council.supportQuestion,
-        integrationStep: copy.council.groundingStep,
-        closingLine: copy.council.groundingClose,
+        openingLine: grounding.openingLine,
+        mirror: grounding.userMessage,
+        patternName: grounding.patternName,
+        socraticQuestion: grounding.immediateAction,
+        integrationStep: grounding.connectionAction,
+        closingLine: grounding.closingLine,
       },
     })
 
