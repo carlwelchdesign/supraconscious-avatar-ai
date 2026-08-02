@@ -1,4 +1,6 @@
-export const FOUNDER_DECISION_REGISTRY_VERSION = "founder-decisions-v1"
+import { FOUNDER_CONTEXT_SOURCES, type FounderContextSourceKey } from "./founder-context-registry.js"
+
+export const FOUNDER_DECISION_REGISTRY_VERSION = "founder-decisions-v2"
 
 export const FOUNDER_DECISION_IDS = [
   "public_product_name",
@@ -32,8 +34,14 @@ export type FounderDecision = {
   decision: string | null
   rationale: string | null
   decidedAt: string | null
+  evidence: readonly FounderDecisionEvidence[]
   impactedTickets: readonly string[]
   blocks: readonly FounderDecisionGate[]
+}
+
+export type FounderDecisionEvidence = {
+  sourceKey: FounderContextSourceKey
+  locator: string
 }
 
 export type FounderDecisionResolution = {
@@ -41,7 +49,12 @@ export type FounderDecisionResolution = {
   decision: string
   rationale: string
   decidedAt: string
+  evidence: readonly FounderDecisionEvidence[]
 }
+
+const REGISTERED_FOUNDER_CONTEXT_SOURCE_KEYS = new Set(
+  FOUNDER_CONTEXT_SOURCES.map((source) => source.key),
+)
 
 export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
   {
@@ -54,6 +67,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-030", "FCA-044", "FCA-050"],
     blocks: ["public_naming"],
   },
@@ -66,6 +80,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-012", "FCA-024", "FCA-043", "FCA-052"],
     blocks: ["founder_calibration"],
   },
@@ -74,10 +89,18 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     question: "Which manuscripts, workshop notes, and transcripts beyond published books are cleared?",
     responsible: "Carl",
     accountable: "Maria",
-    status: "pending",
-    decision: null,
-    rationale: null,
-    decidedAt: null,
+    status: "approved",
+    decision:
+      "Only published works are currently cleared. No unpublished manuscript, workshop note, or transcript may be used until Maria explicitly clears it and the intended use passes rights review.",
+    rationale:
+      "Maria confirmed published work as the safest authority tier and kept unpublished material unapproved until cleared; the supplied v1 prompt libraries identify published sources only.",
+    decidedAt: "2026-07-31",
+    evidence: [
+      {
+        sourceKey: "founder_decision_brief_v3",
+        locator: "Sections 11, A, B, and C.3",
+      },
+    ],
     impactedTickets: ["FCA-011", "FCA-025", "FCA-040", "FCA-041"],
     blocks: ["prompt_release", "broader_pilot"],
   },
@@ -90,6 +113,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-050", "FCA-053", "FCA-054"],
     blocks: ["broader_pilot"],
   },
@@ -102,6 +126,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-030", "FCA-044", "FCA-052"],
     blocks: ["founder_calibration"],
   },
@@ -114,6 +139,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-024", "FCA-043", "FCA-052"],
     blocks: ["founder_calibration"],
   },
@@ -126,6 +152,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-022", "FCA-031", "FCA-042", "FCA-050"],
     blocks: ["returning_user_progression"],
   },
@@ -139,6 +166,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-011", "FCA-040", "FCA-041", "FCA-044"],
     blocks: ["prompt_release", "broader_pilot"],
   },
@@ -152,6 +180,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-010", "FCA-011", "FCA-025", "FCA-044"],
     blocks: ["prompt_release", "broader_pilot"],
   },
@@ -165,6 +194,7 @@ export const FOUNDER_DECISIONS: readonly FounderDecision[] = [
     decision: null,
     rationale: null,
     decidedAt: null,
+    evidence: [],
     impactedTickets: ["FCA-010", "FCA-011", "FCA-053", "FCA-054"],
     blocks: ["prompt_release", "broader_pilot"],
   },
@@ -175,7 +205,13 @@ export function resolveFounderDecision(
   resolution: FounderDecisionResolution,
   decisions: readonly FounderDecision[] = FOUNDER_DECISIONS,
 ): FounderDecision[] {
-  if (!resolution.decision.trim() || !resolution.rationale.trim() || !isIsoDate(resolution.decidedAt)) {
+  if (
+    !resolution.decision.trim() ||
+    !resolution.rationale.trim() ||
+    !isIsoDate(resolution.decidedAt) ||
+    resolution.evidence.length === 0 ||
+    !resolution.evidence.every(isValidDecisionEvidence)
+  ) {
     throw new Error(`invalid_founder_decision_resolution:${id}`)
   }
 
@@ -239,12 +275,19 @@ export function validateFounderDecisionRegistry(
   }
 
   for (const decision of decisions) {
+    const hasAnyResolution =
+      Boolean(decision.decision?.trim()) ||
+      Boolean(decision.rationale?.trim()) ||
+      Boolean(decision.decidedAt) ||
+      decision.evidence.length > 0
     const completeResolution =
       Boolean(decision.decision?.trim()) &&
       Boolean(decision.rationale?.trim()) &&
-      Boolean(decision.decidedAt && isIsoDate(decision.decidedAt))
+      Boolean(decision.decidedAt && isIsoDate(decision.decidedAt)) &&
+      decision.evidence.length > 0 &&
+      decision.evidence.every(isValidDecisionEvidence)
 
-    if (decision.status === "pending" && completeResolution) {
+    if (decision.status === "pending" && hasAnyResolution) {
       errors.push(`pending_decision_contains_resolution:${decision.id}`)
     }
     if (decision.status !== "pending" && !completeResolution) {
@@ -256,6 +299,13 @@ export function validateFounderDecisionRegistry(
   }
 
   return { valid: errors.length === 0, errors }
+}
+
+function isValidDecisionEvidence(evidence: FounderDecisionEvidence) {
+  return (
+    REGISTERED_FOUNDER_CONTEXT_SOURCE_KEYS.has(evidence.sourceKey) &&
+    Boolean(evidence.locator.trim())
+  )
 }
 
 function isIsoDate(value: string) {

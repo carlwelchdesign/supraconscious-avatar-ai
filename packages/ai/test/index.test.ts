@@ -188,18 +188,29 @@ test("every curated user-facing prompt passes prohibited-language policy", () =>
   }
 })
 
-test("founder decision registry keeps all ten unresolved decisions explicit", () => {
+test("founder decision registry preserves approved evidence while keeping open decisions explicit", () => {
   const validation = validateFounderDecisionRegistry()
   const gates = evaluateFounderDecisionGates()
+  const sourceClearance = FOUNDER_DECISIONS.find(
+    (decision) => decision.id === "additional_source_clearance",
+  )
 
-  assert.equal(FOUNDER_DECISION_REGISTRY_VERSION, "founder-decisions-v1")
+  assert.equal(FOUNDER_DECISION_REGISTRY_VERSION, "founder-decisions-v2")
   assert.equal(validation.valid, true, validation.errors.join(", "))
   assert.equal(FOUNDER_DECISIONS.length, 10)
-  assert.equal(gates.pendingCount, 10)
+  assert.equal(gates.pendingCount, 9)
   assert.equal(gates.gates.internal_schema, true)
   assert.equal(gates.gates.prompt_release, false)
   assert.equal(gates.gates.returning_user_progression, false)
   assert.equal(gates.gates.broader_pilot, false)
+  assert.equal(sourceClearance?.status, "approved")
+  assert.equal(sourceClearance?.decidedAt, "2026-07-31")
+  assert.deepEqual(sourceClearance?.evidence, [
+    {
+      sourceKey: "founder_decision_brief_v3",
+      locator: "Sections 11, A, B, and C.3",
+    },
+  ])
 })
 
 test("founder decisions require a dated answer and rationale before clearing gates", () => {
@@ -210,6 +221,12 @@ test("founder decisions require a dated answer and rationale before clearing gat
         decision: " ",
         rationale: "Founder confirmation.",
         decidedAt: "2026-07-30",
+        evidence: [
+          {
+            sourceKey: "founder_decision_brief_v3",
+            locator: "Section 5",
+          },
+        ],
       }),
     /invalid_founder_decision_resolution/,
   )
@@ -219,11 +236,48 @@ test("founder decisions require a dated answer and rationale before clearing gat
     decision: "Use only the approved founder rule.",
     rationale: "Recorded as a test fixture, not a production founder answer.",
     decidedAt: "2026-07-30",
+    evidence: [
+      {
+        sourceKey: "founder_decision_brief_v3",
+        locator: "Section 5",
+      },
+    ],
   })
   const gates = evaluateFounderDecisionGates(resolved)
 
   assert.equal(gates.gates.returning_user_progression, true)
   assert.equal(gates.gates.prompt_release, false)
+})
+
+test("founder decision resolutions require registered written evidence", () => {
+  assert.throws(
+    () =>
+      resolveFounderDecision("dimension_selection_rule", {
+        status: "approved",
+        decision: "Use only the approved founder rule.",
+        rationale: "Recorded as a test fixture, not a production founder answer.",
+        decidedAt: "2026-07-30",
+        evidence: [],
+      }),
+    /invalid_founder_decision_resolution/,
+  )
+
+  const invalidEvidence = FOUNDER_DECISIONS.map((decision) =>
+    decision.id === "additional_source_clearance"
+      ? {
+          ...decision,
+          evidence: [{ sourceKey: "unknown_source" as never, locator: "Section 1" }],
+        }
+      : decision,
+  )
+  const validation = validateFounderDecisionRegistry(invalidEvidence)
+
+  assert.equal(validation.valid, false)
+  assert.ok(
+    validation.errors.includes(
+      "resolved_decision_missing_evidence:additional_source_clearance",
+    ),
+  )
 })
 
 test("doctrine contract defines seven equal dimensions and a constant Guide", () => {
