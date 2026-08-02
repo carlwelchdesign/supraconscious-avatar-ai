@@ -63,6 +63,12 @@ flutter run -d ios --dart-define=INNER_COUNCIL_API_BASE_URL=http://localhost:300
 
 iOS requires an installed Xcode Simulator runtime. If `flutter doctor -v` reports that simulator runtimes cannot be listed, open Xcode and install an iOS runtime from Settings > Platforms.
 
+## Localization
+
+The iOS and Android apps support English, Spanish, Greek, French, German, and Simplified Chinese. Flutter catalog generation, the in-app language selector, Android per-app language settings, and iOS bundle localizations are kept aligned by `test/localization_contract_test.dart`.
+
+When adding or removing a locale, update the ARB catalog, `fallbackSupportedLanguages`, Android `locales_config.xml`, iOS `CFBundleLocalizations`, and the Xcode `knownRegions` list together. Run `yarn mobile:analyze` and `yarn mobile:test` from the repository root before committing.
+
 ## Current State
 
 - Flutter scaffold is in place for iOS and Android.
