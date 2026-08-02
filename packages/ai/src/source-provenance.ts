@@ -1,5 +1,5 @@
 export const SOURCE_PROVENANCE_PILOT_SCOPE =
-  "This guide is inspired by Maria Olon Tsaroucha's teachings; it is not Maria, therapy, crisis monitoring, or spiritual authority."
+  "This guide uses the approved Supraconscious framework; it is not therapy, crisis monitoring, or spiritual authority."
 
 export function buildSourceProvenanceMessage(sourceMode: string | null | undefined) {
   if (sourceMode === "rag") {

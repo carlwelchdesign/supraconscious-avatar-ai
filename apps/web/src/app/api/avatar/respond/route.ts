@@ -35,7 +35,6 @@ export async function POST(request: Request) {
     const avatarResponse = await generateAvatarResponse(journalEntry.rawText, analysis, safety, {
       tone: user.avatarTone,
       intensity: user.intensityLevel,
-      currentLevel: user.currentLevel,
       language: responseLanguage,
     })
 

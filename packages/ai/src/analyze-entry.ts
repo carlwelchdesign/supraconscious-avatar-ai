@@ -1,5 +1,5 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_SYSTEM_PROMPT } from "./avatar-system-prompt.js"
+import { GUIDE_VOICE_SYSTEM_PROMPT } from "./guide-voice-contract.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import { EntryAnalysisSchema, type EntryAnalysis, type SafetyCheck } from "./schemas.js"
@@ -14,7 +14,7 @@ export async function analyzeEntry(text: string, safety: SafetyCheck, language: 
     input: [
       {
         role: "system",
-        content: `${AVATAR_SYSTEM_PROMPT}
+        content: `${GUIDE_VOICE_SYSTEM_PROMPT}
 
 Analyze the user's journal entry into structured data only.
 Use grounded, non-clinical language.
