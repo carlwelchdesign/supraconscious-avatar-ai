@@ -19,15 +19,15 @@
     "noNote": "无备注"
   },
   "landing": {
-    "brand": "内在议会™",
+    "brand": "Supraconscious™",
     "eyebrow": "由 AI 驱动的身份反思",
     "notJournal": "这不是一本日记。",
     "meetYourself": "这是你与自己相遇的地方。",
-    "heroBody": "你不需要更多建议。你需要看清楚。内在议会™ 会揭示你已经知道、却尚未面对的东西。",
+    "heroBody": "你不需要更多建议。你需要看清楚。Mirror 帮助你认识到可能已经存在的东西。",
     "seeWhatChanges": "看看会改变什么",
     "nav": {
       "problem": "问题",
-      "council": "议会",
+      "council": "维度",
       "experience": "体验",
       "pricing": "定价"
     },
@@ -43,38 +43,50 @@
     ],
     "problemBody2": "不是因为你不知道该怎么做。而是因为你内在的某些部分正在朝不同方向拉扯。",
     "shiftEyebrow": "转变",
-    "shiftTitle": "如果你能同时看见自己的每一个部分，会怎样？",
-    "shiftBody": "你内在并不只有一个声音。有许多个。",
+    "shiftTitle": "如果你能从多个维度审视同一个时刻，会怎样？",
+    "shiftBody": "每个维度都是同等有效的意识面向。它们不是等级、阶段或身份。",
     "shiftParts": [
-      "想要安全的部分",
-      "重复过去的部分",
-      "知道你潜能的部分",
-      "看见真相的部分"
+      "恐惧可以显示你可能正在保护什么",
+      "天赋可以开启一种更高的可能",
+      "故事可以呈现你赋予经历的意义",
+      "具身可以让有意识的选择进入生活"
     ],
     "shiftClosing": "大多数人听见的是噪音。这个系统给你结构。",
     "council": "它如何运作",
-    "councilTitle": "认识你的内在议会™",
-    "councilBody": "你写下心中真实存在的内容。随后四个内在视角会映照表面之下正在发生的事。",
+    "councilTitle": "认识七个维度",
+    "councilBody": "你从 Mirror 进入。向导可能以不同的数量和深度呈现适合当下的维度，同时把解释和选择留给你。",
     "councilRoles": [
       {
-        "title": "保护者",
-        "body": "指出恐惧在哪里让你退缩。"
+        "title": "感知",
+        "body": "我注意到了什么？"
       },
       {
-        "title": "被条件化的自我",
-        "body": "揭示你尚未质疑过的模式。"
+        "title": "故事",
+        "body": "我创造了什么意义？观察者可以不带执着地看见它。"
       },
       {
-        "title": "愿景者",
-        "body": "指出你正在成为谁。"
+        "title": "恐惧",
+        "body": "我可能在保护什么？"
       },
       {
-        "title": "真实自我",
-        "body": "穿透幻象。"
+        "title": "自我",
+        "body": "哪个身份可能正在回应？"
+      },
+      {
+        "title": "天赋",
+        "body": "什么更高的可能或许正在出现？"
+      },
+      {
+        "title": "Supraconscious",
+        "body": "现在可以做出什么有意识的选择？"
+      },
+      {
+        "title": "具身",
+        "body": "我将如何活出这个选择？"
       }
     ],
-    "changeQuestionTitle": "然后你会面对那个改变一切的问题。",
-    "changeQuestionBody": "不是建议。不是答案。而是一个精准的问题，揭示你一直在回避的东西。",
+    "changeQuestionTitle": "向导提出一个问题。由你决定什么适合自己。",
+    "changeQuestionBody": "这不是诊断，也不是隐藏的知识，而是一种谨慎的反思，可能帮助你分辨恐惧的自我与天赋的自我，并有意识地选择。",
     "experience": "体验",
     "experienceTitleA": "这不是关于写作。",
     "experienceTitleB": "这是关于看见。",
@@ -166,7 +178,7 @@
     "enterRecoveryCode": "请输入恢复代码。"
   },
   "appShell": {
-    "innerCouncil": "内在议会",
+    "innerCouncil": "Supraconscious 向导",
     "stage": "阶段",
     "signOut": "退出登录",
     "nav": {
@@ -204,8 +216,8 @@
     "feedbackSavedContinueBody": "你的反馈已保存。继续另一个引导场景，或打开该会话，补充哪些地方感觉正确或需要调整。",
     "continueCalibration": "继续校准",
     "openLatestSession": "打开最新会话",
-    "guideHeroEyebrow": "内在议会指南 · 阶段 {stage}",
-    "guideHeroBody": "随着议会练习加深，它会用关照的方式映照你的语言。",
+    "guideHeroEyebrow": "Supraconscious 向导 · 始终如一的陪伴",
+    "guideHeroBody": "在你自身感知能力成长的过程中，向导会用关照的方式映照你的语言。",
     "seeGuideEvolution": "查看指南的演化",
     "entriesWritten": "已写条目",
     "activePatterns": "活跃模式",
@@ -217,12 +229,12 @@
     "mostRecentReflection": "最新反思",
     "guideListeningFallback": "你的指南正在倾听。",
     "openThisSession": "打开此会话",
-    "firstCouncilWaiting": "你的第一条议会记录正在等待。",
-    "firstCouncilBody": "写下今天存在的内容，不需要结构。议会会用关照的方式映照回来。",
+    "firstCouncilWaiting": "你的第一次引导记录正在等待。",
+    "firstCouncilBody": "写下今天存在的内容，不需要结构。向导可能会用关照的方式映照回来。",
     "beginWriting": "开始书写",
     "pastReflections": "过往反思",
-    "gateSaved": "门槛已保存",
-    "gateOpen": "门槛开放",
+    "gateSaved": "选择已保存",
+    "gateOpen": "可以做出选择",
     "feedbackSubmitted": "反馈已提交",
     "feedbackNeeded": "需要反馈",
     "noteAdded": "已添加备注",
@@ -244,14 +256,14 @@
     "reviewPromptRegression": "管理员审核标记了提示词回退。",
     "reviewFallback": "管理员审核标记此会话：{label}。",
     "feedbackInvalid": "该反馈操作不完整。请打开已保存的会话后重试。",
-    "feedbackSessionMissing": "该议会会话在此账户中已不可用。",
+    "feedbackSessionMissing": "该反思会话在此账户中已不可用。",
     "deleteInvalid": "该删除操作不完整。请打开会话后重试。",
     "deleteMissing": "该日记条目在此账户中已不可用。"
   },
   "journal": {
     "eyebrow": "日记",
     "title": "今天有什么正在呈现？",
-    "helper": "写下一条诚实的记录。议会会映照模式、张力和一个扎实的下一步。",
+    "helper": "写下一条诚实的记录。向导可能会映照模式、张力和一个扎实的下一步。",
     "backToDashboard": "返回仪表盘",
     "entryEyebrow": "日记条目",
     "founderCalibration": "创始人校准",
@@ -274,7 +286,7 @@
     "stageLine": "{name} · Stage {stage}",
     "oneGroundedStep": "一个扎实步骤",
     "emptyReflection": "写下并提交记录后，你的反思会显示在这里。",
-    "innerCouncil": "内在议会",
+    "innerCouncil": "Supraconscious 向导",
     "councilFallback": "向导正在映照这一模式。",
     "grounding": "Grounding",
     "quietVoice": "This voice is quiet while grounding comes first.",
@@ -293,7 +305,7 @@
     "transientError": "Reflection could not be completed. Try again in a moment.",
     "saveShiftError": "Unable to save your shift. Try again in a moment.",
     "saveFeedbackError": "Unable to save feedback. Try again in a moment.",
-    "askCouncil": "询问议会",
+    "askCouncil": "进入 Mirror",
     "nothingSavedTitle": "Nothing saved yet",
     "savedReflection": "已保存的反思",
     "patternsTitle": "Patterns",
@@ -308,17 +320,17 @@
     "enteringLevel": "你正在进入 {level}",
     "generatedPrompt": "生成的提示",
     "generatedPromptEmpty": "将根据你的反思生成一个扎实的提示。",
-    "embodimentGate": "具身之门",
+    "embodimentGate": "具身",
     "embodimentQuestion": "今天你可以带走的一个小转变是什么？",
     "embodimentHelp": "将它保存为今天的小转变。",
     "embodimentPlaceholder": "一个小转变...",
-    "gateCrossed": "已跨过门槛",
-    "crossGate": "跨过门槛",
+    "gateCrossed": "选择已保存",
+    "crossGate": "保存这个选择",
     "journalErrorSignIn": "开始反思前请重新登录。",
     "journalErrorRate": "短时间内反思次数过多。请暂停片刻后再试。",
     "journalErrorServer": "引导现在无法完成此反思。请稍后再试。",
     "saveErrorSignIn": "保存前请重新登录。",
-    "saveErrorMissing": "此议会会话不再可用。请刷新页面后重试。",
+    "saveErrorMissing": "此反思会话不再可用。请刷新页面后重试。",
     "saved": "已保存",
     "journalPlaceholder": "写下当下存在的内容——情绪、观察、张力。不需要结构…",
     "calibrationScenarios": {
@@ -389,7 +401,7 @@
     "updatePassword": "更新密码",
     "dataControls": "数据控制",
     "exportData": "Export your data",
-    "exportDataDescription": "Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata.",
+    "exportDataDescription": "包括个人资料、记录、反思会话、模式记忆、反馈、安全事件、同意记录和事件元数据。",
     "downloadJson": "Download JSON",
     "deleteEntries": "Delete individual entries",
     "deleteEntriesDescription": "Open any saved journal entry to delete that entry and its attached reflection records.",
@@ -409,7 +421,7 @@
     "revoke": "Revoke",
     "deleteAccountSection": "删除账户",
     "deleteAccountTitle": "Delete this account and its private app data",
-    "deleteAccountDescription": "This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.",
+    "deleteAccountDescription": "这会永久删除此应用中存储的账户、会话、日记记录、反思、模式记忆、同意记录和订阅。如果已配置 Stripe 计费，会先取消或删除关联的订阅和客户记录。审计记录可能会作为已解除关联的运营记录保留。",
     "deletePasswordIncorrect": "Password is incorrect.",
     "deleteInvalid": "Enter your password and type DELETE to confirm account deletion.",
     "password": "密码",
@@ -438,7 +450,7 @@
   "onboarding": {
     "eyebrow": "第一次会话",
     "title": "进入 Mirror 之前",
-    "body": "此体验会使用你的日记文字，在经批准的 Supraconscious 框架内生成边界清晰的反思。它不是治疗、危机监测或精神权威。",
+    "body": "此体验会使用你的日记文字，在经批准的 Supraconscious 框架内生成边界清晰的反思。恐惧可能帮助你注意自己在保护什么；天赋可能开启更高的可能。它们是同等的维度，不是等级，由你决定什么适合自己。它不是治疗、危机监测或精神权威。",
     "consentRequired": "开始前请接受每一项必需同意。",
     "founderEyebrow": "创始人校准",
     "founderBody": "完成此步骤后，日记会以建议的引导校准场景打开。请完成一次反思并选择反馈类型。只有在需要记录具体的声音、来源依据、强度、具身行动或措辞细节时，才添加简短备注。",
@@ -473,7 +485,7 @@
     "hiddenDescription": "已从活跃模式记忆中隐藏。",
     "footnote": "模式是从你的语言中提取的暂定反思信号。你可以在这里纠正或隐藏任何信号，也可以在设置中关闭模式记忆。",
     "emptyTitle": "模式会随时间浮现",
-    "emptyBody": "继续书写。只有当语言和情绪信号在多篇记录中出现后，内在议会才会注意到它们。",
+    "emptyBody": "继续书写。只有当语言和情绪信号在多篇记录中出现后，向导才可能注意到它们。",
     "feedback": {
       "helpful": "Marked helpful. Future pattern review can treat this signal as more useful.",
       "not_accurate": "Marked not accurate. This correction was saved for pattern review.",
@@ -554,12 +566,12 @@
   "sessionDetail": {
     "feedbackSaved": "Feedback saved. It stays with this session and does not automatically retrain the guide.",
     "feedbackTypeRequired": "Feedback notes are optional now. Choose a feedback type to save this calibration pass.",
-    "councilReflection": "议会反思",
+    "councilReflection": "Supraconscious 反思",
     "stageLine": "{name} · Stage {stage}",
     "reflectOnThis": "反思这一点",
     "integrationStep": "一个整合步骤",
     "noReflection": "No reflection was generated for this entry.",
-    "innerCouncil": "内在议会",
+    "innerCouncil": "Supraconscious 向导",
     "quietVoice": "This voice was quiet while grounding came first.",
     "calibrationStatus": "Calibration status",
     "sessionStatus": "Session status",

@@ -314,56 +314,92 @@ abstract class AppLocalizations {
   /// No description provided for @landingCouncilBody.
   ///
   /// In en, this message translates to:
-  /// **'You write what is on your mind. The Guide offers the dimensions that fit the moment without claiming to know your truth.'**
+  /// **'You enter through the Mirror. The Guide may surface the dimensions that fit this moment, in varying number and depth. Each is an equally valid facet; interpretation and choice stay with you.'**
   String get landingCouncilBody;
 
   /// No description provided for @protectorRole.
   ///
   /// In en, this message translates to:
-  /// **'The Protector'**
+  /// **'Perception'**
   String get protectorRole;
 
   /// No description provided for @protectorRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'Shows where fear is holding you back.'**
+  /// **'What am I noticing?'**
   String get protectorRoleBody;
 
   /// No description provided for @conditionedSelfRole.
   ///
   /// In en, this message translates to:
-  /// **'The Conditioned Self'**
+  /// **'Story'**
   String get conditionedSelfRole;
 
   /// No description provided for @conditionedSelfRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'Reveals patterns you did not question.'**
+  /// **'What meaning have I created? The Observer can notice it without attachment.'**
   String get conditionedSelfRoleBody;
 
   /// No description provided for @visionaryRole.
   ///
   /// In en, this message translates to:
-  /// **'The Visionary'**
+  /// **'Fear'**
   String get visionaryRole;
 
   /// No description provided for @visionaryRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'Shows who you are becoming.'**
+  /// **'What might I be protecting?'**
   String get visionaryRoleBody;
 
   /// No description provided for @truthSelfRole.
   ///
   /// In en, this message translates to:
-  /// **'The Truth Self'**
+  /// **'Ego'**
   String get truthSelfRole;
 
   /// No description provided for @truthSelfRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'Cuts through illusion.'**
+  /// **'Which identity may be responding?'**
   String get truthSelfRoleBody;
+
+  /// No description provided for @geniusRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Genius'**
+  String get geniusRole;
+
+  /// No description provided for @geniusRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What higher possibility may be available?'**
+  String get geniusRoleBody;
+
+  /// No description provided for @supraconsciousRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Supraconscious'**
+  String get supraconsciousRole;
+
+  /// No description provided for @supraconsciousRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What conscious choice is now possible?'**
+  String get supraconsciousRoleBody;
+
+  /// No description provided for @embodimentRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Embodiment'**
+  String get embodimentRole;
+
+  /// No description provided for @embodimentRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'How will I live that choice?'**
+  String get embodimentRoleBody;
 
   /// No description provided for @landingExperienceEyebrow.
   ///
@@ -452,7 +488,7 @@ abstract class AppLocalizations {
   /// No description provided for @askCouncil.
   ///
   /// In en, this message translates to:
-  /// **'Ask the Guide'**
+  /// **'Enter the Mirror'**
   String get askCouncil;
 
   /// No description provided for @reflecting.
@@ -494,13 +530,13 @@ abstract class AppLocalizations {
   /// No description provided for @gateSaved.
   ///
   /// In en, this message translates to:
-  /// **'Gate saved'**
+  /// **'Choice saved'**
   String get gateSaved;
 
   /// No description provided for @gateOpen.
   ///
   /// In en, this message translates to:
-  /// **'Gate open'**
+  /// **'Choice available'**
   String get gateOpen;
 
   /// No description provided for @helpful.
@@ -788,7 +824,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveEmbodimentGate.
   ///
   /// In en, this message translates to:
-  /// **'Save embodiment gate'**
+  /// **'Save this choice'**
   String get saveEmbodimentGate;
 
   /// No description provided for @feedbackSavedMessage.
@@ -800,7 +836,7 @@ abstract class AppLocalizations {
   /// No description provided for @embodimentSavedMessage.
   ///
   /// In en, this message translates to:
-  /// **'Embodiment gate saved.'**
+  /// **'Embodied choice saved.'**
   String get embodimentSavedMessage;
 
   /// No description provided for @patternsEmptyBody.

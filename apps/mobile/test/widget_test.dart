@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
     await tester.pumpAndSettle();
 
-    expect(find.text('Supraconscious'), findsOneWidget);
+    expect(find.text('Supraconscious'), findsWidgets);
     expect(find.text('This is not a journal.'), findsOneWidget);
     expect(find.text('Start Your First Reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
@@ -36,9 +36,11 @@ void main() {
     await tester.tap(find.text('Ελληνικά').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Το Εσωτερικό Συμβούλιο'), findsOneWidget);
+    expect(find.text('Supraconscious'), findsWidgets);
     expect(find.text('Αυτό δεν είναι ημερολόγιο.'), findsOneWidget);
-    expect(find.text('Ο Προστάτης'), findsOneWidget);
+    expect(find.text('Αντίληψη'), findsOneWidget);
+    expect(find.text('Ιδιοφυΐα'), findsOneWidget);
+    expect(find.text('Το Εσωτερικό Συμβούλιο'), findsNothing);
   });
 
   testWidgets('landing create account opens register form', (tester) async {
@@ -76,13 +78,13 @@ void main() {
     await tester.tap(find.text('Iniciar sesión'));
     await tester.pumpAndSettle();
 
-    expect(find.text('El Consejo Interior'), findsOneWidget);
+    expect(find.text('Supraconscious'), findsWidgets);
     expect(
       find.text('Escribe. Ve con claridad. Elige conscientemente.'),
       findsOneWidget,
     );
     expect(find.text('Correo electrónico'), findsOneWidget);
-    expect(find.text('The Inner Council'), findsNothing);
+    expect(find.text('El Consejo Interior'), findsNothing);
   });
 
   testWidgets('journal tab follows selected auth language after login', (

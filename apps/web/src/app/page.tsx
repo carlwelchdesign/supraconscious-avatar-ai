@@ -1,14 +1,14 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { ReactNode } from "react"
-import { ArrowDown, ArrowRight, Shield, Sparkles, Telescope, VenetianMask } from "lucide-react"
+import { ArrowDown, ArrowRight, BookOpenText, Brain, Compass, Eye, Footprints, Lightbulb, Shield } from "lucide-react"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { getPricingPageContent, prisma, type PricingPageContent } from "@inner-avatar/db"
 import { LanguagePicker } from "@/components/landing/language-picker"
 import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
-const councilIcons = [Shield, VenetianMask, Telescope, Sparkles]
+const dimensionIcons = [Eye, BookOpenText, Shield, Brain, Lightbulb, Compass, Footprints]
 
 function CtaLink({ href, children, variant = "dark" }: { href: string; children: ReactNode; variant?: "dark" | "light" }) {
   const className =
@@ -45,7 +45,7 @@ export default async function Home() {
           <nav className="hidden items-center gap-7 md:flex" aria-label="Landing page sections">
             {[
               [landing.nav.problem, "#problem"],
-              [landing.nav.council, "#council"],
+              [landing.nav.council, "#dimensions"],
               [landing.nav.experience, "#experience"],
               [landing.nav.pricing, "/pricing"],
             ].map(([label, href]) => (
@@ -174,7 +174,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="council" className="px-5 py-24 md:px-8 lg:py-32">
+      <section id="dimensions" className="px-5 py-24 md:px-8 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 max-w-3xl">
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay)]">{landing.council}</p>
@@ -186,9 +186,9 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {landing.councilRoles.map(({ title, body }, index) => {
-              const Icon = councilIcons[index] ?? Shield
+              const Icon = dimensionIcons[index] ?? Eye
               return (
               <article
                 key={title}

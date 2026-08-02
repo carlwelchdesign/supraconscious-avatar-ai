@@ -151,6 +151,73 @@ test("every localized session entry label preserves Mirror as the product term",
   }
 })
 
+test("web and mobile entry experiences use Mirror and all seven non-hierarchical dimensions", () => {
+  const webFiles = listTextFiles(resolve(REPO_ROOT, "apps/web/src/messages")).filter(
+    (filePath) => extname(filePath) === ".json",
+  )
+  const mobileFiles = listTextFiles(resolve(REPO_ROOT, "apps/mobile/lib/l10n")).filter(
+    (filePath) => extname(filePath) === ".arb",
+  )
+
+  for (const filePath of webFiles) {
+    const localization = JSON.parse(readFileSync(filePath, "utf8"))
+    const roles = readNestedValue(localization, ["landing", "councilRoles"])
+    assert.ok(Array.isArray(roles), `${filePath} must define its dimension cards`)
+    assert.equal(roles.length, 7, `${filePath} must present all seven dimensions`)
+    assert.match(readNestedString(localization, ["landing", "councilBody"]), /\bMirror\b/)
+    assert.match(readNestedString(localization, ["journal", "askCouncil"]), /\bMirror\b/)
+    if (filePath.endsWith("/en.json")) {
+      assert.deepEqual(
+        roles.map((role) => (role as { title?: unknown }).title),
+        ["Perception", "Story", "Fear", "Ego", "Genius", "Supraconscious", "Embodiment"],
+      )
+      assert.match(readNestedString(localization, ["landing", "shiftBody"]), /equally valid/i)
+      assert.match(readNestedString(localization, ["landing", "changeQuestionBody"]), /fearful self.*genius self/i)
+      assert.match(readNestedString(localization, ["onboarding", "body"]), /Fear.*Genius.*equal dimensions.*not levels/i)
+    }
+  }
+
+  for (const filePath of mobileFiles) {
+    const localization = JSON.parse(readFileSync(filePath, "utf8"))
+    const dimensionKeys = [
+      "protectorRole",
+      "conditionedSelfRole",
+      "visionaryRole",
+      "truthSelfRole",
+      "geniusRole",
+      "supraconsciousRole",
+      "embodimentRole",
+    ]
+    assert.equal(dimensionKeys.filter((key) => typeof localization[key] === "string").length, 7)
+    assert.match(localization.landingCouncilBody, /\bMirror\b/)
+    assert.match(localization.askCouncil, /\bMirror\b/)
+    assert.match(localization.appTitle, /^Supraconscious$/)
+    if (filePath.endsWith("/app_en.arb")) {
+      assert.deepEqual(
+        dimensionKeys.map((key) => localization[key]),
+        ["Perception", "Story", "Fear", "Ego", "Genius", "Supraconscious", "Embodiment"],
+      )
+      assert.match(localization.landingCouncilBody, /equally valid/i)
+    }
+  }
+
+  const localizedLegacyTerms = [
+    /Consejo Interior/i,
+    /Εσωτερικό Συμβούλιο/i,
+    /Inner(?:en|er) Rat/i,
+    /Conseil Intérieur/i,
+    /内在议会/i,
+  ]
+  for (const filePath of [...webFiles, ...mobileFiles]) {
+    const values = collectJsonStrings(JSON.parse(readFileSync(filePath, "utf8")))
+    for (const value of values) {
+      for (const pattern of localizedLegacyTerms) {
+        assert.doesNotMatch(value, pattern, `${filePath} must not restore translated council branding`)
+      }
+    }
+  }
+})
+
 function isAllowlisted(relativePath: string, rule: string, value: string, used: Set<number>) {
   const index = DOCUMENTED_COMPATIBILITY_ALLOWLIST.findIndex(
     (entry) => entry.path === relativePath && entry.rule === rule && entry.valuePattern.test(value),
@@ -197,12 +264,17 @@ function collectJsonValuesForKey(value: unknown, targetKey: string): string[] {
 }
 
 function readNestedString(value: unknown, path: string[]): string {
+  const current = readNestedValue(value, path)
+  return typeof current === "string" ? current : ""
+}
+
+function readNestedValue(value: unknown, path: string[]): unknown {
   let current = value
   for (const key of path) {
     if (!current || typeof current !== "object" || !(key in current)) return ""
     current = (current as Record<string, unknown>)[key]
   }
-  return typeof current === "string" ? current : ""
+  return current
 }
 
 function collectJavaScriptStrings(filePath: string, content: string): string[] {

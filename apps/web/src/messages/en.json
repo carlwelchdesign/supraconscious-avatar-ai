@@ -27,7 +27,7 @@
     "seeWhatChanges": "See what changes",
     "nav": {
       "problem": "Problem",
-      "council": "Council",
+      "council": "Dimensions",
       "experience": "Experience",
       "pricing": "Pricing"
     },
@@ -43,38 +43,50 @@
     ],
     "problemBody2": "Not because you do not know what to do. Because something in you is pulling in different directions.",
     "shiftEyebrow": "The shift",
-    "shiftTitle": "What if you could see every part of yourself at once?",
-    "shiftBody": "Inside you, there is not one voice. There are many.",
+    "shiftTitle": "What if you could examine the same moment from more than one dimension?",
+    "shiftBody": "Each dimension is an equally valid facet of consciousness. None is a rank, level, or identity.",
     "shiftParts": [
-      "the part that wants safety",
-      "the part that repeats the past",
-      "the part that knows your potential",
-      "the part that sees the truth"
+      "Fear can show what you may be protecting",
+      "Genius can open a higher possibility",
+      "Story can reveal the meaning you created",
+      "Embodiment can carry a conscious choice into life"
     ],
     "shiftClosing": "Most people hear noise. This system gives you structure.",
     "council": "How it works",
     "councilTitle": "Meet the Seven Dimensions",
-    "councilBody": "You write what is on your mind. Then four inner lenses reflect what is moving beneath the surface.",
+    "councilBody": "You enter through the Mirror. The Guide may surface the dimensions that fit this moment, in varying number and depth, while leaving the interpretation and choice with you.",
     "councilRoles": [
       {
-        "title": "The Protector",
-        "body": "Shows where fear is holding you back."
+        "title": "Perception",
+        "body": "What am I noticing?"
       },
       {
-        "title": "The Conditioned Self",
-        "body": "Reveals patterns you did not question."
+        "title": "Story",
+        "body": "What meaning have I created? The Observer can notice it without attachment."
       },
       {
-        "title": "The Visionary",
-        "body": "Shows who you are becoming."
+        "title": "Fear",
+        "body": "What might I be protecting?"
       },
       {
-        "title": "The Truth Self",
-        "body": "Cuts through illusion."
+        "title": "Ego",
+        "body": "Which identity may be responding?"
+      },
+      {
+        "title": "Genius",
+        "body": "What higher possibility may be available?"
+      },
+      {
+        "title": "Supraconscious",
+        "body": "What conscious choice is now possible?"
+      },
+      {
+        "title": "Embodiment",
+        "body": "How will I live that choice?"
       }
     ],
-    "changeQuestionTitle": "And then you face the question that changes everything.",
-    "changeQuestionBody": "Not advice. Not answers. One precise question that reveals what you have been avoiding.",
+    "changeQuestionTitle": "The Guide offers a question. You decide what fits.",
+    "changeQuestionBody": "Not diagnosis. Not hidden knowledge. A tentative reflection that may help you distinguish the fearful self from the genius self and choose consciously.",
     "experience": "The experience",
     "experienceTitleA": "This is not about writing.",
     "experienceTitleB": "It is about seeing.",
@@ -244,14 +256,14 @@
     "reviewPromptRegression": "Admin review marked a prompt regression.",
     "reviewFallback": "Admin review marked this session: {label}.",
     "feedbackInvalid": "That feedback action was incomplete. Open the saved session and try again.",
-    "feedbackSessionMissing": "That council session is no longer available on this account.",
+    "feedbackSessionMissing": "That reflection session is no longer available on this account.",
     "deleteInvalid": "That delete action was incomplete. Open the session and try again.",
     "deleteMissing": "That journal entry is no longer available on this account."
   },
   "journal": {
     "eyebrow": "Journal",
     "title": "What is present today?",
-    "helper": "Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.",
+    "helper": "Write one honest entry. The Guide may reflect patterns, tensions, and one grounded next step.",
     "backToDashboard": "Back to dashboard",
     "entryEyebrow": "Journal entry",
     "founderCalibration": "Founder calibration",
@@ -293,7 +305,7 @@
     "transientError": "Reflection could not be completed. Try again in a moment.",
     "saveShiftError": "Unable to save your shift. Try again in a moment.",
     "saveFeedbackError": "Unable to save feedback. Try again in a moment.",
-    "askCouncil": "Ask the Council",
+    "askCouncil": "Enter the Mirror",
     "nothingSavedTitle": "Nothing saved yet",
     "savedReflection": "Saved reflection",
     "patternsTitle": "Patterns",
@@ -308,17 +320,17 @@
     "enteringLevel": "You are entering {level}",
     "generatedPrompt": "Generated Prompt",
     "generatedPromptEmpty": "A grounded prompt will be generated from your reflection.",
-    "embodimentGate": "Embodiment Gate",
+    "embodimentGate": "Embodiment",
     "embodimentQuestion": "What is one small shift you can carry today?",
     "embodimentHelp": "Save this as today's small shift.",
     "embodimentPlaceholder": "One small shift...",
-    "gateCrossed": "Gate crossed",
-    "crossGate": "Cross the Gate",
+    "gateCrossed": "Choice saved",
+    "crossGate": "Save this choice",
     "journalErrorSignIn": "Please sign in again before starting a reflection.",
     "journalErrorRate": "Too many reflection attempts in a short time. Pause for a moment, then try again.",
     "journalErrorServer": "The guide could not complete this reflection right now. Try again in a moment.",
     "saveErrorSignIn": "Please sign in again before saving.",
-    "saveErrorMissing": "This council session is no longer available. Refresh the page and try again.",
+    "saveErrorMissing": "This reflection session is no longer available. Refresh the page and try again.",
     "saved": "Saved",
     "journalPlaceholder": "Write what is present — emotions, observations, tensions. No structure required…",
     "calibrationScenarios": {
@@ -389,7 +401,7 @@
     "updatePassword": "Update password",
     "dataControls": "Data controls",
     "exportData": "Export your data",
-    "exportDataDescription": "Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata.",
+    "exportDataDescription": "Includes profile, entries, reflection sessions, pattern memory, feedback, safety events, consent records, and event metadata.",
     "downloadJson": "Download JSON",
     "deleteEntries": "Delete individual entries",
     "deleteEntriesDescription": "Open any saved journal entry to delete that entry and its attached reflection records.",
@@ -409,7 +421,7 @@
     "revoke": "Revoke",
     "deleteAccountSection": "Delete account",
     "deleteAccountTitle": "Delete this account and its private app data",
-    "deleteAccountDescription": "This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.",
+    "deleteAccountDescription": "This permanently removes your account, sessions, journal entries, reflections, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.",
     "deletePasswordIncorrect": "Password is incorrect.",
     "deleteInvalid": "Enter your password and type DELETE to confirm account deletion.",
     "password": "Password",
@@ -438,7 +450,7 @@
   "onboarding": {
     "eyebrow": "First session",
     "title": "Before you enter the Mirror",
-    "body": "This experience uses your journal text to create a bounded reflection within the approved Supraconscious framework. It is not therapy, crisis monitoring, or spiritual authority.",
+    "body": "This experience uses your journal text to create a bounded reflection within the approved Supraconscious framework. Fear may help you notice what you are protecting; Genius may open a higher possibility. They are equal dimensions, not levels, and you decide what fits. This is not therapy, crisis monitoring, or spiritual authority.",
     "consentRequired": "Please accept each required consent item before beginning.",
     "founderEyebrow": "Founder calibration",
     "founderBody": "After this step, the journal will open with a suggested guided calibration scenario. Please run one reflection and choose a feedback type. Add a short note only when there is a specific voice, source grounding, intensity, embodiment, or phrasing detail to capture.",
@@ -473,7 +485,7 @@
     "hiddenDescription": "Hidden from active pattern memory.",
     "footnote": "Patterns are draft reflective signals from your language. You can correct or hide any signal here, or disable pattern memory in settings.",
     "emptyTitle": "Patterns emerge over time",
-    "emptyBody": "Keep writing. The council notices recurring language and emotional signals only after they appear across multiple entries.",
+    "emptyBody": "Keep writing. The Guide may notice recurring language and emotional signals only after they appear across multiple entries.",
     "feedback": {
       "helpful": "Marked helpful. Future pattern review can treat this signal as more useful.",
       "not_accurate": "Marked not accurate. This correction was saved for pattern review.",

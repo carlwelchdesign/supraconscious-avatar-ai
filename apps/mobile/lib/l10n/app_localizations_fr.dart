@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'Le Conseil Intérieur';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => 'Commencer ta première réflexion';
@@ -43,7 +43,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get landingBody =>
-      'Tu n\'as pas besoin de plus de conseils. Tu as besoin de voir clairement. Le Conseil Intérieur révèle ce que tu sais déjà, mais que tu n\'as pas encore affronté.';
+      'Tu n’as pas besoin de plus de conseils. Tu as besoin de voir clairement. Le Mirror t’aide à reconnaître ce qui est peut-être déjà présent.';
 
   @override
   String get tabJournal => 'Journal';
@@ -73,7 +73,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get journalHelper =>
-      'Écris une entrée honnête. Le conseil reflétera les schémas, les tensions et un prochain pas ancré.';
+      'Écris une entrée honnête. Le Guide peut refléter les schémas, les tensions et un prochain pas ancré.';
 
   @override
   String get journalPlaceholder =>
@@ -122,32 +122,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get landingCouncilBody =>
-      'Vous écrivez ce qui vous préoccupe. Le Guide propose les dimensions adaptées au moment.';
+      'Tu entres par le Mirror. Le Guide peut faire émerger les dimensions adaptées à ce moment, en nombre et en profondeur variables. Chacune est une facette également valable ; l’interprétation et le choix restent entre tes mains.';
 
   @override
-  String get protectorRole => 'Le Protecteur';
+  String get protectorRole => 'Perception';
 
   @override
-  String get protectorRoleBody => 'Montre où la peur te retient.';
+  String get protectorRoleBody => 'Qu’est-ce que je remarque ?';
 
   @override
-  String get conditionedSelfRole => 'Le Moi Conditionné';
+  String get conditionedSelfRole => 'Histoire';
 
   @override
   String get conditionedSelfRoleBody =>
-      'Révèle les schémas que tu n\'avais pas remis en question.';
+      'Quel sens ai-je créé ? L’Observateur peut le remarquer sans attachement.';
 
   @override
-  String get visionaryRole => 'Le Visionnaire';
+  String get visionaryRole => 'Peur';
 
   @override
-  String get visionaryRoleBody => 'Montre qui tu es en train de devenir.';
+  String get visionaryRoleBody =>
+      'Qu’est-ce que je cherche peut-être à protéger ?';
 
   @override
-  String get truthSelfRole => 'Le Moi Véritable';
+  String get truthSelfRole => 'Ego';
 
   @override
-  String get truthSelfRoleBody => 'Traverse l\'illusion.';
+  String get truthSelfRoleBody =>
+      'Quelle identité pourrait être en train de répondre ?';
+
+  @override
+  String get geniusRole => 'Génie';
+
+  @override
+  String get geniusRoleBody =>
+      'Quelle possibilité supérieure pourrait être disponible ?';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody =>
+      'Quel choix conscient est maintenant possible ?';
+
+  @override
+  String get embodimentRole => 'Incarnation';
+
+  @override
+  String get embodimentRoleBody => 'Comment vais-je vivre ce choix ?';
 
   @override
   String get landingExperienceEyebrow => 'L’expérience';
@@ -194,7 +216,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get today => 'Aujourd’hui';
 
   @override
-  String get askCouncil => 'Demander au Guide';
+  String get askCouncil => 'Entrer dans le Mirror';
 
   @override
   String get reflecting => 'Réflexion...';
@@ -217,10 +239,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedbackNeeded => 'Commentaires nécessaires';
 
   @override
-  String get gateSaved => 'Porte enregistrée';
+  String get gateSaved => 'Choix enregistré';
 
   @override
-  String get gateOpen => 'Porte ouverte';
+  String get gateOpen => 'Choix disponible';
 
   @override
   String get helpful => 'Utile';
@@ -377,13 +399,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un petit changement que je peux vivre aujourd’hui';
 
   @override
-  String get saveEmbodimentGate => 'Enregistrer la porte d’incarnation';
+  String get saveEmbodimentGate => 'Enregistrer ce choix';
 
   @override
   String get feedbackSavedMessage => 'Retour enregistré.';
 
   @override
-  String get embodimentSavedMessage => 'Porte d’incarnation enregistrée.';
+  String get embodimentSavedMessage => 'Choix incarné enregistré.';
 
   @override
   String get patternsEmptyBody =>

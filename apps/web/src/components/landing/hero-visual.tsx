@@ -62,7 +62,7 @@ export function HeroVisual() {
           Supraconscious reflection
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
-          &ldquo;The Visionary sees permission where the Protector sees risk.&rdquo;
+          &ldquo;The Fear dimension may show what I protect; Genius may open another possibility.&rdquo;
         </p>
       </div>
 
@@ -75,7 +75,7 @@ export function HeroVisual() {
         }}
       >
         <p className="text-[10px] font-medium tracking-widest uppercase text-[var(--clay)] mb-1.5">
-          Embodiment Gate
+          Embodiment
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
           &ldquo;One small shift I can live today…&rdquo;

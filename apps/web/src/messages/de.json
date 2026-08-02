@@ -19,15 +19,15 @@
     "noNote": "keine Notiz"
   },
   "landing": {
-    "brand": "Der Innere Rat™",
+    "brand": "Supraconscious™",
     "eyebrow": "KI-gestützte Identitätsreflexion",
     "notJournal": "Das ist kein Journal.",
     "meetYourself": "Hier begegnest du dir selbst.",
-    "heroBody": "Du brauchst nicht mehr Ratschläge. Du musst klar sehen. Der Innere Rat™ zeigt, was du bereits weißt, aber noch nicht angeschaut hast.",
+    "heroBody": "Du brauchst nicht mehr Ratschläge. Du musst klar sehen. Der Mirror hilft dir zu erkennen, was vielleicht schon da ist.",
     "seeWhatChanges": "Sehen, was sich verändert",
     "nav": {
       "problem": "Problem",
-      "council": "Rat",
+      "council": "Dimensionen",
       "experience": "Erfahrung",
       "pricing": "Preise"
     },
@@ -43,38 +43,50 @@
     ],
     "problemBody2": "Nicht weil du nicht weißt, was zu tun ist. Sondern weil etwas in dir in verschiedene Richtungen zieht.",
     "shiftEyebrow": "Die Veränderung",
-    "shiftTitle": "Was wäre, wenn du alle Teile von dir auf einmal sehen könntest?",
-    "shiftBody": "In dir gibt es nicht nur eine Stimme. Es gibt viele.",
+    "shiftTitle": "Was wäre, wenn du denselben Moment aus mehreren Dimensionen betrachten könntest?",
+    "shiftBody": "Jede Dimension ist eine gleichwertige Facette des Bewusstseins. Keine ist Rang, Stufe oder Identität.",
     "shiftParts": [
-      "der Teil, der Sicherheit will",
-      "der Teil, der die Vergangenheit wiederholt",
-      "der Teil, der dein Potenzial kennt",
-      "der Teil, der die Wahrheit sieht"
+      "Angst kann zeigen, was du vielleicht schützt",
+      "Genie kann eine höhere Möglichkeit öffnen",
+      "Geschichte kann die von dir geschaffene Bedeutung zeigen",
+      "Verkörperung kann eine bewusste Wahl ins Leben tragen"
     ],
     "shiftClosing": "Die meisten Menschen hören Lärm. Dieses System gibt dir Struktur.",
     "council": "So funktioniert es",
-    "councilTitle": "Lerne deinen Inneren Rat™ kennen",
-    "councilBody": "Du schreibst auf, was dich beschäftigt. Dann spiegeln vier innere Perspektiven, was unter der Oberfläche wirkt.",
+    "councilTitle": "Lerne die Sieben Dimensionen kennen",
+    "councilBody": "Du trittst durch den Mirror ein. Der Guide kann die Dimensionen zeigen, die zu diesem Moment passen, in unterschiedlicher Anzahl und Tiefe. Deutung und Wahl bleiben bei dir.",
     "councilRoles": [
       {
-        "title": "Der Beschützer",
-        "body": "Zeigt, wo Angst dich zurückhält."
+        "title": "Wahrnehmung",
+        "body": "Was nehme ich wahr?"
       },
       {
-        "title": "Das Konditionierte Selbst",
-        "body": "Zeigt Muster, die du bisher nicht hinterfragt hast."
+        "title": "Geschichte",
+        "body": "Welche Bedeutung habe ich geschaffen? Der Beobachter kann sie ohne Anhaftung wahrnehmen."
       },
       {
-        "title": "Der Visionär",
-        "body": "Zeigt, wer du wirst."
+        "title": "Angst",
+        "body": "Was könnte ich schützen?"
       },
       {
-        "title": "Das Wahre Selbst",
-        "body": "Schneidet durch Illusion."
+        "title": "Ego",
+        "body": "Welche Identität könnte gerade reagieren?"
+      },
+      {
+        "title": "Genie",
+        "body": "Welche höhere Möglichkeit könnte verfügbar sein?"
+      },
+      {
+        "title": "Supraconscious",
+        "body": "Welche bewusste Wahl ist jetzt möglich?"
+      },
+      {
+        "title": "Verkörperung",
+        "body": "Wie werde ich diese Wahl leben?"
       }
     ],
-    "changeQuestionTitle": "Und dann begegnest du der Frage, die alles verändert.",
-    "changeQuestionBody": "Kein Rat. Keine Antworten. Eine präzise Frage, die zeigt, was du vermieden hast.",
+    "changeQuestionTitle": "Der Guide bietet eine Frage an. Du entscheidest, was passt.",
+    "changeQuestionBody": "Keine Diagnose und kein verborgenes Wissen. Eine vorsichtige Reflexion, die dir helfen kann, das ängstliche vom genialen Selbst zu unterscheiden und bewusst zu wählen.",
     "experience": "Die Erfahrung",
     "experienceTitleA": "Es geht nicht ums Schreiben.",
     "experienceTitleB": "Es geht ums Sehen.",
@@ -166,7 +178,7 @@
     "enterRecoveryCode": "Gib einen Wiederherstellungscode ein."
   },
   "appShell": {
-    "innerCouncil": "Innerer Rat",
+    "innerCouncil": "Supraconscious Guide",
     "stage": "Stufe",
     "signOut": "Abmelden",
     "nav": {
@@ -204,7 +216,7 @@
     "feedbackSavedContinueBody": "Dein Feedback ist gespeichert. Fahre mit einem weiteren geführten Szenario fort oder öffne die Sitzung, wenn du genauer ergänzen möchtest, was richtig war oder sich ändern sollte.",
     "continueCalibration": "Kalibrierung fortsetzen",
     "openLatestSession": "Neueste Sitzung öffnen",
-    "guideHeroEyebrow": "Innerer-Rat-Guide · Stufe {stage}",
+    "guideHeroEyebrow": "Supraconscious Guide · konstante Präsenz",
     "guideHeroBody": "Spiegelt deine Sprache mit Sorgfalt, während sich die Rats-Praxis vertieft.",
     "seeGuideEvolution": "Entwicklung des Guides ansehen",
     "entriesWritten": "Geschriebene Einträge",
@@ -218,7 +230,7 @@
     "guideListeningFallback": "Dein Guide hört zu.",
     "openThisSession": "Diese Sitzung öffnen",
     "firstCouncilWaiting": "Dein erster Ratseintrag wartet.",
-    "firstCouncilBody": "Schreibe, was heute präsent ist — keine Struktur nötig. Der Rat wird es achtsam spiegeln.",
+    "firstCouncilBody": "Schreibe, was heute präsent ist — keine Struktur nötig. Der Guide kann es achtsam spiegeln.",
     "beginWriting": "Mit dem Schreiben beginnen",
     "pastReflections": "Frühere Reflexionen",
     "gateSaved": "Tor gespeichert",
@@ -251,7 +263,7 @@
   "journal": {
     "eyebrow": "Journal",
     "title": "Was ist heute präsent?",
-    "helper": "Schreibe einen ehrlichen Eintrag. Der Rat spiegelt Muster, Spannungen und einen geerdeten nächsten Schritt.",
+    "helper": "Schreibe einen ehrlichen Eintrag. Der Guide kann Muster, Spannungen und einen geerdeten nächsten Schritt spiegeln.",
     "backToDashboard": "Zurück zum Dashboard",
     "entryEyebrow": "Journaleintrag",
     "founderCalibration": "Gründer-Kalibrierung",
@@ -293,7 +305,7 @@
     "transientError": "Reflection could not be completed. Try again in a moment.",
     "saveShiftError": "Unable to save your shift. Try again in a moment.",
     "saveFeedbackError": "Unable to save feedback. Try again in a moment.",
-    "askCouncil": "Den Rat fragen",
+    "askCouncil": "In den Mirror eintreten",
     "nothingSavedTitle": "Nothing saved yet",
     "savedReflection": "Gespeicherte Reflexion",
     "patternsTitle": "Patterns",
@@ -308,12 +320,12 @@
     "enteringLevel": "Du trittst ein in {level}",
     "generatedPrompt": "Generierter Prompt",
     "generatedPromptEmpty": "Aus deiner Reflexion wird ein geerdeter Prompt erstellt.",
-    "embodimentGate": "Verkörperungstor",
+    "embodimentGate": "Verkörperung",
     "embodimentQuestion": "Welche kleine Veränderung kannst du heute mitnehmen?",
     "embodimentHelp": "Speichere dies als heutige kleine Veränderung.",
     "embodimentPlaceholder": "Eine kleine Veränderung...",
-    "gateCrossed": "Tor überschritten",
-    "crossGate": "Das Tor überschreiten",
+    "gateCrossed": "Wahl gespeichert",
+    "crossGate": "Diese Wahl speichern",
     "journalErrorSignIn": "Bitte melde dich erneut an, bevor du eine Reflexion startest.",
     "journalErrorRate": "Zu viele Reflexionsversuche in kurzer Zeit. Pausiere kurz und versuche es erneut.",
     "journalErrorServer": "Der Guide konnte diese Reflexion gerade nicht abschließen. Versuche es gleich erneut.",
@@ -389,7 +401,7 @@
     "updatePassword": "Passwort aktualisieren",
     "dataControls": "Datenkontrollen",
     "exportData": "Export your data",
-    "exportDataDescription": "Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata.",
+    "exportDataDescription": "Enthält Profil, Einträge, Reflexionssitzungen, Musterspeicher, Feedback, Sicherheitsereignisse, Einwilligungsnachweise und Ereignismetadaten.",
     "downloadJson": "Download JSON",
     "deleteEntries": "Delete individual entries",
     "deleteEntriesDescription": "Open any saved journal entry to delete that entry and its attached reflection records.",
@@ -409,7 +421,7 @@
     "revoke": "Revoke",
     "deleteAccountSection": "Konto löschen",
     "deleteAccountTitle": "Delete this account and its private app data",
-    "deleteAccountDescription": "This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.",
+    "deleteAccountDescription": "Dadurch werden dein Konto, Sitzungen, Journaleinträge, Reflexionen, Musterspeicher, Einwilligungsnachweise und in dieser App gespeicherte Abonnements dauerhaft gelöscht. Wenn Stripe-Abrechnung eingerichtet ist, werden verknüpfte Abonnements und Kundendatensätze zuerst gekündigt oder gelöscht. Prüfprotokolle können als abgetrennte Betriebsdaten erhalten bleiben.",
     "deletePasswordIncorrect": "Password is incorrect.",
     "deleteInvalid": "Enter your password and type DELETE to confirm account deletion.",
     "password": "Passwort",
@@ -438,7 +450,7 @@
   "onboarding": {
     "eyebrow": "Erste Sitzung",
     "title": "Bevor du den Mirror betrittst",
-    "body": "Diese Erfahrung nutzt deinen Tagebuchtext, um eine begrenzte Reflexion innerhalb des freigegebenen Supraconscious-Rahmens zu erstellen. Sie ist keine Therapie, Krisenüberwachung oder spirituelle Autorität.",
+    "body": "Diese Erfahrung nutzt deinen Tagebuchtext für eine begrenzte Reflexion im freigegebenen Supraconscious-Rahmen. Angst kann dir helfen wahrzunehmen, was du schützt; Genie kann eine höhere Möglichkeit öffnen. Es sind gleichwertige Dimensionen, keine Stufen, und du entscheidest, was passt. Dies ist keine Therapie, Krisenüberwachung oder spirituelle Autorität.",
     "consentRequired": "Bitte akzeptiere alle erforderlichen Einwilligungen, bevor du beginnst.",
     "founderEyebrow": "Gründer-Kalibrierung",
     "founderBody": "Nach diesem Schritt öffnet sich das Journal mit einem vorgeschlagenen geführten Kalibrierungsszenario. Führe eine Reflexion durch und wähle einen Feedbacktyp. Füge nur dann eine kurze Notiz hinzu, wenn es ein konkretes Detail zu Stimme, Quellen, Intensität, Verkörperung oder Formulierung gibt.",
@@ -473,7 +485,7 @@
     "hiddenDescription": "Aus der aktiven Mustergedächtnis verborgen.",
     "footnote": "Muster sind vorläufige Reflexionssignale aus deiner Sprache. Du kannst jedes Signal hier korrigieren oder verbergen oder das Mustergedächtnis in den Einstellungen deaktivieren.",
     "emptyTitle": "Muster entstehen mit der Zeit",
-    "emptyBody": "Schreibe weiter. Der Rat bemerkt wiederkehrende Sprache und emotionale Signale erst, nachdem sie in mehreren Einträgen erscheinen.",
+    "emptyBody": "Schreibe weiter. Der Guide kann wiederkehrende Sprache und emotionale Signale erst bemerken, nachdem sie in mehreren Einträgen erscheinen.",
     "feedback": {
       "helpful": "Marked helpful. Future pattern review can treat this signal as more useful.",
       "not_accurate": "Marked not accurate. This correction was saved for pattern review.",

@@ -19,15 +19,15 @@
     "noNote": "sin nota"
   },
   "landing": {
-    "brand": "El Consejo Interior™",
+    "brand": "Supraconscious™",
     "eyebrow": "Reflexión de identidad con IA",
     "notJournal": "Esto no es un diario.",
     "meetYourself": "Aquí es donde te encuentras contigo.",
-    "heroBody": "No necesitas más consejos. Necesitas ver con claridad. El Consejo Interior™ revela lo que ya sabes, pero aún no has enfrentado.",
+    "heroBody": "No necesitas más consejos. Necesitas ver con claridad. El Mirror te ayuda a reconocer lo que quizá ya está presente.",
     "seeWhatChanges": "Ver qué cambia",
     "nav": {
       "problem": "Problema",
-      "council": "Consejo",
+      "council": "Dimensiones",
       "experience": "Experiencia",
       "pricing": "Precios"
     },
@@ -43,38 +43,50 @@
     ],
     "problemBody2": "No porque no sepas qué hacer. Sino porque algo en ti tira en distintas direcciones.",
     "shiftEyebrow": "El cambio",
-    "shiftTitle": "¿Y si pudieras ver todas las partes de ti a la vez?",
-    "shiftBody": "Dentro de ti no hay una sola voz. Hay muchas.",
+    "shiftTitle": "¿Y si pudieras examinar el mismo momento desde más de una dimensión?",
+    "shiftBody": "Cada dimensión es una faceta igualmente válida de la consciencia. Ninguna es un rango, nivel o identidad.",
     "shiftParts": [
-      "la parte que quiere seguridad",
-      "la parte que repite el pasado",
-      "la parte que conoce tu potencial",
-      "la parte que ve la verdad"
+      "El Miedo puede mostrar lo que quizá proteges",
+      "El Genio puede abrir una posibilidad superior",
+      "La Historia puede revelar el significado que creaste",
+      "La Encarnación puede llevar una elección consciente a la vida"
     ],
     "shiftClosing": "La mayoría oye ruido. Este sistema te da estructura.",
     "council": "Cómo funciona",
-    "councilTitle": "Conoce tu Consejo Interior™",
-    "councilBody": "Escribes lo que tienes en mente. Luego cuatro lentes interiores reflejan lo que se mueve bajo la superficie.",
+    "councilTitle": "Conoce las Siete Dimensiones",
+    "councilBody": "Entras por el Mirror. La Guía puede mostrar las dimensiones que encajan con este momento, en distinta cantidad y profundidad, dejando en tus manos la interpretación y la elección.",
     "councilRoles": [
       {
-        "title": "El Protector",
-        "body": "Muestra dónde el miedo te está frenando."
+        "title": "Percepción",
+        "body": "¿Qué estoy notando?"
       },
       {
-        "title": "El Yo Condicionado",
-        "body": "Revela patrones que no habías cuestionado."
+        "title": "Historia",
+        "body": "¿Qué significado he creado? El Observador puede notarlo sin apego."
       },
       {
-        "title": "El Visionario",
-        "body": "Muestra en quién te estás convirtiendo."
+        "title": "Miedo",
+        "body": "¿Qué podría estar protegiendo?"
       },
       {
-        "title": "El Yo Verdad",
-        "body": "Atraviesa la ilusión."
+        "title": "Ego",
+        "body": "¿Qué identidad podría estar respondiendo?"
+      },
+      {
+        "title": "Genio",
+        "body": "¿Qué posibilidad superior podría estar disponible?"
+      },
+      {
+        "title": "Supraconscious",
+        "body": "¿Qué elección consciente es posible ahora?"
+      },
+      {
+        "title": "Encarnación",
+        "body": "¿Cómo viviré esa elección?"
       }
     ],
-    "changeQuestionTitle": "Y entonces enfrentas la pregunta que lo cambia todo.",
-    "changeQuestionBody": "No consejos. No respuestas. Una pregunta precisa que revela lo que has estado evitando.",
+    "changeQuestionTitle": "La Guía ofrece una pregunta. Tú decides qué encaja.",
+    "changeQuestionBody": "No es diagnóstico ni conocimiento oculto. Es una reflexión tentativa que puede ayudarte a distinguir el yo temeroso del yo genial y elegir conscientemente.",
     "experience": "La experiencia",
     "experienceTitleA": "Esto no se trata de escribir.",
     "experienceTitleB": "Se trata de ver.",
@@ -166,7 +178,7 @@
     "enterRecoveryCode": "Introduce un código de recuperación."
   },
   "appShell": {
-    "innerCouncil": "Consejo Interior",
+    "innerCouncil": "Guía Supraconscious",
     "stage": "Etapa",
     "signOut": "Cerrar sesión",
     "nav": {
@@ -204,8 +216,8 @@
     "feedbackSavedContinueBody": "Tu comentario está guardado. Continúa con otro escenario guiado o abre la sesión si quieres añadir más detalle sobre lo que se sintió correcto o lo que debe cambiar.",
     "continueCalibration": "Continuar calibración",
     "openLatestSession": "Abrir última sesión",
-    "guideHeroEyebrow": "Guía del Consejo Interior · Etapa {stage}",
-    "guideHeroBody": "Refleja tu lenguaje con cuidado mientras la práctica del consejo se profundiza.",
+    "guideHeroEyebrow": "Guía Supraconscious · presencia constante",
+    "guideHeroBody": "Refleja tu lenguaje con cuidado mientras crece tu propia capacidad de percibir.",
     "seeGuideEvolution": "Ver la evolución de la guía",
     "entriesWritten": "Entradas escritas",
     "activePatterns": "Patrones activos",
@@ -217,12 +229,12 @@
     "mostRecentReflection": "Reflexión más reciente",
     "guideListeningFallback": "Tu guía está escuchando.",
     "openThisSession": "Abrir esta sesión",
-    "firstCouncilWaiting": "Tu primera entrada del consejo te espera.",
-    "firstCouncilBody": "Escribe lo que está presente hoy, sin estructura requerida. El consejo lo reflejará con cuidado.",
+    "firstCouncilWaiting": "Tu primera entrada guiada te espera.",
+    "firstCouncilBody": "Escribe lo que está presente hoy, sin estructura requerida. La Guía puede reflejarlo con cuidado.",
     "beginWriting": "Empezar a escribir",
     "pastReflections": "Reflexiones anteriores",
-    "gateSaved": "Puerta guardada",
-    "gateOpen": "Puerta abierta",
+    "gateSaved": "Elección guardada",
+    "gateOpen": "Elección disponible",
     "feedbackSubmitted": "Comentario enviado",
     "feedbackNeeded": "Comentario pendiente",
     "noteAdded": "Nota añadida",
@@ -244,14 +256,14 @@
     "reviewPromptRegression": "La revisión administrativa marcó una regresión del prompt.",
     "reviewFallback": "La revisión administrativa marcó esta sesión: {label}.",
     "feedbackInvalid": "Esa acción de comentario está incompleta. Abre la sesión guardada e inténtalo de nuevo.",
-    "feedbackSessionMissing": "Esa sesión del consejo ya no está disponible en esta cuenta.",
+    "feedbackSessionMissing": "Esa sesión de reflexión ya no está disponible en esta cuenta.",
     "deleteInvalid": "Esa acción de eliminación está incompleta. Abre la sesión e inténtalo de nuevo.",
     "deleteMissing": "Esa entrada del diario ya no está disponible en esta cuenta."
   },
   "journal": {
     "eyebrow": "Diario",
     "title": "¿Qué está presente hoy?",
-    "helper": "Escribe una entrada honesta. El consejo reflejará patrones, tensiones y un siguiente paso con base.",
+    "helper": "Escribe una entrada honesta. La Guía puede reflejar patrones, tensiones y un siguiente paso con base.",
     "backToDashboard": "Volver al panel",
     "entryEyebrow": "Entrada del diario",
     "founderCalibration": "Calibración de fundadores",
@@ -268,14 +280,14 @@
     "privacyNote": "Privado por defecto · La memoria de patrones se ajusta en ajustes",
     "reflect": "Reflexionar",
     "reflecting": "Reflexionando…",
-    "addMoreContext": "Añade un poco más de contexto para que el consejo no tenga que adivinar.",
+    "addMoreContext": "Añade un poco más de contexto para que la Guía pueda reflejar sin adivinar.",
     "addRealContext": "Añade una o dos frases de tu situación real antes de reflexionar. El prompt prellenado es solo un punto de partida.",
     "guideResponse": "Respuesta del guía",
     "stageLine": "{name} · Etapa {stage}",
     "oneGroundedStep": "Un paso concreto",
     "emptyReflection": "Tu reflexión aparecerá aquí después de escribir y enviar una entrada.",
     "innerCouncil": "Guía Supraconscious",
-    "councilFallback": "El consejo se ha reunido alrededor del patrón.",
+    "councilFallback": "La Guía está reflejando el patrón.",
     "grounding": "Grounding",
     "quietVoice": "Esta voz permanece en silencio mientras el grounding va primero.",
     "supraconsciousGuide": "Guía supraconsciente",
@@ -293,7 +305,7 @@
     "transientError": "La reflexión no pudo completarse. Inténtalo de nuevo en un momento.",
     "saveShiftError": "No se pudo guardar tu cambio. Inténtalo de nuevo en un momento.",
     "saveFeedbackError": "No se pudo guardar el comentario. Inténtalo de nuevo en un momento.",
-    "askCouncil": "Preguntar al Consejo",
+    "askCouncil": "Entrar en el Mirror",
     "nothingSavedTitle": "Aún no hay nada guardado",
     "savedReflection": "Reflexión guardada",
     "patternsTitle": "Patrones",
@@ -308,17 +320,17 @@
     "enteringLevel": "Estás entrando en {level}",
     "generatedPrompt": "Prompt generado",
     "generatedPromptEmpty": "Se generará un prompt fundamentado a partir de tu reflexión.",
-    "embodimentGate": "Puerta de encarnación",
+    "embodimentGate": "Encarnación",
     "embodimentQuestion": "¿Qué pequeño cambio puedes llevar hoy?",
     "embodimentHelp": "Guárdalo como el pequeño cambio de hoy.",
     "embodimentPlaceholder": "Un pequeño cambio...",
-    "gateCrossed": "Puerta cruzada",
-    "crossGate": "Cruzar la puerta",
+    "gateCrossed": "Elección guardada",
+    "crossGate": "Guardar esta elección",
     "journalErrorSignIn": "Inicia sesión de nuevo antes de comenzar una reflexión.",
     "journalErrorRate": "Demasiados intentos de reflexión en poco tiempo. Pausa un momento e inténtalo de nuevo.",
     "journalErrorServer": "El guía no pudo completar esta reflexión ahora. Inténtalo de nuevo en un momento.",
     "saveErrorSignIn": "Inicia sesión de nuevo antes de guardar.",
-    "saveErrorMissing": "Esta sesión del consejo ya no está disponible. Actualiza la página e inténtalo de nuevo.",
+    "saveErrorMissing": "Esta sesión de reflexión ya no está disponible. Actualiza la página e inténtalo de nuevo.",
     "saved": "Guardado",
     "journalPlaceholder": "Escribe lo que está presente — emociones, observaciones, tensiones. No se requiere estructura…",
     "calibrationScenarios": {
@@ -389,7 +401,7 @@
     "updatePassword": "Update password",
     "dataControls": "Data controls",
     "exportData": "Export your data",
-    "exportDataDescription": "Includes profile, entries, reflections, council sessions, pattern memory, feedback, safety events, consent records, and event metadata.",
+    "exportDataDescription": "Incluye perfil, entradas, sesiones de reflexión, memoria de patrones, comentarios, eventos de seguridad, registros de consentimiento y metadatos de eventos.",
     "downloadJson": "Download JSON",
     "deleteEntries": "Delete individual entries",
     "deleteEntriesDescription": "Open any saved journal entry to delete that entry and its attached reflection records.",
@@ -409,7 +421,7 @@
     "revoke": "Revoke",
     "deleteAccountSection": "Eliminar cuenta",
     "deleteAccountTitle": "Delete this account and its private app data",
-    "deleteAccountDescription": "This permanently removes your account, sessions, journal entries, reflections, council sessions, pattern memory, consent records, and subscriptions stored in this app. If Stripe billing is configured, linked Stripe subscriptions and customer records are cancelled/deleted first. Audit records may remain as detached operational records.",
+    "deleteAccountDescription": "Esto elimina permanentemente tu cuenta, sesiones, entradas del diario, reflexiones, memoria de patrones, registros de consentimiento y suscripciones almacenadas en esta aplicación. Si la facturación de Stripe está configurada, primero se cancelan o eliminan las suscripciones y los registros de cliente vinculados. Los registros de auditoría pueden permanecer como registros operativos desvinculados.",
     "deletePasswordIncorrect": "Password is incorrect.",
     "deleteInvalid": "Enter your password and type DELETE to confirm account deletion.",
     "password": "Password",
@@ -438,7 +450,7 @@
   "onboarding": {
     "eyebrow": "Primera sesión",
     "title": "Antes de entrar en el Mirror",
-    "body": "Esta experiencia usa tu texto de diario para crear una reflexión delimitada dentro del marco Supraconscious aprobado. No es terapia, supervisión de crisis ni autoridad espiritual.",
+    "body": "Esta experiencia usa tu texto de diario para crear una reflexión delimitada dentro del marco Supraconscious aprobado. Miedo puede ayudarte a notar lo que proteges; Genio puede abrir una posibilidad superior. Son dimensiones iguales, no niveles, y tú decides qué encaja. No es terapia, supervisión de crisis ni autoridad espiritual.",
     "consentRequired": "Acepta cada consentimiento obligatorio antes de comenzar.",
     "founderEyebrow": "Calibración de fundadores",
     "founderBody": "Después de este paso, el diario se abrirá con un escenario guiado sugerido. Haz una reflexión y elige un tipo de comentario. Añade una nota breve solo cuando haya un detalle concreto sobre voz, fuentes, intensidad, encarnación o redacción.",
@@ -473,7 +485,7 @@
     "hiddenDescription": "Oculto de la memoria activa de patrones.",
     "footnote": "Los patrones son señales reflexivas provisionales de tu lenguaje. Puedes corregir u ocultar cualquier señal aquí, o desactivar la memoria de patrones en ajustes.",
     "emptyTitle": "Los patrones emergen con el tiempo",
-    "emptyBody": "Sigue escribiendo. El consejo nota lenguaje recurrente y señales emocionales solo después de que aparecen en varias entradas.",
+    "emptyBody": "Sigue escribiendo. La Guía puede notar lenguaje recurrente y señales emocionales solo después de que aparecen en varias entradas.",
     "feedback": {
       "helpful": "Marcado como útil. La revisión futura puede tratar esta señal como más útil.",
       "not_accurate": "Marcado como no preciso. Esta corrección se guardó para revisión de patrones.",
@@ -530,7 +542,7 @@
         "price": "$9",
         "description": "El ciclo central de la Guía Supraconscious para reflexión regular.",
         "features": [
-          "Reflexiones del consejo",
+          "Sesiones de reflexión",
           "Prompts personalizados",
           "Memoria de patrones",
           "Transcripción de voz"
@@ -554,7 +566,7 @@
   "sessionDetail": {
     "feedbackSaved": "Comentarios guardados. Permanecen con esta sesión y no reentrenan automáticamente al guía.",
     "feedbackTypeRequired": "Las notas son opcionales ahora. Elige un tipo de comentario para guardar esta calibración.",
-    "councilReflection": "Reflexión del consejo",
+    "councilReflection": "Reflexión Supraconscious",
     "stageLine": "{name} · Etapa {stage}",
     "reflectOnThis": "Reflexiona sobre esto",
     "integrationStep": "Un paso de integración",
@@ -563,8 +575,8 @@
     "quietVoice": "Esta voz permaneció en silencio mientras el grounding iba primero.",
     "calibrationStatus": "Estado de calibración",
     "sessionStatus": "Estado de sesión",
-    "gateSaved": "Puerta guardada",
-    "gateNotSaved": "Puerta no guardada",
+    "gateSaved": "Elección guardada",
+    "gateNotSaved": "Elección no guardada",
     "feedbackReceived": "Comentarios recibidos",
     "feedbackNeeded": "Comentarios necesarios",
     "calibrationPrefix": "Calibración: {status}",

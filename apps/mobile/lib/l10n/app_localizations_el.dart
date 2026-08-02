@@ -9,7 +9,7 @@ class AppLocalizationsEl extends AppLocalizations {
   AppLocalizationsEl([String locale = 'el']) : super(locale);
 
   @override
-  String get appTitle => 'Το Εσωτερικό Συμβούλιο';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => 'Ξεκίνα την πρώτη σου αντανάκλαση';
@@ -43,7 +43,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get landingBody =>
-      'Δεν χρειάζεσαι περισσότερες συμβουλές. Χρειάζεται να δεις καθαρά. Το Εσωτερικό Συμβούλιο αποκαλύπτει αυτό που ήδη ξέρεις, αλλά δεν έχεις αντιμετωπίσει.';
+      'Δεν χρειάζεσαι περισσότερες συμβουλές. Χρειάζεται να δεις καθαρά. Το Mirror σε βοηθά να αναγνωρίσεις ό,τι μπορεί να είναι ήδη παρόν.';
 
   @override
   String get tabJournal => 'Ημερολόγιο';
@@ -73,7 +73,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get journalHelper =>
-      'Γράψε μία ειλικρινή καταχώρηση. Το συμβούλιο θα αντανακλάσει μοτίβα, εντάσεις και ένα γειωμένο επόμενο βήμα.';
+      'Γράψε μία ειλικρινή καταχώρηση. Ο Οδηγός μπορεί να αντανακλάσει μοτίβα, εντάσεις και ένα γειωμένο επόμενο βήμα.';
 
   @override
   String get journalPlaceholder =>
@@ -121,32 +121,52 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get landingCouncilBody =>
-      'Γράφεις ό,τι έχεις στο μυαλό σου. Ο Οδηγός προσφέρει τις διαστάσεις που ταιριάζουν στη στιγμή.';
+      'Μπαίνεις μέσω του Mirror. Ο Οδηγός μπορεί να αναδείξει τις διαστάσεις που ταιριάζουν στη στιγμή, σε διαφορετικό αριθμό και βάθος. Καθεμία είναι εξίσου έγκυρη όψη· η ερμηνεία και η επιλογή μένουν σε εσένα.';
 
   @override
-  String get protectorRole => 'Ο Προστάτης';
+  String get protectorRole => 'Αντίληψη';
 
   @override
-  String get protectorRoleBody => 'Δείχνει πού ο φόβος σε κρατά πίσω.';
+  String get protectorRoleBody => 'Τι παρατηρώ;';
 
   @override
-  String get conditionedSelfRole => 'Ο Προγραμματισμένος Εαυτός';
+  String get conditionedSelfRole => 'Ιστορία';
 
   @override
   String get conditionedSelfRoleBody =>
-      'Αποκαλύπτει μοτίβα που δεν είχες αμφισβητήσει.';
+      'Τι νόημα έχω δημιουργήσει; Ο Παρατηρητής μπορεί να το δει χωρίς προσκόλληση.';
 
   @override
-  String get visionaryRole => 'Ο Οραματιστής';
+  String get visionaryRole => 'Φόβος';
 
   @override
-  String get visionaryRoleBody => 'Δείχνει ποιος γίνεσαι.';
+  String get visionaryRoleBody => 'Τι μπορεί να προστατεύω;';
 
   @override
-  String get truthSelfRole => 'Ο Αληθινός Εαυτός';
+  String get truthSelfRole => 'Εγώ';
 
   @override
-  String get truthSelfRoleBody => 'Διαπερνά την ψευδαίσθηση.';
+  String get truthSelfRoleBody => 'Ποια ταυτότητα μπορεί να ανταποκρίνεται;';
+
+  @override
+  String get geniusRole => 'Ιδιοφυΐα';
+
+  @override
+  String get geniusRoleBody =>
+      'Ποια ανώτερη δυνατότητα μπορεί να είναι διαθέσιμη;';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody =>
+      'Ποια συνειδητή επιλογή είναι τώρα δυνατή;';
+
+  @override
+  String get embodimentRole => 'Ενσώματη Πράξη';
+
+  @override
+  String get embodimentRoleBody => 'Πώς θα ζήσω αυτή την επιλογή;';
 
   @override
   String get landingExperienceEyebrow => 'Η εμπειρία';
@@ -195,7 +215,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get today => 'Σήμερα';
 
   @override
-  String get askCouncil => 'Ρώτησε τον Οδηγό';
+  String get askCouncil => 'Μπες στο Mirror';
 
   @override
   String get reflecting => 'Στοχασμός...';
@@ -218,10 +238,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get feedbackNeeded => 'Χρειάζονται σχόλια';
 
   @override
-  String get gateSaved => 'Πύλη αποθηκεύτηκε';
+  String get gateSaved => 'Η επιλογή αποθηκεύτηκε';
 
   @override
-  String get gateOpen => 'Πύλη ανοιχτή';
+  String get gateOpen => 'Η επιλογή είναι διαθέσιμη';
 
   @override
   String get helpful => 'Χρήσιμο';
@@ -376,13 +396,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Μία μικρή μετατόπιση που μπορώ να ζήσω σήμερα';
 
   @override
-  String get saveEmbodimentGate => 'Αποθήκευση πύλης ενσώματης πράξης';
+  String get saveEmbodimentGate => 'Αποθήκευση αυτής της επιλογής';
 
   @override
   String get feedbackSavedMessage => 'Τα σχόλια αποθηκεύτηκαν.';
 
   @override
-  String get embodimentSavedMessage => 'Η πύλη ενσώματης πράξης αποθηκεύτηκε.';
+  String get embodimentSavedMessage => 'Η ενσώματη επιλογή αποθηκεύτηκε.';
 
   @override
   String get patternsEmptyBody =>
