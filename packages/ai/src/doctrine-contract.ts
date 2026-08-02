@@ -2,6 +2,12 @@ import {
   SUPRACONSCIOUS_DIMENSIONS,
   type SupraconsciousDimension,
 } from "./founder-context-registry.js"
+import {
+  findFounderAttributionPatterns,
+  findRemovedPublicTerms,
+} from "./prohibited-language-policy.js"
+
+export { REMOVED_PUBLIC_TERMS } from "./prohibited-language-policy.js"
 
 export const DOCTRINE_CONTRACT_VERSION = "supraconscious-doctrine-v1"
 
@@ -51,17 +57,6 @@ export const DIMENSION_CONTRACT: Readonly<
     forbiddenCollapse: "Do not require action, intensity, or completion.",
   },
 })
-
-export const REMOVED_PUBLIC_TERMS = [
-  "Inner Council",
-  "Threshold",
-  "Revelation",
-  "Echo",
-  "Witness",
-  "Clear Mirror",
-  "Reframer",
-  "Inner Author",
-] as const
 
 export const DOCTRINE_CONTRACT = Object.freeze({
   version: DOCTRINE_CONTRACT_VERSION,
@@ -130,13 +125,11 @@ export function validatePublicCopyAgainstDoctrine(
   }
 
   const issues: string[] = []
-  for (const term of REMOVED_PUBLIC_TERMS) {
-    if (new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(text)) {
-      issues.push(`removed_public_term:${term}`)
-    }
+  for (const term of findRemovedPublicTerms(text)) {
+    issues.push(`removed_public_term:${term}`)
   }
 
-  if (/\bMaria\s+(teaches|says|tells\s+us|believes)\b/i.test(text)) {
+  if (findFounderAttributionPatterns(text).length > 0) {
     issues.push("direct_maria_attribution")
   }
   if (/\b(seven\s+)?(lenses|levels|parts\s+of\s+the\s+psyche)\b/i.test(text)) {
@@ -186,8 +179,4 @@ export function authorizeDoctrineRevision(
 
 function isIsoDate(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`))
-}
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }

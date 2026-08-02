@@ -179,6 +179,15 @@ test("curated founder prompt registry contains exact governed metadata for 10 ph
   )
 })
 
+test("every curated user-facing prompt passes prohibited-language policy", () => {
+  for (const prompt of CURATED_PROMPTS) {
+    const result = validatePublicCopyAgainstDoctrine(
+      [prompt.publicTitle, prompt.publicText].filter(Boolean).join("\n"),
+    )
+    assert.equal(result.valid, true, `${prompt.key}: ${result.issues.join(", ")}`)
+  }
+})
+
 test("founder decision registry keeps all ten unresolved decisions explicit", () => {
   const validation = validateFounderDecisionRegistry()
   const gates = evaluateFounderDecisionGates()
@@ -331,6 +340,27 @@ test("Guide voice validation rejects authority, certainty, diagnosis, and lost a
     "diagnostic_claim",
     "agency_violation",
   ])
+})
+
+test("generated-output validation rejects paraphrased founder authority and legacy language", () => {
+  const prohibitedOutputs = [
+    "As Maria explains, this role is the source of your fear.",
+    "This guidance is drawn from Maria's wisdom.",
+    "The founder's guidance reveals what you should choose.",
+    "On behalf of Maria, I can tell you what this means.",
+    "Your Inner Council has reached the Clear Mirror stage.",
+  ]
+
+  for (const output of prohibitedOutputs) {
+    const guideResult = validateGuideVoiceText(output)
+    const publicCopyResult = validatePublicCopyAgainstDoctrine(output)
+    assert.equal(guideResult.valid, false, output)
+    assert.equal(publicCopyResult.valid, false, output)
+  }
+
+  assert.ok(validateGuideVoiceText(prohibitedOutputs[0]!).issues.includes("direct_founder_attribution"))
+  assert.ok(validateGuideVoiceText(prohibitedOutputs[4]!).issues.includes("removed_public_term:Inner Council"))
+  assert.ok(validateGuideVoiceText(prohibitedOutputs[4]!).issues.includes("removed_public_term:Clear Mirror"))
 })
 
 test("Guide voice references stay unset until versioned founder approval is recorded", () => {
