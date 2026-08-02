@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { buildSourceProvenanceMessage, getGuideStageConfigs, isFounderCalibrationUser, readGuideStageConfig } from "@inner-avatar/ai"
+import { buildSourceProvenanceMessage, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
@@ -31,7 +31,7 @@ export default async function JournalEntryPage({
   const journalMessages = messages.journal
   const sessionMessages = messages.sessionDetail
   const feedbackTypeLabels = sessionMessages.feedbackTypes as Record<string, string>
-  const [founderCalibrationMode, entry, guideStages] = await Promise.all([
+  const [founderCalibrationMode, entry] = await Promise.all([
     isFounderCalibrationUser(user.email),
     prisma.journalEntry.findFirst({
       where: { id: resolvedParams.entryId, userId: user.id },
@@ -88,7 +88,6 @@ export default async function JournalEntryPage({
       },
       },
     }),
-    getGuideStageConfigs(prisma, currentLanguage),
   ])
 
   if (!entry) notFound()
@@ -101,8 +100,6 @@ export default async function JournalEntryPage({
     style: user.voiceStyle ?? "warm",
     speed: user.voiceSpeed ?? 1.0,
   }
-  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
   const retrievalTraces = entry.councilSession?.generationTraces ?? []
   const selectedSources = retrievalTraces
     .filter((trace) => trace.validationStatus === "selected")
@@ -201,7 +198,7 @@ export default async function JournalEntryPage({
         </p>
       </div>
 
-      {/* Council reflection */}
+      {/* Active guided reflection */}
       {r ? (
         <div
           className="rounded-2xl border overflow-hidden"
@@ -212,12 +209,12 @@ export default async function JournalEntryPage({
         >
           {/* Header */}
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
-            <AvatarOrb size="sm" stage={guideStage as 1|2|3|4|5} className="mb-3" priority />
+            <AvatarOrb size="sm" stage={1} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
-              {sessionMessages.councilReflection}
+              Supraconscious reflection
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
-              {sessionMessages.stageLine.replace("{name}", guideStageName).replace("{stage}", String(guideStage))}
+              Supraconscious Guide · constant presence
             </p>
           </div>
 

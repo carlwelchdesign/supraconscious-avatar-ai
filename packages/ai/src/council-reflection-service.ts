@@ -42,8 +42,15 @@ export type CouncilReflectionInput = {
   calibrationScenario?: FounderCalibrationScenario
   requestId?: string
   responseLanguage?: ResponseLanguage
+  /** Legacy compatibility only. Active reflection always sets this to false. */
+  personaStageProgressionEnabled?: boolean
 }
 
+/**
+ * Legacy orchestration implementation retained for historical/internal tooling.
+ * Production clients must call runActiveReflection(), which fail-closes council
+ * orchestration and persona-stage progression before reaching this service.
+ */
 export async function runCouncilReflection(user: CouncilReflectionUser, input: CouncilReflectionInput) {
   const { value } = await withLangSmithRun("inner-council.reflection", {
     requestId: input.requestId,
@@ -228,7 +235,6 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       tone: user.avatarTone,
       intensity: user.intensityLevel,
       currentLevel: user.currentLevel,
-      avatarStage: user.avatarStage,
       language: responseLanguage,
     }),
     generateSymbolicPrompt(analysis, safety, responseLanguage),
@@ -254,7 +260,9 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     maybeUpdateMemory(user, journalEntry.id, analysis),
   ])
 
-  const progression = await checkAndAdvanceProgression(user.id, user.currentLevel, user.avatarStage)
+  const progression = input.personaStageProgressionEnabled === false
+    ? unchangedProgression(user)
+    : await checkAndAdvanceProgression(user.id, user.currentLevel, user.avatarStage)
 
   return { journalEntry, safety, analysis: storedAnalysis, avatarResponse, prompt: generatedPrompt, progression }
 }

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'The Inner Council';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => 'Start Your First Reflection';
@@ -43,7 +43,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get landingBody =>
-      'You do not need more advice. You need to see clearly. The Inner Council reveals what you already know, but have not faced.';
+      'You do not need more advice. You need to see clearly. The Mirror helps you recognize what may already be present.';
 
   @override
   String get tabJournal => 'Journal';
@@ -73,7 +73,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalHelper =>
-      'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.';
+      'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.';
 
   @override
   String get journalPlaceholder =>
@@ -118,11 +118,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingCouncilEyebrow => 'How it works';
 
   @override
-  String get landingCouncilTitle => 'Meet Your Inner Council';
+  String get landingCouncilTitle => 'Meet the Seven Dimensions';
 
   @override
   String get landingCouncilBody =>
-      'You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.';
+      'You write what is on your mind. The Guide offers the dimensions that fit the moment without claiming to know your truth.';
 
   @override
   String get protectorRole => 'The Protector';
@@ -185,7 +185,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entries => 'Entries';
 
   @override
-  String get guideStage => 'Guide stage';
+  String get guideStage => 'Guide model';
 
   @override
   String get noSavedTitle => 'No saved reflections yet';
@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get today => 'Today';
 
   @override
-  String get askCouncil => 'Ask the Council';
+  String get askCouncil => 'Ask the Guide';
 
   @override
   String get reflecting => 'Reflecting...';
@@ -298,12 +298,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String thresholdLabel(int month, int day) {
-    return 'Threshold · Month $month, Day $day';
+    return 'Mirror · Month $month, Day $day';
   }
 
   @override
   String get noThresholdPrompt =>
-      'No Threshold prompt is published for today. Write what is present without forcing a structure.';
+      'No Mirror prompt is published for today. Write what is present without forcing a structure.';
 
   @override
   String get thresholdPurposeTheme => 'PURPOSE';
@@ -388,7 +388,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep writing. Recurring signals will appear here.';
 
   @override
-  String get theFiveStages => 'The five stages';
+  String get theFiveStages => 'The Seven Dimensions of the Supraconscious';
 
   @override
   String get locked => 'Locked';
@@ -405,7 +405,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restore => 'Restore';
 
   @override
-  String get councilReflection => 'Council Reflection';
+  String get councilReflection => 'Supraconscious Reflection';
 
   @override
   String get brandName => 'Supraconscious';

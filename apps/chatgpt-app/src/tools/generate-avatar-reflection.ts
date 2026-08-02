@@ -56,7 +56,7 @@ export async function generateAvatarReflection(input: unknown, userIdOrDeps: str
     if (shouldShortCircuitReflection(safety)) {
       const grounding = buildCrisisGroundingContent(safety)
       return {
-        pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
+        pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the active guided reflection flow.",
         openingLine: grounding.openingLine,
         mirror: grounding.userMessage,
         patternName: grounding.patternName,
@@ -84,11 +84,10 @@ export async function generateAvatarReflection(input: unknown, userIdOrDeps: str
       tone: validatedInput.tone,
       intensity: 5,
       currentLevel: 3,
-      avatarStage: 3
     })
 
     return {
-      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
+      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the active guided reflection flow.",
       openingLine: avatar.openingLine,
       mirror: avatar.mirror,
       patternName: avatar.patternName,

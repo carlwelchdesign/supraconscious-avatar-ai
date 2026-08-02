@@ -118,11 +118,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get landingCouncilEyebrow => 'So funktioniert es';
 
   @override
-  String get landingCouncilTitle => 'Lerne deinen Inneren Rat kennen';
+  String get landingCouncilTitle => 'Entdecke die Sieben Dimensionen';
 
   @override
   String get landingCouncilBody =>
-      'Du schreibst, was dich beschäftigt. Vier innere Perspektiven spiegeln, was sich unter der Oberfläche bewegt.';
+      'Du schreibst, was dich beschäftigt. Der Guide bietet die Dimensionen an, die zum Moment passen.';
 
   @override
   String get protectorRole => 'Der Beschützer';
@@ -196,7 +196,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get today => 'Heute';
 
   @override
-  String get askCouncil => 'Den Rat fragen';
+  String get askCouncil => 'Den Guide fragen';
 
   @override
   String get reflecting => 'Reflexion...';
@@ -300,12 +300,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String thresholdLabel(int month, int day) {
-    return 'Schwelle · Monat $month, Tag $day';
+    return 'Mirror · Monat $month, Tag $day';
   }
 
   @override
   String get noThresholdPrompt =>
-      'Für heute ist kein Schwellen-Impuls veröffentlicht. Schreibe, was präsent ist, ohne eine Struktur zu erzwingen.';
+      'Für heute ist kein Mirror-Impuls veröffentlicht. Schreibe, was präsent ist, ohne eine Struktur zu erzwingen.';
 
   @override
   String get thresholdPurposeTheme => 'SINN';
@@ -392,7 +392,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schreib weiter. Wiederkehrende Signale erscheinen hier.';
 
   @override
-  String get theFiveStages => 'Die fünf Stufen';
+  String get theFiveStages => 'Die Sieben Dimensionen des Supraconscious';
 
   @override
   String get locked => 'Gesperrt';
@@ -409,7 +409,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get restore => 'Wiederherstellen';
 
   @override
-  String get councilReflection => 'Ratsreflexion';
+  String get councilReflection => 'Supraconscious-Reflexion';
 
   @override
   String get brandName => 'Supraconscious';

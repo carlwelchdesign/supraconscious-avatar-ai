@@ -34,7 +34,7 @@ When `OPENAI_API_KEY` is missing or placeholder-like, several AI helpers return 
 
 ## LangSmith Observability
 
-LangSmith integration is optional and disabled by default. It lives in `packages/ai/src/langsmith-observability.ts` and wraps the Inner Council service boundary in `runCouncilReflection()`.
+LangSmith integration is optional and disabled by default. It lives in `packages/ai/src/langsmith-observability.ts` and is reached through the active `runActiveReflection()` boundary.
 
 When enabled, the app sends metadata-only traces:
 
@@ -69,7 +69,7 @@ Use `yarn test:langsmith` to verify no-op behavior and sanitizer coverage withou
 
 ## LangGraph Decision
 
-LangGraph is not part of the current runtime. The Inner Council pipeline is still a typed service orchestration with explicit persistence, validation, audit, and review boundaries.
+LangGraph is not part of the current runtime. Production clients use a typed single-Guide service boundary with explicit safety, persistence, validation, audit, and review boundaries. Legacy council-shaped records remain compatibility data and do not enable the retired runtime model.
 
 Revisit LangGraph when the product needs graph-native capabilities such as:
 

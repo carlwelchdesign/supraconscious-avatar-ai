@@ -59,7 +59,7 @@ export function HeroVisual() {
         style={{ boxShadow: "0 4px 24px rgba(43,27,53,0.07)" }}
       >
         <p className="text-[10px] font-medium tracking-widest uppercase text-[var(--clay)] mb-1.5">
-          Council reflection
+          Supraconscious reflection
         </p>
         <p className="font-display italic text-sm text-[var(--plum-soft)] leading-relaxed">
           &ldquo;The Visionary sees permission where the Protector sees risk.&rdquo;

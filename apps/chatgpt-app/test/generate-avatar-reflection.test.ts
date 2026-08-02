@@ -56,7 +56,7 @@ test('generateAvatarReflection returns mapped response for safe input', async ()
     socraticQuestion: 'What small step feels possible?',
     integrationStep: 'Breathe and choose one thing.',
     closingLine: 'You are not alone.',
-    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.'
+    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the active guided reflection flow.'
   })
 })
 

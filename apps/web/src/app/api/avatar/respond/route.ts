@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       tone: user.avatarTone,
       intensity: user.intensityLevel,
       currentLevel: user.currentLevel,
-      avatarStage: user.avatarStage,
       language: responseLanguage,
     })
 

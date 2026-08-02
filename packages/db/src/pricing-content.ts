@@ -115,7 +115,7 @@ export const ENGLISH_PRICING_DEFAULTS: PricingDefaults = {
   eyebrow: "Plans",
   titleA: "Choose your",
   titleB: "reflection rhythm.",
-  body: "Start privately, then upgrade when you want a richer Inner Council practice with memory, voice, progression, and deeper pattern review. Paid plans use Stripe Checkout and can be managed from settings.",
+  body: "Start privately, then upgrade when you want a richer Supraconscious practice with memory, voice, and deeper pattern review. Paid plans use Stripe Checkout and can be managed from settings.",
   recommended: "Recommended",
   cadenceAlways: "always",
   cadenceMonth: "month",
@@ -143,9 +143,9 @@ export const ENGLISH_PRICING_DEFAULTS: PricingDefaults = {
     starter: {
       name: "Starter",
       price: "$9",
-      description: "The core Inner Council loop for regular guided reflection.",
+      description: "The core Supraconscious Guide loop for regular reflection.",
       features: [
-        "Council reflections",
+        "Guided reflections",
         "Personalized prompts",
         "Pattern memory",
         "Voice transcription",
@@ -159,7 +159,7 @@ export const ENGLISH_PRICING_DEFAULTS: PricingDefaults = {
       features: [
         "Everything in Starter",
         "Expanded pattern dashboard",
-        "Guide progression",
+        "Long-term awareness insights",
         "Priority AI usage",
       ],
       cta: "Choose Pro",

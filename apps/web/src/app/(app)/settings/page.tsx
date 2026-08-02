@@ -79,7 +79,6 @@ export default async function SettingsPage({
   const commonMessages = messages.common
   const statusLabels = { on: commonMessages.on, off: commonMessages.off }
   const billingEnabled = isStripeConfigured()
-  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
   const [currentSession, subscription, sessions, passkeys] = await Promise.all([
     getCurrentSession("web"),
     prisma.subscription.findFirst({
@@ -380,7 +379,7 @@ export default async function SettingsPage({
             description={settingsMessages.guideStageDescription}
             value={
               <span className="font-medium text-[var(--primary)]">
-                {commonMessages.stageOf.replace("{stage}", String(guideStage))}
+                Supraconscious Guide
               </span>
             }
           />

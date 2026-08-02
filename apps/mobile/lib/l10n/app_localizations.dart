@@ -110,7 +110,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'The Inner Council'**
+  /// **'Supraconscious'**
   String get appTitle;
 
   /// No description provided for @startReflection.
@@ -176,7 +176,7 @@ abstract class AppLocalizations {
   /// No description provided for @landingBody.
   ///
   /// In en, this message translates to:
-  /// **'You do not need more advice. You need to see clearly. The Inner Council reveals what you already know, but have not faced.'**
+  /// **'You do not need more advice. You need to see clearly. The Mirror helps you recognize what may already be present.'**
   String get landingBody;
 
   /// No description provided for @tabJournal.
@@ -230,7 +230,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalHelper.
   ///
   /// In en, this message translates to:
-  /// **'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.'**
+  /// **'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.'**
   String get journalHelper;
 
   /// No description provided for @journalPlaceholder.
@@ -308,13 +308,13 @@ abstract class AppLocalizations {
   /// No description provided for @landingCouncilTitle.
   ///
   /// In en, this message translates to:
-  /// **'Meet Your Inner Council'**
+  /// **'Meet the Seven Dimensions'**
   String get landingCouncilTitle;
 
   /// No description provided for @landingCouncilBody.
   ///
   /// In en, this message translates to:
-  /// **'You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.'**
+  /// **'You write what is on your mind. The Guide offers the dimensions that fit the moment without claiming to know your truth.'**
   String get landingCouncilBody;
 
   /// No description provided for @protectorRole.
@@ -434,7 +434,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideStage.
   ///
   /// In en, this message translates to:
-  /// **'Guide stage'**
+  /// **'Guide model'**
   String get guideStage;
 
   /// No description provided for @noSavedTitle.
@@ -452,7 +452,7 @@ abstract class AppLocalizations {
   /// No description provided for @askCouncil.
   ///
   /// In en, this message translates to:
-  /// **'Ask the Council'**
+  /// **'Ask the Guide'**
   String get askCouncil;
 
   /// No description provided for @reflecting.
@@ -650,13 +650,13 @@ abstract class AppLocalizations {
   /// No description provided for @thresholdLabel.
   ///
   /// In en, this message translates to:
-  /// **'Threshold · Month {month}, Day {day}'**
+  /// **'Mirror · Month {month}, Day {day}'**
   String thresholdLabel(int month, int day);
 
   /// No description provided for @noThresholdPrompt.
   ///
   /// In en, this message translates to:
-  /// **'No Threshold prompt is published for today. Write what is present without forcing a structure.'**
+  /// **'No Mirror prompt is published for today. Write what is present without forcing a structure.'**
   String get noThresholdPrompt;
 
   /// No description provided for @thresholdPurposeTheme.
@@ -812,7 +812,7 @@ abstract class AppLocalizations {
   /// No description provided for @theFiveStages.
   ///
   /// In en, this message translates to:
-  /// **'The five stages'**
+  /// **'The Seven Dimensions of the Supraconscious'**
   String get theFiveStages;
 
   /// No description provided for @locked.
@@ -842,7 +842,7 @@ abstract class AppLocalizations {
   /// No description provided for @councilReflection.
   ///
   /// In en, this message translates to:
-  /// **'Council Reflection'**
+  /// **'Supraconscious Reflection'**
   String get councilReflection;
 
   /// No description provided for @brandName.

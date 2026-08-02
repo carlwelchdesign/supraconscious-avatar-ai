@@ -1,5 +1,6 @@
 export * from "./analyze-entry.js"
 export * from "./account-export.js"
+export * from "./active-reflection-runtime.js"
 export * from "./avatar-system-prompt.js"
 export * from "./council-roles.js"
 export * from "./generate-avatar-response.js"

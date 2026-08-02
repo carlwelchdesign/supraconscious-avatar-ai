@@ -4,7 +4,7 @@ Small Express-based MCP server used by Supraconscious for ChatGPT/MCP access, th
 
 Primary tool
 
-- `run_inner_council_reflection` runs the same council service used by the web journal: safety handling, source provenance, council voices, Integrator question, generated prompt, and progression.
+- `run_supraconscious_reflection` runs the same active single-Guide service used by the web journal, including safety handling and grounded integration.
 
 Compatibility tools
 

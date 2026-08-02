@@ -45,7 +45,6 @@ test("mobile session response distinguishes onboarding from ready", () => {
     avatarTone: "balanced",
     intensityLevel: 3,
     currentLevel: 1,
-    avatarStage: 1,
     preferredLanguage: "es",
   }
   const consentRecords = [
@@ -182,7 +181,6 @@ test("mobile dashboard response includes counts and recent session summaries", (
     user: {
       name: "Carl",
       currentLevel: 2,
-      avatarStage: 3,
       patternMemoryEnabled: true,
     },
     entryCount: 12,
@@ -256,22 +254,19 @@ test("mobile patterns response serializes examples and visibility", () => {
   }])
 })
 
-test("mobile guide response marks current, completed, and locked stages", () => {
+test("mobile guide response exposes a constant Guide and seven equal dimensions", () => {
   const response = buildMobileGuideResponse({
     user: {
       avatarTone: "balanced",
       intensityLevel: 3,
-      avatarStage: 2,
     },
-    stages: [
-      { stage: 1, name: "Echo", description: "Reflects.", trait: "Listening", currentLabel: "Current", completedLabel: "Complete" },
-      { stage: 2, name: "Witness", description: "Notices.", trait: "Noticing", currentLabel: "Current", completedLabel: "Complete" },
-      { stage: 3, name: "Mirror", description: "Clarifies.", trait: "Clarity", currentLabel: "Current", completedLabel: "Complete" },
-    ],
   })
 
-  assert.equal(response.guide.currentStage, 2)
-  assert.deepEqual(response.guide.stages.map((stage) => stage.state), ["complete", "current", "locked"])
+  assert.equal(response.guide.name, "Supraconscious Guide")
+  assert.equal(response.guide.persona, "constant")
+  assert.equal(response.guide.progressionOwner, "user")
+  assert.equal(response.guide.dimensions.length, 7)
+  assert.equal(response.guide.dimensions[0]?.name, "Perception")
 })
 
 test("mobile journal prompt response serializes threshold prompt", () => {

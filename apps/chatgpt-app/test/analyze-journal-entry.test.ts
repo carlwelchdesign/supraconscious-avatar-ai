@@ -65,7 +65,7 @@ test('analyzeJournalEntry returns mapped results for valid text input', async ()
     ],
     suggestedLevel: 2,
     summary: 'A pattern of uncertainty with avoidance signals.',
-    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.'
+    pilotScope: 'Legacy analysis-only tool during the internal pilot. Use the web app for the active guided reflection flow.'
   })
 })
 

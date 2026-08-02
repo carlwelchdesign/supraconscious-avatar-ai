@@ -3,13 +3,13 @@ import { prisma } from "@inner-avatar/db"
 export const INNER_COUNCIL_FEATURE_FLAGS = [
   {
     key: "council_mode",
-    enabled: true,
-    description: "Enable the Inner Council reflection flow.",
+    enabled: false,
+    description: "Legacy compatibility only. The active single-Guide runtime ignores this flag.",
   },
   {
     key: "rag_enabled",
     enabled: false,
-    description: "Allow council generation to retrieve approved source chunks.",
+    description: "Legacy evaluation only. Active reflection does not use legacy orchestration retrieval.",
   },
   {
     key: "memory_feedback_enabled",

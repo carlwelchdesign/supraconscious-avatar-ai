@@ -1,6 +1,6 @@
-# Inner Council Mobile
+# Supraconscious Mobile
 
-Flutter client for the Supraconscious Inner Council mobile app.
+Flutter client for the Supraconscious guided self-inquiry app.
 
 This app targets iOS, Android, phones, and tablets. It is a user-facing client over the existing web/backend system; admin/CMS, RAG governance, source review, prompt tuning, and calibration workflows remain in the Next.js admin app.
 

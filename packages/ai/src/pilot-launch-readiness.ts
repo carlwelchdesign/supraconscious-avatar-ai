@@ -9,7 +9,7 @@ export type PilotLaunchBlockerCode =
   | "orientation_incomplete"
   | "unresolved_safety_reviews"
   | "quality_blockers"
-  | "council_mode_disabled"
+  | "legacy_council_mode_enabled"
   | "rag_enabled_without_activation_eval"
   | "rag_eval_failed"
   | "pilot_eval_failed"
@@ -164,9 +164,9 @@ export function evaluatePilotLaunchReadinessSnapshot(
     href: "/council",
     count: metrics.qualityBlockers,
   })
-  addBlocker(blockers, !latestEvalMetadata.councilModeEnabled, {
-    code: "council_mode_disabled",
-    message: "Enable council_mode before running the Inner Council pilot.",
+  addBlocker(blockers, latestEvalMetadata.councilModeEnabled, {
+    code: "legacy_council_mode_enabled",
+    message: "Disable the legacy council_mode flag before running the active single-Guide pilot.",
     href: "/feature-flags",
   })
   addBlocker(blockers, latestEvalMetadata.ragEnabled && !latestEvalMetadata.ragActivationEvalPassed, {

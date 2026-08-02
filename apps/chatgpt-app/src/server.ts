@@ -11,7 +11,7 @@ import {
   generateAvatarReflection,
   generatePersonalizedPrompt,
   getRecentPatterns,
-  runInnerCouncilReflection,
+  runSupraconsciousReflection,
   saveReflectionSession
 } from "./tools/index.js"
 import { authMiddleware, safetyMiddleware, type AuthenticatedRequest } from "./middleware/index.js"
@@ -117,8 +117,8 @@ app.get('/mcp/tools', (req, res) => {
         }
       },
       {
-        name: 'run_inner_council_reflection',
-        description: t.tools.run_inner_council_reflection,
+        name: 'run_supraconscious_reflection',
+        description: t.tools.run_supraconscious_reflection,
         inputSchema: {
           type: 'object',
           properties: {
@@ -185,13 +185,13 @@ app.post('/mcp/tools/:toolName',
       case 'generate_personalized_prompt':
         result = await generatePersonalizedPrompt(input, (req as AuthenticatedRequest).userId)
         break
-      case 'run_inner_council_reflection':
+      case 'run_supraconscious_reflection':
       {
         const authenticatedUserId = (req as AuthenticatedRequest).userId
         if (!authenticatedUserId) {
           return res.status(401).json({ error: t.authRequired })
         }
-        result = await runInnerCouncilReflection(input, authenticatedUserId)
+        result = await runSupraconsciousReflection(input, authenticatedUserId)
         break
       }
       case 'get_recent_patterns':

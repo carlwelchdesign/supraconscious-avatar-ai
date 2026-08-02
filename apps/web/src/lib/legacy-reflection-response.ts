@@ -54,7 +54,7 @@ export function buildLegacyAvatarResponse(input: {
       integrationStep: input.avatarResponse.integrationStep ?? null,
       closingLine: input.avatarResponse.closingLine ?? null,
     },
-    legacyNotice: "For the full Inner Council flow, use /api/journal/analyze.",
+    legacyNotice: "For the active guided reflection flow, use /api/journal/analyze.",
   }
 }
 
@@ -77,7 +77,7 @@ export function buildLegacyPromptResponse(input: {
       integration: input.prompt.integration,
       targetPattern: input.prompt.targetPattern ?? null,
     },
-    legacyNotice: "For the full Inner Council flow, use /api/journal/analyze.",
+    legacyNotice: "For the active guided reflection flow, use /api/journal/analyze.",
   }
 }
 

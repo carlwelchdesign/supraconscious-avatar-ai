@@ -1,6 +1,6 @@
 # Supraconscious Avatar AI
 
-Supraconscious Avatar AI is a multi-app AI journaling platform for guided Inner Council reflection, source-grounded response generation, founder calibration, reasoning-ontology review, and administrative content governance.
+Supraconscious Avatar AI is a multi-app self-inquiry platform for guided Supraconscious reflection, founder calibration, reasoning-ontology review, and administrative content governance.
 
 The system combines a Next.js user app, a separate internal admin/CMS console, an Express-based ChatGPT/MCP server, PostgreSQL persistence, policy-first RAG, admin-curated GraphRAG foundations, prompt governance, source provenance, LangSmith-ready observability, and Docker-ready deployment.
 
@@ -49,13 +49,13 @@ The screenshots below use public pages or privacy-safe application states withou
 
 ## Technical Highlights
 
-- **Agentic Inner Council flow**: journal input is classified, analyzed, routed through bounded council roles, synthesized into one integrator question, and saved with trace metadata.
+- **Constant-Guide reflection flow**: journal input is classified, safety-checked, reflected through one consistent Supraconscious Guide, and saved with trace metadata.
 - **Policy-first RAG**: approved source documents are parsed into documents, sections, and chunks; retrieval is gated by source state, rights metadata, quote permissions, safety intensity, feature flags, and trace validation.
 - **Admin reasoning graph**: approved Maria/source materials can be transformed into source-backed concept networks, clusters, bridges, gaps, and stakeholder outcome paths for admin review.
 - **Feature-flagged GraphRAG runtime**: approved ontology neighborhoods can supplement council generation behind `ontology_rag_enabled`, while source citation validation and existing RAG fallbacks remain in force.
 - **Vector-DB-ready content model**: `SourceDocument`, `SourceSection`, and `SourceChunk` provide the provenance and chunk-review layer required for a future embeddings/vector search backend without bypassing review controls.
-- **MCP integration**: `apps/chatgpt-app` exposes MCP-compatible tools, including `run_inner_council_reflection`, so external AI clients can call the same council pipeline used by the web app.
-- **LangSmith observability**: optional metadata-only LangSmith tracing wraps the Inner Council service boundary, preserving hashed inputs, model/prompt versions, source ids, validation status, latency, and safe run metadata without exporting raw journal/source/prompt text.
+- **MCP integration**: `apps/chatgpt-app` exposes MCP-compatible tools, including `run_supraconscious_reflection`, so external AI clients use the same active single-Guide boundary as the web app.
+- **LangSmith observability**: optional metadata-only LangSmith tracing wraps the active reflection boundary, preserving hashed inputs, model/prompt versions, validation status, latency, and safe run metadata without exporting raw journal/source/prompt text.
 - **LangGraph decision**: the current orchestrator remains a typed service pipeline; LangGraph is deferred until the product needs graph-native branching, resumable state, retries, or human-in-the-loop execution beyond the existing admin review workflows.
 - **Admin as specialized CMS**: the admin app manages source review, prompt templates, feature flags, guide-stage metadata, reasoning graph/ontology review, RAG readiness, safety review, founder calibration, quality labels, users, and subscriptions.
 - **Admin action feedback**: high-use CMS/review actions use server-action status banners, pending submit states, anchored redirects, and clearer local validation guidance.
@@ -67,7 +67,7 @@ The screenshots below use public pages or privacy-safe application states withou
 
 - `apps/web`: Next.js journaling app, auth, onboarding, dashboard, journal flow, saved sessions, voice APIs, billing entry points, and user settings.
 - `apps/admin`: separate Next.js internal admin/CMS console with its own login, session cookie, RBAC, review workflows, source governance, prompt management, and operational dashboards.
-- `apps/chatgpt-app`: Express-based ChatGPT/MCP server, Inner Council MCP tool, compatibility tools, static widget, and container entrypoint.
+- `apps/chatgpt-app`: Express-based ChatGPT/MCP server, active Supraconscious reflection tool, compatibility tools, static widget, and container entrypoint.
 - `apps/mobile`: Flutter client scaffold for iOS, Android, phones, and tablets.
 - `packages/ai`: OpenAI adapters, safety checks, council orchestration, RAG retrieval policy, source provenance, prompt resolution, eval runners, calibration reports, and pattern-memory logic.
 - `packages/db`: Prisma schema, generated client access, migrations, and shared database utilities.
@@ -105,7 +105,7 @@ The production-facing flow is intentionally service-boundary driven:
 7. Generation traces, source provenance, ontology trace metadata, feedback, and review metadata are persisted.
 8. Admin reviews content, prompts, source readiness, ontology-assisted sessions, quality labels, and operational health.
 
-When `LANGSMITH_TRACING=true` and a LangSmith key is configured, the Inner Council service also records an optional external trace. The exported payload is metadata-only by default: hashes, ids, timings, prompt/model versions, source provenance ids/titles, validation status, and selected safe counters. Raw journal text, feedback notes, prompt content, source chunk text, and full council output remain inside the application database.
+When `LANGSMITH_TRACING=true` and a LangSmith key is configured, the active reflection service also records an optional external trace. The exported payload is metadata-only by default: hashes, ids, timings, prompt/model versions, source provenance ids/titles, validation status, and selected safe counters. Raw journal text, feedback notes, prompt content, source chunk text, and full reflection output remain inside the application database.
 
 ## Admin / CMS Console
 
@@ -147,7 +147,7 @@ LANGSMITH_METADATA_ONLY="true"
 
 `LANGSMITH_ENDPOINT` can stay blank for LangSmith Cloud. Set it only for custom or self-hosted deployments.
 
-The implementation deliberately does not introduce LangGraph yet. The current council pipeline has a clear service boundary in `runCouncilReflection()` and already persists internal trace, review, and feedback state. LangGraph should be considered later if the app needs explicit graph state, resumable multi-step agent workflows, durable tool retries, or deeper human-in-the-loop branching.
+The implementation deliberately does not introduce LangGraph yet. Production clients enter through `runActiveReflection()`, which fail-closes legacy multi-voice orchestration and persona-stage progression. Historical council-shaped database records and internal evaluation helpers remain read-only compatibility infrastructure; they are not an active product model. LangGraph should be considered later if the app needs explicit graph state, resumable multi-step agent workflows, durable tool retries, or deeper human-in-the-loop branching.
 
 ## RAG And Vector Search
 
@@ -175,7 +175,7 @@ GraphRAG retrieval writes `ontology_retrieval` generation traces so reviewers ca
 - `POST /mcp/tools/:toolName`
 - static widget assets under `/widget`
 
-The primary tool is `run_inner_council_reflection`, which uses the same Inner Council service boundary as the web journal. Older analysis/avatar/prompt tools remain available as compatibility helpers.
+The primary tool is `run_supraconscious_reflection`, which uses the same active single-Guide boundary as the web journal. Older analysis/avatar/prompt tools remain available as compatibility helpers.
 
 Hosted tool execution should set `CHATGPT_APP_API_TOKEN`; health and tool metadata can remain public while execution requires a bearer token.
 

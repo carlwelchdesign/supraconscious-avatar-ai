@@ -1,5 +1,10 @@
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, resolveSupportedLanguage, type SupportedLanguage } from "@inner-avatar/types/language"
 
+/**
+ * Historical admin/data compatibility only. The active Guide is constant and
+ * public clients must not render these retired persona-stage configurations.
+ */
+
 export type GuideStageNumber = 1 | 2 | 3 | 4 | 5
 
 export const GUIDE_STAGE_TRANSLATION_FIELDS = [

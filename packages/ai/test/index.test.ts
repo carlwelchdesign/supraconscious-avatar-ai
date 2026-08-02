@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import "./active-runtime-doctrine-guard.test.js"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
 import { languageInstruction } from "@inner-avatar/ai/response-language"
 import {
@@ -16,6 +17,8 @@ import {
   buildSourceProvenanceMessage,
   buildFounderCalibrationSetupReportFromSnapshot,
   authorizeDoctrineRevision,
+  ACTIVE_REFLECTION_RUNTIME_POLICY,
+  ACTIVE_REFLECTION_RUNTIME_VERSION,
   buildDoctrineTraceMetadata,
   CURATED_PROMPTS,
   DIMENSION_CONTRACT,
@@ -86,6 +89,7 @@ import {
   shouldShortCircuitReflection,
   shouldWritePatternMemory,
   resetLangSmithClientFactoryForTests,
+  runActiveReflection,
   runLangSmithObservabilityCheck,
   validateCouncilPromptTemplate,
   validateCouncilRunForPilot,
@@ -214,6 +218,39 @@ test("doctrine contract defines seven equal dimensions and a constant Guide", ()
   assert.equal(DOCTRINE_CONTRACT.guide.progressionOwner, "user")
   assert.equal(DOCTRINE_CONTRACT.promptPolicy.modelMayRewrite, false)
   assert.equal(DOCTRINE_CONTRACT.agency.embodimentIsOptional, true)
+})
+
+test("active reflection runtime fail-closes legacy orchestration and persona progression", async () => {
+  const calls: Array<{ user: Record<string, unknown>; input: Record<string, unknown> }> = []
+  const expected = { journalEntry: { id: "entry-1" } }
+  const result = await runActiveReflection(
+    {
+      id: "user-1",
+      avatarTone: "gentle",
+      intensityLevel: 2,
+      currentLevel: 3,
+      avatarStage: 5,
+      patternMemoryEnabled: true,
+    },
+    { text: "I want to see this situation more clearly before I choose." },
+    {
+      runLegacyReflection: async (user, input) => {
+        calls.push({ user, input })
+        return expected as never
+      },
+    },
+  )
+
+  assert.equal(ACTIVE_REFLECTION_RUNTIME_VERSION, "supraconscious-active-reflection-v1")
+  assert.equal(ACTIVE_REFLECTION_RUNTIME_POLICY.guidePersona, "constant")
+  assert.equal(ACTIVE_REFLECTION_RUNTIME_POLICY.legacyCouncilOrchestration, false)
+  assert.equal(ACTIVE_REFLECTION_RUNTIME_POLICY.legacyPersonaStages, false)
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0]?.user.avatarStage, 1)
+  assert.equal(calls[0]?.input.councilModeEnabled, false)
+  assert.equal(calls[0]?.input.ragEnabled, false)
+  assert.equal(calls[0]?.input.personaStageProgressionEnabled, false)
+  assert.equal(result, expected)
 })
 
 test("new public copy rejects superseded doctrine while historical payloads remain renderable", () => {
@@ -626,9 +663,9 @@ test("reasoning ontology proposal generation is optional when OpenAI is not conf
   }
 })
 
-test("inner council feature flags seed with conservative RAG defaults", () => {
+test("legacy orchestration flags seed disabled", () => {
   const flags = Object.fromEntries(INNER_COUNCIL_FEATURE_FLAGS.map((flag) => [flag.key, flag.enabled]))
-  assert.equal(flags.council_mode, true)
+  assert.equal(flags.council_mode, false)
   assert.equal(flags.rag_enabled, false)
   assert.equal(flags.memory_feedback_enabled, false)
   assert.equal(flags.admin_evals_enabled, false)
@@ -1205,7 +1242,6 @@ test("pilot launch readiness reports blocking launch conditions", () => {
     "orientation_incomplete",
     "unresolved_safety_reviews",
     "quality_blockers",
-    "council_mode_disabled",
     "rag_enabled_without_activation_eval",
     "rag_eval_failed",
     "pilot_eval_failed",
@@ -1240,7 +1276,7 @@ test("pilot launch readiness passes with internal-pilot prerequisites met", () =
       pilot: { passed: true, total: 11, failed: 0 },
       ragActivationEvalPassed: false,
       ragEnabled: false,
-      councilModeEnabled: true,
+      councilModeEnabled: false,
     },
   }, new Date("2026-07-03T12:00:00.000Z"))
 

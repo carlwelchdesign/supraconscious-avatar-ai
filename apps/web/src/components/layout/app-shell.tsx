@@ -1,9 +1,7 @@
 import Link from "next/link"
 import { BookOpen, BarChart2, Sparkles, Settings, LogOut, LayoutDashboard } from "lucide-react"
-import { getGuideStageConfigs, readGuideStageConfig } from "@inner-avatar/ai"
 import { logoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
-import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
 import { resolveWebLanguage } from "@/lib/language"
@@ -20,11 +18,8 @@ const navItems = [
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
   const currentLanguage = await resolveWebLanguage(user?.preferredLanguage)
-  const guideStages = await getGuideStageConfigs(prisma, currentLanguage)
   const messages = getWebMessages(currentLanguage)
   const shell = messages.appShell
-  const guideStage = Math.min(Math.max(user?.avatarStage ?? 1, 1), 5)
-  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
@@ -61,12 +56,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Guide presence + user */}
         <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
           <div className="flex flex-col items-center text-center mb-4">
-            <AvatarOrb size="xs" stage={guideStage as 1|2|3|4|5} className="mb-2" priority />
+            <AvatarOrb size="xs" stage={1} className="mb-2" priority />
             <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
-              {shell.innerCouncil}
+              Supraconscious Guide
             </p>
             <p className="text-[12px] font-light text-[var(--plum-soft)]">
-              {guideStageName} · {shell.stage} {guideStage}
+              Constant Guide
             </p>
           </div>
 

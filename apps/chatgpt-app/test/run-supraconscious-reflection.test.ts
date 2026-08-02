@@ -1,30 +1,30 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
-import { runInnerCouncilReflection } from '../src/tools/run-inner-council-reflection'
+import { runSupraconsciousReflection } from '../src/tools/run-supraconscious-reflection'
 
-test('runInnerCouncilReflection rejects short or missing text', async () => {
+test('runSupraconsciousReflection rejects short or missing text', async () => {
   await assert.rejects(
-    async () => runInnerCouncilReflection({ text: 'too short' }, 'user-123', {
-      prisma: mockPrisma({ ragEnabled: false }) as any,
-      runCouncilReflection: async () => mockCouncilResult() as any,
+    async () => runSupraconsciousReflection({ text: 'too short' }, 'user-123', {
+      prisma: mockPrisma() as any,
+      runActiveReflection: async () => mockReflectionResult() as any,
     } as any),
     { message: /Invalid input/ },
   )
 })
 
-test('runInnerCouncilReflection uses user preferences and feature flags', async () => {
+test('runSupraconsciousReflection uses the active single-Guide boundary', async () => {
   const calls: any[] = []
-  const result = await runInnerCouncilReflection(
+  const result = await runSupraconsciousReflection(
     {
       text: 'I feel split between staying protected and saying the true thing.',
       calibrationScenario: 'voice_test',
     },
     'user-123',
     {
-      prisma: mockPrisma({ ragEnabled: true }) as any,
-      runCouncilReflection: async (user: any, input: any) => {
+      prisma: mockPrisma() as any,
+      runActiveReflection: async (user: any, input: any) => {
         calls.push({ user, input })
-        return mockCouncilResult()
+        return mockReflectionResult()
       },
     } as any,
   )
@@ -32,8 +32,8 @@ test('runInnerCouncilReflection uses user preferences and feature flags', async 
   assert.equal(calls.length, 1)
   assert.equal(calls[0].user.id, 'user-123')
   assert.equal(calls[0].user.avatarTone, 'gentle')
-  assert.equal(calls[0].input.councilModeEnabled, true)
-  assert.equal(calls[0].input.ragEnabled, true)
+  assert.equal('councilModeEnabled' in calls[0].input, false)
+  assert.equal('ragEnabled' in calls[0].input, false)
   assert.equal(calls[0].input.calibrationScenario, 'voice_test')
   assert.equal(result.journalEntryId, 'entry-1')
   assert.equal(result.councilSession?.id, 'council-1')
@@ -44,24 +44,23 @@ test('runInnerCouncilReflection uses user preferences and feature flags', async 
   assert.doesNotMatch(result.pilotScope, /Maria/)
 })
 
-test('runInnerCouncilReflection requires an authenticated user record', async () => {
+test('runSupraconsciousReflection requires an authenticated user record', async () => {
   await assert.rejects(
-    async () => runInnerCouncilReflection(
+    async () => runSupraconsciousReflection(
       { text: 'I feel split between what is expected and what is true.' },
       'missing-user',
       {
         prisma: {
           user: { findUnique: async () => null },
-          featureFlag: { findUnique: async () => null },
         },
-        runCouncilReflection: async () => mockCouncilResult() as any,
+        runActiveReflection: async () => mockReflectionResult() as any,
       } as any,
     ),
     { message: /Authenticated user not found/ },
   )
 })
 
-function mockPrisma({ ragEnabled }: { ragEnabled: boolean }) {
+function mockPrisma() {
   return {
     user: {
       findUnique: async ({ where }: any) => {
@@ -76,17 +75,10 @@ function mockPrisma({ ragEnabled }: { ragEnabled: boolean }) {
         }
       },
     },
-    featureFlag: {
-      findUnique: async ({ where }: any) => {
-        if (where.key === 'council_mode') return { enabled: true }
-        if (where.key === 'rag_enabled') return { enabled: ragEnabled }
-        return null
-      },
-    },
   }
 }
 
-function mockCouncilResult() {
+function mockReflectionResult() {
   return {
     journalEntry: { id: 'entry-1' },
     safety: { severity: 'none', flags: [], allowReflectiveFlow: true },

@@ -1,5 +1,11 @@
 import { prisma } from "@inner-avatar/db"
 
+/**
+ * Legacy persistence compatibility for historical persona-stage records.
+ * Production reflection enters through runActiveReflection(), which disables
+ * this path. Do not call this from a public client or new runtime integration.
+ */
+
 const LEVEL_WINDOW = 5
 const LEVEL_REQUIRED = 3
 
