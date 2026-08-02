@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '内在议会';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => '开始第一次反思';
@@ -42,7 +42,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get landingMeetYourself => '这是你与自己相遇的地方。';
 
   @override
-  String get landingBody => '你不需要更多建议。你需要看清楚。内在议会会揭示你已经知道、却尚未面对的东西。';
+  String get landingBody => '你不需要更多建议。你需要看清楚。Mirror 帮助你认识到可能已经存在的东西。';
 
   @override
   String get tabJournal => '日记';
@@ -71,7 +71,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get journalTitle => '今天有什么正在呈现？';
 
   @override
-  String get journalHelper => '写下一条诚实的记录。议会会映照模式、张力和一个扎实的下一步。';
+  String get journalHelper => '写下一条诚实的记录。向导可能会映照模式、张力和一个扎实的下一步。';
 
   @override
   String get journalPlaceholder => '写下当下存在的东西：情绪、观察、张力。不需要结构……';
@@ -113,31 +113,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get landingCouncilTitle => '认识七个维度';
 
   @override
-  String get landingCouncilBody => '写下你心中的内容。向导会提供适合当下的维度。';
+  String get landingCouncilBody =>
+      '你从 Mirror 进入。向导可能以不同的数量和深度呈现适合当下的维度。每个维度都是同等有效的意识面向；解释和选择留给你。';
 
   @override
-  String get protectorRole => '保护者';
+  String get protectorRole => '感知';
 
   @override
-  String get protectorRoleBody => '显示恐惧在哪里阻碍了你。';
+  String get protectorRoleBody => '我注意到了什么？';
 
   @override
-  String get conditionedSelfRole => '受制约的自我';
+  String get conditionedSelfRole => '故事';
 
   @override
-  String get conditionedSelfRoleBody => '揭示你尚未质疑的模式。';
+  String get conditionedSelfRoleBody => '我创造了什么意义？观察者可以不带执着地看见它。';
 
   @override
-  String get visionaryRole => '愿景者';
+  String get visionaryRole => '恐惧';
 
   @override
-  String get visionaryRoleBody => '显示你正在成为谁。';
+  String get visionaryRoleBody => '我可能在保护什么？';
 
   @override
-  String get truthSelfRole => '真实自我';
+  String get truthSelfRole => '自我';
 
   @override
-  String get truthSelfRoleBody => '穿透幻象。';
+  String get truthSelfRoleBody => '哪个身份可能正在回应？';
+
+  @override
+  String get geniusRole => '天赋';
+
+  @override
+  String get geniusRoleBody => '什么更高的可能或许正在出现？';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody => '现在可以做出什么有意识的选择？';
+
+  @override
+  String get embodimentRole => '具身';
+
+  @override
+  String get embodimentRoleBody => '我将如何活出这个选择？';
 
   @override
   String get landingExperienceEyebrow => '体验';
@@ -182,7 +201,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get today => '今天';
 
   @override
-  String get askCouncil => '询问向导';
+  String get askCouncil => '进入 Mirror';
 
   @override
   String get reflecting => '正在反思...';
@@ -205,10 +224,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedbackNeeded => '需要反馈';
 
   @override
-  String get gateSaved => '门槛已保存';
+  String get gateSaved => '选择已保存';
 
   @override
-  String get gateOpen => '门槛开放';
+  String get gateOpen => '可以做出选择';
 
   @override
   String get helpful => '有帮助';
@@ -354,13 +373,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get embodimentPrompt => '我今天可以实践的一个小转变';
 
   @override
-  String get saveEmbodimentGate => '保存 embodied gate';
+  String get saveEmbodimentGate => '保存这个选择';
 
   @override
   String get feedbackSavedMessage => '反馈已保存。';
 
   @override
-  String get embodimentSavedMessage => 'Embodiment gate 已保存。';
+  String get embodimentSavedMessage => '具身选择已保存。';
 
   @override
   String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';
@@ -410,7 +429,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   AppLocalizationsZhHans() : super('zh_Hans');
 
   @override
-  String get appTitle => '内在议会';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => '开始第一次反思';
@@ -443,7 +462,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get landingMeetYourself => '这是你与自己相遇的地方。';
 
   @override
-  String get landingBody => '你不需要更多建议。你需要看清楚。内在议会会揭示你已经知道、却尚未面对的东西。';
+  String get landingBody => '你不需要更多建议。你需要看清楚。Mirror 帮助你认识到可能已经存在的东西。';
 
   @override
   String get tabJournal => '日记';
@@ -472,7 +491,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get journalTitle => '今天有什么正在呈现？';
 
   @override
-  String get journalHelper => '写下一条诚实的记录。议会会映照模式、张力和一个扎实的下一步。';
+  String get journalHelper => '写下一条诚实的记录。向导可能会映照模式、张力和一个扎实的下一步。';
 
   @override
   String get journalPlaceholder => '写下当下存在的东西：情绪、观察、张力。不需要结构……';
@@ -514,31 +533,50 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get landingCouncilTitle => '认识七个维度';
 
   @override
-  String get landingCouncilBody => '写下你心中的内容。向导会提供适合当下的维度。';
+  String get landingCouncilBody =>
+      '你从 Mirror 进入。向导可能以不同的数量和深度呈现适合当下的维度。每个维度都是同等有效的意识面向；解释和选择留给你。';
 
   @override
-  String get protectorRole => '保护者';
+  String get protectorRole => '感知';
 
   @override
-  String get protectorRoleBody => '显示恐惧在哪里阻碍了你。';
+  String get protectorRoleBody => '我注意到了什么？';
 
   @override
-  String get conditionedSelfRole => '受制约的自我';
+  String get conditionedSelfRole => '故事';
 
   @override
-  String get conditionedSelfRoleBody => '揭示你尚未质疑的模式。';
+  String get conditionedSelfRoleBody => '我创造了什么意义？观察者可以不带执着地看见它。';
 
   @override
-  String get visionaryRole => '愿景者';
+  String get visionaryRole => '恐惧';
 
   @override
-  String get visionaryRoleBody => '显示你正在成为谁。';
+  String get visionaryRoleBody => '我可能在保护什么？';
 
   @override
-  String get truthSelfRole => '真实自我';
+  String get truthSelfRole => '自我';
 
   @override
-  String get truthSelfRoleBody => '穿透幻象。';
+  String get truthSelfRoleBody => '哪个身份可能正在回应？';
+
+  @override
+  String get geniusRole => '天赋';
+
+  @override
+  String get geniusRoleBody => '什么更高的可能或许正在出现？';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody => '现在可以做出什么有意识的选择？';
+
+  @override
+  String get embodimentRole => '具身';
+
+  @override
+  String get embodimentRoleBody => '我将如何活出这个选择？';
 
   @override
   String get landingExperienceEyebrow => '体验';
@@ -583,7 +621,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get today => '今天';
 
   @override
-  String get askCouncil => '询问向导';
+  String get askCouncil => '进入 Mirror';
 
   @override
   String get reflecting => '正在反思...';
@@ -606,10 +644,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get feedbackNeeded => '需要反馈';
 
   @override
-  String get gateSaved => '门槛已保存';
+  String get gateSaved => '选择已保存';
 
   @override
-  String get gateOpen => '门槛开放';
+  String get gateOpen => '可以做出选择';
 
   @override
   String get helpful => '有帮助';
@@ -755,13 +793,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get embodimentPrompt => '我今天可以实践的一个小转变';
 
   @override
-  String get saveEmbodimentGate => '保存 embodied gate';
+  String get saveEmbodimentGate => '保存这个选择';
 
   @override
   String get feedbackSavedMessage => '反馈已保存。';
 
   @override
-  String get embodimentSavedMessage => 'Embodiment gate 已保存。';
+  String get embodimentSavedMessage => '具身选择已保存。';
 
   @override
   String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';

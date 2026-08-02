@@ -9,7 +9,7 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'El Consejo Interior';
+  String get appTitle => 'Supraconscious';
 
   @override
   String get startReflection => 'Iniciar tu primera reflexión';
@@ -43,7 +43,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get landingBody =>
-      'No necesitas más consejos. Necesitas ver con claridad. El Consejo Interior revela lo que ya sabes, pero aún no has enfrentado.';
+      'No necesitas más consejos. Necesitas ver con claridad. El Mirror te ayuda a reconocer lo que quizá ya está presente.';
 
   @override
   String get tabJournal => 'Diario';
@@ -73,7 +73,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get journalHelper =>
-      'Escribe una entrada honesta. El consejo reflejará patrones, tensiones y un próximo paso enraizado.';
+      'Escribe una entrada honesta. La Guía puede reflejar patrones, tensiones y un próximo paso enraizado.';
 
   @override
   String get journalPlaceholder =>
@@ -122,32 +122,52 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get landingCouncilBody =>
-      'Escribes lo que tienes en mente. La Guía ofrece las dimensiones que corresponden al momento.';
+      'Entras por el Mirror. La Guía puede mostrar las dimensiones que encajan con este momento, en distinta cantidad y profundidad. Cada una es una faceta igualmente válida; la interpretación y la elección quedan en tus manos.';
 
   @override
-  String get protectorRole => 'El Protector';
+  String get protectorRole => 'Percepción';
 
   @override
-  String get protectorRoleBody => 'Muestra dónde el miedo te está frenando.';
+  String get protectorRoleBody => '¿Qué estoy notando?';
 
   @override
-  String get conditionedSelfRole => 'El Yo Condicionado';
+  String get conditionedSelfRole => 'Historia';
 
   @override
   String get conditionedSelfRoleBody =>
-      'Revela patrones que no habías cuestionado.';
+      '¿Qué significado he creado? El Observador puede notarlo sin apego.';
 
   @override
-  String get visionaryRole => 'El Visionario';
+  String get visionaryRole => 'Miedo';
 
   @override
-  String get visionaryRoleBody => 'Muestra en quién te estás convirtiendo.';
+  String get visionaryRoleBody => '¿Qué podría estar protegiendo?';
 
   @override
-  String get truthSelfRole => 'El Yo Verdadero';
+  String get truthSelfRole => 'Ego';
 
   @override
-  String get truthSelfRoleBody => 'Atraviesa la ilusión.';
+  String get truthSelfRoleBody => '¿Qué identidad podría estar respondiendo?';
+
+  @override
+  String get geniusRole => 'Genio';
+
+  @override
+  String get geniusRoleBody =>
+      '¿Qué posibilidad superior podría estar disponible?';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody =>
+      '¿Qué elección consciente es posible ahora?';
+
+  @override
+  String get embodimentRole => 'Encarnación';
+
+  @override
+  String get embodimentRoleBody => '¿Cómo viviré esa elección?';
 
   @override
   String get landingExperienceEyebrow => 'La experiencia';
@@ -196,7 +216,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get today => 'Hoy';
 
   @override
-  String get askCouncil => 'Preguntar a la Guía';
+  String get askCouncil => 'Entrar en el Mirror';
 
   @override
   String get reflecting => 'Reflexionando...';
@@ -219,10 +239,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get feedbackNeeded => 'Comentarios necesarios';
 
   @override
-  String get gateSaved => 'Puerta guardada';
+  String get gateSaved => 'Elección guardada';
 
   @override
-  String get gateOpen => 'Puerta abierta';
+  String get gateOpen => 'Elección disponible';
 
   @override
   String get helpful => 'Útil';
@@ -377,13 +397,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get embodimentPrompt => 'Un pequeño cambio que puedo vivir hoy';
 
   @override
-  String get saveEmbodimentGate => 'Guardar puerta de encarnación';
+  String get saveEmbodimentGate => 'Guardar esta elección';
 
   @override
   String get feedbackSavedMessage => 'Comentarios guardados.';
 
   @override
-  String get embodimentSavedMessage => 'Puerta de encarnación guardada.';
+  String get embodimentSavedMessage => 'Elección encarnada guardada.';
 
   @override
   String get patternsEmptyBody =>

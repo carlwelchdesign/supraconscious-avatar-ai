@@ -163,7 +163,7 @@ class LandingScreen extends StatelessWidget {
             title: l10n.landingCouncilTitle,
             body: l10n.landingCouncilBody,
           ),
-          const _CouncilRoleGrid(),
+          const _DimensionGrid(),
           _LandingSection(
             eyebrow: l10n.landingExperienceEyebrow,
             title: l10n.landingExperienceTitle,
@@ -287,17 +287,20 @@ class _LandingSection extends StatelessWidget {
   }
 }
 
-class _CouncilRoleGrid extends StatelessWidget {
-  const _CouncilRoleGrid();
+class _DimensionGrid extends StatelessWidget {
+  const _DimensionGrid();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final roles = [
+    final dimensions = [
       (l10n.protectorRole, l10n.protectorRoleBody),
       (l10n.conditionedSelfRole, l10n.conditionedSelfRoleBody),
       (l10n.visionaryRole, l10n.visionaryRoleBody),
       (l10n.truthSelfRole, l10n.truthSelfRoleBody),
+      (l10n.geniusRole, l10n.geniusRoleBody),
+      (l10n.supraconsciousRole, l10n.supraconsciousRoleBody),
+      (l10n.embodimentRole, l10n.embodimentRoleBody),
     ];
 
     return Padding(
@@ -306,10 +309,10 @@ class _CouncilRoleGrid extends StatelessWidget {
         spacing: 10,
         runSpacing: 10,
         children: [
-          for (final role in roles)
+          for (final dimension in dimensions)
             SizedBox(
               width: 320,
-              child: _InfoCard(title: role.$1, body: role.$2),
+              child: _InfoCard(title: dimension.$1, body: dimension.$2),
             ),
         ],
       ),
@@ -1478,9 +1481,13 @@ class GuideTab extends ConsumerWidget {
             Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.visibility_outlined)),
+                leading: const CircleAvatar(
+                  child: Icon(Icons.visibility_outlined),
+                ),
                 title: Text(dimension.name),
-                subtitle: Text('${dimension.question}\n${dimension.distinction}'),
+                subtitle: Text(
+                  '${dimension.question}\n${dimension.distinction}',
+                ),
               ),
             ),
         ];

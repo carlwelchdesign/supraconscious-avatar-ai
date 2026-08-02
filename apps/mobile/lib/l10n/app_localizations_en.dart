@@ -122,32 +122,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get landingCouncilBody =>
-      'You write what is on your mind. The Guide offers the dimensions that fit the moment without claiming to know your truth.';
+      'You enter through the Mirror. The Guide may surface the dimensions that fit this moment, in varying number and depth. Each is an equally valid facet; interpretation and choice stay with you.';
 
   @override
-  String get protectorRole => 'The Protector';
+  String get protectorRole => 'Perception';
 
   @override
-  String get protectorRoleBody => 'Shows where fear is holding you back.';
+  String get protectorRoleBody => 'What am I noticing?';
 
   @override
-  String get conditionedSelfRole => 'The Conditioned Self';
+  String get conditionedSelfRole => 'Story';
 
   @override
   String get conditionedSelfRoleBody =>
-      'Reveals patterns you did not question.';
+      'What meaning have I created? The Observer can notice it without attachment.';
 
   @override
-  String get visionaryRole => 'The Visionary';
+  String get visionaryRole => 'Fear';
 
   @override
-  String get visionaryRoleBody => 'Shows who you are becoming.';
+  String get visionaryRoleBody => 'What might I be protecting?';
 
   @override
-  String get truthSelfRole => 'The Truth Self';
+  String get truthSelfRole => 'Ego';
 
   @override
-  String get truthSelfRoleBody => 'Cuts through illusion.';
+  String get truthSelfRoleBody => 'Which identity may be responding?';
+
+  @override
+  String get geniusRole => 'Genius';
+
+  @override
+  String get geniusRoleBody => 'What higher possibility may be available?';
+
+  @override
+  String get supraconsciousRole => 'Supraconscious';
+
+  @override
+  String get supraconsciousRoleBody => 'What conscious choice is now possible?';
+
+  @override
+  String get embodimentRole => 'Embodiment';
+
+  @override
+  String get embodimentRoleBody => 'How will I live that choice?';
 
   @override
   String get landingExperienceEyebrow => 'The experience';
@@ -194,7 +212,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get today => 'Today';
 
   @override
-  String get askCouncil => 'Ask the Guide';
+  String get askCouncil => 'Enter the Mirror';
 
   @override
   String get reflecting => 'Reflecting...';
@@ -217,10 +235,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackNeeded => 'Feedback needed';
 
   @override
-  String get gateSaved => 'Gate saved';
+  String get gateSaved => 'Choice saved';
 
   @override
-  String get gateOpen => 'Gate open';
+  String get gateOpen => 'Choice available';
 
   @override
   String get helpful => 'Helpful';
@@ -375,13 +393,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get embodimentPrompt => 'One small shift I can live today';
 
   @override
-  String get saveEmbodimentGate => 'Save embodiment gate';
+  String get saveEmbodimentGate => 'Save this choice';
 
   @override
   String get feedbackSavedMessage => 'Feedback saved.';
 
   @override
-  String get embodimentSavedMessage => 'Embodiment gate saved.';
+  String get embodimentSavedMessage => 'Embodied choice saved.';
 
   @override
   String get patternsEmptyBody =>

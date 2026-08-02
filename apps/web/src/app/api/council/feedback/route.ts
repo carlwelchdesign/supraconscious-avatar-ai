@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     })
 
     if (!session) {
-      return privateJson({ error: "Council session not found." }, { status: 404 })
+      return privateJson({ error: "Reflection session not found." }, { status: 404 })
     }
 
     const feedback = await prisma.councilSessionFeedback.create({
