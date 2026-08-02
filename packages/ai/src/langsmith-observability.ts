@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { buildDoctrineTraceMetadata } from "./doctrine-contract.js"
+import { buildGuideVoiceTraceMetadata } from "./guide-voice-contract.js"
 
 export const LANGSMITH_METADATA_POLICY_VERSION = "langsmith-metadata-only-v1"
 
@@ -138,6 +139,7 @@ export function resetLangSmithClientFactoryForTests() {
 export function buildGenerationTraceLangSmithMetadata(context: LangSmithTraceContext, extra: Record<string, unknown> = {}) {
   return {
     ...buildDoctrineTraceMetadata(),
+    ...buildGuideVoiceTraceMetadata(),
     enabled: context.enabled,
     sampled: context.sampled,
     runId: context.runId,

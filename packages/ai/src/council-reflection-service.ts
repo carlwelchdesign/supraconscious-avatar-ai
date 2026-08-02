@@ -234,7 +234,6 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     generateAvatarResponse(input.text, analysis, safety, {
       tone: user.avatarTone,
       intensity: user.intensityLevel,
-      currentLevel: user.currentLevel,
       language: responseLanguage,
     }),
     generateSymbolicPrompt(analysis, safety, responseLanguage),

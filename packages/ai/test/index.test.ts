@@ -20,10 +20,15 @@ import {
   ACTIVE_REFLECTION_RUNTIME_POLICY,
   ACTIVE_REFLECTION_RUNTIME_VERSION,
   buildDoctrineTraceMetadata,
+  authorizeGuideVoiceReference,
+  buildGuideVoiceTraceMetadata,
   CURATED_PROMPTS,
   DIMENSION_CONTRACT,
   DOCTRINE_CONTRACT,
   DOCTRINE_CONTRACT_VERSION,
+  GUIDE_VOICE_CONTRACT,
+  GUIDE_VOICE_CONTRACT_VERSION,
+  GUIDE_VOICE_SYSTEM_PROMPT,
   FOUNDER_CONTEXT_SOURCES,
   FOUNDER_CONTEXT_REGISTRY_VERSION,
   FOUNDER_DECISIONS,
@@ -81,6 +86,8 @@ import {
   normalizePdfTextToParagraphs,
   parseObsidianMarkdown,
   formatFounderCalibrationScenario,
+  generateAvatarResponse,
+  generateSymbolicPrompt,
   sanitizeProperties,
   sanitizeLangSmithMetadata,
   setLangSmithClientFactoryForTests,
@@ -98,6 +105,7 @@ import {
   evaluateFounderDecisionGates,
   resolveFounderDecision,
   validateFounderDecisionRegistry,
+  validateGuideVoiceText,
   validatePublicCopyAgainstDoctrine,
   type GraphRagContext,
   withLangSmithRun,
@@ -295,6 +303,67 @@ test("doctrine trace metadata is versioned and revisions require Maria approval 
   )
 })
 
+test("Guide voice contract remains constant across dimensions and user progression", () => {
+  assert.equal(GUIDE_VOICE_CONTRACT_VERSION, "supraconscious-guide-voice-v1")
+  assert.equal(GUIDE_VOICE_CONTRACT.name, "Supraconscious Guide")
+  assert.equal(GUIDE_VOICE_CONTRACT.persona, "constant")
+  assert.equal(GUIDE_VOICE_CONTRACT.progressionOwner, "user")
+  assert.equal(GUIDE_VOICE_CONTRACT.performancePillar.lens, "life_as_performance")
+  assert.equal(GUIDE_VOICE_CONTRACT.highRiskOverride, "plain_grounding_before_style")
+  assert.match(GUIDE_VOICE_SYSTEM_PROMPT, /constant across every session, dimension, and point/i)
+  assert.match(GUIDE_VOICE_SYSTEM_PROMPT, /more authentic choice/i)
+  assert.doesNotMatch(GUIDE_VOICE_SYSTEM_PROMPT, /currentLevel|levelName|persona stage/i)
+})
+
+test("Guide voice validation rejects authority, certainty, diagnosis, and lost agency", () => {
+  const safe = validateGuideVoiceText(
+    "You may be noticing a familiar role. If it feels useful, you could try a more truthful response.",
+  )
+  assert.equal(safe.valid, true)
+
+  const prohibited = validateGuideVoiceText(
+    "Maria teaches that I know your truth. You have depression, so you must follow the only answer.",
+  )
+  assert.equal(prohibited.valid, false)
+  assert.deepEqual(prohibited.issues, [
+    "direct_founder_attribution",
+    "hidden_knowledge_or_certainty_claim",
+    "diagnostic_claim",
+    "agency_violation",
+  ])
+})
+
+test("Guide voice references stay unset until versioned founder approval is recorded", () => {
+  assert.equal(GUIDE_VOICE_CONTRACT.voiceReference.approvalState, "awaiting_founder_samples")
+  assert.throws(
+    () =>
+      authorizeGuideVoiceReference({
+        version: "draft",
+        approvedBy: "Maria",
+        approvedAt: "not-a-date",
+        samples: [],
+        reason: "",
+      }),
+    /invalid_guide_voice_reference_approval/,
+  )
+
+  const approved = authorizeGuideVoiceReference({
+    version: "founder-voice-reference-v1",
+    approvedBy: "Maria",
+    approvedAt: "2026-07-31T12:00:00.000Z",
+    samples: ["A founder-approved voice sample."],
+    reason: "Founder supplied the first approved voice reference.",
+  })
+  assert.equal(approved.approvalState, "founder_approved")
+  assert.equal(approved.version, "founder-voice-reference-v1")
+  assert.deepEqual(buildGuideVoiceTraceMetadata({ traceType: "reflection" }), {
+    guideVoiceVersion: "supraconscious-guide-voice-v1",
+    guidePersona: "constant",
+    voiceReferenceVersion: "founder-voice-reference-unset",
+    traceType: "reflection",
+  })
+})
+
 const analysis: EntryAnalysis = {
   emotionalSignals: {
     primary: ["uncertain"],
@@ -337,6 +406,22 @@ const highSafety: SafetyCheck = {
   userMessage: "Pause and seek support.",
   allowReflectiveFlow: false,
 }
+
+test("high-risk generation bypasses Guide style for plain grounding", async () => {
+  const avatar = await generateAvatarResponse("A high-risk entry.", analysis, highSafety, {
+    tone: "direct",
+    intensity: 5,
+  })
+  const prompt = await generateSymbolicPrompt(analysis, highSafety)
+  const combined = [...Object.values(avatar), ...Object.values(prompt)].join(" ")
+
+  assert.equal(avatar.patternName, "Grounding")
+  assert.equal(avatar.contradiction, "")
+  assert.equal(prompt.level, 1)
+  assert.equal(prompt.targetPattern, "Grounding")
+  assert.match(combined, /support|emergency|crisis/i)
+  assert.doesNotMatch(combined, /performance|persona|dimension|future self|visuali[sz]e/i)
+})
 
 test("high-risk entries use grounding and skip council confrontation", () => {
   const run = buildGroundingCouncilRun("I need urgent help and cannot stay with this.", highSafety)
@@ -2556,6 +2641,8 @@ test("langsmith run wrapper returns mocked trace metadata without blocking succe
     assert.equal(result.langsmith.projectName, "inner-avatar-test")
     assert.ok(result.langsmith.runId)
     assert.equal(result.value.langsmith.runId, result.langsmith.runId)
+    assert.equal(result.value.langsmith.guideVoiceVersion, "supraconscious-guide-voice-v1")
+    assert.equal(result.value.langsmith.voiceReferenceVersion, "founder-voice-reference-unset")
     assert.equal(result.value.langsmith.validationStatus, "validated")
     assert.equal(creates.length, 1)
     assert.equal(updates.length >= 1, true)

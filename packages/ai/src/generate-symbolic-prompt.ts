@@ -1,7 +1,8 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
+import { GUIDE_VOICE_SYSTEM_PROMPT, validateGuideVoiceText } from "./guide-voice-contract.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
+import { buildCrisisGroundingContent, shouldShortCircuitReflection } from "./safety-policy.js"
 import {
   GeneratedPromptSchema,
   type EntryAnalysis,
@@ -16,19 +17,12 @@ export async function generateSymbolicPrompt(
 ): Promise<GeneratedPrompt> {
   const level = safety.severity === "medium" || safety.severity === "high" ? 1 : analysis.suggestedLevel
 
-  if (!isOpenAIConfigured()) {
-    const copy = localAiCopy(language).prompt
-    const targetPattern = analysis.behavioralPatterns[0]?.label ?? copy.targetPattern
+  if (shouldShortCircuitReflection(safety)) {
+    return buildGroundingSymbolicPrompt(safety, language)
+  }
 
-    return {
-      title: copy.title,
-      context: copy.context,
-      materialsAndPreparation: copy.materialsAndPreparation,
-      execution: copy.execution,
-      integration: copy.integration,
-      level,
-      targetPattern,
-    }
+  if (!isOpenAIConfigured()) {
+    return buildLocalSymbolicPrompt(analysis, language, level)
   }
 
   const response = await getOpenAIClient().responses.parse({
@@ -36,7 +30,7 @@ export async function generateSymbolicPrompt(
     input: [
       {
         role: "system",
-        content: `${AVATAR_SYSTEM_PROMPT}
+        content: `${GUIDE_VOICE_SYSTEM_PROMPT}
 
 Generate one safe, grounded journaling prompt.
 It may be poetic, but it must stay accessible and emotionally stabilizing.
@@ -47,8 +41,6 @@ ${languageInstruction(language)}`,
       {
         role: "user",
         content: JSON.stringify({
-          level,
-          levelName: LEVELS[level - 1],
           analysis,
           safety,
           language,
@@ -64,5 +56,43 @@ ${languageInstruction(language)}`,
     throw new Error("Prompt generator returned no structured output.")
   }
 
-  return { ...response.output_parsed, level }
+  const output = { ...response.output_parsed, level }
+  const voiceCheck = validateGuideVoiceText(
+    [output.title, output.context, output.materialsAndPreparation, output.execution, output.integration]
+      .filter(Boolean)
+      .join("\n"),
+  )
+  return voiceCheck.valid ? output : buildLocalSymbolicPrompt(analysis, language, level)
+}
+
+function buildGroundingSymbolicPrompt(safety: SafetyCheck, language: ResponseLanguage): GeneratedPrompt {
+  const grounding = buildCrisisGroundingContent(safety, language)
+  return {
+    title: grounding.openingLine,
+    context: grounding.userMessage,
+    materialsAndPreparation: grounding.immediateAction,
+    execution: grounding.connectionAction,
+    integration: grounding.closingLine,
+    level: 1,
+    targetPattern: grounding.patternName,
+  }
+}
+
+function buildLocalSymbolicPrompt(
+  analysis: EntryAnalysis,
+  language: ResponseLanguage,
+  level: number,
+): GeneratedPrompt {
+  const copy = localAiCopy(language).prompt
+  const targetPattern = analysis.behavioralPatterns[0]?.label ?? copy.targetPattern
+
+  return {
+    title: copy.title,
+    context: copy.context,
+    materialsAndPreparation: copy.materialsAndPreparation,
+    execution: copy.execution,
+    integration: copy.integration,
+    level,
+    targetPattern,
+  }
 }

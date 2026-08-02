@@ -83,7 +83,6 @@ export async function generateAvatarReflection(input: unknown, userIdOrDeps: str
     }, safety, {
       tone: validatedInput.tone,
       intensity: 5,
-      currentLevel: 3,
     })
 
     return {

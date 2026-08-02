@@ -25,7 +25,11 @@ const ACTIVE_SURFACE_PATHS = [
   "packages/db/src/pricing-content.ts",
   "packages/ai/src/active-reflection-runtime.ts",
   "packages/ai/src/avatar-system-prompt.ts",
+  "packages/ai/src/guide-voice-contract.ts",
+  "packages/ai/src/analyze-entry.ts",
   "packages/ai/src/generate-avatar-response.ts",
+  "packages/ai/src/generate-symbolic-prompt.ts",
+  "packages/ai/src/source-provenance.ts",
 ] as const
 
 const TEXT_EXTENSIONS = new Set([".arb", ".dart", ".json", ".ts", ".tsx"])
