@@ -12,7 +12,7 @@ const cohort = await prisma.pilotCohort.upsert({
     id: process.env.PILOT_COHORT_ID || "internal-pilot",
     name: cohortName,
     status: "active",
-    description: "Controlled internal Inner Council pilot cohort.",
+    description: "Controlled founder-only Supraconscious pilot cohort.",
     metadata: {
       seedName: "seed-internal-pilot",
       scope: "internal_pilot",

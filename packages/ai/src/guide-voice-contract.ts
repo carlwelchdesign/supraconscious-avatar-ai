@@ -1,3 +1,8 @@
+import {
+  findFounderAttributionPatterns,
+  findRemovedPublicTerms,
+} from "./prohibited-language-policy.js"
+
 export const GUIDE_VOICE_CONTRACT_VERSION = "supraconscious-guide-voice-v1"
 
 export const GUIDE_VOICE_CONTRACT = Object.freeze({
@@ -68,11 +73,11 @@ export function authorizeGuideVoiceReference(approval: GuideVoiceReferenceApprov
 export function validateGuideVoiceText(text: string) {
   const issues: string[] = []
 
-  if (/\bMaria\s+(teaches|says|tells\s+us|believes|wants\s+you\s+to)\b/i.test(text)) {
+  if (findFounderAttributionPatterns(text).length > 0) {
     issues.push("direct_founder_attribution")
   }
-  if (/\b(according\s+to|on\s+behalf\s+of)\s+Maria\b/i.test(text)) {
-    issues.push("founder_authority_claim")
+  for (const term of findRemovedPublicTerms(text)) {
+    issues.push(`removed_public_term:${term}`)
   }
   if (/\b(I know your truth|I can see your true self|this proves who you are|you are definitely|your unconscious is telling you)\b/i.test(text)) {
     issues.push("hidden_knowledge_or_certainty_claim")
