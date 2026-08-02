@@ -18,14 +18,14 @@ Inner Avatar is a full-stack SaaS application that leverages AI-driven analysis 
 
 ## Product Screenshots
 
-The screenshots below use public pages or privacy-safe application states without saved journal content or account details.
+These screenshots show the current Mirror-centered experience. Public pages and privacy-safe application states are used without saved journal content or visible account details.
 
 <table>
   <tr>
     <td width="50%">
       <img src="docs/images/readme/landing-page.png" alt="Supraconscious landing page" />
       <br />
-      <sub><strong>Landing page</strong> — product positioning and primary reflection entry point.</sub>
+      <sub><strong>Landing page</strong> — product positioning and the Mirror reflection entry point.</sub>
     </td>
     <td width="50%">
       <img src="docs/images/readme/pricing-page.png" alt="Supraconscious pricing page" />
