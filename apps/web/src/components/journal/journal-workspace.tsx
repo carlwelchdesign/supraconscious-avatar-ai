@@ -15,7 +15,6 @@ import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
-const DEFAULT_STAGE_NAMES = ["Echo", "Witness", "Clear Mirror", "Reframer", "Inner Author"] as const
 const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 const CALIBRATION_PROMPTS = [
   {
@@ -152,8 +151,6 @@ function readThresholdPromptTranslationKey(prompt: ThresholdPrompt): ThresholdPr
 }
 
 type Props = {
-  avatarStage?: 1 | 2 | 3 | 4 | 5
-  stageNames?: readonly string[]
   voicePrefs?: VoicePrefs
   thresholdPrompt?: ThresholdPrompt
   todayLabel?: string
@@ -165,8 +162,6 @@ type Props = {
 }
 
 export function JournalWorkspace({
-  avatarStage = 1,
-  stageNames = DEFAULT_STAGE_NAMES,
   voicePrefs,
   thresholdPrompt = null,
   todayLabel = "",
@@ -178,7 +173,6 @@ export function JournalWorkspace({
 }: Props) {
   const t = useTranslations("journal")
   const feedbackT = useTranslations("sessionDetail.feedbackTypes")
-  const guideStageNames = normalizeStageNames(stageNames)
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
@@ -550,15 +544,11 @@ export function JournalWorkspace({
             }}
           >
             <div className="flex flex-col items-center text-center mb-5">
-              <AvatarOrb size="lg" stage={result ? result.progression.newStage as 1|2|3|4|5 : avatarStage} className="mb-3" />
+              <AvatarOrb size="lg" stage={1} className="mb-3" />
               <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
                 {t("guideResponse")}
               </p>
-              <p className="text-[12px] font-light text-[var(--plum-soft)]">
-                {result
-                  ? t("stageLine", { name: guideStageNames[result.progression.newStage - 1], stage: result.progression.newStage })
-                  : t("stageLine", { name: guideStageNames[avatarStage - 1], stage: avatarStage })}
-              </p>
+              <p className="text-[12px] font-light text-[var(--plum-soft)]">Supraconscious Guide · constant presence</p>
             </div>
 
             {result ? (
@@ -851,40 +841,7 @@ export function JournalWorkspace({
             </div>
           )}
 
-          {/* Progression moment */}
-          {result?.progression.stageChanged && (
-            <div
-              className="rounded-3xl border p-6 relative overflow-hidden"
-              style={{ background: "var(--primary)", borderColor: "var(--primary)" }}
-            >
-              <span
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[48px] opacity-20 pointer-events-none"
-                style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
-              />
-              <div className="relative z-10 text-center space-y-3">
-                <AvatarOrb size="lg" stage={result.progression.newStage as 1|2|3|4|5} className="mx-auto" />
-                <div>
-                  <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[var(--clay-light)] mb-1">
-                    {t("guideDeepened")}
-                  </p>
-                  <p className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
-                    {t("guideBecoming", {
-                      from: guideStageNames[result.progression.previousStage - 1],
-                      to: guideStageNames[result.progression.newStage - 1],
-                    }).split(guideStageNames[result.progression.newStage - 1])[0]}
-                    <em className="italic text-[var(--clay-light)]">
-                      {guideStageNames[result.progression.newStage - 1]}
-                    </em>
-                  </p>
-                </div>
-                <p className="text-[13px] font-light text-[var(--cream)]/50">
-                  {t("stageLine", { name: "", stage: result.progression.newStage }).replace(" · ", "")}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {result?.progression.levelChanged && !result.progression.stageChanged && (
+          {result?.progression.levelChanged && (
             <div
               className="rounded-3xl border p-5"
               style={{
@@ -1004,11 +961,4 @@ function userFacingSaveError(error: unknown, status: number, item: "shift" | "fe
   return item === "shift"
     ? t("saveShiftError")
     : t("saveFeedbackError")
-}
-
-function normalizeStageNames(stageNames: readonly string[]) {
-  return DEFAULT_STAGE_NAMES.map((fallback, index) => {
-    const value = stageNames[index]
-    return typeof value === "string" && value.trim() ? value.trim() : fallback
-  })
 }

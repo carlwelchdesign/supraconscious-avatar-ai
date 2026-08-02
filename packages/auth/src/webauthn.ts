@@ -19,7 +19,7 @@ import {
   sanitizeRedirect,
 } from "./pending-auth"
 
-const RP_NAME = "Supraconscious Inner Council"
+const RP_NAME = "Supraconscious"
 
 export async function startPasskeyRegistration(input: {
   userId: string

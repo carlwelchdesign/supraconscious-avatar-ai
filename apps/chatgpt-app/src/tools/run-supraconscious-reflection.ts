@@ -1,23 +1,23 @@
 import { z } from "zod"
 import {
   FounderCalibrationScenarioSchema,
-  runCouncilReflection,
-  type CouncilReflectionUser,
+  runActiveReflection,
+  type ActiveReflectionUser,
 } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 
-const RunInnerCouncilReflectionSchema = z.object({
+const RunSupraconsciousReflectionSchema = z.object({
   text: z.string().trim().min(20, "Write at least 20 characters before reflecting."),
   inputMode: z.enum(["text", "voice"]).default("text"),
   calibrationScenario: FounderCalibrationScenarioSchema.optional().default("freeform"),
 })
 
-type RunInnerCouncilReflectionDeps = {
+type RunSupraconsciousReflectionDeps = {
   prisma?: typeof prisma
-  runCouncilReflection?: typeof runCouncilReflection
+  runActiveReflection?: typeof runActiveReflection
 }
 
-type CouncilReflectionResult = Awaited<ReturnType<typeof runCouncilReflection>> & {
+type ActiveReflectionResult = Awaited<ReturnType<typeof runActiveReflection>> & {
   councilSession?: {
     id: string
     messages: Array<{
@@ -44,15 +44,15 @@ type CouncilReflectionResult = Awaited<ReturnType<typeof runCouncilReflection>> 
   }
 }
 
-export async function runInnerCouncilReflection(
+export async function runSupraconsciousReflection(
   input: unknown,
   userId: string,
-  deps: RunInnerCouncilReflectionDeps = {},
+  deps: RunSupraconsciousReflectionDeps = {},
 ) {
-  const { prisma: prismaClient = prisma, runCouncilReflection: runCouncil = runCouncilReflection } = deps
+  const { prisma: prismaClient = prisma, runActiveReflection: runReflection = runActiveReflection } = deps
 
   try {
-    const validatedInput = RunInnerCouncilReflectionSchema.parse(input)
+    const validatedInput = RunSupraconsciousReflectionSchema.parse(input)
     const user = await prismaClient.user.findUnique({
       where: { id: userId },
       select: {
@@ -67,19 +67,12 @@ export async function runInnerCouncilReflection(
 
     if (!user) throw new Error("Authenticated user not found")
 
-    const [councilModeEnabled, ragEnabled] = await Promise.all([
-      isFeatureEnabled(prismaClient, "council_mode", true),
-      isFeatureEnabled(prismaClient, "rag_enabled", false),
-    ])
-
-    const councilUser: CouncilReflectionUser = user
-    const result = await runCouncil(councilUser, {
+    const reflectionUser: ActiveReflectionUser = user
+    const result = await runReflection(reflectionUser, {
       text: validatedInput.text,
       inputMode: validatedInput.inputMode,
       calibrationScenario: validatedInput.calibrationScenario,
-      councilModeEnabled,
-      ragEnabled,
-    }) as CouncilReflectionResult
+    }) as ActiveReflectionResult
 
     return {
       pilotScope: "This uses the same reflection flow as the web journal. The Guide follows the versioned Supraconscious doctrine; it is not therapy, crisis monitoring, or spiritual authority.",
@@ -131,15 +124,6 @@ export async function runInnerCouncilReflection(
     if (error instanceof Error && error.message.includes("Authenticated user not found")) {
       throw error
     }
-    throw new Error("Failed to run Inner Council reflection")
+    throw new Error("Failed to run Supraconscious reflection")
   }
-}
-
-async function isFeatureEnabled(prismaClient: typeof prisma, key: string, defaultValue: boolean) {
-  const flag = await prismaClient.featureFlag.findUnique({
-    where: { key },
-    select: { enabled: true },
-  })
-
-  return flag?.enabled ?? defaultValue
 }

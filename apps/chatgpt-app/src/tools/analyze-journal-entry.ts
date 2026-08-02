@@ -69,7 +69,7 @@ export async function analyzeJournalEntry(input: unknown, userIdOrDeps: string |
     const analysis = await analyzeFn(text, safety)
 
     return {
-      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the Inner Council pilot flow.",
+      pilotScope: "Legacy analysis-only tool during the internal pilot. Use the web app for the active guided reflection flow.",
       safetyStatus: safety.severity === "none" ? "clear" :
                    safety.severity === "low" ? "needs_grounding" : "crisis",
       emotionalSignals: analysis.emotionalSignals.primary,

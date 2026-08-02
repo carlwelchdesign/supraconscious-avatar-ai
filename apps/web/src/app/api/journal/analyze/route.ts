@@ -1,5 +1,4 @@
-import { JournalAnalyzeRequestSchema, runCouncilReflection } from "@inner-avatar/ai"
-import { prisma } from "@inner-avatar/db"
+import { JournalAnalyzeRequestSchema, runActiveReflection } from "@inner-avatar/ai"
 import { buildJournalAnalyzeResponse } from "@/lib/journal-analyze-response"
 import { getJournalAccessError, requireJournalAccessUser } from "@/lib/journal-access"
 import { readPrivateApiError } from "@/lib/private-api-error"
@@ -9,12 +8,7 @@ export async function POST(request: Request) {
   try {
     const user = await requireJournalAccessUser()
     const body = JournalAnalyzeRequestSchema.parse(await request.json())
-    const [councilModeEnabled, ragEnabled] = await Promise.all([
-      isFeatureEnabled("council_mode", true),
-      isFeatureEnabled("rag_enabled", false),
-    ])
-
-    const result = await runCouncilReflection({
+    const result = await runActiveReflection({
       id: user.id,
       avatarTone: user.avatarTone,
       intensityLevel: user.intensityLevel,
@@ -26,8 +20,6 @@ export async function POST(request: Request) {
       text: body.text,
       inputMode: body.inputMode,
       calibrationScenario: body.calibrationScenario,
-      councilModeEnabled,
-      ragEnabled,
       requestId: request.headers.get("x-request-id") ?? undefined,
     })
 
@@ -40,13 +32,4 @@ export async function POST(request: Request) {
     const apiError = readPrivateApiError(error, { fallback: "Unable to analyze journal entry." })
     return privateJson({ error: apiError.error }, { status: apiError.status })
   }
-}
-
-async function isFeatureEnabled(key: string, defaultValue: boolean) {
-  const flag = await prisma.featureFlag.findUnique({
-    where: { key },
-    select: { enabled: true },
-  })
-
-  return flag?.enabled ?? defaultValue
 }

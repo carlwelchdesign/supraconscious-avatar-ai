@@ -117,11 +117,11 @@ class AppLocalizationsEl extends AppLocalizations {
   String get landingCouncilEyebrow => 'Πώς λειτουργεί';
 
   @override
-  String get landingCouncilTitle => 'Γνώρισε το Inner Council σου';
+  String get landingCouncilTitle => 'Γνώρισε τις Επτά Διαστάσεις';
 
   @override
   String get landingCouncilBody =>
-      'Γράφεις ό,τι έχεις στο μυαλό σου. Τέσσερις εσωτερικοί φακοί αντανακλούν τι κινείται κάτω από την επιφάνεια.';
+      'Γράφεις ό,τι έχεις στο μυαλό σου. Ο Οδηγός προσφέρει τις διαστάσεις που ταιριάζουν στη στιγμή.';
 
   @override
   String get protectorRole => 'Ο Προστάτης';
@@ -195,7 +195,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get today => 'Σήμερα';
 
   @override
-  String get askCouncil => 'Ρώτησε το Συμβούλιο';
+  String get askCouncil => 'Ρώτησε τον Οδηγό';
 
   @override
   String get reflecting => 'Στοχασμός...';
@@ -299,12 +299,12 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String thresholdLabel(int month, int day) {
-    return 'Κατώφλι · Μήνας $month, Ημέρα $day';
+    return 'Mirror · Μήνας $month, Ημέρα $day';
   }
 
   @override
   String get noThresholdPrompt =>
-      'Δεν έχει δημοσιευτεί prompt Κατωφλίου για σήμερα. Γράψε ό,τι είναι παρόν χωρίς να πιέζεις για δομή.';
+      'Δεν έχει δημοσιευτεί prompt Mirror για σήμερα. Γράψε ό,τι είναι παρόν χωρίς να πιέζεις για δομή.';
 
   @override
   String get thresholdPurposeTheme => 'ΣΚΟΠΟΣ';
@@ -389,7 +389,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Συνέχισε να γράφεις. Τα επαναλαμβανόμενα σήματα θα εμφανιστούν εδώ.';
 
   @override
-  String get theFiveStages => 'Τα πέντε στάδια';
+  String get theFiveStages => 'Οι Επτά Διαστάσεις του Supraconscious';
 
   @override
   String get locked => 'Κλειδωμένο';
@@ -406,7 +406,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get restore => 'Επαναφορά';
 
   @override
-  String get councilReflection => 'Αντανάκλαση συμβουλίου';
+  String get councilReflection => 'Supraconscious αντανάκλαση';
 
   @override
   String get brandName => 'Supraconscious';

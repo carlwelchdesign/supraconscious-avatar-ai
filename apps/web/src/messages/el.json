@@ -209,7 +209,7 @@
     "seeGuideEvolution": "Δες την εξέλιξη του οδηγού",
     "entriesWritten": "Καταχωρήσεις",
     "activePatterns": "Ενεργά μοτίβα",
-    "guideStage": "Στάδιο οδηγού",
+    "guideStage": "Μοντέλο Οδηγού",
     "entryUnit": "καταχώρηση",
     "entriesUnit": "καταχωρήσεις",
     "patternsUnit": "μοτίβα",
@@ -274,7 +274,7 @@
     "stageLine": "{name} · Στάδιο {stage}",
     "oneGroundedStep": "Ένα γειωμένο βήμα",
     "emptyReflection": "Ο στοχασμός σου θα εμφανιστεί εδώ αφού γράψεις και υποβάλεις μια εγγραφή.",
-    "innerCouncil": "Inner Council",
+    "innerCouncil": "Supraconscious Guide",
     "councilFallback": "Το συμβούλιο συγκεντρώθηκε γύρω από το μοτίβο.",
     "grounding": "Γείωση",
     "quietVoice": "Αυτή η φωνή μένει ήσυχη όσο προηγείται η γείωση.",
@@ -376,8 +376,8 @@
     "unverified": "unverified",
     "sendLink": "Send link",
     "name": "Όνομα",
-    "guideStage": "Στάδιο οδηγού",
-    "guideStageDescription": "Your current stage of reflection depth.",
+    "guideStage": "Μοντέλο Οδηγού",
+    "guideStageDescription": "Ο Οδηγός παραμένει σταθερός καθώς εξελίσσεται η αντίληψή σας.",
     "changePassword": "Αλλαγή κωδικού",
     "changePasswordDescription": "Use this when you know your current password. If you are locked out, a super-admin can issue a temporary password from the admin users page.",
     "passwordUpdated": "Password updated.",
@@ -500,7 +500,7 @@
     "eyebrow": "Πλάνα",
     "titleA": "Διάλεξε τον",
     "titleB": "ρυθμό στοχασμού σου.",
-    "body": "Start privately, then upgrade when you want a richer Inner Council practice with memory, voice, progression, and deeper pattern review. Paid plans use Stripe Checkout and can be managed from settings.",
+    "body": "Ξεκινήστε ιδιωτικά και αναβαθμίστε όταν θέλετε μια πλουσιότερη πρακτική Supraconscious με μνήμη, φωνή και βαθύτερη ανασκόπηση μοτίβων.",
     "recommended": "Προτεινόμενο",
     "cadenceAlways": "πάντα",
     "cadenceMonth": "μήνα",
@@ -528,9 +528,9 @@
       "starter": {
         "name": "Starter",
         "price": "$9",
-        "description": "The core Inner Council loop for regular guided reflection.",
+        "description": "Η βασική ροή του Supraconscious Guide για τακτικό αναστοχασμό.",
         "features": [
-          "Council reflections",
+          "Καθοδηγούμενοι αναστοχασμοί",
           "Personalized prompts",
           "Pattern memory",
           "Voice transcription"
@@ -544,7 +544,7 @@
         "features": [
           "Everything in Starter",
           "Expanded pattern dashboard",
-          "Guide progression",
+          "Μακροπρόθεσμες γνώσεις επίγνωσης",
           "Priority AI usage"
         ],
         "cta": "Choose Pro"
@@ -559,7 +559,7 @@
     "reflectOnThis": "Στοχάσου πάνω σε αυτό",
     "integrationStep": "Ένα βήμα ενσωμάτωσης",
     "noReflection": "No reflection was generated for this entry.",
-    "innerCouncil": "Inner Council",
+    "innerCouncil": "Supraconscious Guide",
     "quietVoice": "This voice was quiet while grounding came first.",
     "calibrationStatus": "Calibration status",
     "sessionStatus": "Session status",

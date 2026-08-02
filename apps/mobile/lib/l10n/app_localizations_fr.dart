@@ -118,11 +118,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get landingCouncilEyebrow => 'Fonctionnement';
 
   @override
-  String get landingCouncilTitle => 'Meet Your Inner Council';
+  String get landingCouncilTitle => 'Découvrez les Sept Dimensions';
 
   @override
   String get landingCouncilBody =>
-      'You write what is on your mind. Four inner lenses reflect what is moving beneath the surface.';
+      'Vous écrivez ce qui vous préoccupe. Le Guide propose les dimensions adaptées au moment.';
 
   @override
   String get protectorRole => 'Le Protecteur';
@@ -194,7 +194,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get today => 'Aujourd’hui';
 
   @override
-  String get askCouncil => 'Demander au Conseil';
+  String get askCouncil => 'Demander au Guide';
 
   @override
   String get reflecting => 'Réflexion...';
@@ -298,12 +298,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String thresholdLabel(int month, int day) {
-    return 'Seuil · Mois $month, jour $day';
+    return 'Mirror · Mois $month, jour $day';
   }
 
   @override
   String get noThresholdPrompt =>
-      'Aucun prompt Seuil n’est publié pour aujourd’hui. Écris ce qui est présent sans forcer de structure.';
+      'Aucun prompt Mirror n’est publié pour aujourd’hui. Écris ce qui est présent sans forcer de structure.';
 
   @override
   String get thresholdPurposeTheme => 'BUT';
@@ -390,7 +390,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuez à écrire. Les signaux récurrents apparaîtront ici.';
 
   @override
-  String get theFiveStages => 'Les cinq étapes';
+  String get theFiveStages => 'Les Sept Dimensions du Supraconscious';
 
   @override
   String get locked => 'Verrouillé';
@@ -407,7 +407,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get restore => 'Restaurer';
 
   @override
-  String get councilReflection => 'Réflexion du conseil';
+  String get councilReflection => 'Réflexion Supraconscious';
 
   @override
   String get brandName => 'Supraconscious';

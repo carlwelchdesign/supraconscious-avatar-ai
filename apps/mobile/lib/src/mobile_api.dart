@@ -433,7 +433,6 @@ class MobileUser {
     required this.avatarTone,
     required this.intensityLevel,
     required this.currentLevel,
-    required this.avatarStage,
     required this.preferredLanguage,
   });
 
@@ -443,7 +442,6 @@ class MobileUser {
   final String avatarTone;
   final int intensityLevel;
   final int currentLevel;
-  final int avatarStage;
   final String preferredLanguage;
 
   factory MobileUser.fromJson(Map<String, dynamic> json) {
@@ -454,7 +452,6 @@ class MobileUser {
       avatarTone: json['avatarTone'] as String? ?? 'balanced',
       intensityLevel: json['intensityLevel'] as int? ?? 3,
       currentLevel: json['currentLevel'] as int? ?? 1,
-      avatarStage: json['avatarStage'] as int? ?? 1,
       preferredLanguage: json['preferredLanguage'] as String? ?? 'en',
     );
   }
@@ -629,7 +626,6 @@ class MobileDashboard {
   const MobileDashboard({
     required this.greetingName,
     required this.currentLevel,
-    required this.avatarStage,
     required this.patternMemoryEnabled,
     required this.entryCount,
     required this.activePatternCount,
@@ -638,7 +634,6 @@ class MobileDashboard {
 
   final String? greetingName;
   final int currentLevel;
-  final int avatarStage;
   final bool patternMemoryEnabled;
   final int entryCount;
   final int activePatternCount;
@@ -649,7 +644,6 @@ class MobileDashboard {
     return MobileDashboard(
       greetingName: json['greetingName'] as String?,
       currentLevel: json['currentLevel'] as int? ?? 1,
-      avatarStage: json['avatarStage'] as int? ?? 1,
       patternMemoryEnabled: json['patternMemoryEnabled'] == true,
       entryCount: json['entryCount'] as int? ?? 0,
       activePatternCount: json['activePatternCount'] as int? ?? 0,
@@ -991,61 +985,63 @@ class MobilePattern {
 
 class MobileGuide {
   const MobileGuide({
-    required this.currentStage,
+    required this.name,
+    required this.persona,
+    required this.progressionOwner,
     required this.avatarTone,
     required this.intensityLevel,
-    required this.stages,
+    required this.frameworkName,
+    required this.dimensions,
   });
 
-  final int currentStage;
+  final String name;
+  final String persona;
+  final String progressionOwner;
   final String avatarTone;
   final int intensityLevel;
-  final List<MobileGuideStage> stages;
+  final String frameworkName;
+  final List<MobileGuideDimension> dimensions;
 
   factory MobileGuide.fromJson(Map<String, dynamic> json) {
-    final stages = json['stages'];
+    final dimensions = json['dimensions'];
     return MobileGuide(
-      currentStage: json['currentStage'] as int? ?? 1,
+      name: json['name'] as String? ?? 'Supraconscious Guide',
+      persona: json['persona'] as String? ?? 'constant',
+      progressionOwner: json['progressionOwner'] as String? ?? 'user',
       avatarTone: json['avatarTone'] as String? ?? 'balanced',
       intensityLevel: json['intensityLevel'] as int? ?? 3,
-      stages: stages is List
-          ? stages
+      frameworkName:
+          json['frameworkName'] as String? ??
+          'The Seven Dimensions of the Supraconscious',
+      dimensions: dimensions is List
+          ? dimensions
                 .whereType<Map<String, dynamic>>()
-                .map(MobileGuideStage.fromJson)
+                .map(MobileGuideDimension.fromJson)
                 .toList()
           : const [],
     );
   }
 }
 
-class MobileGuideStage {
-  const MobileGuideStage({
-    required this.stage,
+class MobileGuideDimension {
+  const MobileGuideDimension({
+    required this.key,
     required this.name,
-    required this.description,
-    required this.trait,
-    required this.currentLabel,
-    required this.completedLabel,
-    required this.state,
+    required this.question,
+    required this.distinction,
   });
 
-  final int stage;
+  final String key;
   final String name;
-  final String description;
-  final String trait;
-  final String currentLabel;
-  final String completedLabel;
-  final String state;
+  final String question;
+  final String distinction;
 
-  factory MobileGuideStage.fromJson(Map<String, dynamic> json) {
-    return MobileGuideStage(
-      stage: json['stage'] as int? ?? 1,
+  factory MobileGuideDimension.fromJson(Map<String, dynamic> json) {
+    return MobileGuideDimension(
+      key: json['key'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      trait: json['trait'] as String? ?? '',
-      currentLabel: json['currentLabel'] as String? ?? 'Current',
-      completedLabel: json['completedLabel'] as String? ?? 'Complete',
-      state: json['state'] as String? ?? 'locked',
+      question: json['question'] as String? ?? '',
+      distinction: json['distinction'] as String? ?? '',
     );
   }
 }

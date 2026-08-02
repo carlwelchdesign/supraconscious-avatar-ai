@@ -767,7 +767,6 @@ class DashboardTab extends ConsumerWidget {
               label: l10n.tabPatterns,
               value: '${data.activePatternCount}',
             ),
-            _StatCard(label: l10n.guideStage, value: '${data.avatarStage}'),
           ],
         ),
         const SizedBox(height: 24),
@@ -1442,19 +1441,17 @@ class GuideTab extends ConsumerWidget {
       value: guide,
       onRefresh: () => ref.invalidate(guideProvider),
       builder: (data) {
-        final current = _currentGuideStage(data);
         return [
           Text(
             AppLocalizations.of(context).yourGuide,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
-          if (current != null)
-            _InfoCard(
-              title:
-                  '${current.name} · ${AppLocalizations.of(context).guideStage} ${data.currentStage}',
-              body: current.description,
-            ),
+          _InfoCard(
+            title: data.name,
+            body:
+                'The Guide remains constant while your capacity to perceive and choose develops.',
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -1468,48 +1465,28 @@ class GuideTab extends ConsumerWidget {
                 label: AppLocalizations.of(context).intensity,
                 value: '${data.intensityLevel}/5',
               ),
-              if (current != null)
-                _StatCard(
-                  label: AppLocalizations.of(context).trait,
-                  value: current.trait,
-                ),
+              _StatCard(label: 'Progression', value: 'Yours'),
             ],
           ),
           const SizedBox(height: 24),
           Text(
-            AppLocalizations.of(context).theFiveStages,
+            data.frameworkName,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
-          for (final stage in data.stages)
+          for (final dimension in data.dimensions)
             Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                leading: CircleAvatar(child: Text('${stage.stage}')),
-                title: Text(stage.name),
-                subtitle: Text(stage.description),
-                trailing: Chip(
-                  label: Text(
-                    stage.state == 'current'
-                        ? stage.currentLabel
-                        : stage.state == 'complete'
-                        ? stage.completedLabel
-                        : AppLocalizations.of(context).locked,
-                  ),
-                ),
+                leading: const CircleAvatar(child: Icon(Icons.visibility_outlined)),
+                title: Text(dimension.name),
+                subtitle: Text('${dimension.question}\n${dimension.distinction}'),
               ),
             ),
         ];
       },
     );
   }
-}
-
-MobileGuideStage? _currentGuideStage(MobileGuide guide) {
-  for (final stage in guide.stages) {
-    if (stage.stage == guide.currentStage) return stage;
-  }
-  return null;
 }
 
 class _PatternCard extends ConsumerWidget {

@@ -1,5 +1,5 @@
 import { zodTextFormat } from "openai/helpers/zod"
-import { AVATAR_STAGES, AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
+import { AVATAR_SYSTEM_PROMPT, LEVELS } from "./avatar-system-prompt.js"
 import { getOpenAIClient, isOpenAIConfigured, reflectiveModel } from "./openai.js"
 import { languageInstruction, localAiCopy, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
@@ -13,7 +13,6 @@ type AvatarOptions = {
   tone: string
   intensity: number
   currentLevel: number
-  avatarStage: number
   language?: ResponseLanguage
 }
 
@@ -61,7 +60,6 @@ ${languageInstruction(language)}`,
             tone: options.tone,
             intensity: options.intensity,
             level: LEVELS[Math.max(0, options.currentLevel - 1)],
-            avatarStage: AVATAR_STAGES[Math.max(0, options.avatarStage - 1)],
             language,
           },
         }),

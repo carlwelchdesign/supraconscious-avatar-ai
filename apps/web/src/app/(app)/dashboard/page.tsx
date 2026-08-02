@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
-import { getGuideStageConfigs, readGuideStageConfig, runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
+import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
@@ -17,7 +17,7 @@ export default async function DashboardPage({
   const query = await searchParams
   const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
 
-  const [entryCount, patternCount, recentEntries, founderReadiness, guideStages] = await Promise.all([
+  const [entryCount, patternCount, recentEntries, founderReadiness] = await Promise.all([
     prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.patternMemory.count({ where: { userId: user.id, active: true } }),
     prisma.journalEntry.findMany({
@@ -45,7 +45,6 @@ export default async function DashboardPage({
       userId: user.id,
       email: user.email,
     }),
-    getGuideStageConfigs(prisma, currentLanguage),
   ])
 
   const latestEntry = recentEntries[0] ?? null
@@ -58,8 +57,6 @@ export default async function DashboardPage({
   const founderNeedsFeedback = founderCalibrationMode && founderSessionCount > 0 && founderFeedbackEvidenceCount === 0
   const founderCanContinueCalibration = founderCalibrationMode && founderFeedbackEvidenceCount > 0 && founderGoldenExampleCount === 0
   const founderFeedbackHref = founderReadiness.founderFeedbackHref ?? (latestEntry ? `/journal/${latestEntry.id}` : "/journal")
-  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const guideStageName = readGuideStageConfig(guideStages, guideStage).name
   const messages = getWebMessages(currentLanguage)
   const dashboard = messages.dashboard
   const dashboardMessage = readDashboardMessage(query, dashboard)
@@ -214,14 +211,14 @@ export default async function DashboardPage({
           style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
         />
 
-        <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
+        <AvatarOrb size="lg" stage={1} className="flex-shrink-0 relative z-10" />
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            {formatDashboardMessage(dashboard.guideHeroEyebrow, { stage: guideStage })}
+            Supraconscious Guide · constant presence
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
-            {guideStageName}
+            Supraconscious Guide
           </h2>
           <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
             {dashboard.guideHeroBody}
@@ -230,18 +227,17 @@ export default async function DashboardPage({
             href="/guide"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-[var(--clay-light)] hover:text-[var(--cream)] transition-colors"
           >
-            {dashboard.seeGuideEvolution}
+            Explore the seven dimensions
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
       {/* ── Stats row ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {[
           { label: dashboard.entriesWritten, value: entryCount, unit: entryCount === 1 ? dashboard.entryUnit : dashboard.entriesUnit },
           { label: dashboard.activePatterns, value: patternCount, unit: dashboard.patternsUnit },
-          { label: dashboard.guideStage, value: guideStage, unit: dashboard.ofFive },
         ].map(({ label, value, unit }) => (
           <div
             key={label}

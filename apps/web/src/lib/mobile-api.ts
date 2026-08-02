@@ -1,5 +1,6 @@
 import { OPTIONAL_PILOT_CONSENTS, PILOT_CONSENT_VERSION, REQUIRED_PILOT_CONSENTS, hasRequiredPilotConsents } from "@inner-avatar/auth/consent"
 import { SUPPORTED_LANGUAGE_DETAILS, SUPPORTED_LANGUAGES, resolveSupportedLanguage } from "@inner-avatar/types/language"
+import { DOCTRINE_CONTRACT, DIMENSION_CONTRACT } from "@inner-avatar/ai"
 import { ONBOARDING_CONSENT_ITEMS } from "./onboarding-consent-copy"
 
 type MobileUser = {
@@ -11,7 +12,6 @@ type MobileUser = {
   avatarTone: string
   intensityLevel: number
   currentLevel: number
-  avatarStage: number
   preferredLanguage?: string | null
 }
 
@@ -73,7 +73,6 @@ export function buildMobileUser(user: MobileUser) {
     avatarTone: user.avatarTone,
     intensityLevel: user.intensityLevel,
     currentLevel: user.currentLevel,
-    avatarStage: user.avatarStage,
     preferredLanguage: resolveSupportedLanguage(user.preferredLanguage),
   }
 }
@@ -230,7 +229,6 @@ export function buildMobileDashboardResponse(input: {
   user: {
     name: string | null
     currentLevel: number
-    avatarStage: number
     patternMemoryEnabled: boolean
   }
   entryCount: number
@@ -241,7 +239,6 @@ export function buildMobileDashboardResponse(input: {
     dashboard: {
       greetingName: input.user.name,
       currentLevel: input.user.currentLevel,
-      avatarStage: input.user.avatarStage,
       patternMemoryEnabled: input.user.patternMemoryEnabled,
       entryCount: input.entryCount,
       activePatternCount: input.activePatternCount,
@@ -326,31 +323,21 @@ export function buildMobileGuideResponse(input: {
   user: {
     avatarTone: string
     intensityLevel: number
-    avatarStage: number
   }
-  stages: Array<{
-    stage: number
-    name: string
-    description: string
-    trait: string
-    currentLabel: string
-    completedLabel: string
-  }>
 }) {
-  const currentStage = Math.min(Math.max(input.user.avatarStage ?? 1, 1), 5)
   return {
     guide: {
-      currentStage,
+      name: DOCTRINE_CONTRACT.guide.name,
+      persona: DOCTRINE_CONTRACT.guide.persona,
+      progressionOwner: DOCTRINE_CONTRACT.guide.progressionOwner,
       avatarTone: input.user.avatarTone,
       intensityLevel: input.user.intensityLevel,
-      stages: input.stages.map((stage) => ({
-        stage: stage.stage,
-        name: stage.name,
-        description: stage.description,
-        trait: stage.trait,
-        currentLabel: stage.currentLabel,
-        completedLabel: stage.completedLabel,
-        state: stage.stage < currentStage ? "complete" : stage.stage === currentStage ? "current" : "locked",
+      frameworkName: DOCTRINE_CONTRACT.frameworkName,
+      dimensions: DOCTRINE_CONTRACT.dimensions.map((dimension) => ({
+        key: dimension,
+        name: dimension[0].toUpperCase() + dimension.slice(1),
+        question: DIMENSION_CONTRACT[dimension].question,
+        distinction: DIMENSION_CONTRACT[dimension].distinction,
       })),
     },
   }

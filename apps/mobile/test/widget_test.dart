@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
     await tester.pumpAndSettle();
 
-    expect(find.text('The Inner Council'), findsOneWidget);
+    expect(find.text('Supraconscious'), findsOneWidget);
     expect(find.text('This is not a journal.'), findsOneWidget);
     expect(find.text('Start Your First Reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
@@ -116,7 +116,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('¿Qué está presente hoy?'), findsOneWidget);
-    expect(find.text('Umbral · Mes 7, día 11'), findsOneWidget);
+    expect(find.text('Mirror · Mes 7, día 11'), findsOneWidget);
     expect(
       find.text('El alma susurra antes de que hable el destino.'),
       findsOneWidget,
@@ -155,11 +155,11 @@ void main() {
     expect(find.text('What is present today?'), findsOneWidget);
     expect(
       find.text(
-        'Write one honest entry. The council will reflect patterns, tensions, and one grounded next step.',
+        'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.',
       ),
       findsOneWidget,
     );
-    expect(find.text('Threshold · Month 7, Day 10'), findsOneWidget);
+    expect(find.text('Mirror · Month 7, Day 10'), findsOneWidget);
     expect(find.text('What are you not letting yourself say?'), findsOneWidget);
   });
 
@@ -175,13 +175,13 @@ void main() {
     expect(find.text('What is present today?'), findsOneWidget);
     expect(
       find.text(
-        'No Threshold prompt is published for today. Write what is present without forcing a structure.',
+        'No Mirror prompt is published for today. Write what is present without forcing a structure.',
       ),
       findsOneWidget,
     );
   });
 
-  testWidgets('journal prompt card localizes known Threshold prompt', (
+  testWidgets('journal prompt card localizes known Mirror prompt', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -194,7 +194,7 @@ void main() {
     await tester.tap(find.text('Diario'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Umbral · Mes 7, día 11'), findsOneWidget);
+    expect(find.text('Mirror · Mes 7, día 11'), findsOneWidget);
     expect(
       find.text('El alma susurra antes de que hable el destino.'),
       findsOneWidget,
@@ -216,7 +216,7 @@ void main() {
     await tester.tap(find.text('Diario'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Umbral · Mes 7, día 12'), findsOneWidget);
+    expect(find.text('Mirror · Mes 7, día 12'), findsOneWidget);
     expect(find.text('Todo don conlleva responsabilidad.'), findsOneWidget);
     expect(
       find.text('La conciencia de un don invita a expresarlo.'),
@@ -309,36 +309,27 @@ void main() {
     },
   );
 
-  test('mobile guide parses current stage timeline', () {
+  test('mobile guide parses constant Guide dimensions', () {
     final guide = MobileGuide.fromJson({
-      'currentStage': 2,
+      'name': 'Supraconscious Guide',
+      'persona': 'constant',
+      'progressionOwner': 'user',
       'avatarTone': 'balanced',
       'intensityLevel': 3,
-      'stages': [
+      'frameworkName': 'The Seven Dimensions of the Supraconscious',
+      'dimensions': [
         {
-          'stage': 1,
-          'name': 'Echo',
-          'description': 'Reflects language.',
-          'trait': 'Listening',
-          'currentLabel': 'Current',
-          'completedLabel': 'Complete',
-          'state': 'complete',
-        },
-        {
-          'stage': 2,
-          'name': 'Witness',
-          'description': 'Notices signals.',
-          'trait': 'Noticing',
-          'currentLabel': 'Current',
-          'completedLabel': 'Complete',
-          'state': 'current',
+          'key': 'perception',
+          'name': 'Perception',
+          'question': 'What am I noticing?',
+          'distinction': 'Concrete present noticing.',
         },
       ],
     });
 
-    expect(guide.currentStage, 2);
-    expect(guide.stages.last.name, 'Witness');
-    expect(guide.stages.last.state, 'current');
+    expect(guide.name, 'Supraconscious Guide');
+    expect(guide.persona, 'constant');
+    expect(guide.dimensions.single.name, 'Perception');
   });
 
   test('mobile journal prompt parses threshold prompt', () {
@@ -444,7 +435,6 @@ class _FakeApiClient extends InnerCouncilApiClient {
   Future<MobileDashboard> getDashboard() async => const MobileDashboard(
     greetingName: 'Carl',
     currentLevel: 1,
-    avatarStage: 1,
     patternMemoryEnabled: true,
     entryCount: 2,
     activePatternCount: 1,
@@ -459,18 +449,18 @@ class _FakeApiClient extends InnerCouncilApiClient {
 
   @override
   Future<MobileGuide> getGuide() async => const MobileGuide(
-    currentStage: 1,
+    name: 'Supraconscious Guide',
+    persona: 'constant',
+    progressionOwner: 'user',
     avatarTone: 'balanced',
     intensityLevel: 3,
-    stages: [
-      MobileGuideStage(
-        stage: 1,
-        name: 'Echo',
-        description: 'Reflects your language back with care.',
-        trait: 'Listening',
-        currentLabel: 'Current',
-        completedLabel: 'Complete',
-        state: 'current',
+    frameworkName: 'The Seven Dimensions of the Supraconscious',
+    dimensions: [
+      MobileGuideDimension(
+        key: 'perception',
+        name: 'Perception',
+        question: 'What am I noticing?',
+        distinction: 'Concrete present noticing.',
       ),
     ],
   );
@@ -499,7 +489,6 @@ extension on MobileSession {
               avatarTone: user!.avatarTone,
               intensityLevel: user!.intensityLevel,
               currentLevel: user!.currentLevel,
-              avatarStage: user!.avatarStage,
               preferredLanguage: selectedLanguage,
             ),
       language: MobileLanguageState(
@@ -560,7 +549,6 @@ MobileSession _onboardingRequired() {
       avatarTone: 'balanced',
       intensityLevel: 3,
       currentLevel: 1,
-      avatarStage: 1,
       preferredLanguage: 'en',
     ),
     language: _languageState,
@@ -608,7 +596,6 @@ MobileSession _ready() {
       avatarTone: 'balanced',
       intensityLevel: 3,
       currentLevel: 1,
-      avatarStage: 1,
       preferredLanguage: 'en',
     ),
     language: _languageState,
@@ -631,7 +618,6 @@ MobileSession _readySpanish() {
       avatarTone: 'balanced',
       intensityLevel: 3,
       currentLevel: 1,
-      avatarStage: 1,
       preferredLanguage: 'es',
     ),
     language: MobileLanguageState(

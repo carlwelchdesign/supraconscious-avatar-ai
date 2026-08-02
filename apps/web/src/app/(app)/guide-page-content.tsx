@@ -1,150 +1,71 @@
+import { DOCTRINE_CONTRACT, DIMENSION_CONTRACT } from "@inner-avatar/ai"
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
-import { getGuideStageConfigs, readGuideStageConfig } from "@inner-avatar/ai"
-import { prisma } from "@inner-avatar/db"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
-import { resolveWebLanguage } from "@/lib/language"
-import { getWebMessages } from "@/lib/web-messages"
 
 export async function GuidePageContent() {
   const user = await requireJournalAccessPageUser("/guide")
-  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
-  const stages = await getGuideStageConfigs(prisma, currentLanguage)
-  const guideMessages = getWebMessages(currentLanguage).guide
-  const guideStage = Math.min(Math.max(user.avatarStage ?? 1, 1), 5)
-  const stageIndex = guideStage - 1
-  const currentStage = readGuideStageConfig(stages, guideStage)
 
   return (
     <div className="space-y-10">
-
-      {/* ── Header ─────────────────────────────────────────────── */}
       <div>
-        <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          {currentStage.guideEyebrow}
+        <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--clay)]">
+          Constant Guide · your awareness develops
         </p>
-        <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
-          {currentStage.guideTitle}
-          <br />
-          <em className="italic font-normal text-[var(--clay)]">{currentStage.guideTitleEmphasis}</em>
+        <h1 className="font-display text-[40px] font-light leading-tight text-[var(--primary)]">
+          Meet your <em className="font-normal italic text-[var(--clay)]">Supraconscious Guide.</em>
         </h1>
-        <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)] max-w-xl">
-          {currentStage.guideIntro}
+        <p className="mt-3 max-w-xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
+          The Guide does not level up or become a different persona. It stays consistent while your capacity to notice, choose, and embody grows over time.
         </p>
       </div>
 
-      {/* ── Current stage hero ─────────────────────────────────── */}
-      <div
-        className="rounded-3xl border p-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 relative overflow-hidden"
-        style={{
-          background: "var(--primary)",
-          borderColor: "var(--primary)",
-        }}
-      >
-        <span
-          className="absolute top-1/2 right-12 -translate-y-1/2 w-72 h-72 rounded-full blur-[80px] opacity-15 pointer-events-none"
-          style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
-        />
-        <AvatarOrb size="lg" stage={guideStage as 1|2|3|4|5} className="flex-shrink-0 relative z-10" />
+      <div className="relative flex flex-col items-center gap-8 overflow-hidden rounded-3xl border p-10 sm:flex-row sm:items-start" style={{ background: "var(--primary)", borderColor: "var(--primary)" }}>
+        <span className="pointer-events-none absolute right-12 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full opacity-15 blur-[80px]" style={{ background: "radial-gradient(circle, var(--clay), transparent)" }} />
+        <AvatarOrb size="lg" stage={1} className="relative z-10 flex-shrink-0" />
         <div className="relative z-10 text-center sm:text-left">
-          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            {guideMessages.currentStageLine
-              .replace("{label}", currentStage.currentLabel)
-              .replace("{stage}", String(guideStage))}
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--clay-light)]">Your constant Guide</p>
+          <h2 className="mb-3 font-display text-[36px] font-light leading-tight text-[var(--cream)]">{DOCTRINE_CONTRACT.guide.name}</h2>
+          <p className="max-w-sm text-[15px] font-light leading-[1.7] text-[var(--cream)]/60">
+            Its language remains tentative and grounded. It may offer different dimensions as your reflection calls for them, without claiming to know your truth.
           </p>
-          <h2 className="font-display text-[36px] font-light text-[var(--cream)] mb-3 leading-tight">
-            {currentStage.name}
-          </h2>
-          <p className="text-[15px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
-            {currentStage.description}
-          </p>
-          <div className="flex flex-wrap gap-3 mt-5">
-            {[
-              { label: guideMessages.tone, value: user.avatarTone ?? "Gentle" },
-              { label: guideMessages.intensity, value: `${user.intensityLevel ?? 1}/5` },
-              { label: guideMessages.trait, value: currentStage.trait },
-            ].map(({ label, value }) => (
-              <div
-                key={label}
-                className="rounded-full px-4 py-1.5 text-[12px] font-light"
-                style={{
-                  background: "rgba(244,237,228,0.08)",
-                  color: "rgba(244,237,228,0.65)",
-                }}
-              >
-                <span className="font-medium" style={{ color: "rgba(244,237,228,0.4)", marginRight: "6px" }}>{label}</span>
-                {value}
-              </div>
-            ))}
+          <div className="mt-5 flex flex-wrap gap-3">
+            <GuideTrait label="Tone" value={user.avatarTone ?? "Gentle"} />
+            <GuideTrait label="Intensity" value={`${user.intensityLevel ?? 1}/5`} />
+            <GuideTrait label="Progression" value="Yours, not the Guide's" />
           </div>
         </div>
       </div>
 
-      {/* ── Evolution timeline ──────────────────────────────────── */}
-      <div>
-        <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--plum-soft)] mb-6">
-          {currentStage.timelineTitle}
+      <section>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--plum-soft)]">{DOCTRINE_CONTRACT.frameworkName}</p>
+        <p className="mb-6 max-w-2xl text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+          These are equal facets of consciousness, not a fixed sequence or a ladder. A session may surface only the dimensions that fit the moment.
         </p>
         <div className="space-y-3">
-          {stages.map((stage, i) => {
-            const isPast = i < stageIndex
-            const isCurrent = i === stageIndex
-            const isFuture = i > stageIndex
-
+          {DOCTRINE_CONTRACT.dimensions.map((dimension) => {
+            const detail = DIMENSION_CONTRACT[dimension]
             return (
-              <div
-                key={stage.stage}
-                className="rounded-2xl border p-5 flex items-start gap-4 transition-all"
-                style={{
-                  background: isCurrent ? "var(--pearl)" : "transparent",
-                  borderColor: isCurrent
-                    ? "rgba(184,137,90,0.25)"
-                    : "rgba(43,27,53,0.07)",
-                  opacity: isFuture ? 0.5 : 1,
-                }}
-              >
-                <AvatarOrb
-                  size="xs"
-                  stage={stage.stage}
-                  className="flex-shrink-0 mt-0.5"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3
-                      className="font-display text-[18px] font-medium"
-                      style={{ color: isCurrent ? "var(--primary)" : "var(--plum-soft)" }}
-                    >
-                      {stage.name}
-                    </h3>
-                    {isCurrent && (
-                      <span
-                        className="text-[10px] font-medium tracking-[0.1em] uppercase px-2.5 py-0.5 rounded-full"
-                        style={{ background: "rgba(184,137,90,0.1)", color: "var(--clay)" }}
-                      >
-                        {currentStage.currentLabel}
-                      </span>
-                    )}
-                    {isPast && (
-                      <span
-                        className="text-[10px] font-medium tracking-[0.1em] uppercase px-2.5 py-0.5 rounded-full"
-                        style={{ background: "rgba(155,175,155,0.12)", color: "var(--sage)" }}
-                      >
-                        {currentStage.completedLabel}
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className="text-[13px] font-light leading-relaxed"
-                    style={{ color: isCurrent ? "var(--plum-soft)" : "rgba(122,107,138,0.7)" }}
-                  >
-                    {stage.description}
-                  </p>
+              <div key={dimension} className="flex items-start gap-4 rounded-2xl border p-5" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
+                <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-[var(--clay)]" />
+                <div>
+                  <h3 className="font-display text-[18px] font-medium capitalize text-[var(--primary)]">{dimension}</h3>
+                  <p className="mt-1 text-[13px] font-medium text-[var(--plum-soft)]">{detail.question}</p>
+                  <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]/80">{detail.distinction}</p>
                 </div>
               </div>
             )
           })}
         </div>
-      </div>
+      </section>
+    </div>
+  )
+}
+
+function GuideTrait({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-full px-4 py-1.5 text-[12px] font-light" style={{ background: "rgba(244,237,228,0.08)", color: "rgba(244,237,228,0.65)" }}>
+      <span className="mr-1.5 font-medium text-[rgba(244,237,228,0.4)]">{label}</span>
+      {value}
     </div>
   )
 }

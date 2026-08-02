@@ -110,10 +110,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get landingCouncilEyebrow => '如何运作';
 
   @override
-  String get landingCouncilTitle => '认识你的内在议会';
+  String get landingCouncilTitle => '认识七个维度';
 
   @override
-  String get landingCouncilBody => '写下你心中的内容。四种内在视角会映照表面之下正在发生的事。';
+  String get landingCouncilBody => '写下你心中的内容。向导会提供适合当下的维度。';
 
   @override
   String get protectorRole => '保护者';
@@ -182,7 +182,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get today => '今天';
 
   @override
-  String get askCouncil => '询问议会';
+  String get askCouncil => '询问向导';
 
   @override
   String get reflecting => '正在反思...';
@@ -284,11 +284,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String thresholdLabel(int month, int day) {
-    return '门槛 · 第 $month 月，第 $day 天';
+    return 'Mirror · 第 $month 月，第 $day 天';
   }
 
   @override
-  String get noThresholdPrompt => '今天没有发布门槛提示。写下当下存在的内容，不必强行套用结构。';
+  String get noThresholdPrompt => '今天没有发布 Mirror 提示。写下当下存在的内容，不必强行套用结构。';
 
   @override
   String get thresholdPurposeTheme => '目的';
@@ -366,7 +366,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';
 
   @override
-  String get theFiveStages => '五个阶段';
+  String get theFiveStages => 'Supraconscious 的七个维度';
 
   @override
   String get locked => '已锁定';
@@ -383,7 +383,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get restore => '恢复';
 
   @override
-  String get councilReflection => '议会反思';
+  String get councilReflection => 'Supraconscious 反思';
 
   @override
   String get brandName => 'Supraconscious';
@@ -511,10 +511,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get landingCouncilEyebrow => '如何运作';
 
   @override
-  String get landingCouncilTitle => '认识你的内在议会';
+  String get landingCouncilTitle => '认识七个维度';
 
   @override
-  String get landingCouncilBody => '写下你心中的内容。四种内在视角会映照表面之下正在发生的事。';
+  String get landingCouncilBody => '写下你心中的内容。向导会提供适合当下的维度。';
 
   @override
   String get protectorRole => '保护者';
@@ -583,7 +583,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get today => '今天';
 
   @override
-  String get askCouncil => '询问议会';
+  String get askCouncil => '询问向导';
 
   @override
   String get reflecting => '正在反思...';
@@ -685,11 +685,11 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String thresholdLabel(int month, int day) {
-    return '门槛 · 第 $month 月，第 $day 天';
+    return 'Mirror · 第 $month 月，第 $day 天';
   }
 
   @override
-  String get noThresholdPrompt => '今天没有发布门槛提示。写下当下存在的内容，不必强行套用结构。';
+  String get noThresholdPrompt => '今天没有发布 Mirror 提示。写下当下存在的内容，不必强行套用结构。';
 
   @override
   String get thresholdPurposeTheme => '目的';
@@ -767,7 +767,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get patternsEmptyBody => '继续书写。反复出现的信号会显示在这里。';
 
   @override
-  String get theFiveStages => '五个阶段';
+  String get theFiveStages => 'Supraconscious 的七个维度';
 
   @override
   String get locked => '已锁定';
@@ -784,7 +784,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get restore => '恢复';
 
   @override
-  String get councilReflection => '议会反思';
+  String get councilReflection => 'Supraconscious 反思';
 
   @override
   String get brandName => 'Supraconscious';
