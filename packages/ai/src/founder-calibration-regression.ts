@@ -3,6 +3,7 @@ import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { runFounderCalibrationFixtures, type FounderCalibrationFixtureCase } from "./founder-calibration-fixtures.js"
 import type { CouncilRun } from "./schemas.js"
+import { isFounderGoldenReview } from "./founder-evaluation-rubric.js"
 
 export type FounderCalibrationRegressionCase = {
   name: string
@@ -24,6 +25,7 @@ export type FounderCalibrationRegressionReport = {
 
 type GoldenSession = {
   id: string
+  qualityReviews: Array<{ label: string; metadata: unknown }>
     sourceMode: string
     safetySnapshot: unknown
     observerSignal: unknown
@@ -66,6 +68,12 @@ export async function runFounderCalibrationRegression(): Promise<FounderCalibrat
     take: 25,
     select: {
       id: true,
+      qualityReviews: {
+        where: { label: "ready" },
+        orderBy: { reviewedAt: "desc" },
+        take: 1,
+        select: { label: true, metadata: true },
+      },
       sourceMode: true,
       safetySnapshot: true,
       observerSignal: true,
@@ -104,7 +112,10 @@ export async function runFounderCalibrationRegression(): Promise<FounderCalibrat
     },
   })
 
-  const goldenCases = goldenSessions.map(toGoldenRegressionCase)
+  const goldenCases = goldenSessions.filter((session) => {
+    const review = session.qualityReviews[0]
+    return Boolean(review && isFounderGoldenReview(review.label, review.metadata))
+  }).map(toGoldenRegressionCase)
   const cases = [...fixtureCases, ...goldenCases]
   const failedCases = cases.filter((item) => !item.passed)
 

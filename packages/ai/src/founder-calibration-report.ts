@@ -2,6 +2,7 @@ import { prisma } from "@inner-avatar/db"
 import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
 import { readFounderCalibrationScenarioFromTraceOrText, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
 import { isFounderCalibrationFeedbackNoteUseful } from "./founder-feedback-notes.js"
+import { isFounderGoldenReview } from "./founder-evaluation-rubric.js"
 
 const SOURCE_ISSUE_LABELS = new Set(["source_unsupported", "unsupported"])
 const PROMPT_ISSUE_LABELS = new Set(["voice_wrong", "too_generic", "too_intense", "too_vague"])
@@ -218,6 +219,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
   const sourceGroundingIssues: FounderCalibrationSourceIssue[] = []
   const promptIssues: FounderCalibrationPromptIssue[] = []
   const readySessions = new Set<string>()
+  const goldenSessions = new Set<string>()
   const sessionsWithFeedback = new Set<string>()
   const sessionsWithNotes = new Set<string>()
   const actionQueueSessionIds = new Map<FounderCalibrationActionQueueKey, Set<string>>([
@@ -251,6 +253,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
       readySessions.add(session.id)
       addQueue(actionQueueSessionIds, "ready_examples", session.id)
     }
+    if (latestReview && isFounderGoldenReview(latestReview.label, latestReview.metadata)) goldenSessions.add(session.id)
     const scenario = readSessionScenario(session)
     const scenarioStats = getScenarioStats(scenarioCoverage, scenario)
     scenarioStats.totalSessions.add(session.id)
@@ -312,7 +315,7 @@ export function buildFounderCalibrationReportFromSnapshot(snapshot: FounderCalib
 
   const totalSessions = snapshot.sessions.length
   const unreviewedSessions = Math.max(totalSessions - reviewedSessions, 0)
-  const goldenExamples = Array.from(readySessions)
+  const goldenExamples = Array.from(goldenSessions)
   const actionQueues = buildActionQueues(actionQueueSessionIds)
   const nextRecommendedAction = chooseNextRecommendedAction({
     totalSessions,
@@ -419,7 +422,7 @@ function buildActionQueues(queues: Map<FounderCalibrationActionQueueKey, Set<str
     {
       key: "ready_examples",
       label: "Ready examples",
-      recommendedAction: "Keep as golden examples and reuse them when checking future prompt changes.",
+      recommendedAction: "Keep Maria-approved golden examples and reuse them when checking future prompt changes.",
     },
     {
       key: "voice_fixes",
@@ -466,7 +469,7 @@ function chooseNextRecommendedAction(input: {
   if (input.sessionsWithFeedback === 0) return "Choose one feedback type on the latest Carl/Maria session."
   if (input.sourceIssueCount > 0) return "Resolve source-grounding issues before changing retrieval scope."
   if (input.promptIssueCount > 0) return "Group prompt and voice issues before editing prompt templates."
-  if (input.goldenExampleCount > 0) return "Use ready sessions as golden examples for future evals."
+  if (input.goldenExampleCount > 0) return "Use Maria-approved golden examples for future evals."
   if (input.unreviewedSessions > 0) return "Run the next guided Carl/Maria scenario; mark examples or issues only when useful."
   return "Run another Carl/Maria calibration session with a different prompt type."
 }

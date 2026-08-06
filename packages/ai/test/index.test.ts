@@ -31,6 +31,7 @@ import {
   GUIDE_VOICE_SYSTEM_PROMPT,
   FOUNDER_CONTEXT_SOURCES,
   FOUNDER_CONTEXT_REGISTRY_VERSION,
+  FOUNDER_EVALUATION_RUBRIC_VERSION,
   FOUNDER_DECISIONS,
   FOUNDER_DECISION_REGISTRY_VERSION,
   LOCKED_DOCTRINE,
@@ -50,6 +51,7 @@ import {
   buildLocalCouncilRun,
   buildCrisisGroundingContent,
   detectHighRiskCategories,
+  detectFounderEvaluationFailures,
   evaluatePilotExpansionReadinessSnapshot,
   evaluatePilotLaunchReadinessSnapshot,
   enforceCouncilShape,
@@ -65,6 +67,8 @@ import {
   resolveCouncilPromptTemplate,
   hasUsableSourceRightsGrant,
   isFounderCalibrationFeedbackNoteUseful,
+  isFounderEvaluationBlocking,
+  isFounderGoldenReview,
   runFounderCalibrationFixtures,
   runKeywordRagEvals,
   runPilotCouncilEvals,
@@ -112,6 +116,34 @@ import {
   type EntryAnalysis,
   type SafetyCheck,
 } from "../src/index.js"
+
+function approvedFounderEvaluationMetadata(overrides: Record<string, unknown> = {}) {
+  return {
+    founderEvaluation: {
+      rubricVersion: FOUNDER_EVALUATION_RUBRIC_VERSION,
+      scores: {
+        dimensionDistinction: 5,
+        emotionalAccuracy: 5,
+        grounding: 5,
+        usefulness: 5,
+        sourceFidelity: 5,
+        agency: 5,
+        intensityCalibration: 5,
+        performanceAuthenticity: 5,
+      },
+      failures: [],
+      versions: {
+        model: "gpt-test",
+        prompt: "council.system@v3",
+        doctrine: "doctrine-v1",
+        selector: "selector-v1",
+        validator: "validator-v1",
+      },
+      goldenApproval: { status: "maria_approved", evidence: "Approved in founder review session." },
+      ...overrides,
+    },
+  }
+}
 
 test("deterministic safety policy short-circuits every P0 high-risk category", () => {
   const cases = [
@@ -1902,7 +1934,7 @@ test("founder calibration report groups feedback and review issues without raw j
             label: "ready",
             severity: "normal",
             reason: "Good calibration example.",
-            metadata: { calibrationIssueType: null },
+            metadata: { calibrationIssueType: null, ...approvedFounderEvaluationMetadata() },
           },
         ],
         generationTraces: [],
@@ -2007,6 +2039,41 @@ test("founder calibration fixtures pass without creating persisted smoke session
   assert.equal(JSON.stringify(report).includes("journalEntryId"), false)
 })
 
+test("founder rubric detects the required failure patterns deterministically", () => {
+  const failures = detectFounderEvaluationFailures({
+    outputText: "Maria says this proves the truth you refuse to face. Take a deep breath; everything happens for a reason.",
+    integrationStep: "Think about it later.",
+    dimensionReflections: [
+      { dimension: "Story", text: "Protection repeats the same familiar pattern while certainty remains unavailable today." },
+      { dimension: "Heart", text: "The same familiar pattern repeats while protection and certainty remain unavailable today." },
+    ],
+  })
+
+  assert.deepEqual(failures, [
+    "dimension_paraphrases_interchangeable",
+    "generic_wellness_language",
+    "direct_maria_attribution",
+    "unsupported_overclaim",
+    "unsafe_confrontation",
+    "missing_physical_practice",
+  ])
+})
+
+test("founder rubric requires strong independent scores and explicit Maria approval for gold", () => {
+  const approved = approvedFounderEvaluationMetadata()
+  assert.equal(isFounderGoldenReview("ready", approved), true)
+  assert.equal(isFounderGoldenReview("ready", approvedFounderEvaluationMetadata({ goldenApproval: { status: "pending", evidence: null } })), false)
+
+  const lowAgency = approvedFounderEvaluationMetadata({
+    scores: {
+      ...(approved.founderEvaluation.scores as Record<string, number>),
+      agency: 2,
+    },
+  })
+  assert.equal(isFounderGoldenReview("ready", lowAgency), false)
+  assert.equal(isFounderEvaluationBlocking((lowAgency as { founderEvaluation: Parameters<typeof isFounderEvaluationBlocking>[0] }).founderEvaluation), true)
+})
+
 test("founder calibration comparison groups scenarios without raw notes", () => {
   const report = buildFounderCalibrationComparisonFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
@@ -2015,7 +2082,7 @@ test("founder calibration comparison groups scenarios without raw notes", () => 
         id: "ready_voice",
         sourceMode: "rag",
         feedbackTypes: ["helpful"],
-        qualityReviews: [{ label: "ready", severity: "normal", metadata: { goldenExample: true } }],
+        qualityReviews: [{ label: "ready", severity: "normal", metadata: approvedFounderEvaluationMetadata() }],
         generationTraces: [{
           traceType: "council",
           promptVersion: "council.system@v3",
@@ -2044,7 +2111,7 @@ test("founder calibration comparison groups scenarios without raw notes", () => 
         id: "resolved_source",
         sourceMode: "rag",
         feedbackTypes: ["unsupported_source"],
-        qualityReviews: [{ label: "ready", severity: "normal", metadata: { goldenExample: true } }],
+        qualityReviews: [{ label: "ready", severity: "normal", metadata: approvedFounderEvaluationMetadata() }],
         generationTraces: [{
           traceType: "council",
           promptVersion: "council.system@v4",
@@ -2155,7 +2222,7 @@ test("founder calibration setup report lists missing actions without raw notes",
           journalEntryId: "entry_carl",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
           feedback: [{ hasNote: true }],
-          qualityReviews: [{ label: "ready", severity: "normal" }],
+          qualityReviews: [{ label: "ready", severity: "normal", metadata: approvedFounderEvaluationMetadata() }],
           generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "voice_test" } } }],
         }],
       },

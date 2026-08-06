@@ -7,8 +7,16 @@ import type { Prisma } from "@prisma/client"
 import { requireAdminUser } from "@inner-avatar/auth/session"
 import { prisma } from "@inner-avatar/db"
 import {
+  ACTIVE_REFLECTION_RUNTIME_VERSION,
+  detectFounderEvaluationFailures,
+  DOCTRINE_CONTRACT_VERSION,
+  FOUNDER_EVALUATION_AXES,
+  FOUNDER_EVALUATION_RUBRIC_VERSION,
+  FOUNDER_EVALUATION_VALIDATOR_VERSION,
   FOUNDER_CALIBRATION_PARTICIPANT_ROLES,
   normalizeFounderCalibrationEmail,
+  isFounderGoldenReview,
+  PILOT_COUNCIL_VALIDATOR_VERSION,
   resolveFounderCalibrationUserFilter,
   setupFounderCalibrationParticipants,
 } from "@inner-avatar/ai"
@@ -22,7 +30,21 @@ const CalibrationReviewSchema = z.object({
   reason: z.string().trim().min(10, "A calibration review reason is required."),
   relatedPromptVersion: z.string().trim().optional(),
   relatedGoldenExampleId: z.string().trim().optional(),
+  dimensionDistinction: z.coerce.number().int().min(1).max(5).default(3),
+  emotionalAccuracy: z.coerce.number().int().min(1).max(5).default(3),
+  grounding: z.coerce.number().int().min(1).max(5).default(3),
+  usefulness: z.coerce.number().int().min(1).max(5).default(3),
+  sourceFidelity: z.coerce.number().int().min(1).max(5).default(3),
+  agency: z.coerce.number().int().min(1).max(5).default(3),
+  intensityCalibration: z.coerce.number().int().min(1).max(5).default(3),
+  performanceAuthenticity: z.coerce.number().int().min(1).max(5).default(3),
+  goldenApprovalStatus: z.enum(["pending", "maria_approved", "rejected"]).default("pending"),
+  goldenApprovalEvidence: z.string().trim().optional(),
   returnTo: z.enum(["calibration", "calibration_live", "council"]).default("calibration"),
+}).superRefine((value, context) => {
+  if (value.goldenApprovalStatus === "maria_approved" && (value.goldenApprovalEvidence?.length ?? 0) < 10) {
+    context.addIssue({ code: "custom", path: ["goldenApprovalEvidence"], message: "Maria approval evidence is required." })
+  }
 })
 
 const FounderParticipantSchema = z.object({
@@ -53,12 +75,53 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
   const founderFilter = await resolveFounderCalibrationUserFilter()
   const session = await prisma.councilSession.findFirst({
     where: { id: parsed.data.councilSessionId, user: founderFilter.where },
-    select: { id: true },
+    select: {
+      id: true,
+      synthesis: { select: { openingLine: true, coreTension: true, integratorQuestion: true, integrationStep: true, closingLine: true } },
+      messages: { orderBy: { createdAt: "asc" }, select: { content: true } },
+      generationTraces: {
+        where: { traceType: "council" },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { model: true, promptVersion: true, outputJson: true },
+      },
+    },
   })
   if (!session) {
     redirect(`${calibrationReturnPath(parsed.data.returnTo)}?status=review_missing`)
   }
   const calibrationIssueType = resolveCalibrationIssueType(parsed.data.label, parsed.data.calibrationIssueType)
+  const trace = session.generationTraces[0]
+  const traceMetadata = readTraceMetadata(trace?.outputJson)
+  const scores = Object.fromEntries(FOUNDER_EVALUATION_AXES.map((axis) => [axis, parsed.data[axis]]))
+  const failures = detectFounderEvaluationFailures({
+    outputText: [
+      ...session.messages.map((message) => message.content),
+      session.synthesis?.openingLine,
+      session.synthesis?.coreTension,
+      session.synthesis?.integratorQuestion,
+      session.synthesis?.integrationStep,
+      session.synthesis?.closingLine,
+    ].filter(Boolean).join("\n"),
+    integrationStep: session.synthesis?.integrationStep,
+    dimensionReflections: traceMetadata.dimensionReflections,
+  })
+  const founderEvaluation = {
+    rubricVersion: FOUNDER_EVALUATION_RUBRIC_VERSION,
+    scores,
+    failures,
+    versions: {
+      model: trace?.model ?? "missing",
+      prompt: trace?.promptVersion ?? "missing",
+      doctrine: traceMetadata.doctrineVersion ?? DOCTRINE_CONTRACT_VERSION,
+      selector: traceMetadata.selectorVersion ?? ACTIVE_REFLECTION_RUNTIME_VERSION,
+      validator: traceMetadata.validatorVersion ?? (traceMetadata.dimensionReflections.length > 0 ? FOUNDER_EVALUATION_VALIDATOR_VERSION : PILOT_COUNCIL_VALIDATOR_VERSION),
+    },
+    goldenApproval: {
+      status: parsed.data.goldenApprovalStatus,
+      evidence: parsed.data.goldenApprovalEvidence || null,
+    },
+  }
 
   const review = await prisma.qualityReview.create({
     data: {
@@ -71,7 +134,8 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
       metadata: {
         reviewedFrom: "admin_calibration",
         calibrationIssueType,
-        goldenExample: parsed.data.label === "ready",
+        goldenExample: isFounderGoldenReview(parsed.data.label, { founderEvaluation }),
+        founderEvaluation,
         relatedPromptVersion: parsed.data.relatedPromptVersion || null,
         relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
       },
@@ -92,6 +156,7 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
         calibrationIssueType,
         relatedPromptVersion: parsed.data.relatedPromptVersion || null,
         relatedGoldenExampleId: parsed.data.relatedGoldenExampleId || null,
+        founderEvaluation,
       },
     },
   })
@@ -102,6 +167,25 @@ export async function reviewCalibrationSessionAction(formData: FormData) {
   revalidatePath("/pilot")
   revalidatePath("/council")
   redirect(`${calibrationReturnPath(parsed.data.returnTo)}?status=review_saved`)
+}
+
+function readTraceMetadata(value: unknown) {
+  if (!value || typeof value !== "object") return { dimensionReflections: [] as Array<{ dimension: string; text: string }> }
+  const record = value as {
+    doctrineVersion?: unknown
+    selectorVersion?: unknown
+    pilotValidation?: { validatorVersion?: unknown }
+    dimensionReflections?: unknown
+  }
+  const dimensionReflections = Array.isArray(record.dimensionReflections)
+    ? record.dimensionReflections.filter((item): item is { dimension: string; text: string } => Boolean(item) && typeof item === "object" && typeof (item as { dimension?: unknown }).dimension === "string" && typeof (item as { text?: unknown }).text === "string")
+    : []
+  return {
+    doctrineVersion: typeof record.doctrineVersion === "string" ? record.doctrineVersion : null,
+    selectorVersion: typeof record.selectorVersion === "string" ? record.selectorVersion : null,
+    validatorVersion: typeof record.pilotValidation?.validatorVersion === "string" ? record.pilotValidation.validatorVersion : null,
+    dimensionReflections,
+  }
 }
 
 export async function addFounderCalibrationParticipantAction(formData: FormData) {
