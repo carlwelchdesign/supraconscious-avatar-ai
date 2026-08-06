@@ -24,6 +24,7 @@ import {
   buildGuideVoiceTraceMetadata,
   CURATED_PROMPTS,
   DIMENSION_CONTRACT,
+  DIMENSION_SELECTOR_VERSION,
   DOCTRINE_CONTRACT,
   DOCTRINE_CONTRACT_VERSION,
   GUIDE_VOICE_CONTRACT,
@@ -94,6 +95,7 @@ import {
   generateSymbolicPrompt,
   sanitizeProperties,
   sanitizeLangSmithMetadata,
+  selectDimensions,
   setLangSmithClientFactoryForTests,
   SOURCE_POLICY_VERSION,
   SAFETY_POLICY_VERSION,
@@ -323,6 +325,135 @@ test("doctrine contract defines seven equal dimensions and a constant Guide", ()
   assert.equal(DOCTRINE_CONTRACT.agency.embodimentIsOptional, true)
 })
 
+test("conservative dimension selector returns an auditable variable subset without raw reflection text", () => {
+  const reflection = "I tell myself this risk means I will lose the role, but I want to see what capacity is still available."
+  const selection = selectDimensions({
+    text: reflection,
+    safety: {
+      severity: "low",
+      flags: [],
+      recommendedAction: "reflect",
+      userMessage: "Reflective flow is available.",
+      allowReflectiveFlow: true,
+    },
+    preferredIntensity: 4,
+  })
+
+  assert.equal(selection.selectorVersion, DIMENSION_SELECTOR_VERSION)
+  assert.equal(selection.policySource, "conservative_fallback_pending_founder_decision")
+  assert.equal(selection.orderingPolicy, "adaptive_session_flow_not_dimension_rank")
+  assert.ok(selection.selected.length > 1 && selection.selected.length < 7)
+  assert.deepEqual(selection.selected.map((item) => item.order), selection.selected.map((_, index) => index + 1))
+  assert.equal(selection.selected.find((item) => item.dimension === "story")?.observerVantage, true)
+  assert.ok(selection.selected.some((item) => item.dimension === "fear"))
+  assert.ok(selection.selected.some((item) => item.dimension === "genius"))
+  assert.equal(JSON.stringify(selection).includes(reflection), false)
+  assert.equal(selection.returningContext.used, false)
+})
+
+test("simpler dimension selection preserves the protection-capacity pair and non-ranking anchors", () => {
+  const selection = selectDimensions({
+    text: "The story I tell is that I may lose my role, so I feel afraid and want an action I can take today.",
+    safety: {
+      severity: "low",
+      flags: [],
+      recommendedAction: "reflect",
+      userMessage: "Reflective flow is available.",
+      allowReflectiveFlow: true,
+    },
+    handlingPreference: "simpler",
+  })
+
+  assert.ok(selection.selected.length <= 4)
+  assert.ok(selection.selected.some((item) => item.dimension === "perception"))
+  assert.ok(selection.selected.some((item) => item.dimension === "supraconscious"))
+  assert.ok(selection.selected.some((item) => item.dimension === "fear"))
+  assert.ok(selection.selected.some((item) => item.dimension === "genius"))
+  assert.ok(selection.suppressed.some((item) => item.reasonCode === "simpler_handling_limit"))
+})
+
+test("dimension selection is not triggered by emotional intensity alone", () => {
+  const selection = selectDimensions({
+    text: "I am noticing a strong feeling in this present moment and want to choose carefully.",
+    safety: {
+      severity: "low",
+      flags: [],
+      recommendedAction: "reflect",
+      userMessage: "Reflective flow is available.",
+      allowReflectiveFlow: true,
+    },
+    preferredIntensity: 5,
+  })
+
+  assert.deepEqual(selection.selected.map((item) => item.dimension), ["perception", "supraconscious"])
+  assert.equal(selection.selected.some((item) => item.dimension === "fear" || item.dimension === "ego"), false)
+})
+
+test("dimension selector redirects high-risk reflections and honors gentler handling", () => {
+  const highRisk = selectDimensions({
+    text: "I am in immediate danger.",
+    safety: {
+      severity: "high",
+      flags: ["immediate_danger"],
+      recommendedAction: "crisis_support",
+      userMessage: "Pause and seek real support now.",
+      allowReflectiveFlow: false,
+    },
+  })
+  assert.equal(highRisk.safetyMode, "plain_grounding")
+  assert.equal(highRisk.selected.length, 0)
+  assert.equal(highRisk.suppressed.length, 7)
+
+  const gentler = selectDimensions({
+    text: "I am afraid of losing control of the role I perform, and I need a gentler reflection.",
+    safety: {
+      severity: "medium",
+      flags: ["intensity_boundary"],
+      recommendedAction: "grounding",
+      userMessage: "Move gently.",
+      allowReflectiveFlow: true,
+    },
+    handlingPreference: "gentler",
+  })
+  assert.equal(gentler.safetyMode, "gentle_reflection")
+  assert.deepEqual(gentler.selected.map((item) => item.dimension), ["perception", "supraconscious"])
+  assert.ok(gentler.suppressed.some((item) => item.dimension === "fear" && item.reasonCode === "gentler_handling"))
+})
+
+test("returning-user corrections remain fail-closed until consent and controls are ready", () => {
+  const base = {
+    text: "I am noticing what is here and want to choose carefully.",
+    safety: {
+      severity: "low" as const,
+      flags: [],
+      recommendedAction: "reflect",
+      userMessage: "Reflective flow is available.",
+      allowReflectiveFlow: true,
+    },
+  }
+  const gated = selectDimensions({
+    ...base,
+    returningContext: {
+      enabledByUser: true,
+      correctionControlsReady: false,
+      corrections: [{ dimension: "ego", action: "prefer" }],
+    },
+  })
+  assert.equal(gated.returningContext.reason, "controls_not_ready")
+  assert.equal(gated.selected.some((item) => item.dimension === "ego"), false)
+
+  const enabled = selectDimensions({
+    ...base,
+    returningContext: {
+      enabledByUser: true,
+      correctionControlsReady: true,
+      corrections: [{ dimension: "ego", action: "prefer" }],
+    },
+  })
+  assert.equal(enabled.returningContext.used, true)
+  assert.ok(enabled.selected.some((item) => item.dimension === "ego" && item.reasonCodes.includes("prior_user_preference")))
+})
+
 test("active reflection runtime fail-closes legacy orchestration and persona progression", async () => {
   const calls: Array<{ user: Record<string, unknown>; input: Record<string, unknown> }> = []
   const expected = { journalEntry: { id: "entry-1" } }
@@ -335,7 +466,7 @@ test("active reflection runtime fail-closes legacy orchestration and persona pro
       avatarStage: 5,
       patternMemoryEnabled: true,
     },
-    { text: "I want to see this situation more clearly before I choose." },
+    { text: "I want to see this situation more clearly before I choose.", handlingPreference: "simpler" },
     {
       runLegacyReflection: async (user, input) => {
         calls.push({ user, input })
@@ -353,6 +484,7 @@ test("active reflection runtime fail-closes legacy orchestration and persona pro
   assert.equal(calls[0]?.input.councilModeEnabled, false)
   assert.equal(calls[0]?.input.ragEnabled, false)
   assert.equal(calls[0]?.input.personaStageProgressionEnabled, false)
+  assert.equal(calls[0]?.input.handlingPreference, "simpler")
   assert.equal(result, expected)
 })
 

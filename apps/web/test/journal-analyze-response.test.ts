@@ -70,3 +70,44 @@ test("journal analyze response excludes raw journal text and internal record fie
   assert.equal(JSON.stringify(response).includes("journalEntryId"), false)
   assert.equal(JSON.stringify(response).includes("evidence"), false)
 })
+
+test("journal analyze response includes the inspectable privacy-safe dimension rationale", () => {
+  const response = buildJournalAnalyzeResponse({
+    journalEntry: { id: "entry-2", rawText: "private reflection" } as any,
+    safety: { severity: "low", flags: [], allowReflectiveFlow: true } as any,
+    analysis: { summary: "Summary" } as any,
+    avatarResponse: {
+      openingLine: "Open",
+      mirror: "Mirror",
+      patternName: "Pattern",
+      contradiction: "Contradiction",
+      socraticQuestion: "Question?",
+      integrationStep: "Step",
+      closingLine: "Close",
+    } as any,
+    prompt: { title: "Prompt", context: "Context", materials: "Pen", execution: "Write", integration: "Reflect" } as any,
+    progression: { levelChanged: false, stageChanged: false, newLevel: 1, newStage: 1, previousLevel: 1, previousStage: 1 },
+    dimensionSelection: {
+      selectorVersion: "selector-v1",
+      doctrineVersion: "doctrine-v1",
+      policySource: "conservative_fallback_pending_founder_decision",
+      orderingPolicy: "adaptive_session_flow_not_dimension_rank",
+      handlingPreference: "standard",
+      safetyMode: "reflective",
+      selected: [{
+        dimension: "story",
+        order: 1,
+        depth: 1,
+        reasonCodes: ["observer_vantage_available"],
+        evidenceRefs: [{ source: "entry", signal: "meaning_making_language" }],
+        observerVantage: true,
+      }],
+      suppressed: [],
+      returningContext: { eligible: false, used: false, reason: "not_provided" },
+    },
+  })
+
+  assert.equal(response.dimensionSelection?.orderingPolicy, "adaptive_session_flow_not_dimension_rank")
+  assert.equal(response.dimensionSelection?.selected[0]?.observerVantage, true)
+  assert.equal(JSON.stringify(response).includes("private reflection"), false)
+})
