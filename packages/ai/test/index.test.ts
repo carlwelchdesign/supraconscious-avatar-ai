@@ -28,6 +28,7 @@ import {
   DOCTRINE_CONTRACT,
   DOCTRINE_CONTRACT_VERSION,
   GUIDE_VOICE_CONTRACT,
+  JournalAnalyzeRequestSchema,
   GUIDE_VOICE_CONTRACT_VERSION,
   GUIDE_VOICE_SYSTEM_PROMPT,
   FOUNDER_CONTEXT_SOURCES,
@@ -349,6 +350,13 @@ test("conservative dimension selector returns an auditable variable subset witho
   assert.ok(selection.selected.some((item) => item.dimension === "genius"))
   assert.equal(JSON.stringify(selection).includes(reflection), false)
   assert.equal(selection.returningContext.used, false)
+})
+
+test("journal analysis request accepts only explicit adaptive handling preferences", () => {
+  const base = { text: "I want to understand this reflection before choosing what comes next." }
+
+  assert.equal(JournalAnalyzeRequestSchema.parse({ ...base, handlingPreference: "simpler" }).handlingPreference, "simpler")
+  assert.equal(JournalAnalyzeRequestSchema.safeParse({ ...base, handlingPreference: "more_intense" }).success, false)
 })
 
 test("simpler dimension selection preserves the protection-capacity pair and non-ranking anchors", () => {
