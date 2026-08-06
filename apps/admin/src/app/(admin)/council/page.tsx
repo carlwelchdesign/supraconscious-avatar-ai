@@ -16,7 +16,7 @@ const QUALITY_LABELS = [
 ]
 
 const FOUNDER_LABELS = [
-  { value: "ready", label: "Ready / golden" },
+  { value: "ready", label: "Ready for rubric" },
   { value: "voice_wrong", label: "Voice wrong" },
   { value: "source_unsupported", label: "Source unsupported" },
   { value: "too_generic", label: "Too generic" },
@@ -297,7 +297,7 @@ export default async function CouncilReviewPage({ searchParams }: { searchParams
                       />
                       <SubmitButton pendingLabel="Saving review...">Save founder review</SubmitButton>
                       <p className="text-xs text-muted-foreground md:col-span-4">
-                        Use this for Carl/Maria calibration outcomes and golden examples. Raw journal text stays hidden.
+                        Use this for preliminary Carl/Maria calibration outcomes. Golden approval requires the full eight-axis review in Live Calibration. Raw journal text stays hidden.
                       </p>
                     </form>
                   )}

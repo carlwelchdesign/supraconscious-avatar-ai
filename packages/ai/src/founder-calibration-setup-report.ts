@@ -14,6 +14,7 @@ import {
   type FounderCalibrationParticipantStatus,
 } from "./founder-calibration-participants.js"
 import { isFounderCalibrationFeedbackNoteUseful } from "./founder-feedback-notes.js"
+import { isFounderGoldenReview } from "./founder-evaluation-rubric.js"
 
 export type FounderCalibrationMissingAction = {
   code: string
@@ -159,7 +160,7 @@ export type FounderCalibrationSetupSnapshot = {
       journalText?: string | null
       createdAt: Date
       feedback: Array<{ hasFeedback?: boolean; hasNote: boolean }>
-      qualityReviews: Array<{ label: string; severity: string }>
+      qualityReviews: Array<{ label: string; severity: string; metadata?: unknown }>
       generationTraces: Array<{ traceType: string; outputJson: unknown }>
     }>
   }>
@@ -263,7 +264,7 @@ export function buildFounderCalibrationLaunchPacket(
     "- Continue with the next useful guided journal pass.",
     "- Choose one feedback type for each founder calibration session so review has usable evidence.",
     "- Add written notes when a specific voice, source, intensity, embodiment, or phrasing detail matters.",
-    "- Mark strong sessions ready/golden when one clearly stands out; golden examples are useful, not blockers for continued development.",
+    "- Mark strong sessions ready for rubric review; only Maria-approved, non-blocking reviews become golden examples.",
     "- Run: node .yarn/releases/yarn-4.cjs report:founder-calibration",
     "- Run: node .yarn/releases/yarn-4.cjs report:founder-calibration-comparison",
   )
@@ -433,7 +434,7 @@ async function readSetupParticipantsSafely() {
                 qualityReviews: {
                   orderBy: { reviewedAt: "desc" },
                   take: 5,
-                  select: { label: true, severity: true },
+                  select: { label: true, severity: true, metadata: true },
                 },
                 generationTraces: {
                   where: { traceType: "council" },
@@ -485,7 +486,7 @@ async function readJournalParticipantSafely(input: { userId: string; email: stri
                 qualityReviews: {
                   orderBy: { reviewedAt: "desc" },
                   take: 5,
-                  select: { label: true, severity: true },
+                  select: { label: true, severity: true, metadata: true },
                 },
                 generationTraces: {
                   where: { traceType: "council" },
@@ -547,7 +548,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
     const feedbackEvidenceCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasFeedback !== false).length, 0)
     const feedbackNoteCount = sessions.reduce((count, session) => count + session.feedback.filter((feedback) => feedback.hasNote).length, 0)
     const reviewedSessionCount = sessions.filter((session) => session.qualityReviews.length > 0).length
-    const goldenExampleCount = sessions.filter((session) => session.qualityReviews.some((review) => READY_LABELS.has(review.label))).length
+    const goldenExampleCount = sessions.filter((session) => session.qualityReviews.some((review) => isFounderGoldenReview(review.label, review.metadata))).length
     const latestSessionHref = sessions[0]?.journalEntryId ? `/journal/${sessions[0].journalEntryId}` : "/journal"
 
     for (const session of sessions) {
@@ -632,7 +633,7 @@ export function buildFounderCalibrationSetupReportFromSnapshot(snapshot: Founder
       warnings.push(`${participant.email} has sessions without feedback; choose a feedback type on the saved session so review has usable evidence.`)
     }
     if (participant.sessionCount > 0 && participant.goldenExampleCount === 0) {
-      warnings.push(`${participant.email} has no ready/golden example yet; continue development, but mark examples when a session is clearly reusable.`)
+      warnings.push(`${participant.email} has no Maria-approved golden example yet; continue development, but complete the rubric when a session is clearly reusable.`)
     }
   }
 

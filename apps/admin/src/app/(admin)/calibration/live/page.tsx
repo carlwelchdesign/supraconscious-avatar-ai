@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { formatFounderCalibrationScenario, isFounderCalibrationFeedbackNoteUseful, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
+import { FOUNDER_EVALUATION_AXES, formatFounderCalibrationScenario, isFounderCalibrationFeedbackNoteUseful, readFounderEvaluationMetadata, resolveFounderCalibrationUserFilter, runFounderCalibrationComparison, runFounderCalibrationSetupReport } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@inner-avatar/ui/card"
 import { AdminStatusBanner } from "@/components/admin-status-banner"
@@ -163,6 +163,7 @@ export default async function LiveCalibrationPage({
             const scenario = readScenario(trace?.outputJson)
             const promptVersion = trace?.promptVersion ?? "missing"
             const latestReview = session.qualityReviews[0]
+            const latestEvaluation = readFounderEvaluationMetadata(latestReview?.metadata)
             const feedbackTypes = session.feedback.map((feedback) => feedback.feedbackType)
             const hasFeedbackNote = session.feedback.some((feedback) => isFounderCalibrationFeedbackNoteUseful(feedback.note))
             const validationIssues = sourceSummary.validationIssues.length
@@ -182,6 +183,11 @@ export default async function LiveCalibrationPage({
                     <p className="mt-1 text-xs text-muted-foreground">
                       feedback: {feedbackTypes.join(", ") || "none"} · note: {hasFeedbackNote ? "yes" : "no"} · review: {latestReview?.label ?? "unreviewed"}
                     </p>
+                    {latestEvaluation ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        rubric: {latestEvaluation.rubricVersion} · golden approval: {latestEvaluation.goldenApproval.status}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
                     <span className="rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground">
@@ -263,20 +269,45 @@ export default async function LiveCalibrationPage({
                   ))}
                 </div>
 
-                <form action={reviewCalibrationSessionAction} className="mt-3 grid gap-2 md:grid-cols-[auto_auto_1fr_1fr_1fr_auto]">
+                <form action={reviewCalibrationSessionAction} className="mt-3 space-y-3 rounded-md border p-3">
                   <input type="hidden" name="councilSessionId" value={session.id} />
                   <input type="hidden" name="returnTo" value="calibration_live" />
-                  <select name="label" defaultValue="ready" className="rounded-md border bg-background px-2 py-2 text-xs">
-                    {QUICK_LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select>
-                  <select name="severity" defaultValue="normal" className="rounded-md border bg-background px-2 py-2 text-xs">
-                    <option value="normal">normal</option>
-                    <option value="pilot_blocker">pilot blocker</option>
-                  </select>
-                  <input name="relatedPromptVersion" defaultValue={promptVersion === "missing" ? "" : promptVersion} placeholder="Prompt version" className="rounded-md border bg-background px-3 py-2 text-xs" />
-                  <input name="relatedGoldenExampleId" placeholder="Related golden example id" className="rounded-md border bg-background px-3 py-2 text-xs" />
-                  <input name="reason" placeholder="Review reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
-                  <SubmitButton pendingLabel="Saving..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Save</SubmitButton>
+                  <fieldset>
+                    <legend className="text-xs font-medium">Founder rubric · score every axis independently (1 weak, 5 gold standard)</legend>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      {FOUNDER_EVALUATION_AXES.map((axis) => (
+                        <label key={axis} className="grid gap-1 text-xs text-muted-foreground">
+                          {formatRubricAxis(axis)}
+                          <select name={axis} defaultValue={latestEvaluation?.scores[axis] ?? 3} className="rounded-md border bg-background px-2 py-2 text-xs">
+                            {[1, 2, 3, 4, 5].map((score) => <option key={score} value={score}>{score}</option>)}
+                          </select>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <div className="grid gap-2 md:grid-cols-[auto_auto_1fr_1fr]">
+                    <select name="label" defaultValue={latestReview?.label ?? "ready"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                      {QUICK_LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    </select>
+                    <select name="severity" defaultValue={latestReview?.severity ?? "normal"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                      <option value="normal">normal</option>
+                      <option value="pilot_blocker">pilot blocker</option>
+                    </select>
+                    <input name="relatedPromptVersion" defaultValue={promptVersion === "missing" ? "" : promptVersion} placeholder="Prompt version" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                    <input name="relatedGoldenExampleId" placeholder="Related golden example id" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-[auto_1fr]">
+                    <select name="goldenApprovalStatus" defaultValue={latestEvaluation?.goldenApproval.status ?? "pending"} className="rounded-md border bg-background px-2 py-2 text-xs">
+                      <option value="pending">Golden approval pending</option>
+                      <option value="maria_approved">Maria approved gold</option>
+                      <option value="rejected">Golden example rejected</option>
+                    </select>
+                    <input name="goldenApprovalEvidence" defaultValue={latestEvaluation?.goldenApproval.evidence ?? ""} placeholder="Approval evidence required for Maria-approved gold" className="rounded-md border bg-background px-3 py-2 text-xs" />
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+                    <input name="reason" placeholder="Review reason required; no raw journal text" required minLength={10} className="rounded-md border bg-background px-3 py-2 text-xs" />
+                    <SubmitButton pendingLabel="Saving..." className="rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Save rubric review</SubmitButton>
+                  </div>
                 </form>
               </div>
             )
@@ -285,6 +316,10 @@ export default async function LiveCalibrationPage({
       </Card>
     </div>
   )
+}
+
+function formatRubricAxis(axis: (typeof FOUNDER_EVALUATION_AXES)[number]) {
+  return axis.replace(/([A-Z])/g, " $1").replace(/^./, (value) => value.toUpperCase())
 }
 
 function Metric({ title, value }: { title: string; value: string | number }) {

@@ -297,8 +297,8 @@ export default async function CalibrationPage({
                       sessionId={session.id}
                       label="ready"
                       issueType="none"
-                      buttonText="Ready / golden"
-                      reason="Use as golden example for Carl and Maria calibration."
+                      buttonText="Ready for rubric"
+                      reason="Ready for the full eight-axis founder rubric review."
                       tone="ready"
                     />
                     <PresetReviewButton

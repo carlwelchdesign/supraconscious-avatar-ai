@@ -5,6 +5,7 @@ import {
   readFounderCalibrationScenarioFromTraceOrText,
   type FounderCalibrationScenario,
 } from "./founder-calibration-scenarios.js"
+import { isFounderGoldenReview } from "./founder-evaluation-rubric.js"
 
 export type FounderCalibrationComparisonScenario = {
   scenario: FounderCalibrationScenario
@@ -125,7 +126,7 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
     if (latestReview) stats.reviewedSessions += 1
     if (promptVersion) promptVersions.set(promptVersion, (promptVersions.get(promptVersion) ?? 0) + 1)
 
-    if (latestReview && READY_LABELS.has(latestReview.label)) {
+    if (latestReview && isFounderGoldenReview(latestReview.label, latestReview.metadata)) {
       stats.goldenExamples += 1
       goldenExamples.push({
         councilSessionId: session.id,
@@ -137,8 +138,9 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
     }
 
     const needsReview = !READY_LABELS.has(latestReview?.label ?? "") && session.feedbackTypes.some((type) => ["not_accurate", "too_intense", "unclear", "unsupported_source"].includes(type))
+    const readyPendingApproval = latestReview && READY_LABELS.has(latestReview.label) && !isFounderGoldenReview(latestReview.label, latestReview.metadata)
     const hasIssueLabel = session.qualityReviews.some((review) => isIssueReview(review.label, review.severity))
-    if (needsReview || hasIssueLabel) {
+    if (needsReview || readyPendingApproval || hasIssueLabel) {
       stats.unresolvedIssues += 1
       unresolvedIssues.push({
         councilSessionId: session.id,
@@ -174,6 +176,8 @@ function isIssueReview(label: string, severity: string) {
 }
 
 function chooseNextAction(session: FounderCalibrationComparisonSession) {
+  const latestReview = session.qualityReviews[0]
+  if (latestReview && READY_LABELS.has(latestReview.label) && !isFounderGoldenReview(latestReview.label, latestReview.metadata)) return "Complete the eight-axis rubric and retain Maria's explicit golden-example approval."
   const labels = new Set(session.qualityReviews.map((review) => review.label))
   if (session.feedbackTypes.includes("unsupported_source") || [...labels].some((label) => SOURCE_LABELS.has(label))) return "Review source grounding in /admin/sources."
   if ([...labels].some((label) => PROMPT_LABELS.has(label))) return "Compare against golden examples and tune /admin/prompts manually."
@@ -185,6 +189,6 @@ function chooseNextAction(session: FounderCalibrationComparisonSession) {
 function buildNextActions(totalSessions: number, goldenCount: number, unresolvedIssues: FounderCalibrationComparisonIssue[]) {
   if (totalSessions === 0) return ["Run one Carl/Maria guided calibration session."]
   if (unresolvedIssues.length > 0) return ["Resolve the highest-priority unresolved calibration issue before editing prompt or source material."]
-  if (goldenCount === 0) return ["Run the next guided scenario; mark a golden example only when one clearly stands out."]
+  if (goldenCount === 0) return ["Complete the eight-axis rubric and record Maria's approval when a session clearly qualifies as gold."]
   return ["Keep running guided scenarios and compare against ready examples when tuning prompts."]
 }
