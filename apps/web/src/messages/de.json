@@ -280,6 +280,8 @@
     "privacyNote": "Standardmäßig privat · Mustergedächtnis in Einstellungen anpassbar",
     "reflect": "Reflektieren",
     "reflecting": "Reflexion…",
+    "mirrorFormingStatus": "Der Guide reflektiert…",
+    "mirrorFormingSupport": "Bleib bei dem, was du geschrieben hast, während deine Reflexion Gestalt annimmt.",
     "addMoreContext": "Füge etwas mehr Kontext hinzu, damit der Guide ohne Vermutungen reflektieren kann.",
     "addRealContext": "Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.",
     "guideResponse": "Antwort des Guides",

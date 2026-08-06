@@ -280,6 +280,8 @@
     "privacyNote": "Privado por defecto · La memoria de patrones se ajusta en ajustes",
     "reflect": "Reflexionar",
     "reflecting": "Reflexionando…",
+    "mirrorFormingStatus": "La Guía está reflexionando…",
+    "mirrorFormingSupport": "Quédate con lo que escribiste mientras tu reflexión toma forma.",
     "addMoreContext": "Añade un poco más de contexto para que la Guía pueda reflejar sin adivinar.",
     "addRealContext": "Añade una o dos frases de tu situación real antes de reflexionar. El prompt prellenado es solo un punto de partida.",
     "guideResponse": "Respuesta del guía",

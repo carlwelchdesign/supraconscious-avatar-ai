@@ -17,4 +17,9 @@ const englishKeys = collectKeys(en).sort()
 
 for (const [locale, catalog] of Object.entries(catalogs)) {
   assert.deepEqual(collectKeys(catalog).sort(), englishKeys, `${locale} web message catalog must match en key shape`)
+  assert.ok(catalog.journal.mirrorFormingStatus.trim(), `${locale} must localize the Mirror-forming status`)
+  assert.ok(catalog.journal.mirrorFormingSupport.trim(), `${locale} must localize the Mirror-forming supporting line`)
 }
+
+assert.equal(en.journal.mirrorFormingStatus, "The Guide is reflecting…")
+assert.equal(en.journal.mirrorFormingSupport, "Stay with what you wrote while your reflection takes shape.")

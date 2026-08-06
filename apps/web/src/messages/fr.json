@@ -280,6 +280,8 @@
     "privacyNote": "Privé par défaut · Mémoire des motifs réglable dans les paramètres",
     "reflect": "Réfléchir",
     "reflecting": "Réflexion…",
+    "mirrorFormingStatus": "Le Guide réfléchit…",
+    "mirrorFormingSupport": "Reste avec ce que tu as écrit pendant que ta réflexion prend forme.",
     "addMoreContext": "Ajoutez un peu de contexte pour que le Guide puisse réfléchir sans deviner.",
     "addRealContext": "Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.",
     "guideResponse": "Réponse du guide",

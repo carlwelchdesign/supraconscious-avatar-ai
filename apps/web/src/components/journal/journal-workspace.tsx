@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { Loader2, ArrowRight } from "lucide-react"
@@ -12,6 +12,7 @@ import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedba
 import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
+import { MirrorFormingState } from "@/components/journal/mirror-forming-state"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
@@ -194,6 +195,7 @@ export function JournalWorkspace({
   const [feedbackNote, setFeedbackNote] = useState("")
   const [calibrationScenario, setCalibrationScenario] = useState<FounderCalibrationScenario>(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
+  const submissionInFlight = useRef(false)
 
   const voice = voicePrefs ?? {
     voiceEnabled: false,
@@ -204,6 +206,8 @@ export function JournalWorkspace({
   }
 
   async function handleSubmit() {
+    if (submissionInFlight.current) return
+    submissionInFlight.current = true
     setError("")
     setResult(null)
     setEmbodimentText("")
@@ -224,11 +228,15 @@ export function JournalWorkspace({
         body: JSON.stringify({ text, calibrationScenario: submittedCalibrationScenario }),
       })
       const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingJournalError(payload.error, response.status, t))
+      if (!response.ok) {
+        setError(userFacingJournalError(payload.error, response.status, t))
+        return
+      }
       setResult(payload)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t("transientError"))
+    } catch {
+      setError(t("transientError"))
     } finally {
+      submissionInFlight.current = false
       setIsSubmitting(false)
     }
   }
@@ -398,7 +406,8 @@ export function JournalWorkspace({
                   key={prompt.scenario}
                   type="button"
                   onClick={() => applyCalibrationPrompt(prompt)}
-                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)]"
+                  disabled={isSubmitting}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition hover:bg-[rgba(43,27,53,0.04)] disabled:cursor-not-allowed disabled:opacity-40"
                   style={{
                     borderColor: selected ? "rgba(184,137,90,0.42)" : "rgba(43,27,53,0.08)",
                     background: selected ? "rgba(184,137,90,0.1)" : "transparent",
@@ -474,8 +483,10 @@ export function JournalWorkspace({
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                readOnly={isSubmitting}
+                aria-busy={isSubmitting}
                 placeholder={t("journalPlaceholder")}
-                className="w-full min-h-[340px] resize-none bg-transparent outline-none font-display text-[18px] font-light leading-[1.95] text-[var(--primary)] placeholder:text-[var(--primary)]/20 journal-lines"
+                className="w-full min-h-[340px] resize-none bg-transparent outline-none font-display text-[18px] font-light leading-[1.95] text-[var(--primary)] placeholder:text-[var(--primary)]/20 journal-lines read-only:cursor-default read-only:opacity-75"
                 style={{ caretColor: "var(--clay)" }}
               />
             </div>
@@ -499,7 +510,7 @@ export function JournalWorkspace({
                 className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-2.5 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin motion-reduce:animate-none" />
                 ) : (
                   <ArrowRight className="w-4 h-4" />
                 )}
@@ -543,15 +554,22 @@ export function JournalWorkspace({
               borderColor: "rgba(43,27,53,0.07)",
             }}
           >
-            <div className="flex flex-col items-center text-center mb-5">
-              <AvatarOrb size="lg" stage={1} className="mb-3" />
-              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-                {t("guideResponse")}
-              </p>
-              <p className="text-[12px] font-light text-[var(--plum-soft)]">Supraconscious Guide · constant presence</p>
-            </div>
+            {isSubmitting ? null : (
+              <div className="flex flex-col items-center text-center mb-5">
+                <AvatarOrb size="lg" stage={1} className="mb-3" />
+                <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
+                  {t("guideResponse")}
+                </p>
+                <p className="text-[12px] font-light text-[var(--plum-soft)]">Supraconscious Guide · constant presence</p>
+              </div>
+            )}
 
-            {result ? (
+            {isSubmitting ? (
+              <MirrorFormingState
+                status={t("mirrorFormingStatus")}
+                supportingText={t("mirrorFormingSupport")}
+              />
+            ) : result ? (
               <div className="space-y-4">
                 {result.avatarResponse.openingLine && (
                   <p className="font-display text-[16px] font-medium text-[var(--primary)] leading-snug">
