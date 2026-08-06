@@ -280,6 +280,8 @@
     "privacyNote": "默认私密 · 模式记忆可在设置中调整",
     "reflect": "开始反思",
     "reflecting": "正在反思…",
+    "mirrorFormingStatus": "向导正在反思……",
+    "mirrorFormingSupport": "在你的反思逐渐成形时，请停留在你写下的内容中。",
     "addMoreContext": "添加一些背景，让向导无需猜测即可进行反思。",
     "addRealContext": "Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.",
     "guideResponse": "引导回应",

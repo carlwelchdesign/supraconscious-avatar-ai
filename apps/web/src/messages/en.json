@@ -280,6 +280,8 @@
     "privacyNote": "Private by default · Pattern memory adjustable in settings",
     "reflect": "Reflect",
     "reflecting": "Reflecting…",
+    "mirrorFormingStatus": "The Guide is reflecting…",
+    "mirrorFormingSupport": "Stay with what you wrote while your reflection takes shape.",
     "addMoreContext": "Add a little more context so the Guide can reflect without guessing.",
     "addRealContext": "Add one or two sentences from your real situation before reflecting. The prefilled prompt is only a starting point.",
     "guideResponse": "Guide Response",
