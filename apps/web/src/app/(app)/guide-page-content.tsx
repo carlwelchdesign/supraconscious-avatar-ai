@@ -8,13 +8,13 @@ export async function GuidePageContent() {
     <div className="space-y-10">
       <div>
         <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--clay)]">
-          Constant Guide · your awareness develops
+          Constant Guide · seven equal dimensions
         </p>
         <h1 className="font-display text-[40px] font-light leading-tight text-[var(--primary)]">
           Meet your <em className="font-normal italic text-[var(--clay)]">Supraconscious Guide.</em>
         </h1>
         <p className="mt-3 max-w-xl text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-          The Guide does not level up or become a different persona. It stays consistent while your capacity to notice, choose, and embody grows over time.
+          The Guide stays consistent. Each reflection may use a different subset of dimensions, while the interpretation and choice remain yours.
         </p>
       </div>
 
@@ -29,31 +29,30 @@ export async function GuidePageContent() {
           <div className="mt-5 flex flex-wrap gap-3">
             <GuideTrait label="Tone" value={user.avatarTone ?? "Gentle"} />
             <GuideTrait label="Intensity" value={`${user.intensityLevel ?? 1}/5`} />
-            <GuideTrait label="Progression" value="Yours, not the Guide's" />
           </div>
         </div>
       </div>
 
-      <section>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--plum-soft)]">{DOCTRINE_CONTRACT.frameworkName}</p>
-        <p className="mb-6 max-w-2xl text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-          These are equal facets of consciousness, not a fixed sequence or a ladder. A session may surface only the dimensions that fit the moment.
+      <section aria-labelledby="seven-dimensions-heading">
+        <h2 id="seven-dimensions-heading" className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--plum-soft)]">{DOCTRINE_CONTRACT.frameworkName}</h2>
+        <p id="seven-dimensions-description" className="mb-6 max-w-2xl text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+          These are equally available facets, not a sequence to complete. A reflection may select only what may fit that moment; the other dimensions are neither failed nor skipped.
         </p>
-        <div className="space-y-3">
+        <ul className="grid gap-3 md:grid-cols-2" aria-describedby="seven-dimensions-description">
           {DOCTRINE_CONTRACT.dimensions.map((dimension) => {
             const detail = DIMENSION_CONTRACT[dimension]
             return (
-              <div key={dimension} className="flex items-start gap-4 rounded-2xl border p-5" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
-                <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-[var(--clay)]" />
+              <li key={dimension} className="flex items-start gap-4 rounded-2xl border p-5" style={{ background: "var(--pearl)", borderColor: "rgba(43,27,53,0.07)" }}>
+                <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-[var(--clay)]" aria-hidden="true" />
                 <div>
                   <h3 className="font-display text-[18px] font-medium capitalize text-[var(--primary)]">{dimension}</h3>
                   <p className="mt-1 text-[13px] font-medium text-[var(--plum-soft)]">{detail.question}</p>
                   <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]/80">{detail.distinction}</p>
                 </div>
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       </section>
     </div>
   )

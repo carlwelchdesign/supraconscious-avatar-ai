@@ -59,7 +59,6 @@ export default async function DashboardPage({
   const messages = getWebMessages(currentLanguage)
   const dashboard = messages.dashboard
   const dashboardMessage = readDashboardMessage(query, dashboard)
-  const levelName = dashboard.levelNames[(user.currentLevel ?? 1) - 1] ?? dashboard.levelNames[0]
 
   const greeting = (() => {
     const h = getAppHour()
@@ -81,7 +80,7 @@ export default async function DashboardPage({
             {user.name ?? dashboard.welcomeBack}
           </h1>
           <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
-            {formatDashboardMessage(dashboard.currentLevel, { level: levelName })}
+            {dashboard.reflectionInvitation}
           </p>
         </div>
         <Link

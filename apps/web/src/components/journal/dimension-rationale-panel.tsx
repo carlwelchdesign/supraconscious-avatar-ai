@@ -49,23 +49,31 @@ export function DimensionRationalePanel({ rationale }: { rationale: PublicDimens
         <p className="max-w-2xl text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
           {t("dimensionRationaleHelp")}
         </p>
+        <p className="mt-2 max-w-2xl text-[12px] font-light leading-relaxed text-[var(--plum-soft)]/75">
+          {t("dimensionSelectionContext")}
+        </p>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {rationale.selected.map((item) => {
             const correction = corrections[item.dimension] ?? "idle"
+            const descriptionId = `dimension-${item.dimension}-description`
             return (
               <section
                 key={item.dimension}
                 className="rounded-2xl border px-4 py-4"
                 style={{ background: "rgba(43,27,53,0.025)", borderColor: "rgba(43,27,53,0.06)" }}
                 aria-labelledby={`dimension-${item.dimension}`}
+                aria-describedby={descriptionId}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                   <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--clay)]">
+                      {t("dimensionSelectedLabel")}
+                    </p>
                     <h3 id={`dimension-${item.dimension}`} className="font-display text-[17px] font-medium text-[var(--primary)]">
                       {t(`dimensionNames.${item.dimension}`)}
                     </h3>
-                    <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--clay)]">
-                      {t(`dimensionDepth.${item.depth}`)}
+                    <p className="mt-1 text-[11px] font-light text-[var(--plum-soft)]">
+                      {t("dimensionFocusLabel")}: {t(`dimensionDepth.${item.depth}`)}
                     </p>
                   </div>
                   {rationale.reflectionSessionId && (
@@ -86,7 +94,7 @@ export function DimensionRationalePanel({ rationale }: { rationale: PublicDimens
                     </button>
                   )}
                 </div>
-                <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
+                <p id={descriptionId} className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
                   {t(`dimensionDescriptions.${item.dimension}`)}
                 </p>
                 {item.signals.length > 0 && (
