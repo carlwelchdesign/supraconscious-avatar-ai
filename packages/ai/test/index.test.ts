@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import "./active-runtime-doctrine-guard.test.js"
+import "./v2-reflection-persistence.test.js"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
 import { languageInstruction } from "@inner-avatar/ai/response-language"
 import {
@@ -14,6 +15,7 @@ import {
   buildFounderCalibrationLaunchPacket,
   buildFounderCalibrationJournalReadiness,
   buildJournalEntryCreateArgs,
+  buildOwnerScopedReflectionWhere,
   buildSourceProvenanceMessage,
   buildFounderCalibrationSetupReportFromSnapshot,
   authorizeDoctrineRevision,
@@ -97,6 +99,9 @@ import {
   sanitizeProperties,
   sanitizeLangSmithMetadata,
   selectDimensions,
+  disableReflectionSessionForOwner,
+  deleteReflectionSessionForOwner,
+  recordReflectionCorrection,
   setLangSmithClientFactoryForTests,
   SOURCE_POLICY_VERSION,
   SAFETY_POLICY_VERSION,
@@ -357,6 +362,82 @@ test("journal analysis request accepts only explicit adaptive handling preferenc
 
   assert.equal(JournalAnalyzeRequestSchema.parse({ ...base, handlingPreference: "simpler" }).handlingPreference, "simpler")
   assert.equal(JournalAnalyzeRequestSchema.safeParse({ ...base, handlingPreference: "more_intense" }).success, false)
+})
+
+test("v2 reflection persistence operations remain owner-scoped and propagate disable state", async () => {
+  const calls: Array<{ model: string; args: Record<string, unknown> }> = []
+  const tx = {
+    reflectionSession: {
+      updateMany: async (args: Record<string, unknown>) => {
+        calls.push({ model: "session", args })
+        return { count: 1 }
+      },
+    },
+    dimensionReflection: {
+      updateMany: async (args: Record<string, unknown>) => {
+        calls.push({ model: "dimension", args })
+        return { count: 2 }
+      },
+    },
+    reflectionCorrection: {
+      updateMany: async (args: Record<string, unknown>) => {
+        calls.push({ model: "correction", args })
+        return { count: 1 }
+      },
+    },
+  }
+  const client = {
+    $transaction: async (run: (transaction: typeof tx) => Promise<unknown>) => run(tx),
+  } as any
+
+  assert.deepEqual(buildOwnerScopedReflectionWhere("user-1", "reflection-1"), {
+    id: "reflection-1",
+    userId: "user-1",
+  })
+  assert.equal(await disableReflectionSessionForOwner("user-1", "reflection-1", client), true)
+  assert.deepEqual((calls[0]?.args.where as Record<string, unknown>), {
+    id: "reflection-1",
+    userId: "user-1",
+    disabledAt: null,
+  })
+  assert.equal(calls.some((call) => call.model === "dimension"), true)
+  assert.equal(calls.some((call) => call.model === "correction"), true)
+
+  const deleted = await deleteReflectionSessionForOwner("user-1", "reflection-1", {
+    reflectionSession: {
+      deleteMany: async (args: Record<string, unknown>) => {
+        assert.deepEqual(args.where, { id: "reflection-1", userId: "user-1" })
+        return { count: 1 }
+      },
+    },
+  } as any)
+  assert.equal(deleted, true)
+})
+
+test("v2 correction writes fail closed when the session is not owned", async () => {
+  let correctionCreated = false
+  const tx = {
+    reflectionSession: { findFirst: async () => null },
+    reflectionCorrection: {
+      create: async () => {
+        correctionCreated = true
+        return {}
+      },
+    },
+    reflectionCapacityProfile: { updateMany: async () => ({ count: 0 }) },
+  }
+  const client = {
+    $transaction: async (run: (transaction: typeof tx) => Promise<unknown>) => run(tx),
+  } as any
+
+  const result = await recordReflectionCorrection({
+    userId: "user-1",
+    reflectionSessionId: "someone-elses-session",
+    correctionType: "soften",
+  }, client)
+
+  assert.equal(result, null)
+  assert.equal(correctionCreated, false)
 })
 
 test("simpler dimension selection preserves the protection-capacity pair and non-ranking anchors", () => {
@@ -1148,6 +1229,9 @@ test("account export payload includes core privacy and billing data", () => {
     journalEntries: [{ id: "entry_1", rawText: "owned journal text" }],
     patternMemories: [{ id: "pattern_1" }],
     councilSessions: [{ id: "session_1", feedback: [{ feedbackType: "helpful", note: "useful" }] }],
+    reflectionSessions: [{ id: "reflection_1", dimensions: [{ dimension: "story", depth: 1 }] }],
+    reflectionCapacityProfile: { id: "capacity_1", version: 1, simplified: false },
+    reflectionCorrections: [{ id: "correction_1", correctionType: "soften" }],
     safetyEvents: [{ id: "safety_1" }],
     consentEvents: [{ id: "consent_1" }],
     pilotEvents: [{ id: "event_1", eventName: "journal_submitted", inputHash: "hash" }],
@@ -1164,6 +1248,9 @@ test("account export payload includes core privacy and billing data", () => {
   assert.equal(payload.profile.voiceSpeed, 1.25)
   assert.equal(payload.journalEntries.length, 1)
   assert.equal(payload.councilSessions.length, 1)
+  assert.equal(payload.reflectionSessions.length, 1)
+  assert.equal((payload.reflectionCapacityProfile as { version: number }).version, 1)
+  assert.equal(payload.reflectionCorrections.length, 1)
   assert.equal(payload.pilotEvents.length, 1)
   assert.equal(payload.subscriptions.length, 1)
 })

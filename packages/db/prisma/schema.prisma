@@ -36,58 +36,63 @@ model User {
   updatedAt            DateTime @updatedAt
 
   // Relations
-  journalEntries   JournalEntry[]
-  entryAnalyses    EntryAnalysis[]
-  avatarResponses  AvatarResponse[]
-  generatedPrompts GeneratedPrompt[]
-  patternMemories  PatternMemory[]
-  patternMemoryFeedback PatternMemoryFeedback[]
-  safetyEvents     SafetyEvent[]
-  subscriptions    Subscription[]
-  sessions         Session[]
-  oauthAccounts    OAuthAccount[]
-  webAuthnCredentials WebAuthnCredential[]
-  pendingAuthChallenges PendingAuthChallenge[]
-  recoveryCodes    RecoveryCode[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens PasswordResetToken[]
-  voiceUsageBuckets VoiceUsageBucket[]
-  authRateLimitBuckets AuthRateLimitBucket[]
-  auditLogs        AuditLog[]
-  promptTemplates  PromptTemplate[]
-  councilSessions  CouncilSession[]
-  embodimentGateResponses EmbodimentGateResponse[]
-  sourceDocuments  SourceDocument[]
-  sourceImportBatches SourceImportBatch[]
-  reasoningGraphRuns ReasoningGraphRun[]
-  reasoningOntologyConceptsCreated ReasoningOntologyConcept[] @relation("ReasoningOntologyConceptCreatedBy")
+  journalEntries                        JournalEntry[]
+  entryAnalyses                         EntryAnalysis[]
+  avatarResponses                       AvatarResponse[]
+  generatedPrompts                      GeneratedPrompt[]
+  patternMemories                       PatternMemory[]
+  patternMemoryFeedback                 PatternMemoryFeedback[]
+  safetyEvents                          SafetyEvent[]
+  subscriptions                         Subscription[]
+  sessions                              Session[]
+  oauthAccounts                         OAuthAccount[]
+  webAuthnCredentials                   WebAuthnCredential[]
+  pendingAuthChallenges                 PendingAuthChallenge[]
+  recoveryCodes                         RecoveryCode[]
+  emailVerificationTokens               EmailVerificationToken[]
+  passwordResetTokens                   PasswordResetToken[]
+  voiceUsageBuckets                     VoiceUsageBucket[]
+  authRateLimitBuckets                  AuthRateLimitBucket[]
+  auditLogs                             AuditLog[]
+  promptTemplates                       PromptTemplate[]
+  councilSessions                       CouncilSession[]
+  reflectionSessions                    ReflectionSession[]
+  reflectionCapacityProfile             ReflectionCapacityProfile?
+  reflectionCorrections                 ReflectionCorrection[]
+  doctrineVersionsApproved              DoctrineVersion[]               @relation("DoctrineVersionApprovedBy")
+  curatedPromptsApproved                CuratedPrompt[]                 @relation("CuratedPromptApprovedBy")
+  embodimentGateResponses               EmbodimentGateResponse[]
+  sourceDocuments                       SourceDocument[]
+  sourceImportBatches                   SourceImportBatch[]
+  reasoningGraphRuns                    ReasoningGraphRun[]
+  reasoningOntologyConceptsCreated      ReasoningOntologyConcept[]      @relation("ReasoningOntologyConceptCreatedBy")
   reasoningOntologyRelationshipsCreated ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipCreatedBy")
-  reasoningOntologyClustersCreated ReasoningOntologyCluster[] @relation("ReasoningOntologyClusterCreatedBy")
-  reasoningOntologyOutcomesCreated ReasoningOntologyOutcome[] @relation("ReasoningOntologyOutcomeCreatedBy")
-  generationTraces GenerationTrace[]
-  pilotCohortsCreated PilotCohort[] @relation("PilotCohortCreatedBy")
-  pilotEnrollments PilotEnrollment[]
-  pilotEvents PilotEvent[]
-  consentEvents ConsentEvent[]
-  qualityReviews QualityReview[]
-  councilSessionFeedback CouncilSessionFeedback[]
-  founderCalibrationParticipants FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantUser")
-  founderCalibrationParticipantsAdded FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantAddedBy")
-  reviewedSafetyEvents SafetyEvent[] @relation("SafetyEventReviewer")
+  reasoningOntologyClustersCreated      ReasoningOntologyCluster[]      @relation("ReasoningOntologyClusterCreatedBy")
+  reasoningOntologyOutcomesCreated      ReasoningOntologyOutcome[]      @relation("ReasoningOntologyOutcomeCreatedBy")
+  generationTraces                      GenerationTrace[]
+  pilotCohortsCreated                   PilotCohort[]                   @relation("PilotCohortCreatedBy")
+  pilotEnrollments                      PilotEnrollment[]
+  pilotEvents                           PilotEvent[]
+  consentEvents                         ConsentEvent[]
+  qualityReviews                        QualityReview[]
+  councilSessionFeedback                CouncilSessionFeedback[]
+  founderCalibrationParticipants        FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantUser")
+  founderCalibrationParticipantsAdded   FounderCalibrationParticipant[] @relation("FounderCalibrationParticipantAddedBy")
+  reviewedSafetyEvents                  SafetyEvent[]                   @relation("SafetyEventReviewer")
 }
 
 // Session - first-party login session stored as a hashed token
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  tokenHash    String   @unique
-  scope        String   @default("web") // web, admin
-  authMethod   String   @default("password") // password, google, apple, recovery
+  id            String    @id @default(cuid())
+  userId        String
+  tokenHash     String    @unique
+  scope         String    @default("web") // web, admin
+  authMethod    String    @default("password") // password, google, apple, recovery
   mfaVerifiedAt DateTime?
-  mfaMethod    String?  // passkey, recovery_code
-  expiresAt    DateTime
-  lastSeenAt   DateTime @default(now())
-  createdAt    DateTime @default(now())
+  mfaMethod     String? // passkey, recovery_code
+  expiresAt     DateTime
+  lastSeenAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -117,18 +122,18 @@ model OAuthAccount {
 
 // WebAuthn/passkey credential - phishing-resistant authenticator registration
 model WebAuthnCredential {
-  id                 String    @id @default(cuid())
-  userId             String
-  credentialId       String    @unique
-  publicKey          Bytes
-  counter            BigInt    @default(0)
-  transports         String[]
-  deviceLabel        String
-  backedUp           Boolean   @default(false)
+  id                   String    @id @default(cuid())
+  userId               String
+  credentialId         String    @unique
+  publicKey            Bytes
+  counter              BigInt    @default(0)
+  transports           String[]
+  deviceLabel          String
+  backedUp             Boolean   @default(false)
   credentialDeviceType String?
-  lastUsedAt         DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  lastUsedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -138,18 +143,18 @@ model WebAuthnCredential {
 
 // Pending auth challenge - short-lived login, MFA, OAuth, and WebAuthn state
 model PendingAuthChallenge {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String?
-  tokenHash  String   @unique
-  type       String   // oauth_state, mfa, webauthn_registration, webauthn_authentication
-  scope      String   @default("web")
+  tokenHash  String    @unique
+  type       String // oauth_state, mfa, webauthn_registration, webauthn_authentication
+  scope      String    @default("web")
   authMethod String?
   challenge  String
-  redirectTo String   @default("/dashboard")
+  redirectTo String    @default("/dashboard")
   metadata   Json?
   expiresAt  DateTime
   usedAt     DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -195,7 +200,7 @@ model AuthRateLimitBucket {
 model VoiceUsageBucket {
   id          String   @id @default(cuid())
   userId      String
-  scope       String   // voice_transcribe, voice_speak
+  scope       String // voice_transcribe, voice_speak
   windowStart DateTime
   count       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -244,7 +249,7 @@ model PasswordResetToken {
 // Audit log - immutable record of sensitive admin actions
 model AuditLog {
   id         String   @id @default(cuid())
-  actorId   String?
+  actorId    String?
   action     String
   targetType String?
   targetId   String?
@@ -389,15 +394,16 @@ model JournalEntry {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  analysis         EntryAnalysis?
-  avatarResponse   AvatarResponse?
-  generatedPrompts GeneratedPrompt[]
-  patternMemories  PatternMemory[]
-  safetyEvents     SafetyEvent[]
-  councilSession   CouncilSession?
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analysis                EntryAnalysis?
+  avatarResponse          AvatarResponse?
+  generatedPrompts        GeneratedPrompt[]
+  patternMemories         PatternMemory[]
+  safetyEvents            SafetyEvent[]
+  councilSession          CouncilSession?
+  reflectionSession       ReflectionSession?
   embodimentGateResponses EmbodimentGateResponse[]
-  pilotEvents      PilotEvent[]
+  pilotEvents             PilotEvent[]
 
   @@index([userId])
   @@index([createdAt])
@@ -500,8 +506,8 @@ model PatternMemory {
   lastSeenAt  DateTime @default(now())
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry?           @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
   feedback     PatternMemoryFeedback[]
 
   @@index([userId])
@@ -538,15 +544,15 @@ model CouncilSession {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  journalEntry  JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
-  messages      CouncilMessage[]
-  synthesis     CouncilSynthesis?
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry            JournalEntry             @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  messages                CouncilMessage[]
+  synthesis               CouncilSynthesis?
   embodimentGateResponses EmbodimentGateResponse[]
-  generationTraces GenerationTrace[]
-  pilotEvents PilotEvent[]
-  qualityReviews QualityReview[]
-  feedback CouncilSessionFeedback[]
+  generationTraces        GenerationTrace[]
+  pilotEvents             PilotEvent[]
+  qualityReviews          QualityReview[]
+  feedback                CouncilSessionFeedback[]
 
   @@index([userId])
   @@index([status])
@@ -623,7 +629,7 @@ model PilotCohort {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  createdBy User? @relation("PilotCohortCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?             @relation("PilotCohortCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   enrollments PilotEnrollment[]
 
   @@index([status])
@@ -644,7 +650,7 @@ model PilotEnrollment {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   pilotCohort PilotCohort @relation(fields: [pilotCohortId], references: [id], onDelete: Cascade)
 
   @@unique([userId, pilotCohortId])
@@ -655,28 +661,31 @@ model PilotEnrollment {
 
 // Pilot event - privacy-safe lifecycle analytics for pilot readiness
 model PilotEvent {
-  id               String   @id @default(cuid())
-  userId           String?
-  journalEntryId   String?
-  councilSessionId String?
-  eventName        String
-  eventVersion     Int      @default(1)
-  occurredAt       DateTime @default(now())
-  properties       Json?
-  inputHash        String?
-  sourceMode       String?
-  safetySeverity   String?
-  featureFlags     Json?
-  requestId        String?
-  createdAt        DateTime @default(now())
+  id                  String   @id @default(cuid())
+  userId              String?
+  journalEntryId      String?
+  councilSessionId    String?
+  reflectionSessionId String?
+  eventName           String
+  eventVersion        Int      @default(1)
+  occurredAt          DateTime @default(now())
+  properties          Json?
+  inputHash           String?
+  sourceMode          String?
+  safetySeverity      String?
+  featureFlags        Json?
+  requestId           String?
+  createdAt           DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
-  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  journalEntry      JournalEntry?      @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  councilSession    CouncilSession?    @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+  reflectionSession ReflectionSession? @relation(fields: [reflectionSessionId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([journalEntryId])
   @@index([councilSessionId])
+  @@index([reflectionSessionId])
   @@index([eventName])
   @@index([occurredAt])
 }
@@ -701,24 +710,27 @@ model ConsentEvent {
 
 // Human quality review - separate from machine validation status
 model QualityReview {
-  id               String   @id @default(cuid())
-  reviewerId       String
-  councilSessionId String?
-  generationTraceId String?
-  targetType       String   @default("CouncilSession")
-  label            String // grounded, too_vague, too_intense, unsupported, safety_concern
-  severity         String   @default("normal") // normal, pilot_blocker
-  reason           String   @db.Text
-  metadata         Json?
-  reviewedAt       DateTime @default(now())
-  createdAt        DateTime @default(now())
+  id                  String   @id @default(cuid())
+  reviewerId          String
+  councilSessionId    String?
+  reflectionSessionId String?
+  generationTraceId   String?
+  targetType          String   @default("CouncilSession")
+  label               String // grounded, too_vague, too_intense, unsupported, safety_concern
+  severity            String   @default("normal") // normal, pilot_blocker
+  reason              String   @db.Text
+  metadata            Json?
+  reviewedAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
 
-  reviewer User @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
-  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
-  generationTrace GenerationTrace? @relation(fields: [generationTraceId], references: [id], onDelete: SetNull)
+  reviewer          User               @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  councilSession    CouncilSession?    @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
+  reflectionSession ReflectionSession? @relation(fields: [reflectionSessionId], references: [id], onDelete: Cascade)
+  generationTrace   GenerationTrace?   @relation(fields: [generationTraceId], references: [id], onDelete: SetNull)
 
   @@index([reviewerId])
   @@index([councilSessionId])
+  @@index([reflectionSessionId])
   @@index([generationTraceId])
   @@index([label])
   @@index([severity])
@@ -733,7 +745,7 @@ model CouncilSessionFeedback {
   note             String?  @db.Text
   createdAt        DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   councilSession CouncilSession @relation(fields: [councilSessionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -741,32 +753,258 @@ model CouncilSessionFeedback {
   @@index([feedbackType])
 }
 
+// V2 reflection session - additive replacement for new non-Council runs.
+// Legacy CouncilSession records remain historical and are never reinterpreted.
+model ReflectionSession {
+  id                     String    @id @default(cuid())
+  userId                 String
+  journalEntryId         String    @unique
+  doctrineVersionId      String
+  capacityProfileVersion Int?
+  responseMode           String    @default("guide") // guide, grounding
+  status                 String    @default("completed") // pending, completed, grounded, failed, disabled
+  safetySnapshot         Json
+  selectorVersion        String?
+  selectionPolicy        String?
+  disabledAt             DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry      JournalEntry              @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  doctrineVersion   DoctrineVersion           @relation(fields: [doctrineVersionId], references: [id], onDelete: Restrict)
+  dimensions        DimensionReflection[]
+  guideSynthesis    GuideSynthesis?
+  corrections       ReflectionCorrection[]
+  promptAssignments CuratedPromptAssignment[]
+  generationTraces  GenerationTrace[]
+  pilotEvents       PilotEvent[]
+  qualityReviews    QualityReview[]
+
+  @@index([userId])
+  @@index([doctrineVersionId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// One selected dimension for a V2 reflection. Dimension keys are validated in application code.
+model DimensionReflection {
+  id                      String    @id @default(cuid())
+  reflectionSessionId     String
+  dimension               String
+  displayOrder            Int
+  depth                   Int
+  reasonCodes             Json
+  evidenceRefs            Json
+  observationText         String?   @db.Text
+  tentativeInterpretation String?   @db.Text
+  evidenceSpans           Json?
+  confidence              Float?
+  epistemicStatus         String    @default("selected") // selected, tentative, abstained
+  abstained               Boolean   @default(false)
+  abstainReason           String?   @db.Text
+  sourceChunkIds          Json?
+  disabledAt              DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  reflectionSession ReflectionSession @relation(fields: [reflectionSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([reflectionSessionId, dimension])
+  @@unique([reflectionSessionId, displayOrder])
+  @@index([dimension])
+  @@index([epistemicStatus])
+}
+
+// Constant Guide output for a V2 reflection session.
+model GuideSynthesis {
+  id                   String   @id @default(cuid())
+  reflectionSessionId  String   @unique
+  guideName            String   @default("Supraconscious Guide")
+  guideVersion         String
+  synthesisStatement   String   @db.Text
+  socraticQuestion     String   @db.Text
+  embodimentInvitation String?  @db.Text
+  sourceChunkIds       Json?
+  validationStatus     String   @default("pending")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  reflectionSession ReflectionSession @relation(fields: [reflectionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([guideVersion])
+  @@index([validationStatus])
+}
+
+// Consent-aware evidence for adapting reflection depth. This is never a consciousness score.
+model ReflectionCapacityProfile {
+  id                       String    @id @default(cuid())
+  userId                   String    @unique
+  doctrineVersionId        String
+  version                  Int       @default(1)
+  noticingEvidence         Json?
+  storyFactEvidence        Json?
+  protectionEvidence       Json?
+  personaAwarenessEvidence Json?
+  possibilityEvidence      Json?
+  consciousChoiceEvidence  Json?
+  embodimentEvidence       Json?
+  preferredDirectness      String    @default("standard")
+  paused                   Boolean   @default(false)
+  simplified               Boolean   @default(false)
+  rubricVersion            String
+  lastCorrectionAt         DateTime?
+  disabledAt               DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doctrineVersion DoctrineVersion @relation(fields: [doctrineVersionId], references: [id], onDelete: Restrict)
+
+  @@index([doctrineVersionId])
+  @@index([disabledAt])
+}
+
+// User-authored correction or suppression signal for V2 reflection data.
+model ReflectionCorrection {
+  id                  String    @id @default(cuid())
+  userId              String
+  reflectionSessionId String?
+  dimension           String?
+  correctionType      String // prefer, suppress, soften, stop, do_not_remember, correct
+  note                String?   @db.Text
+  appliedAt           DateTime?
+  disabledAt          DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reflectionSession ReflectionSession? @relation(fields: [reflectionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reflectionSessionId])
+  @@index([dimension])
+  @@index([correctionType])
+  @@index([deletedAt])
+}
+
+// Versioned doctrine registry. Approval state remains explicit and independently reviewable.
+model DoctrineVersion {
+  id              String    @id @default(cuid())
+  version         String    @unique
+  contentChecksum String    @unique
+  approvalState   String    @default("pending") // pending, founder_approved, superseded
+  approvedById    String?
+  approvedAt      DateTime?
+  supersededAt    DateTime?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  approvedBy         User?                       @relation("DoctrineVersionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  reflectionSessions ReflectionSession[]
+  capacityProfiles   ReflectionCapacityProfile[]
+
+  @@index([approvalState])
+  @@index([approvedById])
+}
+
+// Immutable curated prompt revision with queryable provenance and approval state.
+model CuratedPrompt {
+  id                    String    @id @default(cuid())
+  stableKey             String
+  version               Int
+  modality              String // mental, physical, hybrid
+  publicTitle           String?
+  publicText            String    @db.Text
+  internalTechniqueName String?
+  sourceDocumentId      String?
+  sourceWork            String?
+  sourceLocator         String?
+  rightsState           String    @default("needs_review")
+  approvalState         String    @default("pending")
+  approvedById          String?
+  approvedAt            DateTime?
+  safetyIntensity       String    @default("low")
+  contraindications     Json?
+  language              String    @default("en")
+  translationStatus     String    @default("source")
+  active                Boolean   @default(false)
+  supersededAt          DateTime?
+  createdAt             DateTime  @default(now())
+
+  sourceDocument SourceDocument?           @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  approvedBy     User?                     @relation("CuratedPromptApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  dimensions     CuratedPromptDimension[]
+  assignments    CuratedPromptAssignment[]
+
+  @@unique([stableKey, version])
+  @@index([sourceDocumentId])
+  @@index([modality])
+  @@index([approvalState])
+  @@index([active])
+}
+
+model CuratedPromptDimension {
+  id              String @id @default(cuid())
+  curatedPromptId String
+  dimension       String
+
+  curatedPrompt CuratedPrompt @relation(fields: [curatedPromptId], references: [id], onDelete: Cascade)
+
+  @@unique([curatedPromptId, dimension])
+  @@index([dimension])
+}
+
+model CuratedPromptAssignment {
+  id                  String    @id @default(cuid())
+  reflectionSessionId String
+  curatedPromptId     String
+  selectionReasonCode String
+  selectedDimensions  Json
+  safetyDecision      Json
+  state               String    @default("selected") // selected, accepted, skipped, completed, declined
+  userResponse        String?   @db.Text
+  respondedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  reflectionSession ReflectionSession @relation(fields: [reflectionSessionId], references: [id], onDelete: Cascade)
+  curatedPrompt     CuratedPrompt     @relation(fields: [curatedPromptId], references: [id], onDelete: Restrict)
+
+  @@index([reflectionSessionId])
+  @@index([curatedPromptId])
+  @@index([state])
+}
+
 // Source document - canonical source file/version registry
 model SourceDocument {
-  id           String   @id @default(cuid())
-  importedById String?
-  importBatchId String?
-  title        String
-  author       String?
-  work         String?
-  sourceType   String // manuscript, curriculum, product_doctrine, image, external
-  reasoningScope String @default("excluded") // maria_materials, product_doctrine, curriculum, reference_only, excluded
-  filePath     String?  @db.Text
-  checksum     String?  @unique
-  language     String   @default("en")
-  rightsStatus String   @default("needs_review")
-  reviewState  String   @default("imported")
-  metadata     Json?
-  importedAt   DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  importedById   String?
+  importBatchId  String?
+  title          String
+  author         String?
+  work           String?
+  sourceType     String // manuscript, curriculum, product_doctrine, image, external
+  reasoningScope String   @default("excluded") // maria_materials, product_doctrine, curriculum, reference_only, excluded
+  filePath       String?  @db.Text
+  checksum       String?  @unique
+  language       String   @default("en")
+  rightsStatus   String   @default("needs_review")
+  reviewState    String   @default("imported")
+  metadata       Json?
+  importedAt     DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  importedBy User? @relation(fields: [importedById], references: [id], onDelete: SetNull)
-  importBatch SourceImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
-  sections   SourceSection[]
-  chunks     SourceChunk[]
-  curriculumDays CurriculumDay[]
-  rightsGrants SourceRightsGrant[]
-  reasoningGraphEvidence ReasoningGraphEvidence[]
+  importedBy                User?                       @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  importBatch               SourceImportBatch?          @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sections                  SourceSection[]
+  chunks                    SourceChunk[]
+  curriculumDays            CurriculumDay[]
+  rightsGrants              SourceRightsGrant[]
+  curatedPrompts            CuratedPrompt[]
+  reasoningGraphEvidence    ReasoningGraphEvidence[]
   reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceType])
@@ -778,20 +1016,20 @@ model SourceDocument {
 
 // Source import batch - deterministic corpus import run metadata
 model SourceImportBatch {
-  id             String   @id @default(cuid())
-  initiatedById  String?
-  sourceRoot     String   @db.Text
-  parserVersion  String
-  status         String   @default("completed") // completed, partial, failed
-  importedCount  Int      @default(0)
-  skippedCount   Int      @default(0)
-  failedCount    Int      @default(0)
-  errorLog       Json?
-  metadata       Json?
-  createdAt      DateTime @default(now())
-  completedAt    DateTime?
+  id            String    @id @default(cuid())
+  initiatedById String?
+  sourceRoot    String    @db.Text
+  parserVersion String
+  status        String    @default("completed") // completed, partial, failed
+  importedCount Int       @default(0)
+  skippedCount  Int       @default(0)
+  failedCount   Int       @default(0)
+  errorLog      Json?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
 
-  initiatedBy     User? @relation(fields: [initiatedById], references: [id], onDelete: SetNull)
+  initiatedBy     User?            @relation(fields: [initiatedById], references: [id], onDelete: SetNull)
   sourceDocuments SourceDocument[]
 
   @@index([status])
@@ -866,10 +1104,10 @@ model SourceChunk {
   embedding        Json?
   createdAt        DateTime @default(now())
 
-  sourceDocument SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
-  sourceSection  SourceSection? @relation(fields: [sourceSectionId], references: [id], onDelete: SetNull)
-  traces         GenerationTrace[]
-  reasoningGraphEvidence ReasoningGraphEvidence[]
+  sourceDocument            SourceDocument              @relation(fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  sourceSection             SourceSection?              @relation(fields: [sourceSectionId], references: [id], onDelete: SetNull)
+  traces                    GenerationTrace[]
+  reasoningGraphEvidence    ReasoningGraphEvidence[]
   reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceDocumentId])
@@ -896,7 +1134,7 @@ model ReasoningGraphRun {
   createdAt         DateTime  @default(now())
   completedAt       DateTime?
 
-  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy User?                    @relation(fields: [createdById], references: [id], onDelete: SetNull)
   nodes     ReasoningGraphNode[]
   edges     ReasoningGraphEdge[]
   clusters  ReasoningGraphCluster[]
@@ -910,17 +1148,17 @@ model ReasoningGraphRun {
 
 // Reasoning graph cluster - detected community of related concepts
 model ReasoningGraphCluster {
-  id          String   @id @default(cuid())
-  runId       String
-  clusterKey  Int
-  label       String
-  summary     String?  @db.Text
-  size        Int      @default(0)
-  metrics     Json?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  runId      String
+  clusterKey Int
+  label      String
+  summary    String?  @db.Text
+  size       Int      @default(0)
+  metrics    Json?
+  createdAt  DateTime @default(now())
 
-  run   ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  nodes ReasoningGraphNode[]
+  run              ReasoningGraphRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodes            ReasoningGraphNode[]
   ontologyClusters ReasoningOntologyCluster[]
 
   @@unique([runId, clusterKey])
@@ -946,11 +1184,11 @@ model ReasoningGraphNode {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  run          ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  cluster      ReasoningGraphCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
-  outgoingEdges ReasoningGraphEdge[] @relation("ReasoningGraphEdgeFrom")
-  incomingEdges ReasoningGraphEdge[] @relation("ReasoningGraphEdgeTo")
-  evidence     ReasoningGraphEvidence[]
+  run              ReasoningGraphRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  cluster          ReasoningGraphCluster?     @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  outgoingEdges    ReasoningGraphEdge[]       @relation("ReasoningGraphEdgeFrom")
+  incomingEdges    ReasoningGraphEdge[]       @relation("ReasoningGraphEdgeTo")
+  evidence         ReasoningGraphEvidence[]
   ontologyConcepts ReasoningOntologyConcept[]
 
   @@unique([runId, nodeKey])
@@ -976,10 +1214,10 @@ model ReasoningGraphEdge {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  run      ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  fromNode ReasoningGraphNode @relation("ReasoningGraphEdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
-  toNode   ReasoningGraphNode @relation("ReasoningGraphEdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
-  evidence ReasoningGraphEvidence[]
+  run                   ReasoningGraphRun               @relation(fields: [runId], references: [id], onDelete: Cascade)
+  fromNode              ReasoningGraphNode              @relation("ReasoningGraphEdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode                ReasoningGraphNode              @relation("ReasoningGraphEdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  evidence              ReasoningGraphEvidence[]
   ontologyRelationships ReasoningOntologyRelationship[]
 
   @@unique([runId, edgeKey])
@@ -1005,8 +1243,8 @@ model ReasoningGraphInsight {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  run      ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  evidence ReasoningGraphEvidence[]
+  run              ReasoningGraphRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  evidence         ReasoningGraphEvidence[]
   ontologyOutcomes ReasoningOntologyOutcome[]
 
   @@index([runId])
@@ -1029,12 +1267,12 @@ model ReasoningGraphEvidence {
   metadata         Json?
   createdAt        DateTime @default(now())
 
-  run            ReasoningGraphRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  node           ReasoningGraphNode? @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  edge           ReasoningGraphEdge? @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  run            ReasoningGraphRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  node           ReasoningGraphNode?    @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  edge           ReasoningGraphEdge?    @relation(fields: [edgeId], references: [id], onDelete: Cascade)
   insight        ReasoningGraphInsight? @relation(fields: [insightId], references: [id], onDelete: Cascade)
-  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
-  sourceChunk    SourceChunk? @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  sourceDocument SourceDocument?        @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourceChunk    SourceChunk?           @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
 
   @@index([runId])
   @@index([nodeId])
@@ -1046,26 +1284,26 @@ model ReasoningGraphEvidence {
 
 // Durable approved ontology concept promoted from generated reasoning graph candidates
 model ReasoningOntologyConcept {
-  id              String   @id @default(cuid())
-  conceptKey      String   @unique
-  canonicalLabel  String
-  aliases         String[] @default([])
-  description     String?  @db.Text
-  reviewState     String   @default("approved") // approved, rejected, needs_revision, archived
-  pinned          Boolean  @default(false)
+  id                String   @id @default(cuid())
+  conceptKey        String   @unique
+  canonicalLabel    String
+  aliases           String[] @default([])
+  description       String?  @db.Text
+  reviewState       String   @default("approved") // approved, rejected, needs_revision, archived
+  pinned            Boolean  @default(false)
   sourceGraphNodeId String?
-  metadata        Json?
-  createdById     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metadata          Json?
+  createdById       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  createdBy User? @relation("ReasoningOntologyConceptCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  sourceGraphNode ReasoningGraphNode? @relation(fields: [sourceGraphNodeId], references: [id], onDelete: SetNull)
-  outgoingRelationships ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipFrom")
-  incomingRelationships ReasoningOntologyRelationship[] @relation("ReasoningOntologyRelationshipTo")
-  clusterMemberships ReasoningOntologyClusterConcept[]
-  outcomeLinks ReasoningOntologyOutcomeConcept[]
-  evidence ReasoningOntologyEvidence[]
+  createdBy             User?                             @relation("ReasoningOntologyConceptCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphNode       ReasoningGraphNode?               @relation(fields: [sourceGraphNodeId], references: [id], onDelete: SetNull)
+  outgoingRelationships ReasoningOntologyRelationship[]   @relation("ReasoningOntologyRelationshipFrom")
+  incomingRelationships ReasoningOntologyRelationship[]   @relation("ReasoningOntologyRelationshipTo")
+  clusterMemberships    ReasoningOntologyClusterConcept[]
+  outcomeLinks          ReasoningOntologyOutcomeConcept[]
+  evidence              ReasoningOntologyEvidence[]
 
   @@index([conceptKey])
   @@index([reviewState])
@@ -1076,25 +1314,25 @@ model ReasoningOntologyConcept {
 
 // Durable typed relationship between approved ontology concepts
 model ReasoningOntologyRelationship {
-  id              String   @id @default(cuid())
-  relationshipKey String  @unique
-  fromConceptId   String
-  toConceptId     String
-  relationType    String  // causal, hierarchical, associative, tension, practice_to_outcome, supports, gap_bridge
-  rationale       String? @db.Text
-  confidence      Float   @default(0)
-  reviewState     String  @default("approved") // approved, rejected, needs_revision, archived
+  id                String   @id @default(cuid())
+  relationshipKey   String   @unique
+  fromConceptId     String
+  toConceptId       String
+  relationType      String // causal, hierarchical, associative, tension, practice_to_outcome, supports, gap_bridge
+  rationale         String?  @db.Text
+  confidence        Float    @default(0)
+  reviewState       String   @default("approved") // approved, rejected, needs_revision, archived
   sourceGraphEdgeId String?
-  metadata        Json?
-  createdById     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metadata          Json?
+  createdById       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  createdBy User? @relation("ReasoningOntologyRelationshipCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  fromConcept ReasoningOntologyConcept @relation("ReasoningOntologyRelationshipFrom", fields: [fromConceptId], references: [id], onDelete: Cascade)
-  toConcept ReasoningOntologyConcept @relation("ReasoningOntologyRelationshipTo", fields: [toConceptId], references: [id], onDelete: Cascade)
-  sourceGraphEdge ReasoningGraphEdge? @relation(fields: [sourceGraphEdgeId], references: [id], onDelete: SetNull)
-  evidence ReasoningOntologyEvidence[]
+  createdBy       User?                       @relation("ReasoningOntologyRelationshipCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  fromConcept     ReasoningOntologyConcept    @relation("ReasoningOntologyRelationshipFrom", fields: [fromConceptId], references: [id], onDelete: Cascade)
+  toConcept       ReasoningOntologyConcept    @relation("ReasoningOntologyRelationshipTo", fields: [toConceptId], references: [id], onDelete: Cascade)
+  sourceGraphEdge ReasoningGraphEdge?         @relation(fields: [sourceGraphEdgeId], references: [id], onDelete: SetNull)
+  evidence        ReasoningOntologyEvidence[]
 
   @@index([fromConceptId])
   @@index([toConceptId])
@@ -1106,21 +1344,21 @@ model ReasoningOntologyRelationship {
 
 // Durable curated theme or cluster inside the approved ontology
 model ReasoningOntologyCluster {
-  id              String   @id @default(cuid())
-  clusterKey      String   @unique
-  label           String
-  summary         String?  @db.Text
-  reviewState     String   @default("approved")
+  id                   String   @id @default(cuid())
+  clusterKey           String   @unique
+  label                String
+  summary              String?  @db.Text
+  reviewState          String   @default("approved")
   sourceGraphClusterId String?
-  metadata        Json?
-  createdById     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metadata             Json?
+  createdById          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  createdBy User? @relation("ReasoningOntologyClusterCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  sourceGraphCluster ReasoningGraphCluster? @relation(fields: [sourceGraphClusterId], references: [id], onDelete: SetNull)
-  concepts ReasoningOntologyClusterConcept[]
-  evidence ReasoningOntologyEvidence[]
+  createdBy          User?                             @relation("ReasoningOntologyClusterCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphCluster ReasoningGraphCluster?            @relation(fields: [sourceGraphClusterId], references: [id], onDelete: SetNull)
+  concepts           ReasoningOntologyClusterConcept[]
+  evidence           ReasoningOntologyEvidence[]
 
   @@index([reviewState])
   @@index([sourceGraphClusterId])
@@ -1128,10 +1366,10 @@ model ReasoningOntologyCluster {
 }
 
 model ReasoningOntologyClusterConcept {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   clusterId String
   conceptId String
-  weight    Float  @default(1)
+  weight    Float    @default(1)
   createdAt DateTime @default(now())
 
   cluster ReasoningOntologyCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
@@ -1143,22 +1381,22 @@ model ReasoningOntologyClusterConcept {
 
 // Durable stakeholder outcome path curated from graph insights
 model ReasoningOntologyOutcome {
-  id              String   @id @default(cuid())
-  outcomeKey      String   @unique
-  label           String
-  summary         String?  @db.Text
-  missingAreas    String[] @default([])
-  reviewState     String   @default("approved")
+  id                   String   @id @default(cuid())
+  outcomeKey           String   @unique
+  label                String
+  summary              String?  @db.Text
+  missingAreas         String[] @default([])
+  reviewState          String   @default("approved")
   sourceGraphInsightId String?
-  metadata        Json?
-  createdById     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metadata             Json?
+  createdById          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  createdBy User? @relation("ReasoningOntologyOutcomeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  sourceGraphInsight ReasoningGraphInsight? @relation(fields: [sourceGraphInsightId], references: [id], onDelete: SetNull)
-  concepts ReasoningOntologyOutcomeConcept[]
-  evidence ReasoningOntologyEvidence[]
+  createdBy          User?                             @relation("ReasoningOntologyOutcomeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceGraphInsight ReasoningGraphInsight?            @relation(fields: [sourceGraphInsightId], references: [id], onDelete: SetNull)
+  concepts           ReasoningOntologyOutcomeConcept[]
+  evidence           ReasoningOntologyEvidence[]
 
   @@index([reviewState])
   @@index([sourceGraphInsightId])
@@ -1166,11 +1404,11 @@ model ReasoningOntologyOutcome {
 }
 
 model ReasoningOntologyOutcomeConcept {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   outcomeId String
   conceptId String
-  role      String @default("supports") // supports, missing, bridge
-  weight    Float  @default(1)
+  role      String   @default("supports") // supports, missing, bridge
+  weight    Float    @default(1)
   createdAt DateTime @default(now())
 
   outcome ReasoningOntologyOutcome @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
@@ -1182,25 +1420,25 @@ model ReasoningOntologyOutcomeConcept {
 
 // Source provenance for approved ontology records
 model ReasoningOntologyEvidence {
-  id             String   @id @default(cuid())
-  conceptId      String?
-  relationshipId String?
-  clusterId      String?
-  outcomeId      String?
+  id               String   @id @default(cuid())
+  conceptId        String?
+  relationshipId   String?
+  clusterId        String?
+  outcomeId        String?
   sourceDocumentId String?
-  sourceChunkId  String?
-  evidenceKind   String   @default("source_chunk")
-  excerpt        String?  @db.Text
-  weight         Float    @default(1)
-  metadata       Json?
-  createdAt      DateTime @default(now())
+  sourceChunkId    String?
+  evidenceKind     String   @default("source_chunk")
+  excerpt          String?  @db.Text
+  weight           Float    @default(1)
+  metadata         Json?
+  createdAt        DateTime @default(now())
 
-  concept ReasoningOntologyConcept? @relation(fields: [conceptId], references: [id], onDelete: Cascade)
-  relationship ReasoningOntologyRelationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
-  cluster ReasoningOntologyCluster? @relation(fields: [clusterId], references: [id], onDelete: Cascade)
-  outcome ReasoningOntologyOutcome? @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
-  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
-  sourceChunk SourceChunk? @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  concept        ReasoningOntologyConcept?      @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  relationship   ReasoningOntologyRelationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  cluster        ReasoningOntologyCluster?      @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  outcome        ReasoningOntologyOutcome?      @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  sourceDocument SourceDocument?                @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourceChunk    SourceChunk?                   @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
 
   @@index([conceptId])
   @@index([relationshipId])
@@ -1235,28 +1473,31 @@ model CurriculumDay {
 
 // Generation trace - source and model provenance for AI outputs
 model GenerationTrace {
-  id               String   @id @default(cuid())
-  userId           String?
-  councilSessionId String?
-  sourceChunkId    String?
-  traceType        String // retrieval, council, synthesis, prompt, safety
-  model            String?
-  promptVersion    String?
-  inputHash        String?
-  outputJson       Json?
-  validationStatus String   @default("unreviewed")
-  latencyMs        Int?
-  tokenUsage       Json?
-  fallbackReason   String?  @db.Text
-  createdAt        DateTime @default(now())
+  id                  String   @id @default(cuid())
+  userId              String?
+  councilSessionId    String?
+  reflectionSessionId String?
+  sourceChunkId       String?
+  traceType           String // retrieval, council, synthesis, prompt, safety
+  model               String?
+  promptVersion       String?
+  inputHash           String?
+  outputJson          Json?
+  validationStatus    String   @default("unreviewed")
+  latencyMs           Int?
+  tokenUsage          Json?
+  fallbackReason      String?  @db.Text
+  createdAt           DateTime @default(now())
 
-  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
-  councilSession CouncilSession? @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
-  sourceChunk    SourceChunk?    @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
-  qualityReviews QualityReview[]
+  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  councilSession    CouncilSession?    @relation(fields: [councilSessionId], references: [id], onDelete: SetNull)
+  reflectionSession ReflectionSession? @relation(fields: [reflectionSessionId], references: [id], onDelete: SetNull)
+  sourceChunk       SourceChunk?       @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  qualityReviews    QualityReview[]
 
   @@index([userId])
   @@index([councilSessionId])
+  @@index([reflectionSessionId])
   @@index([traceType])
   @@index([validationStatus])
 }
@@ -1270,10 +1511,10 @@ model SafetyEvent {
   severity          String // none, low, medium, high
   flags             Json // Array of detected flags
   recommendedAction String?
-  resolved          Boolean @default(false)
-  reviewStatus      String  @default("unreviewed") // unreviewed, reviewing, resolved, escalated
+  resolved          Boolean   @default(false)
+  reviewStatus      String    @default("unreviewed") // unreviewed, reviewing, resolved, escalated
   reviewerId        String?
-  reviewReason      String? @db.Text
+  reviewReason      String?   @db.Text
   resolvedAt        DateTime?
 
   createdAt DateTime @default(now())
