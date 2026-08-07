@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     }, {
       text: body.text,
       inputMode: body.inputMode,
+      handlingPreference: body.handlingPreference,
       calibrationScenario: body.calibrationScenario,
       requestId: request.headers.get("x-request-id") ?? undefined,
     })

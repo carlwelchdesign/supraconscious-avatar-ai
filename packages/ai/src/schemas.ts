@@ -75,6 +75,7 @@ export const GeneratedPromptSchema = z.object({
 export const JournalAnalyzeRequestSchema = z.object({
   text: z.string().trim().min(20, "Write at least 20 characters before reflecting."),
   inputMode: z.enum(["text", "voice"]).default("text"),
+  handlingPreference: z.enum(["standard", "simpler", "gentler"]).optional(),
   calibrationScenario: FounderCalibrationScenarioSchema.optional().default("freeform"),
 })
 

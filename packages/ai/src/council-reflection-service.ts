@@ -14,6 +14,13 @@ import { buildCrisisGroundingContent, shouldShortCircuitReflection } from "./saf
 import { validateCouncilRunForPilot } from "./council-pilot-validator.js"
 import { buildCouncilPromptVersion, resolveCouncilPromptTemplate } from "./council-prompt-template.js"
 import { readFounderCalibrationScenario, type FounderCalibrationScenario } from "./founder-calibration-scenarios.js"
+import {
+  DIMENSION_SELECTOR_VERSION,
+  selectDimensions,
+  type DimensionHandlingPreference,
+  type DimensionSelection,
+} from "./dimension-selection.js"
+import { DOCTRINE_CONTRACT_VERSION } from "./doctrine-contract.js"
 import { localAiCopy, resolveResponseLanguage, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
   buildGenerationTraceLangSmithMetadata,
@@ -42,6 +49,7 @@ export type CouncilReflectionInput = {
   calibrationScenario?: FounderCalibrationScenario
   requestId?: string
   responseLanguage?: ResponseLanguage
+  handlingPreference?: DimensionHandlingPreference
   /** Legacy compatibility only. Active reflection always sets this to false. */
   personaStageProgressionEnabled?: boolean
 }
@@ -133,6 +141,12 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
   }
 
   if (shouldShortCircuitReflection(safety)) {
+    const dimensionSelection = selectDimensions({
+      text: input.text,
+      safety,
+      handlingPreference: resolveDimensionHandlingPreference(user, input),
+      preferredIntensity: user.intensityLevel,
+    })
     const copy = localAiCopy(responseLanguage)
     const grounding = buildCrisisGroundingContent(safety, responseLanguage)
     const avatarResponse = await prisma.avatarResponse.create({
@@ -182,6 +196,8 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       },
     })
 
+    await persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection)
+
     await emitPilotEvent({
       eventName: "council_response_finalized",
       userId: user.id,
@@ -201,6 +217,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       avatarResponse,
       prompt,
       progression: unchangedProgression(user),
+      dimensionSelection,
     }
   }
 
@@ -227,6 +244,26 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     }, langsmith)
   }
 
+  const dimensionSelection = selectDimensions({
+    text: input.text,
+    safety,
+    analysis,
+    handlingPreference: resolveDimensionHandlingPreference(user, input),
+    preferredIntensity: user.intensityLevel,
+  })
+  recordLangSmithEvent(langsmith, "dimensions_selected", {
+    requestId: input.requestId,
+    userId: user.id,
+    journalEntryId: journalEntry.id,
+    selectorVersion: dimensionSelection.selectorVersion,
+    doctrineVersion: dimensionSelection.doctrineVersion,
+    selectedDimensions: dimensionSelection.selected.map((item) => item.dimension),
+    selectedDepths: dimensionSelection.selected.map((item) => item.depth),
+    safetyMode: dimensionSelection.safetyMode,
+    handlingPreference: dimensionSelection.handlingPreference,
+    returningContextUsed: dimensionSelection.returningContext.used,
+  })
+
   const [storedAnalysis, avatar, prompt] = await Promise.all([
     prisma.entryAnalysis.create({
       data: buildAnalysisData(user.id, journalEntry.id, analysis),
@@ -237,6 +274,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       language: responseLanguage,
     }),
     generateSymbolicPrompt(analysis, safety, responseLanguage),
+    persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection),
   ])
 
   const [avatarResponse, generatedPrompt] = await Promise.all([
@@ -263,7 +301,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     ? unchangedProgression(user)
     : await checkAndAdvanceProgression(user.id, user.currentLevel, user.avatarStage)
 
-  return { journalEntry, safety, analysis: storedAnalysis, avatarResponse, prompt: generatedPrompt, progression }
+  return { journalEntry, safety, analysis: storedAnalysis, avatarResponse, prompt: generatedPrompt, progression, dimensionSelection }
 }
 
 export function buildJournalEntryCreateArgs(userId: string, rawText: string, inputMode: "text" | "voice") {
@@ -286,6 +324,33 @@ function unchangedProgression(user: CouncilReflectionUser) {
     previousLevel: user.currentLevel,
     previousStage: user.avatarStage,
   }
+}
+
+function resolveDimensionHandlingPreference(user: CouncilReflectionUser, input: CouncilReflectionInput): DimensionHandlingPreference {
+  if (input.handlingPreference) return input.handlingPreference
+  if (user.avatarTone.toLowerCase().includes("gentle") || user.intensityLevel <= 2) return "gentler"
+  return "standard"
+}
+
+function persistDimensionSelectionTrace(
+  userId: string,
+  journalEntryId: string,
+  text: string,
+  selection: DimensionSelection,
+) {
+  return prisma.generationTrace.create({
+    data: {
+      userId,
+      traceType: "dimension_selection",
+      promptVersion: DIMENSION_SELECTOR_VERSION,
+      inputHash: hashPilotInput(text),
+      outputJson: {
+        dimensionSelection: selection,
+        doctrineVersion: DOCTRINE_CONTRACT_VERSION,
+      },
+      validationStatus: selection.safetyMode === "plain_grounding" ? "grounding_redirect" : "selected",
+    },
+  })
 }
 
 async function runCouncilMode(

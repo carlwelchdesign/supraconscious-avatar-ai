@@ -30,6 +30,24 @@ type JournalAnalyzeResult = {
     previousLevel: number
     previousStage: number
   }
+  dimensionSelection?: {
+    selectorVersion: string
+    doctrineVersion: string
+    policySource: string
+    orderingPolicy: string
+    handlingPreference: string
+    safetyMode: string
+    selected: Array<{
+      dimension: string
+      order: number
+      depth: number
+      reasonCodes: string[]
+      evidenceRefs: Array<{ source: string; signal: string }>
+      observerVantage: boolean
+    }>
+    suppressed: Array<{ dimension: string; reasonCode: string }>
+    returningContext: { eligible: boolean; used: boolean; reason: string }
+  }
   councilSession?: {
     id: string
     observerSignal?: unknown
@@ -91,6 +109,7 @@ export function buildJournalAnalyzeResponse(result: JournalAnalyzeResult) {
       integration: result.prompt.integration,
     },
     progression: result.progression,
+    dimensionSelection: result.dimensionSelection,
     councilSession: result.councilSession
       ? {
           id: result.councilSession.id,
