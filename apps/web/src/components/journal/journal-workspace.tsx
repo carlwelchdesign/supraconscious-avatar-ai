@@ -8,11 +8,11 @@ import {
   FOUNDER_CALIBRATION_SCENARIO_PROMPTS,
   type FounderCalibrationScenario,
 } from "@inner-avatar/ai/founder-calibration-scenarios"
-import { FOUNDER_FEEDBACK_NOTE_TEMPLATES } from "@inner-avatar/ai/founder-feedback-notes"
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { MicButton } from "@/components/voice/MicButton"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { MirrorFormingState } from "@/components/journal/mirror-forming-state"
+import { DimensionRationalePanel } from "@/components/journal/dimension-rationale-panel"
+import type { PublicDimensionRationale } from "@/lib/dimension-rationale"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
@@ -72,30 +72,7 @@ type AnalysisResult = {
     previousLevel: number
     previousStage: number
   }
-  councilSession?: {
-    id: string
-    observerSignal: {
-      coreTension?: string
-      emotionalTone?: string
-      patternLanguage?: string[]
-      contradiction?: string
-      userEvidence?: string[]
-    }
-    messages: Array<{
-      id: string
-      role: string
-      displayName: string
-      lens: string
-      content: string
-      confidence: number
-      abstained: boolean
-    }>
-    synthesis: {
-      integratorQuestion: string
-      integrationStep: string
-      coreTension: string | null
-    } | null
-  }
+  dimensionRationale: PublicDimensionRationale | null
   sourceProvenance?: {
     sourceMode: string
     message: string
@@ -173,7 +150,6 @@ export function JournalWorkspace({
   founderFeedbackHref = null,
 }: Props) {
   const t = useTranslations("journal")
-  const feedbackT = useTranslations("sessionDetail.feedbackTypes")
   const suggestedPrompt = suggestedCalibrationScenario
     ? CALIBRATION_PROMPTS.find((prompt) => prompt.scenario === suggestedCalibrationScenario)
     : null
@@ -186,13 +162,7 @@ export function JournalWorkspace({
 
   const [text, setText] = useState(initialText)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSavingShift, setIsSavingShift] = useState(false)
-  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
   const [error, setError] = useState("")
-  const [embodimentText, setEmbodimentText] = useState("")
-  const [embodimentSaved, setEmbodimentSaved] = useState(false)
-  const [feedbackSaved, setFeedbackSaved] = useState("")
-  const [feedbackNote, setFeedbackNote] = useState("")
   const [calibrationScenario, setCalibrationScenario] = useState<FounderCalibrationScenario>(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const submissionInFlight = useRef(false)
@@ -210,10 +180,6 @@ export function JournalWorkspace({
     submissionInFlight.current = true
     setError("")
     setResult(null)
-    setEmbodimentText("")
-    setEmbodimentSaved(false)
-    setFeedbackSaved("")
-    setFeedbackNote("")
     setIsSubmitting(true)
 
     try {
@@ -254,60 +220,6 @@ export function JournalWorkspace({
       return `${prev}\n\n${promptText}`
     })
   }
-  const applyFeedbackTemplate = (template: string) => {
-    setFeedbackNote((prev) => (prev.trim() ? `${prev.trim()}\n${template}` : template))
-  }
-
-  async function handleSaveEmbodiment() {
-    if (!result?.councilSession || !embodimentText.trim()) return
-
-    setError("")
-    setIsSavingShift(true)
-    try {
-      const response = await fetch("/api/council/embodiment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          councilSessionId: result.councilSession.id,
-          journalEntryId: result.journalEntry?.id,
-          text: embodimentText,
-        }),
-      })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "shift", t))
-      setEmbodimentSaved(true)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t("saveShiftError"))
-    } finally {
-      setIsSavingShift(false)
-    }
-  }
-
-  async function handleSessionFeedback(feedbackType: string) {
-    if (!result?.councilSession) return
-    setError("")
-    setIsSavingFeedback(true)
-    try {
-      const response = await fetch("/api/council/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          councilSessionId: result.councilSession.id,
-          feedbackType,
-          note: feedbackNote.trim() || undefined,
-        }),
-      })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(userFacingSaveError(payload.error, response.status, "feedback", t))
-      setFeedbackSaved(feedbackType)
-      setFeedbackNote("")
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t("saveFeedbackError"))
-    } finally {
-      setIsSavingFeedback(false)
-    }
-  }
-
   const trimmedText = text.trim()
   const founderFirstSessionNeedsContext = founderCalibrationMode && needsFounderFirstSessionGuide && !result
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
@@ -335,12 +247,6 @@ export function JournalWorkspace({
   const speakText = result
     ? buildSpeakText(result.avatarResponse)
     : ""
-  const signalLabel = (confidence: number) => {
-    if (confidence >= 0.75) return t("strongSignal")
-    if (confidence >= 0.55) return t("basedOnEntry")
-    return t("lightSignal")
-  }
-
   return (
     <div className="space-y-6">
 
@@ -556,7 +462,6 @@ export function JournalWorkspace({
           >
             {isSubmitting ? null : (
               <div className="flex flex-col items-center text-center mb-5">
-                <AvatarOrb size="lg" stage={1} className="mb-3" />
                 <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
                   {t("guideResponse")}
                 </p>
@@ -656,164 +561,8 @@ export function JournalWorkspace({
             )}
           </div>
 
-          {result?.councilSession && (
-            <div
-              className="rounded-3xl border p-6"
-              style={{
-                background: "var(--pearl)",
-                borderColor: "rgba(43,27,53,0.07)",
-              }}
-            >
-              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                {t("innerCouncil")}
-              </p>
-              <h2 className="font-display text-[22px] font-light text-[var(--primary)] leading-snug">
-                {result.councilSession.observerSignal.coreTension ?? t("councilFallback")}
-              </h2>
-              {result.councilSession.observerSignal.contradiction && (
-                <p className="mt-3 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                  {result.councilSession.observerSignal.contradiction}
-                </p>
-              )}
-
-              <div className="mt-5 space-y-3">
-                {result.councilSession.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className="rounded-2xl border px-4 py-3"
-                    style={{
-                      background: "rgba(43,27,53,0.025)",
-                      borderColor: "rgba(43,27,53,0.06)",
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-3 mb-1">
-                      <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
-                        {message.displayName}
-                      </p>
-                      <span className="text-[10px] font-light text-[var(--plum-soft)]">
-                        {message.abstained ? t("grounding") : signalLabel(message.confidence)}
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                      {message.abstained ? t("quietVoice") : message.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {result.councilSession.synthesis && (
-                <div
-                  className="mt-5 rounded-2xl px-5 py-4"
-                  style={{
-                    background: "rgba(184,137,90,0.08)",
-                    border: "1px solid rgba(184,137,90,0.18)",
-                  }}
-                >
-                  <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                    {t("supraconsciousGuide")}
-                  </p>
-                  <p className="font-display italic text-[17px] font-medium leading-[1.55] text-[var(--primary)]">
-                    {result.councilSession.synthesis.integratorQuestion}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {result?.councilSession && (
-            <div
-              className="rounded-3xl border p-6"
-              style={{
-                background: "var(--pearl)",
-                borderColor: "rgba(43,27,53,0.07)",
-              }}
-            >
-              <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)] mb-2">
-                {t("sessionFeedback")}
-              </p>
-              <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                {founderCalibrationMode
-                  ? t("feedbackFounderHelp")
-                  : t("feedbackStandardHelp")}
-              </p>
-              {founderCalibrationMode && (
-                <p className="mt-2 text-[12px] font-light leading-relaxed text-[var(--clay)]">
-                  {t("feedbackFounderNoteHelp")}
-                </p>
-              )}
-              <textarea
-                value={feedbackNote}
-                onChange={(event) => setFeedbackNote(event.target.value)}
-                maxLength={500}
-                placeholder={founderCalibrationMode
-                  ? t("feedbackFounderPlaceholder")
-                  : t("feedbackStandardPlaceholder")}
-                className="mt-4 w-full min-h-[86px] resize-none rounded-2xl border bg-transparent px-4 py-3 text-[13px] font-light leading-relaxed text-[var(--primary)] outline-none placeholder:text-[var(--plum-soft)]/45"
-                style={{ borderColor: "rgba(43,27,53,0.08)" }}
-              />
-              {founderCalibrationMode && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {FOUNDER_FEEDBACK_NOTE_TEMPLATES.map((template) => (
-                    <button
-                      key={template}
-                      type="button"
-                      onClick={() => applyFeedbackTemplate(template)}
-                      className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)]"
-                      style={{ borderColor: "rgba(43,27,53,0.08)" }}
-                    >
-                      {template.replace(": ", "")}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="mt-4 flex flex-wrap gap-2">
-                {[
-                  ["helpful", feedbackT("helpful")],
-                  ["not_accurate", feedbackT("not_accurate")],
-                  ["too_intense", feedbackT("too_intense")],
-                  ["unclear", feedbackT("unclear")],
-                  ["unsupported_source", feedbackT("unsupported_source")],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled={isSavingFeedback}
-                    onClick={() => handleSessionFeedback(value)}
-                    className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--plum-soft)] transition hover:bg-[rgba(43,27,53,0.04)] disabled:opacity-40"
-                    style={{ borderColor: "rgba(43,27,53,0.08)" }}
-                  >
-                    {feedbackSaved === value ? t("saved") : label}
-                  </button>
-                ))}
-              </div>
-              {feedbackSaved && (
-                <div className="mt-3 rounded-2xl border px-4 py-3" style={{ borderColor: "rgba(184,137,90,0.18)", background: "rgba(184,137,90,0.07)" }}>
-                  <p className="text-[11px] font-light leading-relaxed text-[var(--plum-soft)]/80">
-                    {founderCalibrationMode
-                      ? t("feedbackSavedFounder")
-                      : t("feedbackSavedStandard")}
-                  </p>
-                  {founderCalibrationMode && result.journalEntry?.id && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Link
-                        href={`/journal/${result.journalEntry.id}`}
-                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
-                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
-                      >
-                        Open saved session
-                      </Link>
-                      <Link
-                        href="/dashboard"
-                        className="rounded-full border px-3 py-1.5 text-[11px] font-medium text-[var(--primary)] transition hover:bg-[rgba(43,27,53,0.04)]"
-                        style={{ borderColor: "rgba(43,27,53,0.08)" }}
-                      >
-                        {t("returnDashboard")}
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+          {result?.dimensionRationale && (
+            <DimensionRationalePanel rationale={result.dimensionRationale} />
           )}
 
           {result?.sourceProvenance && (
@@ -916,44 +665,6 @@ export function JournalWorkspace({
             </div>
           )}
 
-          {result?.councilSession && (
-            <div
-              className="rounded-3xl border p-6"
-              style={{
-                background: "var(--primary)",
-                borderColor: "var(--primary)",
-              }}
-            >
-              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-                {t("embodimentGate")}
-              </p>
-              <h3 className="font-display text-[22px] font-light text-[var(--cream)] leading-tight">
-                {t("embodimentQuestion")}
-              </h3>
-              <p className="mt-2 text-[13px] font-light text-[var(--cream)]/60">
-                {t("embodimentHelp")}
-              </p>
-              <textarea
-                value={embodimentText}
-                onChange={(event) => {
-                  setEmbodimentText(event.target.value)
-                  setEmbodimentSaved(false)
-                }}
-                placeholder={t("embodimentPlaceholder")}
-                className="mt-4 w-full min-h-[110px] resize-none rounded-2xl border bg-[rgba(244,237,228,0.06)] px-4 py-3 text-[14px] font-light leading-relaxed text-[var(--cream)] outline-none placeholder:text-[var(--cream)]/35"
-                style={{ borderColor: "rgba(244,237,228,0.14)" }}
-              />
-              <button
-                type="button"
-                onClick={handleSaveEmbodiment}
-                disabled={isSavingShift || embodimentText.trim().length < 3 || embodimentSaved}
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--cream)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary)] disabled:opacity-45"
-              >
-                {isSavingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {embodimentSaved ? t("gateCrossed") : t("crossGate")}
-              </button>
-            </div>
-          )}
         </aside>
       </div>
     </div>
@@ -969,14 +680,4 @@ function userFacingJournalError(error: unknown, status: number, t: JournalTransl
   if (status === 400 && message) return message
   if (status >= 500) return t("journalErrorServer")
   return t("transientError")
-}
-
-function userFacingSaveError(error: unknown, status: number, item: "shift" | "feedback", t: JournalTranslator) {
-  const message = typeof error === "string" ? error : ""
-  if (status === 401) return t("saveErrorSignIn")
-  if (status === 404) return t("saveErrorMissing")
-  if (status === 400 && message) return message
-  return item === "shift"
-    ? t("saveShiftError")
-    : t("saveFeedbackError")
 }

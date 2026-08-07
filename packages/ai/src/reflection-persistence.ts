@@ -48,7 +48,13 @@ export async function recordReflectionCorrection(
 ) {
   return client.$transaction(async (tx) => {
     const ownedSession = await tx.reflectionSession.findFirst({
-      where: buildOwnerScopedReflectionWhere(input.userId, input.reflectionSessionId),
+      where: {
+        ...buildOwnerScopedReflectionWhere(input.userId, input.reflectionSessionId),
+        disabledAt: null,
+        ...(input.dimension
+          ? { dimensions: { some: { dimension: input.dimension, disabledAt: null } } }
+          : {}),
+      },
       select: { id: true },
     })
     if (!ownedSession) return null

@@ -1,4 +1,3 @@
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import type { ReactNode } from "react"
 
 type Props = {
@@ -20,7 +19,11 @@ export function MirrorFormingState({ status, supportingText, orb }: Props) {
         <span className="mirror-forming-point mirror-forming-point-clay mirror-forming-motion absolute" />
         <span className="mirror-forming-point mirror-forming-point-blue mirror-forming-motion absolute" />
         <span className="mirror-forming-point mirror-forming-point-pearl mirror-forming-motion absolute" />
-        {orb ?? <AvatarOrb size="sm" stage={1} className="mirror-forming-orb mirror-forming-motion relative z-10" />}
+        {orb ?? (
+          <span
+            className="mirror-forming-motion relative z-10 h-3 w-3 rounded-full bg-[var(--clay)] shadow-[0_0_28px_rgba(184,137,90,0.5)]"
+          />
+        )}
       </div>
 
       <div role="status" aria-live="polite" aria-atomic="true" className="max-w-[280px]">

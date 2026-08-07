@@ -226,6 +226,7 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       prompt,
       progression: unchangedProgression(user),
       dimensionSelection,
+      reflectionSessionId: reflectionSession.id,
     }
   }
 
@@ -321,7 +322,16 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     ? unchangedProgression(user)
     : await checkAndAdvanceProgression(user.id, user.currentLevel, user.avatarStage)
 
-  return { journalEntry, safety, analysis: storedAnalysis, avatarResponse, prompt: generatedPrompt, progression, dimensionSelection }
+  return {
+    journalEntry,
+    safety,
+    analysis: storedAnalysis,
+    avatarResponse,
+    prompt: generatedPrompt,
+    progression,
+    dimensionSelection,
+    reflectionSessionId: reflectionSession.id,
+  }
 }
 
 export function buildJournalEntryCreateArgs(userId: string, rawText: string, inputMode: "text" | "voice") {
