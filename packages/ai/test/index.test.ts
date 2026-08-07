@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import "./active-runtime-doctrine-guard.test.js"
+import "./curated-prompt-registry.test.js"
 import "./v2-reflection-persistence.test.js"
 import { PILOT_CONSENT_VERSION } from "@inner-avatar/types/pilot-consent"
 import { languageInstruction } from "@inner-avatar/ai/response-language"
