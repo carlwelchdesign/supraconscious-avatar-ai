@@ -70,6 +70,7 @@ test("journal analyze response excludes raw journal text and internal record fie
   assert.equal(JSON.stringify(response).includes("journalEntryId"), false)
   assert.equal(JSON.stringify(response).includes("evidence"), false)
   assert.equal("councilSession" in response, false)
+  assert.equal("progression" in response, false)
 })
 
 test("journal analyze response includes the inspectable privacy-safe dimension rationale", () => {

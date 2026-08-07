@@ -111,7 +111,6 @@ export function buildJournalAnalyzeResponse(result: JournalAnalyzeResult) {
       execution: result.prompt.execution,
       integration: result.prompt.integration,
     },
-    progression: result.progression,
     dimensionRationale: buildPublicDimensionRationale(
       result.dimensionSelection,
       result.reflectionSessionId,

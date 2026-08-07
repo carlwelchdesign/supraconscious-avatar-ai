@@ -16,7 +16,6 @@ import type { PublicDimensionRationale } from "@/lib/dimension-rationale"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
 
-const LEVELS = ["Awareness", "Pattern Recognition", "Honest Reflection", "Reframing", "Conscious Choice"] as const
 const CALIBRATION_PROMPTS = [
   {
     scenario: "voice_test",
@@ -63,14 +62,6 @@ type AnalysisResult = {
     materials: string | null
     execution: string
     integration: string
-  }
-  progression: {
-    levelChanged: boolean
-    stageChanged: boolean
-    newLevel: number
-    newStage: number
-    previousLevel: number
-    previousStage: number
   }
   dimensionRationale: PublicDimensionRationale | null
   sourceProvenance?: {
@@ -605,23 +596,6 @@ export function JournalWorkspace({
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {result?.progression.levelChanged && (
-            <div
-              className="rounded-3xl border p-5"
-              style={{
-                background: "rgba(184,137,90,0.07)",
-                borderColor: "rgba(184,137,90,0.18)",
-              }}
-            >
-              <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
-                {t("reflectionDepth")}
-              </p>
-              <p className="font-display text-[16px] font-light text-[var(--primary)]">
-                {t("enteringLevel", { level: LEVELS[result.progression.newLevel - 1] })}
-              </p>
             </div>
           )}
 

@@ -1468,7 +1468,6 @@ class GuideTab extends ConsumerWidget {
                 label: AppLocalizations.of(context).intensity,
                 value: '${data.intensityLevel}/5',
               ),
-              _StatCard(label: 'Progression', value: 'Yours'),
             ],
           ),
           const SizedBox(height: 24),
