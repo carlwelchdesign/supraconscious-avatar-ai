@@ -21,6 +21,9 @@ export type AccountExportInputs = {
   journalEntries: unknown[]
   patternMemories: unknown[]
   councilSessions: unknown[]
+  reflectionSessions?: unknown[]
+  reflectionCapacityProfile?: unknown | null
+  reflectionCorrections?: unknown[]
   safetyEvents: unknown[]
   consentEvents: unknown[]
   pilotEvents: unknown[]
@@ -49,6 +52,9 @@ export function buildAccountExportPayload(input: AccountExportInputs) {
     journalEntries: input.journalEntries,
     patternMemories: input.patternMemories,
     councilSessions: input.councilSessions,
+    reflectionSessions: input.reflectionSessions ?? [],
+    reflectionCapacityProfile: input.reflectionCapacityProfile ?? null,
+    reflectionCorrections: input.reflectionCorrections ?? [],
     safetyEvents: input.safetyEvents,
     consentEvents: input.consentEvents,
     pilotEvents: input.pilotEvents,

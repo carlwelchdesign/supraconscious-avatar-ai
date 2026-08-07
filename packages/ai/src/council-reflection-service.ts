@@ -21,6 +21,8 @@ import {
   type DimensionSelection,
 } from "./dimension-selection.js"
 import { DOCTRINE_CONTRACT_VERSION } from "./doctrine-contract.js"
+import { FOUNDER_CONTEXT_APPROVED_CHECKSUMS } from "./founder-context-registry.js"
+import type { SafetyCheck } from "./schemas.js"
 import { localAiCopy, resolveResponseLanguage, type ResponseLanguage } from "@inner-avatar/ai/response-language"
 import {
   buildGenerationTraceLangSmithMetadata,
@@ -196,7 +198,13 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       },
     })
 
-    await persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection)
+    const reflectionSession = await persistV2ReflectionSession(
+      user.id,
+      journalEntry.id,
+      safety,
+      dimensionSelection,
+    )
+    await persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection, reflectionSession.id)
 
     await emitPilotEvent({
       eventName: "council_response_finalized",
@@ -274,7 +282,6 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
       language: responseLanguage,
     }),
     generateSymbolicPrompt(analysis, safety, responseLanguage),
-    persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection),
   ])
 
   const [avatarResponse, generatedPrompt] = await Promise.all([
@@ -296,6 +303,19 @@ async function runCouncilReflectionInternal(user: CouncilReflectionUser, input: 
     }),
     maybeUpdateMemory(user, journalEntry.id, analysis),
   ])
+
+  const reflectionSession = await persistV2ReflectionSession(
+    user.id,
+    journalEntry.id,
+    safety,
+    dimensionSelection,
+    {
+      synthesisStatement: avatar.mirror,
+      socraticQuestion: avatar.socraticQuestion,
+      embodimentInvitation: avatar.integrationStep,
+    },
+  )
+  await persistDimensionSelectionTrace(user.id, journalEntry.id, input.text, dimensionSelection, reflectionSession.id)
 
   const progression = input.personaStageProgressionEnabled === false
     ? unchangedProgression(user)
@@ -337,10 +357,12 @@ function persistDimensionSelectionTrace(
   journalEntryId: string,
   text: string,
   selection: DimensionSelection,
+  reflectionSessionId?: string,
 ) {
   return prisma.generationTrace.create({
     data: {
       userId,
+      reflectionSessionId,
       traceType: "dimension_selection",
       promptVersion: DIMENSION_SELECTOR_VERSION,
       inputHash: hashPilotInput(text),
@@ -350,6 +372,74 @@ function persistDimensionSelectionTrace(
       },
       validationStatus: selection.safetyMode === "plain_grounding" ? "grounding_redirect" : "selected",
     },
+  })
+}
+
+function persistV2ReflectionSession(
+  userId: string,
+  journalEntryId: string,
+  safety: SafetyCheck,
+  selection: DimensionSelection,
+  guide?: {
+    synthesisStatement: string
+    socraticQuestion: string
+    embodimentInvitation: string
+  },
+) {
+  return prisma.$transaction(async (tx) => {
+    const doctrineVersion = await tx.doctrineVersion.upsert({
+      where: { version: DOCTRINE_CONTRACT_VERSION },
+      update: {},
+      create: {
+        version: DOCTRINE_CONTRACT_VERSION,
+        contentChecksum: FOUNDER_CONTEXT_APPROVED_CHECKSUMS.foundational_consciousness_architecture_v1,
+        approvalState: "founder_supplied",
+        metadata: {
+          source: "foundational_consciousness_architecture_v1",
+          engineeringRegistrationOnly: true,
+        },
+      },
+    })
+
+    return tx.reflectionSession.create({
+      data: {
+        userId,
+        journalEntryId,
+        doctrineVersionId: doctrineVersion.id,
+        responseMode: selection.safetyMode === "plain_grounding" ? "grounding" : "guide",
+        status: selection.safetyMode === "plain_grounding" ? "grounded" : "completed",
+        safetySnapshot: {
+          severity: safety.severity,
+          flags: safety.flags,
+          recommendedAction: safety.recommendedAction,
+          allowReflectiveFlow: safety.allowReflectiveFlow,
+        },
+        selectorVersion: selection.selectorVersion,
+        selectionPolicy: selection.policySource,
+        completedAt: new Date(),
+        dimensions: {
+          create: selection.selected.map((item) => ({
+            dimension: item.dimension,
+            displayOrder: item.order,
+            depth: item.depth,
+            reasonCodes: item.reasonCodes,
+            evidenceRefs: item.evidenceRefs,
+            epistemicStatus: "selected",
+          })),
+        },
+        guideSynthesis: guide
+          ? {
+              create: {
+                guideVersion: DOCTRINE_CONTRACT_VERSION,
+                synthesisStatement: guide.synthesisStatement,
+                socraticQuestion: guide.socraticQuestion,
+                embodimentInvitation: guide.embodimentInvitation,
+                validationStatus: "generated",
+              },
+            }
+          : undefined,
+      },
+    })
   })
 }
 

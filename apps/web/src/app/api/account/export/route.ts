@@ -27,6 +27,9 @@ export async function GET() {
     journalEntries,
     patternMemories,
     councilSessions,
+    reflectionSessions,
+    reflectionCapacityProfile,
+    reflectionCorrections,
     safetyEvents,
     consentEvents,
     pilotEvents,
@@ -78,6 +81,54 @@ export async function GET() {
         },
       },
     }),
+    prisma.reflectionSession.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        doctrineVersion: true,
+        dimensions: { orderBy: { displayOrder: "asc" } },
+        guideSynthesis: true,
+        corrections: true,
+        promptAssignments: {
+          include: {
+            curatedPrompt: {
+              include: { dimensions: true, sourceDocument: true },
+            },
+          },
+        },
+        generationTraces: {
+          select: {
+            id: true,
+            sourceChunkId: true,
+            traceType: true,
+            model: true,
+            promptVersion: true,
+            inputHash: true,
+            validationStatus: true,
+            fallbackReason: true,
+            createdAt: true,
+            sourceChunk: {
+              select: {
+                id: true,
+                sourceDocument: {
+                  select: {
+                    id: true,
+                    title: true,
+                    sourceType: true,
+                    reviewState: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.reflectionCapacityProfile.findUnique({ where: { userId: user.id } }),
+    prisma.reflectionCorrection.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.safetyEvent.findMany({ where: { userId: user.id } }),
     prisma.consentEvent.findMany({ where: { userId: user.id } }),
     prisma.pilotEvent.findMany({
@@ -117,7 +168,11 @@ export async function GET() {
   const exportEvent = await emitPilotEvent({
     eventName: "data_export_requested",
     userId: user.id,
-    properties: { entryCount: journalEntries.length, councilSessionCount: councilSessions.length },
+    properties: {
+      entryCount: journalEntries.length,
+      councilSessionCount: councilSessions.length,
+      reflectionSessionCount: reflectionSessions.length,
+    },
   })
 
   const exportedAt = new Date().toISOString()
@@ -128,6 +183,9 @@ export async function GET() {
     journalEntries,
     patternMemories,
     councilSessions,
+    reflectionSessions,
+    reflectionCapacityProfile,
+    reflectionCorrections,
     safetyEvents,
     consentEvents,
     pilotEvents: [
