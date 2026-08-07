@@ -3,7 +3,6 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { buildSourceProvenanceMessage, isFounderCalibrationUser } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { AudioPlayer } from "@/components/voice/AudioPlayer"
 import { formatWebLongDate } from "@/lib/date-format"
 import { readFounderReviewSummary } from "@/lib/founder-review-summary"
@@ -209,7 +208,6 @@ export default async function JournalEntryPage({
         >
           {/* Header */}
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
-            <AvatarOrb size="sm" stage={1} className="mb-3" priority />
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
               Supraconscious reflection
             </p>
@@ -320,40 +318,9 @@ export default async function JournalEntryPage({
           }}
         >
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-3">
-            {sessionMessages.innerCouncil}
+            {founderCalibrationMode ? sessionMessages.calibrationStatus : sessionMessages.sessionStatus}
           </p>
-          {entry.councilSession.synthesis && (
-            <div
-              className="rounded-xl px-5 py-4"
-              style={{
-                background: "rgba(184,137,90,0.07)",
-                border: "1px solid rgba(184,137,90,0.15)",
-              }}
-            >
-              <p className="font-display italic text-[17px] font-medium leading-[1.65] text-[var(--primary)]">
-                {entry.councilSession.synthesis.integratorQuestion}
-              </p>
-              <p className="mt-3 text-[14px] font-light leading-relaxed text-[var(--plum-soft)]">
-                {entry.councilSession.synthesis.integrationStep}
-              </p>
-            </div>
-          )}
-          <div className="mt-5 space-y-3">
-            {entry.councilSession.messages.map((message) => (
-              <div key={message.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
-                <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--clay)]">
-                  {message.displayName}
-                </p>
-                <p className="mt-1 text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-                  {message.abstained ? sessionMessages.quietVoice : message.content}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
-            <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
-              {founderCalibrationMode ? sessionMessages.calibrationStatus : sessionMessages.sessionStatus}
-            </p>
+          <div className="rounded-xl border px-4 py-3" style={{ borderColor: "rgba(43,27,53,0.06)" }}>
             <p className="mt-1 text-[12px] font-light text-[var(--plum-soft)]">
               {entry.councilSession.embodimentGateResponses.length > 0 ? sessionMessages.gateSaved : sessionMessages.gateNotSaved} · {entry.councilSession.feedback.length > 0 ? sessionMessages.feedbackReceived : sessionMessages.feedbackNeeded}
             </p>

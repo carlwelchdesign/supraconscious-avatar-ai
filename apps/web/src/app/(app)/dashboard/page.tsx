@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowRight, BookOpen } from "lucide-react"
 import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { prisma } from "@inner-avatar/db"
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { formatWebDayOfMonth, formatWebMonthDay, formatWebShortMonth, getAppHour } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 import { resolveWebLanguage } from "@/lib/language"
@@ -199,7 +198,7 @@ export default async function DashboardPage({
 
       {/* ── Guide hero ───────────────────────────────────────── */}
       <div
-        className="rounded-3xl border p-8 flex items-center gap-8 overflow-hidden relative"
+        className="rounded-3xl border p-8 overflow-hidden relative"
         style={{
           background: "var(--primary)",
           borderColor: "var(--primary)",
@@ -210,8 +209,6 @@ export default async function DashboardPage({
           className="absolute top-1/2 right-16 -translate-y-1/2 w-64 h-64 rounded-full blur-[60px] opacity-20 pointer-events-none"
           style={{ background: "radial-gradient(circle, var(--clay), transparent)" }}
         />
-
-        <AvatarOrb size="lg" stage={1} className="flex-shrink-0 relative z-10" />
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">

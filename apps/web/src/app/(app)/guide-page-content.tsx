@@ -1,5 +1,4 @@
 import { DOCTRINE_CONTRACT, DIMENSION_CONTRACT } from "@inner-avatar/ai"
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
 
 export async function GuidePageContent() {
@@ -19,10 +18,9 @@ export async function GuidePageContent() {
         </p>
       </div>
 
-      <div className="relative flex flex-col items-center gap-8 overflow-hidden rounded-3xl border p-10 sm:flex-row sm:items-start" style={{ background: "var(--primary)", borderColor: "var(--primary)" }}>
+      <div className="relative overflow-hidden rounded-3xl border p-10" style={{ background: "var(--primary)", borderColor: "var(--primary)" }}>
         <span className="pointer-events-none absolute right-12 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full opacity-15 blur-[80px]" style={{ background: "radial-gradient(circle, var(--clay), transparent)" }} />
-        <AvatarOrb size="lg" stage={1} className="relative z-10 flex-shrink-0" />
-        <div className="relative z-10 text-center sm:text-left">
+        <div className="relative z-10">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--clay-light)]">Your constant Guide</p>
           <h2 className="mb-3 font-display text-[36px] font-light leading-tight text-[var(--cream)]">{DOCTRINE_CONTRACT.guide.name}</h2>
           <p className="max-w-sm text-[15px] font-light leading-[1.7] text-[var(--cream)]/60">

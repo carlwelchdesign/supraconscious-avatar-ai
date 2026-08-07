@@ -69,6 +69,7 @@ test("journal analyze response excludes raw journal text and internal record fie
   assert.equal(JSON.stringify(response).includes("user-1"), false)
   assert.equal(JSON.stringify(response).includes("journalEntryId"), false)
   assert.equal(JSON.stringify(response).includes("evidence"), false)
+  assert.equal("councilSession" in response, false)
 })
 
 test("journal analyze response includes the inspectable privacy-safe dimension rationale", () => {
@@ -87,6 +88,7 @@ test("journal analyze response includes the inspectable privacy-safe dimension r
     } as any,
     prompt: { title: "Prompt", context: "Context", materials: "Pen", execution: "Write", integration: "Reflect" } as any,
     progression: { levelChanged: false, stageChanged: false, newLevel: 1, newStage: 1, previousLevel: 1, previousStage: 1 },
+    reflectionSessionId: "reflection-2",
     dimensionSelection: {
       selectorVersion: "selector-v1",
       doctrineVersion: "doctrine-v1",
@@ -107,7 +109,18 @@ test("journal analyze response includes the inspectable privacy-safe dimension r
     },
   })
 
-  assert.equal(response.dimensionSelection?.orderingPolicy, "adaptive_session_flow_not_dimension_rank")
-  assert.equal(response.dimensionSelection?.selected[0]?.observerVantage, true)
+  assert.deepEqual(response.dimensionRationale, {
+    reflectionSessionId: "reflection-2",
+    mode: "reflective",
+    selected: [{
+      dimension: "story",
+      order: 1,
+      depth: 1,
+      signals: ["meaning_and_perspective"],
+    }],
+  })
+  assert.equal(JSON.stringify(response).includes("selector-v1"), false)
+  assert.equal(JSON.stringify(response).includes("conservative_fallback"), false)
+  assert.equal(JSON.stringify(response).includes("meaning_making_language"), false)
   assert.equal(JSON.stringify(response).includes("private reflection"), false)
 })

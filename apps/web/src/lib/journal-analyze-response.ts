@@ -1,3 +1,5 @@
+import { buildPublicDimensionRationale } from "@/lib/dimension-rationale"
+
 type JournalAnalyzeResult = {
   journalEntry?: { id: string } | null
   safety: {
@@ -30,6 +32,7 @@ type JournalAnalyzeResult = {
     previousLevel: number
     previousStage: number
   }
+  reflectionSessionId?: string | null
   dimensionSelection?: {
     selectorVersion: string
     doctrineVersion: string
@@ -109,29 +112,10 @@ export function buildJournalAnalyzeResponse(result: JournalAnalyzeResult) {
       integration: result.prompt.integration,
     },
     progression: result.progression,
-    dimensionSelection: result.dimensionSelection,
-    councilSession: result.councilSession
-      ? {
-          id: result.councilSession.id,
-          observerSignal: result.councilSession.observerSignal ?? {},
-          messages: (result.councilSession.messages ?? []).map((message) => ({
-            id: message.id,
-            role: message.role,
-            displayName: message.displayName,
-            lens: message.lens,
-            content: message.content,
-            confidence: message.confidence,
-            abstained: message.abstained,
-          })),
-          synthesis: result.councilSession.synthesis
-            ? {
-                integratorQuestion: result.councilSession.synthesis.integratorQuestion,
-                integrationStep: result.councilSession.synthesis.integrationStep,
-                coreTension: result.councilSession.synthesis.coreTension ?? null,
-              }
-            : null,
-        }
-      : null,
+    dimensionRationale: buildPublicDimensionRationale(
+      result.dimensionSelection,
+      result.reflectionSessionId,
+    ),
     sourceProvenance: result.sourceProvenance
       ? {
           sourceMode: result.sourceProvenance.sourceMode,

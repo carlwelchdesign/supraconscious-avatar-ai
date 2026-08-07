@@ -441,6 +441,38 @@ test("v2 correction writes fail closed when the session is not owned", async () 
   assert.equal(correctionCreated, false)
 })
 
+test("v2 dimension corrections require an active selected dimension on the owned session", async () => {
+  let ownedWhere: Record<string, unknown> | undefined
+  const tx = {
+    reflectionSession: {
+      findFirst: async (args: { where: Record<string, unknown> }) => {
+        ownedWhere = args.where
+        return { id: "reflection-1" }
+      },
+    },
+    reflectionCorrection: {
+      create: async (args: { data: Record<string, unknown> }) => ({ id: "correction-1", ...args.data }),
+    },
+    reflectionCapacityProfile: { updateMany: async () => ({ count: 0 }) },
+  }
+  const client = { $transaction: async (run: (transaction: typeof tx) => Promise<unknown>) => run(tx) } as any
+
+  const correction = await recordReflectionCorrection({
+    userId: "user-1",
+    reflectionSessionId: "reflection-1",
+    dimension: "story",
+    correctionType: "suppress",
+  }, client)
+
+  assert.deepEqual(ownedWhere, {
+    id: "reflection-1",
+    userId: "user-1",
+    disabledAt: null,
+    dimensions: { some: { dimension: "story", disabledAt: null } },
+  })
+  assert.equal((correction as { dimension: string }).dimension, "story")
+})
+
 test("simpler dimension selection preserves the protection-capacity pair and non-ranking anchors", () => {
   const selection = selectDimensions({
     text: "The story I tell is that I may lose my role, so I feel afraid and want an action I can take today.",
