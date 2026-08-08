@@ -3,7 +3,7 @@ import { hasRequiredPilotConsents, type PilotConsentRecord } from "@inner-avatar
 import {
   formatFounderCalibrationScenario,
   FOUNDER_CALIBRATION_SCENARIOS,
-  readFounderCalibrationScenarioFromTraceOrText,
+  readFounderCalibrationScenarioFromTrace,
   type FounderCalibrationScenario,
 } from "./founder-calibration-scenarios.js"
 import {
@@ -157,7 +157,6 @@ export type FounderCalibrationSetupSnapshot = {
     sessions: Array<{
       id: string
       journalEntryId: string
-      journalText?: string | null
       createdAt: Date
       feedback: Array<{ hasFeedback?: boolean; hasNote: boolean }>
       qualityReviews: Array<{ label: string; severity: string; metadata?: unknown }>
@@ -301,7 +300,6 @@ export async function runFounderCalibrationSetupReport(now = new Date()): Promis
       sessions: (participant.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
         journalEntryId: session.journalEntryId,
-        journalText: session.journalEntry?.rawText ?? null,
         createdAt: session.createdAt,
         feedback: session.feedback.map((feedback) => ({ hasFeedback: true, hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
@@ -351,7 +349,6 @@ export async function runFounderCalibrationJournalReadiness(input: {
       sessions: (participant.record.user?.councilSessions ?? []).map((session) => ({
         id: session.id,
         journalEntryId: session.journalEntryId,
-        journalText: session.journalEntry?.rawText ?? null,
         createdAt: session.createdAt,
         feedback: session.feedback.map((feedback) => ({ hasFeedback: true, hasNote: isFounderCalibrationFeedbackNoteUseful(feedback.note) })),
         qualityReviews: session.qualityReviews,
@@ -428,7 +425,6 @@ async function readSetupParticipantsSafely() {
               select: {
                 id: true,
                 journalEntryId: true,
-                journalEntry: { select: { rawText: true } },
                 createdAt: true,
                 feedback: { select: { id: true, note: true } },
                 qualityReviews: {
@@ -480,7 +476,6 @@ async function readJournalParticipantSafely(input: { userId: string; email: stri
               select: {
                 id: true,
                 journalEntryId: true,
-                journalEntry: { select: { rawText: true } },
                 createdAt: true,
                 feedback: { select: { note: true } },
                 qualityReviews: {
@@ -855,7 +850,7 @@ function buildParticipantMissingActions(input: {
 }
 
 function readSessionScenario(session: FounderCalibrationSetupSnapshot["participants"][number]["sessions"][number]) {
-  return readFounderCalibrationScenarioFromTraceOrText(session)
+  return readFounderCalibrationScenarioFromTrace(session)
 }
 
 function readParticipantRole(value: string): FounderCalibrationParticipantRole {

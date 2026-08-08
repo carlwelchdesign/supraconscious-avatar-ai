@@ -20,3 +20,18 @@ assert.equal(
   normalizeDatabaseConnectionString("not a url"),
   "not a url",
 )
+
+assert.equal(
+  new URL(normalizeDatabaseConnectionString("postgres://user:pass@db.example.com/app", true) ?? "").searchParams.get("sslmode"),
+  "verify-full",
+)
+
+assert.equal(
+  new URL(normalizeDatabaseConnectionString("postgres://user:pass@db.example.com/app?sslmode=disable", true) ?? "").searchParams.get("sslmode"),
+  "verify-full",
+)
+
+assert.equal(
+  new URL(normalizeDatabaseConnectionString("postgres://user:pass@localhost/app") ?? "").searchParams.get("sslmode"),
+  null,
+)

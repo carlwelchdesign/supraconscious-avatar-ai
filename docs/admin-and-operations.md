@@ -98,7 +98,7 @@ Admin list views are metadata-first and should not show raw journal content.
 
 The safety page can reveal raw journal text only through `revealFlaggedEntryAction()`, which requires:
 
-- a signed-in admin session
+- a signed-in `super_admin` session (ordinary admins may review metadata and resolve events, but cannot reveal journal text)
 - a safety event ID
 - an explicit reason
 - a server-side authorization check

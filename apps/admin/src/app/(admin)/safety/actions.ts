@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@inner-avatar/db"
 import { readClientIp } from "@inner-avatar/auth/client-ip"
-import { requireAdminUser } from "@inner-avatar/auth/session"
+import { requireAdminUser, requireSuperAdminUser } from "@inner-avatar/auth/session"
 import { buildSafetyRevealAuditMetadata } from "@/lib/safety-audit"
 
 const RevealSchema = z.object({
@@ -26,7 +26,7 @@ export type RevealState = {
 }
 
 export async function revealFlaggedEntryAction(_state: RevealState, formData: FormData): Promise<RevealState> {
-  const actor = await requireAdminUser()
+  const actor = await requireSuperAdminUser()
   const parsed = RevealSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Unable to reveal entry." }
