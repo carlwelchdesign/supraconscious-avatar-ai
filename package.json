@@ -44,6 +44,8 @@
     "smoke:rag": "yarn --cwd packages/ai smoke:rag",
     "test:chatgpt": "yarn --cwd apps/chatgpt-app test",
     "test:sentry": "node scripts/check-sentry-config.mjs",
+    "test:database": "node --test scripts/database-audit.test.mjs && node scripts/check-database.mjs",
+    "test:database:drift": "prisma migrate diff --from-config-datasource --to-schema packages/db/prisma/schema.prisma --exit-code",
     "setup:founder-calibration": "yarn --cwd packages/ai setup:founder-calibration",
     "handoff:founder-calibration": "yarn --cwd packages/ai handoff:founder-calibration",
     "packet:founder-calibration": "yarn --cwd packages/ai packet:founder-calibration",

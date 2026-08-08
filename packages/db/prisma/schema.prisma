@@ -99,6 +99,7 @@ model Session {
   @@index([userId])
   @@index([scope])
   @@index([expiresAt])
+  @@index([userId, lastSeenAt])
 }
 
 // OAuth account link - verified third-party identity bound to a user
@@ -407,6 +408,7 @@ model JournalEntry {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 // Entry analysis - structured AI analysis of journal entry
@@ -486,6 +488,7 @@ model GeneratedPrompt {
   journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([journalEntryId])
   @@index([createdAt])
 }
 
@@ -511,8 +514,10 @@ model PatternMemory {
   feedback     PatternMemoryFeedback[]
 
   @@index([userId])
+  @@index([journalEntryId])
   @@index([patternType])
   @@index([lastSeenAt])
+  @@index([userId, active])
 }
 
 // Pattern memory feedback - user/admin correction or suppression signal
@@ -557,6 +562,7 @@ model CouncilSession {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 // Council message - bounded role output from an inner archetype
@@ -706,6 +712,7 @@ model ConsentEvent {
   @@index([userId])
   @@index([consentType])
   @@index([createdAt])
+  @@index([userId, consentType, createdAt])
 }
 
 // Human quality review - separate from machine validation status
@@ -941,6 +948,7 @@ model CuratedPrompt {
 
   @@unique([stableKey, version])
   @@index([sourceDocumentId])
+  @@index([approvedById])
   @@index([modality])
   @@index([approvalState])
   @@index([active])
@@ -1008,6 +1016,7 @@ model SourceDocument {
   reasoningOntologyEvidence ReasoningOntologyEvidence[]
 
   @@index([sourceType])
+  @@index([importedById])
   @@index([reasoningScope])
   @@index([reviewState])
   @@index([rightsStatus])
@@ -1467,8 +1476,10 @@ model CurriculumDay {
   sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
 
   @@unique([month, day])
+  @@index([sourceDocumentId])
   @@index([publishState])
   @@index([theme])
+  @@index([month, publishState, day])
 }
 
 // Generation trace - source and model provenance for AI outputs
@@ -1498,8 +1509,10 @@ model GenerationTrace {
   @@index([userId])
   @@index([councilSessionId])
   @@index([reflectionSessionId])
+  @@index([sourceChunkId])
   @@index([traceType])
   @@index([validationStatus])
+  @@index([councilSessionId, traceType, createdAt])
 }
 
 // Safety event - logged safety concerns
@@ -1525,10 +1538,12 @@ model SafetyEvent {
   reviewer     User?         @relation("SafetyEventReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([journalEntryId])
   @@index([severity])
   @@index([reviewStatus])
   @@index([reviewerId])
   @@index([createdAt])
+  @@index([reviewStatus, createdAt])
 }
 
 // Subscription - Stripe subscription data
@@ -1553,4 +1568,5 @@ model Subscription {
 
   @@index([userId])
   @@index([stripeCustomerId])
+  @@index([userId, updatedAt])
 }

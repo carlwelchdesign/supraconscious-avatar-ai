@@ -9,6 +9,7 @@ This documentation describes the current monorepo. Update it whenever auth, data
 - [Authentication](authentication.md): first-party login, scoped sessions, route protection, and admin RBAC.
 - [AI Journaling Pipeline](ai-pipeline.md): safety, analysis, Inner Council response generation, RAG, LangSmith observability, embodiment prompts, pattern memory, and progression.
 - [Sentry Error Monitoring](sentry.md): optional cross-app error capture, privacy-minimized defaults, activation, and verification.
+- [Database Audit](database-audit.md): schema and migration guardrails, query-backed indexes, drift detection, and production verification boundaries.
 - [Voice Features](voice.md): microphone transcription, text-to-speech playback, preferences, and API routes.
 - [Voice Browser Troubleshooting](voice-browser-troubleshooting.md): browser and device-specific microphone/playback support notes.
 - [Admin and Operations](admin-and-operations.md): separate admin app, privacy controls, audit logging, users, subscriptions, safety, prompt templates, feature flags, and operational checks.
