@@ -1,6 +1,7 @@
 import './auth.test.ts'
 import './server.test.ts'
 import './safety.test.ts'
+import './sentry-privacy.test.ts'
 import './analyze-journal-entry.test.ts'
 import './create-journal-entry.test.ts'
 import './generate-avatar-reflection.test.ts'

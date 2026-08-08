@@ -57,6 +57,9 @@ jobs:
       - name: Validate environment template
         run: yarn check:env
 
+      - name: Validate privacy-safe Sentry configuration
+        run: yarn test:sentry
+
       - name: Validate Prisma schema
         run: yarn prisma validate
 
