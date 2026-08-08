@@ -5,7 +5,7 @@ const rootDir = process.cwd()
 const envExamplePath = path.join(rootDir, ".env.example")
 const scanRoots = ["apps", "packages", "scripts"]
 const sourceExtensions = new Set([".js", ".mjs", ".ts", ".tsx"])
-const ignoredVariables = new Set(["NODE_ENV", "PORT"])
+const ignoredVariables = new Set(["CI", "NEXT_RUNTIME", "NODE_ENV", "PORT"])
 
 function walk(dir) {
   const entries = readdirSync(dir)

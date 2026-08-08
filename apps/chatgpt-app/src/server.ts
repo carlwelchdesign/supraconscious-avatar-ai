@@ -1,3 +1,4 @@
+import { Sentry } from "./instrumentation.js"
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
@@ -213,6 +214,7 @@ app.post('/mcp/tools/:toolName',
 })
 
 // Error handling
+Sentry.setupExpressErrorHandler(app)
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   void next
   const t = chatGptMessages(readRequestLanguageHeader(req.headers["accept-language"]))
