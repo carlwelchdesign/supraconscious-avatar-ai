@@ -45,6 +45,7 @@ export function formatFounderCalibrationScenario(value: unknown) {
   return FOUNDER_CALIBRATION_SCENARIO_LABELS[readFounderCalibrationScenario(value)]
 }
 
+// Submission-time classification only. Administrative reports must use persisted trace metadata.
 export function inferFounderCalibrationScenarioFromText(text: string | null | undefined): FounderCalibrationScenario {
   const normalized = text?.trim()
   if (!normalized) return "freeform"
@@ -58,9 +59,8 @@ export function inferFounderCalibrationScenarioFromText(text: string | null | un
   return "freeform"
 }
 
-export function readFounderCalibrationScenarioFromTraceOrText(input: {
+export function readFounderCalibrationScenarioFromTrace(input: {
   generationTraces: Array<{ traceType: string; outputJson: unknown }>
-  journalText?: string | null
 }): FounderCalibrationScenario {
   const output = input.generationTraces.find((trace) => trace.traceType === "council")?.outputJson
   if (output && typeof output === "object" && "calibration" in output) {
@@ -71,5 +71,5 @@ export function readFounderCalibrationScenarioFromTraceOrText(input: {
     }
   }
 
-  return inferFounderCalibrationScenarioFromText(input.journalText)
+  return "freeform"
 }

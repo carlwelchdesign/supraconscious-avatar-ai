@@ -65,7 +65,6 @@ import {
   parseCurriculumDaysFromParagraphs,
   readRagActivationMetadata,
   readFounderCalibrationScenario,
-  inferFounderCalibrationScenarioFromText,
   isLangSmithEnabled,
   isFounderCalibrationUser,
   resolveFounderCalibrationFilterFromInputs,
@@ -2229,17 +2228,7 @@ test("founder calibration feedback notes require detail beyond templates", () =>
   assert.equal(isFounderCalibrationFeedbackNoteUseful("This felt like Maria's voice."), true)
 })
 
-test("founder calibration scenario can be inferred from guided prompt text", () => {
-  assert.equal(
-    inferFounderCalibrationScenarioFromText(
-      "Some real context.\n\nI want to test whether this reflection sounds grounded in Maria's work without pretending to be Maria. Reflect on a decision where I feel split between protection and truth.",
-    ),
-    "voice_test",
-  )
-  assert.equal(inferFounderCalibrationScenarioFromText("A completely custom reflection."), "freeform")
-})
-
-test("founder calibration report infers missing scenario metadata from journal text without serializing it", () => {
+test("founder calibration report treats missing scenario metadata as freeform without journal access", () => {
   const report = buildFounderCalibrationReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
     sessions: [
@@ -2249,7 +2238,6 @@ test("founder calibration report infers missing scenario metadata from journal t
         userEmail: "carl@example.com",
         userName: "Carl",
         sourceMode: "rag",
-        journalText: "private journal text. I understand the insight, but I need one small embodied shift I can actually live today. Help me find the next grounded action.",
         feedback: [{ feedbackType: "helpful", note: null }],
         qualityReviews: [],
         generationTraces: [{ traceType: "council", validationStatus: "validated", promptVersion: "council.system@v1", sourceChunkId: null, sourceTitle: null, outputJson: {} }],
@@ -2257,9 +2245,8 @@ test("founder calibration report infers missing scenario metadata from journal t
     ],
   })
 
-  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "embodiment_test")?.totalSessions, 1)
-  assert.equal(report.scenarioCoverage.some((item) => item.scenario === "freeform"), false)
-  assert.equal(JSON.stringify(report).includes("private journal text"), false)
+  assert.equal(report.scenarioCoverage.find((item) => item.scenario === "freeform")?.totalSessions, 1)
+  assert.equal(report.scenarioCoverage.some((item) => item.scenario === "embodiment_test"), false)
 })
 
 test("founder calibration report includes configured users before first sessions", () => {
@@ -2598,7 +2585,7 @@ test("founder setup treats freeform founder sessions as captured first-session p
   assert.equal(report.blockers.some((blocker) => blocker.includes("carl@example.com needs one calibration feedback type")), true)
 })
 
-test("founder setup infers scenario status from guided prompt journal text", () => {
+test("founder setup reads scenario status from trace metadata without journal access", () => {
   const report = buildFounderCalibrationSetupReportFromSnapshot({
     checkedAt: new Date("2026-07-03T12:00:00.000Z"),
     filterMode: "db",
@@ -2616,11 +2603,10 @@ test("founder setup infers scenario status from guided prompt journal text", () 
         sessions: [{
           id: "session_carl",
           journalEntryId: "entry_carl",
-          journalText: "private journal text. Use the Inner Council idea as background if there is approved source material for it. I want to see whether the guidance names the source clearly without overclaiming.",
           createdAt: new Date("2026-07-03T12:00:00.000Z"),
           feedback: [{ hasNote: false }],
           qualityReviews: [],
-          generationTraces: [{ traceType: "council", outputJson: {} }],
+          generationTraces: [{ traceType: "council", outputJson: { calibration: { scenario: "source_grounding_test" } } }],
         }],
       },
       {
@@ -2640,7 +2626,6 @@ test("founder setup infers scenario status from guided prompt journal text", () 
   const carl = report.participants.find((participant) => participant.email === "carl@example.com")
   assert.equal(carl?.scenarioStatus.find((item) => item.scenario === "source_grounding_test")?.completed, true)
   assert.equal(report.scenarioCoverage.find((item) => item.scenario === "source_grounding_test")?.totalSessions, 1)
-  assert.equal(JSON.stringify(report).includes("private journal text"), false)
 })
 
 test("founder journal readiness preserves first-session and feedback prompts", () => {

@@ -16,7 +16,10 @@ function getPrismaClient() {
   }
 
   loadLocalEnvFallback()
-  const connectionString = normalizeDatabaseConnectionString(process.env.DATABASE_URL)
+  const connectionString = normalizeDatabaseConnectionString(
+    process.env.DATABASE_URL,
+    process.env.NODE_ENV === "production",
+  )
 
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set")
@@ -66,13 +69,21 @@ export const prisma = new Proxy({} as PrismaClient, {
 
 export default prisma
 
-export function normalizeDatabaseConnectionString(connectionString: string | undefined) {
+export function normalizeDatabaseConnectionString(
+  connectionString: string | undefined,
+  enforceTls = false,
+) {
   if (!connectionString) return connectionString
 
   try {
     const parsed = new URL(connectionString)
     const sslMode = parsed.searchParams.get("sslmode")?.trim().toLowerCase()
     const useLibpqCompat = parsed.searchParams.get("uselibpqcompat")?.trim().toLowerCase()
+
+    if (enforceTls && sslMode !== "verify-full") {
+      parsed.searchParams.set("sslmode", "verify-full")
+      return parsed.toString()
+    }
 
     if (
       useLibpqCompat !== "true" &&

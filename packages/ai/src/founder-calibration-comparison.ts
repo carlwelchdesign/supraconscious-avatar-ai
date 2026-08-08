@@ -2,7 +2,7 @@ import { prisma } from "@inner-avatar/db"
 import { resolveFounderCalibrationUserFilter } from "./founder-calibration-participants.js"
 import {
   FOUNDER_CALIBRATION_SCENARIOS,
-  readFounderCalibrationScenarioFromTraceOrText,
+  readFounderCalibrationScenarioFromTrace,
   type FounderCalibrationScenario,
 } from "./founder-calibration-scenarios.js"
 import { isFounderGoldenReview } from "./founder-evaluation-rubric.js"
@@ -49,7 +49,6 @@ export type FounderCalibrationComparisonSession = {
   id: string
   sourceMode: string
   feedbackTypes: string[]
-  journalText?: string | null
   qualityReviews: Array<{ label: string; severity: string; metadata: unknown }>
   generationTraces: Array<{ traceType: string; promptVersion: string | null; outputJson: unknown }>
 }
@@ -73,7 +72,6 @@ export async function runFounderCalibrationComparison(now = new Date()): Promise
     select: {
       id: true,
       sourceMode: true,
-      journalEntry: { select: { rawText: true } },
       feedback: { select: { feedbackType: true } },
       qualityReviews: {
         orderBy: { reviewedAt: "desc" },
@@ -94,7 +92,6 @@ export async function runFounderCalibrationComparison(now = new Date()): Promise
     sessions: sessions.map((session) => ({
       id: session.id,
       sourceMode: session.sourceMode,
-      journalText: session.journalEntry?.rawText ?? null,
       feedbackTypes: session.feedback.map((feedback) => feedback.feedbackType),
       qualityReviews: session.qualityReviews,
       generationTraces: session.generationTraces,
@@ -164,7 +161,7 @@ export function buildFounderCalibrationComparisonFromSnapshot(snapshot: FounderC
 }
 
 function readSessionScenario(session: FounderCalibrationComparisonSession) {
-  return readFounderCalibrationScenarioFromTraceOrText(session)
+  return readFounderCalibrationScenarioFromTrace(session)
 }
 
 function readPromptVersion(session: FounderCalibrationComparisonSession) {
