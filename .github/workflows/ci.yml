@@ -63,8 +63,14 @@ jobs:
       - name: Validate Prisma schema
         run: yarn prisma validate
 
+      - name: Audit database schema and migrations
+        run: yarn test:database
+
       - name: Apply database migrations
         run: yarn db:migrate:deploy
+
+      - name: Verify database migration drift
+        run: yarn test:database:drift
 
       - name: Typecheck
         run: yarn typecheck
