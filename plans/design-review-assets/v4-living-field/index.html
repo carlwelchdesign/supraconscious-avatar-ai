@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inner Avatar — Living Field Motion Study</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --canvas: #080a12;
+      --surface: rgba(20, 18, 29, 0.82);
+      --surface-raised: rgba(53, 32, 58, 0.42);
+      --text: #f0e8d9;
+      --muted: #aaa3a2;
+      --copper: #be815f;
+      --copper-bright: #e0a17a;
+      --lilac: #8278ab;
+      --line: rgba(224, 161, 122, 0.2);
+      --focus: #a7a1e4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 22%, rgba(95, 51, 84, 0.18), transparent 32rem),
+        radial-gradient(circle at 84% 78%, rgba(43, 50, 93, 0.14), transparent 36rem),
+        var(--canvas);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid rgba(240, 232, 217, 0.12);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .mark {
+      width: 23px;
+      height: 23px;
+      border: 1px solid rgba(224, 161, 122, 0.66);
+      border-radius: 50%;
+      box-shadow: 0 0 24px rgba(190, 129, 95, 0.22), inset 0 0 12px rgba(130, 120, 171, 0.34);
+    }
+
+    .study-label {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid rgba(240, 232, 217, 0.15);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--muted);
+      background: rgba(12, 13, 21, 0.66);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover { color: var(--text); border-color: rgba(224, 161, 122, 0.4); }
+    button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+    button[aria-pressed="true"] { color: var(--text); border-color: rgba(224, 161, 122, 0.62); background: rgba(76, 45, 62, 0.54); }
+
+    main {
+      min-height: calc(100vh - 96px);
+      display: grid;
+      grid-template-columns: minmax(0, 0.82fr) minmax(480px, 1.18fr);
+      align-items: center;
+      gap: clamp(48px, 8vw, 112px);
+      padding: 64px 0;
+    }
+
+    .intro { max-width: 430px; }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 18px;
+      color: var(--copper-bright);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before { content: ""; width: 34px; height: 1px; background: var(--copper); }
+
+    h1 {
+      margin: 0 0 24px;
+      max-width: 9ch;
+      font: 400 clamp(46px, 6vw, 78px)/0.98 Georgia, "Times New Roman", serif;
+      letter-spacing: -0.045em;
+    }
+
+    .intro > p { max-width: 39ch; margin: 0; color: var(--muted); font-size: 17px; }
+
+    .state-note {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      margin-top: 34px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(240, 232, 217, 0.12);
+      color: #c8bfba;
+      font-size: 13px;
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      margin-top: 6px;
+      border-radius: 50%;
+      background: var(--copper-bright);
+      box-shadow: 0 0 14px rgba(224, 161, 122, 0.7);
+      animation: breathe 10s ease-in-out infinite;
+    }
+
+    @keyframes breathe { 50% { opacity: 0.35; transform: scale(0.72); } }
+
+    .reflection {
+      position: relative;
+      overflow: hidden;
+      min-height: 560px;
+      padding: clamp(28px, 4vw, 50px);
+      border: 1px solid rgba(224, 161, 122, 0.22);
+      border-radius: 3px 42px 3px 3px;
+      background:
+        linear-gradient(145deg, rgba(91, 49, 77, 0.15), transparent 38%),
+        linear-gradient(180deg, rgba(24, 22, 34, 0.91), rgba(13, 14, 23, 0.94));
+      box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(14px);
+    }
+
+    .reflection::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -100px;
+      top: -110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(121, 78, 112, 0.2), transparent 67%);
+    }
+
+    .section-label { color: var(--copper-bright); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+    h2 { margin: 22px 0 28px; font: 400 clamp(31px, 4vw, 47px)/1.08 Georgia, "Times New Roman", serif; letter-spacing: -0.025em; }
+
+    blockquote {
+      margin: 0 0 30px;
+      padding: 18px 0 18px 22px;
+      border-left: 1px solid var(--copper);
+      color: #d8cfc6;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .dimensions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 34px; }
+
+    .dimension {
+      min-height: 82px;
+      padding: 15px 16px;
+      border: 1px solid rgba(167, 161, 228, 0.14);
+      background: rgba(73, 60, 97, 0.12);
+    }
+
+    .dimension strong { display: block; margin-bottom: 5px; color: #ddd3ca; font-size: 13px; font-weight: 520; }
+    .dimension span { color: var(--muted); font-size: 12px; }
+
+    .question { margin: 0 0 9px; color: var(--muted); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .prompt { margin: 0; max-width: 36ch; font: 400 24px/1.35 Georgia, "Times New Roman", serif; }
+
+    .footer-note {
+      position: absolute;
+      right: 26px;
+      bottom: 20px;
+      color: rgba(170, 163, 162, 0.65);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 860px) {
+      header { align-items: flex-start; }
+      main { grid-template-columns: 1fr; padding-top: 54px; gap: 46px; }
+      .intro { max-width: 600px; }
+      h1 { max-width: 11ch; }
+      .reflection { min-height: 520px; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 24px, 1160px); padding-top: 18px; }
+      header { display: grid; }
+      .controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: flex-start;
+        padding-top: 3px;
+      }
+      .controls button { width: 100%; }
+      main { padding: 45px 0; }
+      h1 { font-size: 48px; }
+      .reflection { padding: 26px 22px 60px; border-radius: 2px 30px 2px 2px; }
+      .dimensions { grid-template-columns: 1fr; }
+      .footer-note { left: 22px; right: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pulse { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="shell">
+    <header>
+      <div>
+        <div class="brand"><span class="mark" aria-hidden="true"></span><span>Inner Avatar</span></div>
+        <div class="study-label">Living field / motion study 01</div>
+      </div>
+      <div class="controls" role="group" aria-label="Field state">
+        <button type="button" data-state="resting" aria-pressed="true">Resting</button>
+        <button type="button" data-state="listening" aria-pressed="false">Listening</button>
+        <button type="button" data-state="reflecting" aria-pressed="false">Reflecting</button>
+        <button type="button" data-state="grounding" aria-pressed="false">Grounding</button>
+        <button type="button" id="motion-toggle" aria-pressed="true">Motion on</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="title">
+        <p class="eyebrow">A responsive inner field</p>
+        <h1 id="title">A presence, not a spectacle.</h1>
+        <p>The atmosphere shares one slow rhythm, gathers briefly around meaning, and gives way when calm matters most.</p>
+        <div class="state-note" aria-live="polite">
+          <span class="pulse" aria-hidden="true"></span>
+          <span id="state-description">Resting — a quiet, loosely connected field. Move nearby to create a gentle pressure wave.</span>
+        </div>
+      </section>
+
+      <article class="reflection">
+        <span class="section-label">A reflection from your words</span>
+        <h2>You may be protecting momentum by staying in motion.</h2>
+        <blockquote>“If I stop pushing, I’m afraid everything I’ve built will lose its shape.”</blockquote>
+        <div class="dimensions" aria-label="Selected dimensions">
+          <div class="dimension"><strong>Protection</strong><span>Keeping the work moving may also keep uncertainty at a distance.</span></div>
+          <div class="dimension"><strong>Longing</strong><span>There is a wish for the work to hold without constant force.</span></div>
+          <div class="dimension"><strong>Permission</strong><span>A smaller pause could be an experiment, not a surrender.</span></div>
+          <div class="dimension"><strong>Agency</strong><span>You decide what, if anything, is worth carrying forward.</span></div>
+        </div>
+        <p class="question">An open question</p>
+        <p class="prompt">What would remain true if you let one thing rest?</p>
+        <span class="footer-note">Motion study — not production</span>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.querySelector('#field');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const description = document.querySelector('#state-description');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const stateCopy = {
+        resting: 'Resting — a quiet, loosely connected field. Move nearby to create a gentle pressure wave.',
+        listening: 'Listening — currents lean toward the reflection without following or recording your movement.',
+        reflecting: 'Reflecting — the field becomes briefly more coherent while remaining calm and non-hierarchical.',
+        grounding: 'Grounding — density, brightness, and motion recede to keep the experience plain and steady.'
+      };
+      const modes = {
+        resting: { speed: 0.16, link: 88, alpha: 0.58, coherence: 0.38, count: 1 },
+        listening: { speed: 0.22, link: 102, alpha: 0.68, coherence: 0.54, count: 1 },
+        reflecting: { speed: 0.27, link: 116, alpha: 0.78, coherence: 0.72, count: 1.08 },
+        grounding: { speed: 0.055, link: 72, alpha: 0.3, coherence: 0.18, count: 0.62 }
+      };
+      const params = new URLSearchParams(location.search);
+
+      let modeName = modes[params.get('state')] ? params.get('state') : 'resting';
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let particles = [];
+      let frame = 0;
+      let motionEnabled = !reducedMotion.matches && params.get('motion') !== '0';
+      let last = performance.now();
+      let pointer = { x: -1000, y: -1000, active: false };
+      let seed = params.has('seed') && Number.isFinite(Number(params.get('seed'))) ? Number(params.get('seed')) >>> 0 : 718231;
+
+      const random = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+
+      function targetCount() {
+        const base = Math.round(Math.min(150, Math.max(48, width * height / 11800)));
+        return Math.round(base * modes[modeName].count);
+      }
+
+      function makeParticle(index = particles.length) {
+        const warm = index % 7 === 0;
+        return {
+          x: random() * width,
+          y: random() * height,
+          phase: random() * Math.PI * 2,
+          drift: random() * Math.PI * 2,
+          size: 0.55 + random() * 1.5,
+          depth: 0.35 + random() * 0.65,
+          warm
+        };
+      }
+
+      function reconcileParticles() {
+        const count = targetCount();
+        while (particles.length < count) particles.push(makeParticle());
+        if (particles.length > count) particles.length = count;
+      }
+
+      function resize() {
+        width = innerWidth;
+        height = innerHeight;
+        dpr = Math.min(devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        reconcileParticles();
+        if (reducedMotion.matches) draw(performance.now(), 0, true);
+      }
+
+      function draw(now, dt, staticFrame = false) {
+        const mode = modes[modeName];
+        const breath = staticFrame ? 0.45 : (Math.sin(now / 1600) + 1) / 2;
+        const speed = mode.speed * (0.72 + breath * 0.28);
+        ctx.clearRect(0, 0, width, height);
+
+        if (!staticFrame) {
+          for (const p of particles) {
+            const nx = p.x / Math.max(width, 1);
+            const ny = p.y / Math.max(height, 1);
+            const field = Math.sin(nx * 5.4 + now * 0.00007 + p.phase) + Math.cos(ny * 4.1 - now * 0.00006);
+            const angle = p.drift + field * (0.48 + mode.coherence * 0.25);
+            p.x += Math.cos(angle) * speed * p.depth * dt;
+            p.y += Math.sin(angle) * speed * p.depth * dt;
+
+            if (modeName === 'listening') {
+              const targetX = width * (width < 860 ? 0.5 : 0.72);
+              const targetY = height * 0.52;
+              p.x += (targetX - p.x) * 0.000006 * dt;
+              p.y += (targetY - p.y) * 0.000004 * dt;
+            }
+
+            if (pointer.active) {
+              const dx = p.x - pointer.x;
+              const dy = p.y - pointer.y;
+              const distanceSq = dx * dx + dy * dy;
+              if (distanceSq < 19000 && distanceSq > 1) {
+                const pressure = (1 - distanceSq / 19000) * 0.48 * dt;
+                const distance = Math.sqrt(distanceSq);
+                p.x += dx / distance * pressure;
+                p.y += dy / distance * pressure;
+              }
+            }
+
+            if (p.x < -16) p.x = width + 16;
+            if (p.x > width + 16) p.x = -16;
+            if (p.y < -16) p.y = height + 16;
+            if (p.y > height + 16) p.y = -16;
+          }
+        }
+
+        const linkDistance = mode.link * (0.9 + breath * 0.1);
+        const linkDistanceSq = linkDistance * linkDistance;
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < particles.length; i++) {
+          const a = particles[i];
+          for (let j = i + 1; j < Math.min(particles.length, i + 18); j++) {
+            const b = particles[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distanceSq = dx * dx + dy * dy;
+            if (distanceSq < linkDistanceSq) {
+              const opacity = (1 - distanceSq / linkDistanceSq) * 0.095 * mode.coherence;
+              ctx.strokeStyle = `rgba(179, 143, 164, ${opacity})`;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        for (const p of particles) {
+          const opacity = mode.alpha * p.depth * (0.58 + breath * 0.23);
+          ctx.fillStyle = p.warm ? `rgba(224, 161, 122, ${opacity})` : `rgba(167, 161, 228, ${opacity * 0.72})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * (0.92 + breath * 0.1), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function animate(now) {
+        const dt = Math.min(32, now - last) / 16.67;
+        last = now;
+        draw(now, dt);
+        frame = requestAnimationFrame(animate);
+      }
+
+      function syncMotion() {
+        cancelAnimationFrame(frame);
+        if (reducedMotion.matches || !motionEnabled) {
+          draw(performance.now(), 0, true);
+        } else if (!document.hidden) {
+          last = performance.now();
+          frame = requestAnimationFrame(animate);
+        }
+      }
+
+      function setMode(next) {
+        modeName = next;
+        document.querySelectorAll('[data-state]').forEach(button => {
+          button.setAttribute('aria-pressed', String(button.dataset.state === next));
+        });
+        description.textContent = stateCopy[next];
+        reconcileParticles();
+        if (reducedMotion.matches) draw(performance.now(), 0, true);
+      }
+
+      function setMotionEnabled(enabled) {
+        motionEnabled = Boolean(enabled) && !reducedMotion.matches;
+        const toggle = document.querySelector('#motion-toggle');
+        toggle.setAttribute('aria-pressed', String(motionEnabled));
+        toggle.textContent = motionEnabled ? 'Motion on' : 'Motion off';
+        syncMotion();
+      }
+
+      document.querySelectorAll('[data-state]').forEach(button => button.addEventListener('click', () => setMode(button.dataset.state)));
+      document.querySelector('#motion-toggle').addEventListener('click', () => setMotionEnabled(!motionEnabled));
+      addEventListener('pointermove', event => { pointer = { x: event.clientX, y: event.clientY, active: true }; }, { passive: true });
+      addEventListener('pointerout', () => { pointer.active = false; }, { passive: true });
+      addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', syncMotion);
+      reducedMotion.addEventListener('change', syncMotion);
+
+      window.__livingField = {
+        getState: () => ({ mode: modeName, particles: particles.length, reducedMotion: reducedMotion.matches, motionEnabled, dpr }),
+        setMode,
+        setMotionEnabled
+      };
+
+      setMode(modeName);
+      resize();
+      setMotionEnabled(motionEnabled);
+      syncMotion();
+    })();
+  </script>
+</body>
+</html>
