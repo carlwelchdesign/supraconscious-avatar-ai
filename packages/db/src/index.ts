@@ -31,9 +31,7 @@ function getPrismaClient() {
     log: prismaLogLevels(),
   })
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = client
-  }
+  globalForPrisma.prisma = client
 
   return client
 }
