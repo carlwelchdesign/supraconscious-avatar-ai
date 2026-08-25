@@ -14,6 +14,9 @@ import { getWebMessages } from "@/lib/web-messages"
 import { deleteJournalEntryAction, submitSavedSessionFeedbackAction } from "./actions"
 import { DeleteJournalEntryForm } from "./delete-journal-entry-form"
 import { SavedSessionFeedbackForm } from "./saved-session-feedback-form"
+import { CorrectionActions } from "@/components/reflection/correction-actions"
+import { MemberActionEditor } from "@/components/reflection/member-action-editor"
+import { DimensionFacet, EvidenceBlock, ProvenanceLine } from "@/components/reflection/reflection-evidence"
 
 export default async function JournalEntryPage({
   params,
@@ -65,7 +68,7 @@ export default async function JournalEntryPage({
               note: true,
             },
           },
-          embodimentGateResponses: { select: { id: true } },
+          embodimentGateResponses: { select: { id: true, text: true } },
           qualityReviews: {
             orderBy: { reviewedAt: "desc" },
             take: 1,
@@ -83,6 +86,12 @@ export default async function JournalEntryPage({
               },
             },
           },
+        },
+      },
+      reflectionSession: {
+        include: {
+          dimensions: { where: { disabledAt: null }, orderBy: { displayOrder: "asc" } },
+          corrections: { where: { disabledAt: null, deletedAt: null }, orderBy: { createdAt: "asc" } },
         },
       },
       },
@@ -142,6 +151,9 @@ export default async function JournalEntryPage({
       })
     : null
   const feedbackMessage = readFeedbackMessage(query.feedback, sessionMessages)
+  const correctionLabels = sessionMessages.correctionActions
+  const reflectionSession = entry.reflectionSession
+  const isGrounding = reflectionSession?.responseMode === "grounding" || reflectionSession?.status === "grounded"
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -181,35 +193,23 @@ export default async function JournalEntryPage({
 
       <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} labels={sessionMessages.delete} />
 
-      {/* Entry text */}
-      <div
-        className="rounded-2xl border p-7"
-        style={{
-          background: "var(--pearl)",
-          borderColor: "rgba(43,27,53,0.07)",
-        }}
-      >
+      <EvidenceBlock eyebrow={sessionMessages.memberWordsEyebrow} title={sessionMessages.memberWordsTitle} tone="member">
         <p
-          className="font-display text-[17px] font-light leading-[1.85] text-[var(--primary)] whitespace-pre-wrap journal-lines"
+          className="font-display text-[17px] font-light leading-[1.85] text-[var(--text-primary)] whitespace-pre-wrap journal-lines"
           style={{ paddingBottom: "1rem" }}
         >
           {entry.rawText}
         </p>
-      </div>
+      </EvidenceBlock>
 
       {/* Active guided reflection */}
       {r ? (
-        <div
-          className="rounded-2xl border overflow-hidden"
-          style={{
-            background: "var(--primary)",
-            borderColor: "var(--primary)",
-          }}
-        >
+        <EvidenceBlock eyebrow={isGrounding ? sessionMessages.groundingEyebrow : sessionMessages.guideWordsEyebrow} title={isGrounding ? sessionMessages.groundingTitle : sessionMessages.guideWordsTitle} tone="guide">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
           {/* Header */}
           <div className="flex flex-col items-center text-center px-7 pt-7 pb-5">
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-0.5">
-              Supraconscious reflection
+              {isGrounding ? sessionMessages.groundingEyebrow : sessionMessages.councilReflection}
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
               Supraconscious Guide · constant presence
@@ -297,7 +297,17 @@ export default async function JournalEntryPage({
               </div>
             )}
           </div>
-        </div>
+          </div>
+          {reflectionSession && (
+            <div className="mt-5 border-t border-[var(--border-subtle)] pt-5">
+              <CorrectionActions
+                reflectionSessionId={reflectionSession.id}
+                initialCorrections={reflectionSession.corrections.filter((correction) => !correction.dimension)}
+                labels={correctionLabels}
+              />
+            </div>
+          )}
+        </EvidenceBlock>
       ) : (
         <div
           className="rounded-2xl border border-dashed p-8 text-center"
@@ -307,6 +317,33 @@ export default async function JournalEntryPage({
             {sessionMessages.noReflection}
           </p>
         </div>
+      )}
+
+      {reflectionSession && reflectionSession.dimensions.length > 0 && !isGrounding && (
+        <EvidenceBlock eyebrow={sessionMessages.dimensionsEyebrow} title={sessionMessages.dimensionsTitle} tone="guide">
+          <p>{sessionMessages.dimensionsHelp}</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {reflectionSession.dimensions.map((dimension) => (
+              <DimensionFacet
+                key={dimension.id}
+                name={journalMessages.dimensionNames[dimension.dimension as keyof typeof journalMessages.dimensionNames] ?? dimension.dimension}
+                selectionLabel={sessionMessages.dimensionEqualLabel}
+                observationLabel={sessionMessages.observedLabel}
+                interpretationLabel={sessionMessages.tentativeLabel}
+                observation={dimension.observationText}
+                interpretation={dimension.tentativeInterpretation}
+                actions={(
+                  <CorrectionActions
+                    reflectionSessionId={reflectionSession.id}
+                    dimension={dimension.dimension as Parameters<typeof CorrectionActions>[0]["dimension"]}
+                    initialCorrections={reflectionSession.corrections.filter((correction) => correction.dimension === dimension.dimension)}
+                    labels={correctionLabels}
+                  />
+                )}
+              />
+            ))}
+          </div>
+        </EvidenceBlock>
       )}
 
       {entry.councilSession && (
@@ -387,19 +424,8 @@ export default async function JournalEntryPage({
       )}
 
       {entry.councilSession && (
-        <div
-          className="rounded-2xl border p-7"
-          style={{
-            background: "var(--pearl)",
-            borderColor: "rgba(43,27,53,0.07)",
-          }}
-        >
-          <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-2">
-            {sessionMessages.sourceGrounding}
-          </p>
-          <p className="text-[13px] font-light leading-relaxed text-[var(--plum-soft)]">
-            {sourceMessage}
-          </p>
+        <EvidenceBlock eyebrow={sessionMessages.sourceGrounding} title={sessionMessages.sourceTitle} tone="source">
+          <ProvenanceLine mode={sourceMode} modeLabel={sessionMessages.sourceModeLabel} message={sourceMessage} />
           {selectedSources.length > 0 && (
             <div className="mt-4 space-y-2">
               {selectedSources.map((source) => (
@@ -421,7 +447,24 @@ export default async function JournalEntryPage({
               ))}
             </div>
           )}
-        </div>
+        </EvidenceBlock>
+      )}
+
+      {entry.councilSession && (
+        <EvidenceBlock eyebrow={sessionMessages.memberActionEyebrow} title={sessionMessages.memberActionTitle} tone="action">
+          <MemberActionEditor
+            councilSessionId={entry.councilSession.id}
+            initialActions={entry.councilSession.embodimentGateResponses}
+            labels={{
+              question: journalMessages.embodimentQuestion,
+              help: journalMessages.embodimentHelp,
+              placeholder: journalMessages.embodimentPlaceholder,
+              save: journalMessages.crossGate,
+              saved: journalMessages.gateCrossed,
+              error: journalMessages.saveShiftError,
+            }}
+          />
+        </EvidenceBlock>
       )}
     </div>
   )
