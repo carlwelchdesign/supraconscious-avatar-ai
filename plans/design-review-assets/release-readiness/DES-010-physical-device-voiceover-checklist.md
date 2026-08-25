@@ -1,7 +1,7 @@
 # DES-010 physical-device VoiceOver release gate
 
 Status: required before DES-010 can be marked complete
-Deployment: prohibited until separate founder approval
+Deployment: the web founder-review build was explicitly authorized by Carl and deployed on 2026-08-25; physical VoiceOver remains required before DES-010 completion or broader release approval
 
 Apple requires a physical device for a true VoiceOver pass. Accessibility Inspector and Simulator checks supplement this gate but do not replace it. See Apple's [accessibility testing guidance](https://developer.apple.com/documentation/accessibility/performing-accessibility-testing-for-your-app) and [Accessibility Inspector documentation](https://developer.apple.com/documentation/accessibility/accessibility-inspector).
 
