@@ -1,9 +1,9 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { Loader2, ArrowRight } from "lucide-react"
+import { Loader2, ArrowRight, Check, CloudOff, RotateCcw, ShieldCheck } from "lucide-react"
 import {
   FOUNDER_CALIBRATION_SCENARIO_PROMPTS,
   type FounderCalibrationScenario,
@@ -15,6 +15,8 @@ import { DimensionRationalePanel } from "@/components/journal/dimension-rational
 import type { PublicDimensionRationale } from "@/lib/dimension-rationale"
 import { resolveFounderCalibrationSubmissionScenario } from "@/lib/founder-calibration-submit"
 import { buildSpeakText } from "@/lib/voice/voice-config"
+import { LivingField } from "@/components/ambient/living-field"
+import { resolveLivingFieldState, shouldAutosaveDraft, type DraftSaveState } from "@/lib/journal-composer-state"
 
 const CALIBRATION_PROMPTS = [
   {
@@ -128,6 +130,8 @@ type Props = {
   needsFounderFirstSessionGuide?: boolean
   needsFounderFeedback?: boolean
   founderFeedbackHref?: string | null
+  responseLanguageLabel: string
+  patternMemoryEnabled: boolean
 }
 
 export function JournalWorkspace({
@@ -139,6 +143,8 @@ export function JournalWorkspace({
   needsFounderFirstSessionGuide = false,
   needsFounderFeedback = false,
   founderFeedbackHref = null,
+  responseLanguageLabel,
+  patternMemoryEnabled,
 }: Props) {
   const t = useTranslations("journal")
   const suggestedPrompt = suggestedCalibrationScenario
@@ -154,9 +160,17 @@ export function JournalWorkspace({
   const [text, setText] = useState(initialText)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [errorStatus, setErrorStatus] = useState<number | null>(null)
   const [calibrationScenario, setCalibrationScenario] = useState<FounderCalibrationScenario>(suggestedCalibrationScenario ?? "freeform")
   const [result, setResult] = useState<AnalysisResult | null>(null)
+  const [isFocused, setIsFocused] = useState(false)
+  const [gentlerHandling, setGentlerHandling] = useState(false)
+  const [motionEnabled, setMotionEnabled] = useState(true)
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine)
+  const [draftState, setDraftState] = useState<DraftSaveState>("empty")
+  const [draftId, setDraftId] = useState<string | null>(null)
   const submissionInFlight = useRef(false)
+  const lastSavedText = useRef("")
 
   const voice = voicePrefs ?? {
     voiceEnabled: false,
@@ -170,6 +184,7 @@ export function JournalWorkspace({
     if (submissionInFlight.current) return
     submissionInFlight.current = true
     setError("")
+    setErrorStatus(null)
     setResult(null)
     setIsSubmitting(true)
 
@@ -182,15 +197,30 @@ export function JournalWorkspace({
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, calibrationScenario: submittedCalibrationScenario }),
+        body: JSON.stringify({
+          text,
+          calibrationScenario: submittedCalibrationScenario,
+          handlingPreference: gentlerHandling ? "gentler" : "standard",
+        }),
       })
       const payload = await response.json()
       if (!response.ok) {
+        setErrorStatus(response.status)
         setError(userFacingJournalError(payload.error, response.status, t))
         return
       }
       setResult(payload)
+      setDraftState("saved")
+      if (draftId) {
+        void fetch("/api/journal/draft", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: draftId }),
+        })
+        setDraftId(null)
+      }
     } catch {
+      setErrorStatus(0)
       setError(t("transientError"))
     } finally {
       submissionInFlight.current = false
@@ -198,11 +228,57 @@ export function JournalWorkspace({
     }
   }
 
+  useEffect(() => {
+    const online = () => setIsOnline(true)
+    const offline = () => {
+      setIsOnline(false)
+      setDraftState((current) => current === "empty" ? current : "offline")
+    }
+    window.addEventListener("online", online)
+    window.addEventListener("offline", offline)
+    return () => {
+      window.removeEventListener("online", online)
+      window.removeEventListener("offline", offline)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!text.trim()) return
+    if (text === lastSavedText.current) return
+    if (!shouldAutosaveDraft({ text, isSubmitting, isOnline })) return
+
+    const controller = new AbortController()
+    const timeout = window.setTimeout(async () => {
+      setDraftState("saving")
+      try {
+        const response = await fetch("/api/journal/draft", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: draftId ?? undefined, text }),
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error("draft_save_failed")
+        const payload = await response.json()
+        setDraftId(payload.journalEntry.id)
+        lastSavedText.current = text
+        setDraftState("saved")
+      } catch (saveError) {
+        if ((saveError as Error).name !== "AbortError") setDraftState(navigator.onLine ? "error" : "offline")
+      }
+    }, 900)
+    return () => {
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [draftId, isOnline, isSubmitting, text])
+
   const handleTranscribe = (transcribed: string) => {
+    setDraftState(isOnline ? "dirty" : "offline")
     setText((prev) => (prev.trim() ? `${prev}\n${transcribed}` : transcribed))
   }
 
   const applyCalibrationPrompt = (prompt: (typeof CALIBRATION_PROMPTS)[number]) => {
+    setDraftState(isOnline ? "dirty" : "offline")
     setCalibrationScenario(prompt.scenario)
     const promptText = prompt.text
     setText((prev) => {
@@ -216,6 +292,12 @@ export function JournalWorkspace({
   const founderOnlyHasPromptText = founderFirstSessionNeedsContext && CALIBRATION_PROMPT_TEXTS.has(trimmedText)
   const canSubmit = trimmedText.length >= 20 && !founderOnlyHasPromptText
   const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0
+  const fieldState = resolveLivingFieldState({
+    hasText: Boolean(trimmedText),
+    isFocused,
+    isSubmitting,
+    safetySeverity: result?.safety.severity,
+  })
   const thresholdPromptTranslationKey = readThresholdPromptTranslationKey(thresholdPrompt)
   const localizedThresholdPrompt = thresholdPrompt
     ? {
@@ -239,7 +321,9 @@ export function JournalWorkspace({
     ? buildSpeakText(result.avatarResponse)
     : ""
   return (
-    <div className="space-y-6">
+    <div className="relative isolate overflow-hidden rounded-[28px] border border-[var(--border-subtle)] bg-[var(--canvas)] px-4 py-6 sm:px-6 lg:px-8">
+      <LivingField state={fieldState} motionEnabled={motionEnabled} className="absolute inset-0 z-0 h-full w-full opacity-90" />
+      <div className="relative z-10 space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────── */}
       <div>
@@ -350,6 +434,27 @@ export function JournalWorkspace({
         </section>
       )}
 
+      <section className="grid gap-px overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--border-subtle)] sm:grid-cols-2 xl:grid-cols-4" aria-label={t("composerPreferences")}>
+        <div className="bg-[var(--surface)] px-4 py-3">
+          <p className="observatory-label">{t("responseLanguage")}</p>
+          <p className="mt-1 text-sm text-[var(--text-primary)]">{responseLanguageLabel}</p>
+          <Link href="/settings" className="mt-1 inline-block text-xs text-[var(--action-primary)] underline-offset-4 hover:underline">{t("changeInSettings")}</Link>
+        </div>
+        <label className="flex cursor-pointer items-center justify-between gap-3 bg-[var(--surface)] px-4 py-3">
+          <span><span className="observatory-label block">{t("gentlerHandling")}</span><span className="mt-1 block text-xs text-[var(--text-secondary)]">{t("gentlerHandlingHelp")}</span></span>
+          <input type="checkbox" checked={gentlerHandling} onChange={(event) => setGentlerHandling(event.target.checked)} className="h-5 w-5 accent-[var(--action-primary)]" />
+        </label>
+        <div className="bg-[var(--surface)] px-4 py-3">
+          <p className="observatory-label">{t("patternMemory")}</p>
+          <p className="mt-1 text-sm text-[var(--text-primary)]">{patternMemoryEnabled ? t("on") : t("off")}</p>
+          <Link href="/settings" className="mt-1 inline-block text-xs text-[var(--action-primary)] underline-offset-4 hover:underline">{t("reviewPrivacyControl")}</Link>
+        </div>
+        <label className="flex cursor-pointer items-center justify-between gap-3 bg-[var(--surface)] px-4 py-3">
+          <span><span className="observatory-label block">{t("livingField")}</span><span className="mt-1 block text-xs text-[var(--text-secondary)]">{t("livingFieldHelp")}</span></span>
+          <input type="checkbox" checked={motionEnabled} onChange={(event) => setMotionEnabled(event.target.checked)} className="h-5 w-5 accent-[var(--action-primary)]" />
+        </label>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
         {/* ── Editor ─────────────────────────────────────────────── */}
@@ -379,7 +484,12 @@ export function JournalWorkspace({
             <div className="px-8 pt-6 pb-8">
               <textarea
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value)
+                  setDraftState(e.target.value.trim() ? (isOnline ? "dirty" : "offline") : "empty")
+                }}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 readOnly={isSubmitting}
                 aria-busy={isSubmitting}
                 placeholder={t("journalPlaceholder")}
@@ -394,9 +504,13 @@ export function JournalWorkspace({
               style={{ borderColor: "rgba(43,27,53,0.06)" }}
             >
               <div className="flex items-center gap-3">
-                <p className="text-[12px] font-light text-[var(--plum-soft)]/70">
-                  {t("privacyNote")}
-                </p>
+                <div className="flex items-center gap-2 text-[12px] font-light text-[var(--text-secondary)]" role="status" aria-live="polite">
+                  {draftState === "saving" && <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" />}
+                  {draftState === "saved" && <Check aria-hidden="true" className="h-3.5 w-3.5 text-[var(--signal-success)]" />}
+                  {draftState === "offline" && <CloudOff aria-hidden="true" className="h-3.5 w-3.5" />}
+                  {draftState === "empty" && <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />}
+                  <span>{t(`draftStates.${draftState}`)}</span>
+                </div>
                 {voice.voiceEnabled && (
                   <MicButton onTranscribe={handleTranscribe} disabled={isSubmitting} />
                 )}
@@ -435,7 +549,14 @@ export function JournalWorkspace({
                 color: "var(--destructive)",
               }}
             >
-              {error}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span>{error}</span>
+                {errorStatus !== 401 && errorStatus !== 403 && (
+                  <button type="button" onClick={handleSubmit} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-current px-4 py-2 font-medium">
+                    <RotateCcw aria-hidden="true" className="h-4 w-4" /> {t("retry")}
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>
@@ -641,6 +762,7 @@ export function JournalWorkspace({
 
         </aside>
       </div>
+      </div>
     </div>
   )
 }
@@ -650,6 +772,7 @@ type JournalTranslator = (key: string, values?: Record<string, string | number>)
 function userFacingJournalError(error: unknown, status: number, t: JournalTranslator) {
   const message = typeof error === "string" ? error : ""
   if (status === 401) return t("journalErrorSignIn")
+  if (status === 403) return t("journalErrorPermission")
   if (status === 429) return t("journalErrorRate")
   if (status === 400 && message) return message
   if (status >= 500) return t("journalErrorServer")
