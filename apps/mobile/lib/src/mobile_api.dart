@@ -194,13 +194,38 @@ class InnerCouncilApiClient {
     _cookies.clear();
   }
 
-  Future<JournalAnalyzeResult> analyzeJournal(String text) async {
+  Future<JournalAnalyzeResult> analyzeJournal(
+    String text, {
+    bool gentlerHandling = false,
+  }) async {
     final json = await _send(
       'POST',
       '/api/journal/analyze',
-      body: {'text': text, 'inputMode': 'text'},
+      body: {
+        'text': text,
+        'inputMode': 'text',
+        'handlingPreference': gentlerHandling ? 'gentler' : 'standard',
+      },
     );
     return JournalAnalyzeResult.fromJson(json);
+  }
+
+  Future<String> saveJournalDraft(String text, {String? draftId}) async {
+    final json = await _send(
+      'PUT',
+      '/api/journal/draft',
+      body: {'text': text, 'id': ?draftId},
+    );
+    final journalEntry = json['journalEntry'];
+    if (journalEntry is! Map<String, dynamic> ||
+        journalEntry['id'] is! String) {
+      throw MobileApiException('Draft response was incomplete.', 500);
+    }
+    return journalEntry['id'] as String;
+  }
+
+  Future<void> deleteJournalDraft(String draftId) async {
+    await _send('DELETE', '/api/journal/draft', body: {'id': draftId});
   }
 
   Future<Map<String, dynamic>> submitFeedback({
@@ -227,6 +252,32 @@ class InnerCouncilApiClient {
       'POST',
       '/api/council/embodiment',
       body: {'councilSessionId': councilSessionId, 'text': text},
+    );
+  }
+
+  Future<Map<String, dynamic>> saveReflectionCorrection({
+    required String reflectionSessionId,
+    required String dimension,
+    required String correctionType,
+    String? note,
+  }) {
+    return _send(
+      'POST',
+      '/api/reflections/corrections',
+      body: {
+        'reflectionSessionId': reflectionSessionId,
+        'dimension': dimension,
+        'correctionType': correctionType,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+  }
+
+  Future<void> restoreReflectionCorrection(String correctionId) async {
+    await _send(
+      'DELETE',
+      '/api/reflections/corrections',
+      body: {'correctionId': correctionId},
     );
   }
 
@@ -744,6 +795,7 @@ class MobileSavedSessionDetail {
     required this.sourceMode,
     required this.journalText,
     required this.avatarResponse,
+    required this.reflectionSession,
     required this.messages,
     required this.synthesis,
     required this.feedback,
@@ -755,6 +807,7 @@ class MobileSavedSessionDetail {
   final String sourceMode;
   final String journalText;
   final MobileAvatarResponse? avatarResponse;
+  final MobileReflectionSession? reflectionSession;
   final List<MobileCouncilMessage> messages;
   final MobileSessionSynthesis? synthesis;
   final List<MobileFeedbackSummary> feedback;
@@ -775,6 +828,11 @@ class MobileSavedSessionDetail {
       avatarResponse: json['avatarResponse'] is Map<String, dynamic>
           ? MobileAvatarResponse.fromJson(
               json['avatarResponse'] as Map<String, dynamic>,
+            )
+          : null,
+      reflectionSession: json['reflectionSession'] is Map<String, dynamic>
+          ? MobileReflectionSession.fromJson(
+              json['reflectionSession'] as Map<String, dynamic>,
             )
           : null,
       messages: messages is List
@@ -803,6 +861,84 @@ class MobileSavedSessionDetail {
       sourceGrounding: MobileSourceGrounding.fromJson(
         json['sourceGrounding'] as Map<String, dynamic>? ?? const {},
       ),
+    );
+  }
+}
+
+class MobileReflectionSession {
+  const MobileReflectionSession({
+    required this.id,
+    required this.dimensions,
+    required this.corrections,
+  });
+
+  final String id;
+  final List<MobileDimensionReflection> dimensions;
+  final List<MobileReflectionCorrection> corrections;
+
+  factory MobileReflectionSession.fromJson(Map<String, dynamic> json) {
+    final dimensions = json['dimensions'];
+    final corrections = json['corrections'];
+    return MobileReflectionSession(
+      id: json['id'] as String? ?? '',
+      dimensions: dimensions is List
+          ? dimensions
+                .whereType<Map<String, dynamic>>()
+                .map(MobileDimensionReflection.fromJson)
+                .toList()
+          : const [],
+      corrections: corrections is List
+          ? corrections
+                .whereType<Map<String, dynamic>>()
+                .map(MobileReflectionCorrection.fromJson)
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class MobileDimensionReflection {
+  const MobileDimensionReflection({
+    required this.id,
+    required this.dimension,
+    required this.observationText,
+    required this.tentativeInterpretation,
+  });
+
+  final String id;
+  final String dimension;
+  final String? observationText;
+  final String? tentativeInterpretation;
+
+  factory MobileDimensionReflection.fromJson(Map<String, dynamic> json) {
+    return MobileDimensionReflection(
+      id: json['id'] as String? ?? '',
+      dimension: json['dimension'] as String? ?? '',
+      observationText: json['observationText'] as String?,
+      tentativeInterpretation: json['tentativeInterpretation'] as String?,
+    );
+  }
+}
+
+class MobileReflectionCorrection {
+  const MobileReflectionCorrection({
+    required this.id,
+    required this.dimension,
+    required this.correctionType,
+    required this.note,
+  });
+
+  final String id;
+  final String? dimension;
+  final String correctionType;
+  final String? note;
+
+  factory MobileReflectionCorrection.fromJson(Map<String, dynamic> json) {
+    return MobileReflectionCorrection(
+      id: json['id'] as String? ?? '',
+      dimension: json['dimension'] as String?,
+      correctionType: json['correctionType'] as String? ?? '',
+      note: json['note'] as String?,
     );
   }
 }

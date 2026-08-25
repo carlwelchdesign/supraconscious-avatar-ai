@@ -30,6 +30,11 @@ function seededRandom(seed: number) {
 
 export function LivingField({ state, motionEnabled, className = "", seed = 2407 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const targetModeRef = useRef(MODES[state])
+
+  useEffect(() => {
+    targetModeRef.current = MODES[state]
+  }, [state])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -37,15 +42,18 @@ export function LivingField({ state, motionEnabled, className = "", seed = 2407 
     const context = canvas.getContext("2d")
     if (!context) return
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    const animate = motionEnabled && !reduceMotion
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let reduceMotion = motionQuery.matches
     const random = seededRandom(seed)
     let width = 0
     let height = 0
     let particles: Particle[] = []
     let frame = 0
     let previousTime = performance.now()
-    let visible = document.visibilityState === "visible"
+    let documentVisible = document.visibilityState === "visible"
+    let fieldVisible = true
+    const currentMode = { ...targetModeRef.current }
+    const shouldAnimate = () => motionEnabled && !reduceMotion
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect()
@@ -67,12 +75,19 @@ export function LivingField({ state, motionEnabled, className = "", seed = 2407 
     }
 
     const draw = (time: number, advance: boolean) => {
-      const mode = MODES[state]
       const delta = Math.min(32, time - previousTime) / 16.67
+      const targetMode = targetModeRef.current
+      const blend = advance ? Math.min(1, delta / 42) : 1
+      currentMode.speed += (targetMode.speed - currentMode.speed) * blend
+      currentMode.link += (targetMode.link - currentMode.link) * blend
+      currentMode.alpha += (targetMode.alpha - currentMode.alpha) * blend
+      currentMode.coherence += (targetMode.coherence - currentMode.coherence) * blend
+      currentMode.energy += (targetMode.energy - currentMode.energy) * blend
+      const mode = currentMode
       previousTime = time
       context.clearRect(0, 0, width, height)
 
-      const breath = animate ? 0.86 + Math.sin(time * 0.00042) * 0.14 : 0.94
+      const breath = shouldAnimate() ? 0.86 + Math.sin(time * 0.00042) * 0.14 : 0.94
       const glow = context.createRadialGradient(width * 0.32, height * 0.5, 0, width * 0.32, height * 0.5, width * 0.72)
       glow.addColorStop(0, `rgba(194, 112, 68, ${0.2 * breath * mode.energy})`)
       glow.addColorStop(0.48, `rgba(101, 72, 146, ${0.12 * mode.energy})`)
@@ -115,17 +130,26 @@ export function LivingField({ state, motionEnabled, className = "", seed = 2407 
     }
 
     const loop = (time: number) => {
-      if (!visible) return
+      if (!documentVisible || !fieldVisible || !shouldAnimate()) return
       draw(time, true)
       frame = window.requestAnimationFrame(loop)
     }
-    const handleVisibility = () => {
-      visible = document.visibilityState === "visible"
+    const restart = () => {
       window.cancelAnimationFrame(frame)
-      if (visible && animate) {
+      if (documentVisible && fieldVisible && shouldAnimate()) {
         previousTime = performance.now()
         frame = window.requestAnimationFrame(loop)
+      } else {
+        draw(performance.now(), false)
       }
+    }
+    const handleVisibility = () => {
+      documentVisible = document.visibilityState === "visible"
+      restart()
+    }
+    const handleMotionPreference = (event: MediaQueryListEvent) => {
+      reduceMotion = event.matches
+      restart()
     }
 
     const observer = new ResizeObserver(() => {
@@ -133,17 +157,25 @@ export function LivingField({ state, motionEnabled, className = "", seed = 2407 
       draw(performance.now(), false)
     })
     observer.observe(canvas)
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      fieldVisible = entry?.isIntersecting ?? true
+      restart()
+    })
+    intersectionObserver.observe(canvas)
     document.addEventListener("visibilitychange", handleVisibility)
+    motionQuery.addEventListener("change", handleMotionPreference)
     resize()
     draw(performance.now(), false)
-    if (animate) frame = window.requestAnimationFrame(loop)
+    if (shouldAnimate()) frame = window.requestAnimationFrame(loop)
 
     return () => {
       observer.disconnect()
+      intersectionObserver.disconnect()
       document.removeEventListener("visibilitychange", handleVisibility)
+      motionQuery.removeEventListener("change", handleMotionPreference)
       window.cancelAnimationFrame(frame)
     }
-  }, [motionEnabled, seed, state])
+  }, [motionEnabled, seed])
 
   return (
     <div aria-hidden="true" className={`pointer-events-none ${className}`} data-field-state={state}>

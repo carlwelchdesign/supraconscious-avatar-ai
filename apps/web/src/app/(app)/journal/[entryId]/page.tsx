@@ -156,7 +156,7 @@ export default async function JournalEntryPage({
   const isGrounding = reflectionSession?.responseMode === "grounding" || reflectionSession?.status === "grounded"
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="mx-auto flex max-w-[78rem] flex-col gap-8">
 
       {/* Back nav */}
       <Link
@@ -170,11 +170,13 @@ export default async function JournalEntryPage({
       {/* Date header */}
       <div>
         <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1.5">
-          {journalMessages.entryEyebrow}
-        </p>
-        <h1 className="font-display text-[32px] font-light leading-tight text-[var(--primary)]">
           {dateLabel}
+        </p>
+        <h1 className="observatory-heading">
+          {sessionMessages.reflectionTitle}
         </h1>
+        <div className="mt-5 h-0.5 w-16 bg-[var(--action-primary)]" aria-hidden="true" />
+        <p className="mt-4 text-[15px] text-[var(--text-secondary)]">{sessionMessages.guideWordsTitle}</p>
       </div>
 
       {feedbackMessage && (
@@ -190,8 +192,6 @@ export default async function JournalEntryPage({
           </p>
         </div>
       )}
-
-      <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} labels={sessionMessages.delete} />
 
       <EvidenceBlock eyebrow={sessionMessages.memberWordsEyebrow} title={sessionMessages.memberWordsTitle} tone="member">
         <p
@@ -212,7 +212,7 @@ export default async function JournalEntryPage({
               {isGrounding ? sessionMessages.groundingEyebrow : sessionMessages.councilReflection}
             </p>
             <p className="font-display text-[18px] font-light text-[var(--cream)]">
-              Supraconscious Guide · constant presence
+              Supraconscious Guide · consistent voice
             </p>
           </div>
 
@@ -320,9 +320,9 @@ export default async function JournalEntryPage({
       )}
 
       {reflectionSession && reflectionSession.dimensions.length > 0 && !isGrounding && (
-        <EvidenceBlock eyebrow={sessionMessages.dimensionsEyebrow} title={sessionMessages.dimensionsTitle} tone="guide">
+        <EvidenceBlock id="reflection-corrections" eyebrow={sessionMessages.dimensionsEyebrow} title={sessionMessages.dimensionsTitle} tone="guide">
           <p>{sessionMessages.dimensionsHelp}</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid overflow-hidden rounded-xl border border-[var(--border-subtle)] sm:grid-cols-2 xl:grid-cols-4">
             {reflectionSession.dimensions.map((dimension) => (
               <DimensionFacet
                 key={dimension.id}
@@ -348,7 +348,7 @@ export default async function JournalEntryPage({
 
       {entry.councilSession && (
         <div
-          className="rounded-2xl border p-7"
+          className="order-[7] rounded-2xl border p-7"
           style={{
             background: "var(--pearl)",
             borderColor: "rgba(43,27,53,0.07)",
@@ -424,7 +424,7 @@ export default async function JournalEntryPage({
       )}
 
       {entry.councilSession && (
-        <EvidenceBlock eyebrow={sessionMessages.sourceGrounding} title={sessionMessages.sourceTitle} tone="source">
+        <EvidenceBlock eyebrow={sessionMessages.sourceGrounding} title={sessionMessages.sourceTitle} tone="source" className="order-[5]">
           <ProvenanceLine mode={sourceMode} modeLabel={sessionMessages.sourceModeLabel} message={sourceMessage} />
           {selectedSources.length > 0 && (
             <div className="mt-4 space-y-2">
@@ -451,7 +451,7 @@ export default async function JournalEntryPage({
       )}
 
       {entry.councilSession && (
-        <EvidenceBlock eyebrow={sessionMessages.memberActionEyebrow} title={sessionMessages.memberActionTitle} tone="action">
+        <EvidenceBlock id="carry-forward" eyebrow={sessionMessages.memberActionEyebrow} title={sessionMessages.memberActionTitle} tone="action" className="order-[6]">
           <MemberActionEditor
             councilSessionId={entry.councilSession.id}
             initialActions={entry.councilSession.embodimentGateResponses}
@@ -466,6 +466,25 @@ export default async function JournalEntryPage({
           />
         </EvidenceBlock>
       )}
+
+      <div className="order-[8] border-t border-[var(--border-subtle)] pt-6">
+        <DeleteJournalEntryForm action={deleteJournalEntryAction} journalEntryId={entry.id} labels={sessionMessages.delete} />
+      </div>
+
+      {reflectionSession && !isGrounding ? (
+        <nav
+          aria-label={sessionMessages.memberActionTitle}
+          className="fixed inset-x-0 bottom-0 z-40 flex gap-3 border-t border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--canvas)_94%,transparent)] px-4 pt-3 backdrop-blur-xl xl:hidden"
+          style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <a href="#reflection-corrections" className="observatory-button-secondary flex min-h-12 flex-1 items-center justify-center text-center">
+            {correctionLabels.correct}
+          </a>
+          <a href="#carry-forward" className="observatory-button-primary flex min-h-12 flex-1 items-center justify-center text-center">
+            {sessionMessages.memberActionTitle}
+          </a>
+        </nav>
+      ) : null}
     </div>
   )
 }

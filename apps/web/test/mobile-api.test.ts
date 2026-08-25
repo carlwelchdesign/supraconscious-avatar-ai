@@ -123,6 +123,21 @@ test("mobile saved session response includes reflection fields and selected sour
         integrationStep: "Pause once.",
         closingLine: "Stay close to the truth.",
       },
+      reflectionSession: {
+        id: "reflection-1",
+        dimensions: [{
+          id: "dimension-1",
+          dimension: "fear",
+          observationText: "You may be protecting belonging.",
+          tentativeInterpretation: "A boundary may feel risky.",
+        }],
+        corrections: [{
+          id: "correction-1",
+          dimension: "fear",
+          correctionType: "correct",
+          note: "I am protecting recovery time.",
+        }],
+      },
     },
     messages: [{
       id: "message-1",
@@ -164,6 +179,8 @@ test("mobile saved session response includes reflection fields and selected sour
   })
 
   assert.equal(response.session.avatarResponse?.mirror, "You already know.")
+  assert.equal(response.session.reflectionSession?.dimensions[0].dimension, "fear")
+  assert.equal(response.session.reflectionSession?.corrections[0].note, "I am protecting recovery time.")
   assert.equal(response.session.messages[0].displayName, "The Protector")
   assert.equal(response.session.sourceGrounding.mode, "rag")
   assert.deepEqual(response.session.sourceGrounding.selectedSources, [{

@@ -18,12 +18,15 @@ export async function GuidePageContent() {
         </p>
       </div>
 
-      <div className="relative overflow-hidden rounded-3xl border p-10" style={{ background: "var(--primary)", borderColor: "var(--primary)" }}>
+      <div
+        className="observatory-panel relative overflow-hidden p-10"
+        style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--surface-raised) 96%, transparent), color-mix(in srgb, var(--signal-selection) 8%, var(--surface)))" }}
+      >
         <span className="pointer-events-none absolute right-12 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full opacity-15 blur-[80px]" style={{ background: "radial-gradient(circle, var(--clay), transparent)" }} />
         <div className="relative z-10">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--clay-light)]">Your constant Guide</p>
-          <h2 className="mb-3 font-display text-[36px] font-light leading-tight text-[var(--cream)]">{DOCTRINE_CONTRACT.guide.name}</h2>
-          <p className="max-w-sm text-[15px] font-light leading-[1.7] text-[var(--cream)]/60">
+          <h2 className="mb-3 font-display text-[36px] font-light leading-tight text-[var(--text-primary)]">{DOCTRINE_CONTRACT.guide.name}</h2>
+          <p className="max-w-lg text-[15px] font-light leading-[1.7] text-[var(--text-secondary)]">
             Its language remains tentative and grounded. It may offer different dimensions as your reflection calls for them, without claiming to know your truth.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">

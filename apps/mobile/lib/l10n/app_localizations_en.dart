@@ -33,17 +33,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordLabel => 'Password';
 
   @override
-  String get landingEyebrow => 'AI-powered identity reflection';
+  String get landingEyebrow => 'A quieter place for honest reflection';
 
   @override
-  String get landingNotJournal => 'This is not a journal.';
+  String get landingNotJournal => 'Bring what’s been on your mind.';
 
   @override
-  String get landingMeetYourself => 'This is where you meet yourself.';
+  String get landingMeetYourself => 'Meet it with a little more space.';
 
   @override
   String get landingBody =>
-      'You do not need more advice. You need to see clearly. The Mirror helps you recognize what may already be present.';
+      'Write in your own words. Your Guide offers a thoughtful reflection through the dimensions that may fit the moment. You decide what fits—and what you want to carry forward.';
 
   @override
   String get tabJournal => 'Journal';
@@ -73,7 +73,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalHelper =>
-      'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.';
+      'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.';
 
   @override
   String get journalPlaceholder =>
@@ -87,7 +87,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'Your journal entries stay private to this account and are used for reflection, safety checks, voice features, and pattern memory when enabled.';
+      'Your entries are stored with your account and used for reflections and safety checks. AI providers may process text or audio needed for features you choose. Pattern memory stores recurring signals only when enabled.';
 
   @override
   String get languageTitle => 'Language';
@@ -102,6 +102,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get patternMemorySubtitle =>
       'Allow recurring signals to appear over time.';
+
+  @override
+  String get gentlerHandling => 'Gentler handling';
+
+  @override
+  String get gentlerHandlingSubtitle =>
+      'The Guide will respond with extra care and a slower pace.';
+
+  @override
+  String get livingField => 'Living field';
+
+  @override
+  String get livingFieldSubtitle =>
+      'Ambient motion only, never an emotion reading.';
+
+  @override
+  String get draftSaving => 'Saving draft…';
+
+  @override
+  String get draftSaved => 'Draft saved privately';
 
   @override
   String get landingProblemEyebrow => 'The problem';
@@ -229,6 +249,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savedReflectionTitle => 'Saved reflection';
 
   @override
+  String get reflectionToConsider => 'A reflection to consider';
+
+  @override
+  String get reviewCarryForward => 'Review and carry forward';
+
+  @override
+  String get correctThis => 'Correct this';
+
+  @override
+  String get doesNotFit => 'Doesn’t fit';
+
+  @override
+  String get correctionPrompt => 'How would you correct this observation?';
+
+  @override
+  String get saveCorrection => 'Save correction';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get memberCorrection => 'Your correction';
+
+  @override
+  String get correctionSaved => 'Your correction was saved.';
+
+  @override
+  String get correctionError =>
+      'That correction could not be saved. Try again.';
+
+  @override
+  String get saveError =>
+      'That could not be saved. Check your connection and try again.';
+
+  @override
   String get feedbackSaved => 'Feedback saved';
 
   @override
@@ -283,6 +338,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get loadError => 'This reflection could not be loaded. Try again.';
+
+  @override
   String get guideResponse => 'Guide Response';
 
   @override
@@ -302,7 +360,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstEntryBody =>
-      'Write your first entry to begin building your practice.';
+      'Your first reflection begins with your own words. No structure is required.';
 
   @override
   String get savedReflections => 'Saved reflections';
@@ -435,9 +493,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String apiLabel(String apiBaseUrl) {
     return 'API: $apiBaseUrl';
   }
-
-  @override
-  String get cosmicEyeSemanticLabel => 'Cosmic eye artwork';
 
   @override
   String feedbackTypeLabel(String label) {

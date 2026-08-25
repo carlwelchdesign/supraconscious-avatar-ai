@@ -214,7 +214,7 @@ export function VoiceSettingsSection({
             type="submit"
             disabled={isPending}
             className="order-1 sm:order-2 inline-flex items-center justify-center gap-2 text-[14px] font-medium px-6 py-3 sm:py-2.5 rounded-full transition-all disabled:opacity-60"
-            style={{ background: "var(--primary)", color: "var(--cream)" }}
+            style={{ background: "var(--action-primary)", color: "#fff8ef" }}
           >
             {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

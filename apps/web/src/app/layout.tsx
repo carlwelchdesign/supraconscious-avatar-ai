@@ -8,9 +8,9 @@ import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://supraconscious.co"
-const title = "Supraconscious — Write. See clearly. Choose consciously."
+const title = "Supraconscious — A quieter place for honest reflection"
 const description =
-  "A guided self-inquiry system that helps surface patterns, contradictions, conscious choices, and one embodied next step."
+  "Write what is present. The Supraconscious Guide offers tentative perspectives through seven equal dimensions, while the meaning and next choice remain yours."
 const openGraphImage = "/opengraph-image.png"
 const twitterImage = "/twitter-image.png"
 
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
         url: openGraphImage,
         width: 1200,
         height: 630,
-        alt: "Supraconscious cosmic eye artwork",
+        alt: "Supraconscious Observatory mineral field",
       },
     ],
     type: "website",

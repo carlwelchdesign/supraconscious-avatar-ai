@@ -7,13 +7,14 @@ import { getPricingPageContent, prisma, type PricingPageContent } from "@inner-a
 import { LanguagePicker } from "@/components/landing/language-picker"
 import { resolveWebLanguage, supportedLanguageOptions } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
+import { LivingField } from "@/components/ambient/living-field"
 
 const dimensionIcons = [Eye, BookOpenText, Shield, Brain, Lightbulb, Compass, Footprints]
 
 function CtaLink({ href, children, variant = "dark" }: { href: string; children: ReactNode; variant?: "dark" | "light" }) {
   const className =
     variant === "light"
-      ? "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-[var(--cream)] px-6 py-3 text-sm font-medium text-[var(--primary)] shadow-[0_16px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)] focus:ring-offset-2 focus:ring-offset-[var(--primary)]"
+      ? "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-[var(--action-primary)] px-6 py-3 text-sm font-medium text-[#fff8ef] shadow-[0_16px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[var(--action-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] focus:ring-offset-2 focus:ring-offset-[var(--canvas)]"
       : "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--cream)] shadow-[0_16px_48px_rgba(43,27,53,0.20)] transition hover:-translate-y-0.5 hover:bg-[var(--plum-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--clay)] focus:ring-offset-2 focus:ring-offset-[var(--cream)]"
 
   return (
@@ -30,14 +31,15 @@ export default async function Home() {
   const messages = getWebMessages(currentLanguage)
   const common = messages.common
   const landing = messages.landing
+  const reflection = messages.sessionDetail
   const pricing = await getPricingPageContent(prisma, messages.pricing)
   const primaryHref = user ? "/journal" : "/register"
   const primaryCta = user ? common.continueReflection : common.startReflection
   const finalCta = user ? common.continueReflection : landing.finalCta
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--primary)]">
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[rgba(26,16,32,0.58)] px-5 py-4 text-[var(--cream)] backdrop-blur-xl md:px-8">
+    <main className="member-app public-observatory min-h-screen overflow-x-auto bg-[var(--cream)] text-[var(--primary)]">
+      <header className="relative z-50 border-b border-white/10 bg-[rgba(26,16,32,0.88)] px-5 py-4 text-[var(--cream)] backdrop-blur-xl md:fixed md:left-0 md:right-0 md:top-0 md:bg-[rgba(26,16,32,0.58)] md:px-8">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 md:gap-4">
           <Link href="/" className="font-display text-xl font-medium tracking-wide focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]">
             {landing.brand}
@@ -58,7 +60,7 @@ export default async function Home() {
               </Link>
             ))}
           </nav>
-          <div className="flex w-full items-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
+          <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
             <LanguagePicker
               key={currentLanguage}
               currentLanguage={currentLanguage}
@@ -67,7 +69,7 @@ export default async function Home() {
             />
             <Link
               href={primaryHref}
-              className="ml-auto inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[var(--cream)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition hover:-translate-y-px hover:bg-[var(--pearl)] focus:outline-none focus:ring-2 focus:ring-[var(--clay-light)]"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--action-primary)] px-4 py-2 text-sm font-medium text-[#fff8ef] transition hover:-translate-y-px hover:bg-[var(--action-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] sm:ml-auto sm:w-auto"
             >
               {user ? common.openJournal : common.begin}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -76,28 +78,24 @@ export default async function Home() {
         </div>
       </header>
 
-      <section className="relative min-h-[92vh] overflow-hidden bg-[var(--primary)] px-5 pb-20 pt-32 text-[var(--cream)] md:px-8 lg:min-h-screen lg:pb-28 lg:pt-36">
-        <Image
-          src="/landing/echo-eye-cosmos.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover opacity-[0.78]"
-        />
+      <section className="relative min-h-[92vh] overflow-hidden bg-[var(--primary)] px-5 pb-20 pt-16 text-[var(--cream)] sm:pt-20 md:px-8 md:pt-32 lg:min-h-screen lg:pb-28 lg:pt-36">
+        <LivingField state="resting" motionEnabled className="absolute inset-0 opacity-45" />
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <Image src="/mineral-boundary-v3-wide.png" alt="" fill priority sizes="100vw" className="object-cover object-left" />
+        </div>
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(26,16,32,0.92) 0%, rgba(26,16,32,0.74) 42%, rgba(26,16,32,0.40) 100%), linear-gradient(180deg, rgba(26,16,32,0.24) 0%, rgba(26,16,32,0.80) 100%)",
+              "linear-gradient(90deg, rgba(5,9,20,0.30) 0%, rgba(5,9,20,0.82) 29%, rgba(5,9,20,0.94) 100%), linear-gradient(180deg, rgba(5,9,20,0.12) 0%, rgba(5,9,20,0.72) 100%)",
           }}
         />
         <div className="relative z-10 mx-auto flex min-h-[calc(92vh-10rem)] max-w-7xl flex-col justify-end lg:min-h-[calc(100vh-10rem)]">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl lg:ml-[19vw]">
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.2em] text-[var(--clay-light)]">
               {landing.eyebrow}
             </p>
-            <h1 className="font-display text-[clamp(54px,8vw,112px)] font-light leading-[0.96] text-[var(--cream)]">
+            <h1 className="font-display text-[clamp(36px,8vw,112px)] font-light leading-[0.96] text-[var(--cream)] sm:text-[clamp(54px,8vw,112px)]">
               {landing.brand}
             </h1>
             <div className="mt-8 max-w-2xl space-y-3 font-display text-[clamp(30px,4vw,54px)] font-light leading-[1.1] text-[var(--cream)]">
@@ -149,6 +147,32 @@ export default async function Home() {
             </div>
             <p>{landing.problemBody2}</p>
           </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[var(--border-subtle)] bg-[var(--surface)] px-5 py-20 md:px-8 lg:py-28" aria-labelledby="reflection-example-title">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--clay-light)]">{landing.seeWhatChanges}</p>
+            <h2 id="reflection-example-title" className="mt-4 font-display text-[clamp(38px,5vw,68px)] font-light leading-[1.05] text-[var(--text-primary)]">
+              {landing.changeQuestionTitle}
+            </h2>
+            <p className="mt-5 max-w-2xl text-[16px] leading-7 text-[var(--text-secondary)]">{landing.trustSubtext}</p>
+          </div>
+          <div className="mt-12 grid gap-4 lg:grid-cols-3">
+            {[
+              [reflection.memberWordsEyebrow, reflection.memberWordsTitle, landing.problemBody1],
+              [reflection.guideWordsEyebrow, reflection.guideWordsTitle, landing.whyBody],
+              [reflection.memberActionEyebrow, reflection.memberActionTitle, landing.finalBody],
+            ].map(([eyebrow, title, body], index) => (
+              <article key={title} className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-soft)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--clay-light)]">0{index + 1} · {eyebrow}</p>
+                <h3 className="mt-4 font-display text-2xl font-light text-[var(--text-primary)]">{title}</h3>
+                <p className="mt-4 text-[15px] font-light leading-7 text-[var(--text-secondary)]">{body}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mt-6 text-xs text-[var(--text-secondary)]">{landing.footerSafety} · {landing.footerGrounded}</p>
         </div>
       </section>
 

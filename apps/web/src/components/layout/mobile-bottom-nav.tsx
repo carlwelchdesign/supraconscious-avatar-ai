@@ -20,7 +20,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t xl:hidden"
       style={{
         background: "color-mix(in srgb, var(--canvas) 92%, transparent)",
         backdropFilter: "blur(20px)",

@@ -12,7 +12,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get appTitle => 'Supraconscious';
 
   @override
-  String get startReflection => 'Ξεκίνα την πρώτη σου αντανάκλαση';
+  String get startReflection => 'Ξεκίνα έναν στοχασμό';
 
   @override
   String get signIn => 'Σύνδεση';
@@ -21,7 +21,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get createAccount => 'Δημιουργία λογαριασμού';
 
   @override
-  String get useExistingAccount => 'Χρήση υπάρχοντος λογαριασμού';
+  String get useExistingAccount => 'Έχω ήδη λογαριασμό';
 
   @override
   String get nameLabel => 'Όνομα';
@@ -33,17 +33,17 @@ class AppLocalizationsEl extends AppLocalizations {
   String get passwordLabel => 'Κωδικός πρόσβασης';
 
   @override
-  String get landingEyebrow => 'Αντανάκλαση ταυτότητας με AI';
+  String get landingEyebrow => 'Ένας πιο ήσυχος χώρος για ειλικρινή στοχασμό';
 
   @override
-  String get landingNotJournal => 'Αυτό δεν είναι ημερολόγιο.';
+  String get landingNotJournal => 'Έλα με ό,τι σε απασχολεί.';
 
   @override
-  String get landingMeetYourself => 'Εδώ συναντάς τον εαυτό σου.';
+  String get landingMeetYourself => 'Άφησέ του λίγο περισσότερο χώρο.';
 
   @override
   String get landingBody =>
-      'Δεν χρειάζεσαι περισσότερες συμβουλές. Χρειάζεται να δεις καθαρά. Το Mirror σε βοηθά να αναγνωρίσεις ό,τι μπορεί να είναι ήδη παρόν.';
+      'Γράψε με δικά σου λόγια. Ο Οδηγός προσφέρει έναν προσεκτικό στοχασμό μέσα από τις διαστάσεις που μπορεί να ταιριάζουν στη στιγμή. Εσύ αποφασίζεις τι ταιριάζει και τι θέλεις να κρατήσεις.';
 
   @override
   String get tabJournal => 'Ημερολόγιο';
@@ -61,23 +61,23 @@ class AppLocalizationsEl extends AppLocalizations {
   String get tabSettings => 'Ρυθμίσεις';
 
   @override
-  String get welcome => 'Καλώς ήρθες';
+  String get welcome => 'Καλώς ήρθες ξανά';
 
   @override
   String welcomeName(String name) {
-    return 'Καλώς ήρθες, $name';
+    return 'Γεια σου, $name';
   }
 
   @override
-  String get journalTitle => 'Τι είναι παρόν σήμερα;';
+  String get journalTitle => 'Σε τι θα ήθελες να δώσεις χώρο σήμερα;';
 
   @override
   String get journalHelper =>
-      'Γράψε μία ειλικρινή καταχώρηση. Ο Οδηγός μπορεί να αντανακλάσει μοτίβα, εντάσεις και ένα γειωμένο επόμενο βήμα.';
+      'Γράψε ό,τι είναι παρόν. Ο Οδηγός μπορεί να αντανακλάσει μοτίβα, εντάσεις και ένα πιθανό επόμενο βήμα.';
 
   @override
   String get journalPlaceholder =>
-      'Γράψε ό,τι είναι παρόν — συναισθήματα, παρατηρήσεις, εντάσεις. Δεν χρειάζεται δομή…';
+      'Ξεκίνα από όπου θέλεις: ένα συναίσθημα, μια παρατήρηση, μια ερώτηση ή μια ένταση. Δεν χρειάζεται συγκεκριμένη δομή…';
 
   @override
   String get settingsTitle => 'Ρυθμίσεις';
@@ -87,7 +87,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'Οι καταχωρήσεις σου μένουν ιδιωτικές σε αυτόν τον λογαριασμό και χρησιμοποιούνται για αντανάκλαση, ελέγχους ασφάλειας, φωνή και μνήμη μοτίβων όταν είναι ενεργή.';
+      'Οι καταχωρίσεις σου αποθηκεύονται στον λογαριασμό σου και χρησιμοποιούνται για στοχασμούς και ελέγχους ασφαλείας. Οι πάροχοι ΤΝ ενδέχεται να επεξεργάζονται το κείμενο ή τον ήχο που χρειάζονται οι λειτουργίες που επιλέγεις. Η μνήμη μοτίβων αποθηκεύει επαναλαμβανόμενα σήματα μόνο όταν είναι ενεργοποιημένη.';
 
   @override
   String get languageTitle => 'Γλώσσα';
@@ -104,20 +104,41 @@ class AppLocalizationsEl extends AppLocalizations {
       'Επίτρεψε σε επαναλαμβανόμενα σήματα να εμφανίζονται με τον χρόνο.';
 
   @override
-  String get landingProblemEyebrow => 'Το πρόβλημα';
+  String get gentlerHandling => 'Πιο ήπια προσέγγιση';
 
   @override
-  String get landingProblemTitle => 'Δεν έχεις κολλήσει. Δεν βλέπεις καθαρά.';
+  String get gentlerHandlingSubtitle =>
+      'Ο Οδηγός θα απαντήσει με περισσότερη φροντίδα και πιο αργό ρυθμό.';
+
+  @override
+  String get livingField => 'Ζωντανό πεδίο';
+
+  @override
+  String get livingFieldSubtitle =>
+      'Μόνο ατμοσφαιρική κίνηση, ποτέ ανάγνωση συναισθημάτων.';
+
+  @override
+  String get draftSaving => 'Αποθήκευση πρόχειρου…';
+
+  @override
+  String get draftSaved => 'Το πρόχειρο αποθηκεύτηκε ιδιωτικά';
+
+  @override
+  String get landingProblemEyebrow => 'Όταν οι σκέψεις γυρίζουν ξανά και ξανά';
+
+  @override
+  String get landingProblemTitle =>
+      'Μερικές φορές ξέρεις ότι κάτι έχει σημασία. Απλώς δεν μπορείς να το δεις όλο μονομιάς.';
 
   @override
   String get landingProblemBody =>
-      'Το σκέφτηκες, το ανέλυσες, το ξαναέπαιξες, και κάτι μέσα σου ακόμη διστάζει.';
+      'Μπορεί να το έχεις σκεφτεί, συζητήσει ή ξαναφέρει στο μυαλό σου πολλές φορές και ακόμη να μην ξέρεις από πού να αρχίσεις.';
 
   @override
   String get landingCouncilEyebrow => 'Πώς λειτουργεί';
 
   @override
-  String get landingCouncilTitle => 'Γνώρισε τις Επτά Διαστάσεις';
+  String get landingCouncilTitle => 'Επτά τρόποι να κοιτάξεις με προσοχή';
 
   @override
   String get landingCouncilBody =>
@@ -169,7 +190,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get embodimentRoleBody => 'Πώς θα ζήσω αυτή την επιλογή;';
 
   @override
-  String get landingExperienceEyebrow => 'Η εμπειρία';
+  String get landingExperienceEyebrow => 'Η πρακτική';
 
   @override
   String get landingExperienceTitle =>
@@ -177,21 +198,21 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get landingExperienceBody =>
-      'Κάθε συνεδρία ακολουθεί απλή διαδρομή: χωρίς θόρυβο, χωρίς υπερφόρτωση, μόνο ένα πιο καθαρό επόμενο βήμα.';
+      'Γράψε ό,τι είναι παρόν. Κράτησε ό,τι σε βοηθά, διόρθωσε ό,τι δεν ταιριάζει και διάλεξε ένα μικρό επόμενο βήμα, ή απλώς κάνε μια παύση.';
 
   @override
-  String get landingDifferentEyebrow => 'Διαφορετικό από σχεδιασμό';
+  String get landingDifferentEyebrow => 'Εσύ παραμένεις στο κέντρο';
 
   @override
   String get landingDifferentTitle =>
-      'Όχι άλλο ένα μέρος για κύκλους συζήτησης.';
+      'Ένας στοχασμός που αφήνει χώρο σε όσα γνωρίζεις εσύ.';
 
   @override
   String get landingDifferentBody =>
-      'Είναι σύστημα στοχασμού ταυτότητας, μηχανή καθαρότητας αποφάσεων και καθρέφτης του γίγνεσθαι.';
+      'Μια καθοδηγούμενη πρακτική αυτοδιερεύνησης που προσφέρει πολλούς τρόπους να δεις την ίδια στιγμή και έναν στοχασμό που μπορείς να αμφισβητήσεις, να διορθώσεις ή να αφήσεις στην άκρη.';
 
   @override
-  String get landingFinalCta => 'Ξεκίνα τον πρώτο στοχασμό';
+  String get landingFinalCta => 'Ξεκίνα έναν στοχασμό';
 
   @override
   String get landingBack => 'Αρχική';
@@ -206,7 +227,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get entries => 'Εγγραφές';
 
   @override
-  String get guideStage => 'Στάδιο οδηγού';
+  String get guideStage => 'Οδηγός';
 
   @override
   String get noSavedTitle => 'Δεν υπάρχουν αποθηκευμένοι στοχασμοί ακόμα';
@@ -218,7 +239,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get askCouncil => 'Μπες στο Mirror';
 
   @override
-  String get reflecting => 'Στοχασμός...';
+  String get reflecting => 'Ο στοχασμός σου ετοιμάζεται…';
 
   @override
   String wordCount(int count) {
@@ -230,6 +251,40 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get savedReflectionTitle => 'Αποθηκευμένος στοχασμός';
+
+  @override
+  String get reflectionToConsider => 'Ένας στοχασμός για να εξετάσεις';
+
+  @override
+  String get reviewCarryForward => 'Επανεξέταση και συνέχεια';
+
+  @override
+  String get correctThis => 'Διόρθωσέ το';
+
+  @override
+  String get doesNotFit => 'Δεν ταιριάζει';
+
+  @override
+  String get correctionPrompt => 'Πώς θα διόρθωνες αυτή την παρατήρηση;';
+
+  @override
+  String get saveCorrection => 'Αποθήκευση διόρθωσης';
+
+  @override
+  String get cancel => 'Ακύρωση';
+
+  @override
+  String get memberCorrection => 'Η διόρθωσή σου';
+
+  @override
+  String get correctionSaved => 'Η διόρθωσή σου αποθηκεύτηκε.';
+
+  @override
+  String get correctionError => 'Η διόρθωση δεν αποθηκεύτηκε. Δοκίμασε ξανά.';
+
+  @override
+  String get saveError =>
+      'Δεν ήταν δυνατή η αποθήκευση. Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά.';
 
   @override
   String get feedbackSaved => 'Σχόλια αποθηκεύτηκαν';
@@ -286,10 +341,14 @@ class AppLocalizationsEl extends AppLocalizations {
   String get retry => 'Δοκιμή ξανά';
 
   @override
-  String get guideResponse => 'Απάντηση οδηγού';
+  String get loadError =>
+      'Δεν ήταν δυνατή η φόρτωση αυτού του στοχασμού. Δοκίμασε ξανά.';
 
   @override
-  String get oneGroundedStep => 'Ένα γειωμένο βήμα';
+  String get guideResponse => 'Στοχασμός του Οδηγού';
+
+  @override
+  String get oneGroundedStep => 'Ένα βήμα για να εξετάσεις';
 
   @override
   String get sourceGrounding => 'Γείωση πηγών';
@@ -305,7 +364,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get firstEntryBody =>
-      'Γράψε την πρώτη σου εγγραφή για να ξεκινήσεις την πρακτική σου.';
+      'Ο πρώτος σου στοχασμός αρχίζει με τα δικά σου λόγια. Δεν χρειάζεται συγκεκριμένη δομή.';
 
   @override
   String get savedReflections => 'Αποθηκευμένοι στοχασμοί';
@@ -371,7 +430,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get verifyPasskeyBody =>
-      'Αυτός ο λογαριασμός προστατεύεται με MFA ανθεκτικό στο phishing. Χρησιμοποίησε το YubiKey ή το κλειδί πρόσβασης της συσκευής για να ολοκληρώσεις τη σύνδεση.';
+      'Αυτός ο λογαριασμός χρησιμοποιεί κλειδί πρόσβασης ως πρόσθετο έλεγχο ασφαλείας. Χρησιμοποίησε το YubiKey ή το κλειδί πρόσβασης της συσκευής σου για να ολοκληρώσεις τη σύνδεση.';
 
   @override
   String get usePasskey => 'Χρήση κλειδιού πρόσβασης';
@@ -402,11 +461,11 @@ class AppLocalizationsEl extends AppLocalizations {
   String get feedbackSavedMessage => 'Τα σχόλια αποθηκεύτηκαν.';
 
   @override
-  String get embodimentSavedMessage => 'Η ενσώματη επιλογή αποθηκεύτηκε.';
+  String get embodimentSavedMessage => 'Η επιλογή σου αποθηκεύτηκε.';
 
   @override
   String get patternsEmptyBody =>
-      'Συνέχισε να γράφεις. Τα επαναλαμβανόμενα σήματα θα εμφανιστούν εδώ.';
+      'Όταν σήματα επανέρχονται σε πολλές καταχωρήσεις, θα τα βρίσκεις εδώ.';
 
   @override
   String get theFiveStages => 'Οι Επτά Διαστάσεις του Supraconscious';
@@ -438,9 +497,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String apiLabel(String apiBaseUrl) {
     return 'API: $apiBaseUrl';
   }
-
-  @override
-  String get cosmicEyeSemanticLabel => 'Κοσμικό μάτι';
 
   @override
   String feedbackTypeLabel(String label) {

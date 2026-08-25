@@ -158,8 +158,7 @@ export default async function SettingsPage({
               <select
                 name="preferredLanguage"
                 defaultValue={currentLanguage}
-                className="rounded-lg border bg-white px-3 py-2 text-[13px] text-[var(--primary)]"
-                style={{ borderColor: "rgba(43,27,53,0.12)" }}
+                className="min-h-11 rounded-md border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text-primary)]"
                 aria-label="Language preference"
               >
                 {supportedLanguageOptions().map((language) => (

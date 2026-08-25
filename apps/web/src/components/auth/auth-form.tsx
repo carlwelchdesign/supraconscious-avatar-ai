@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Loader2, ArrowRight } from "lucide-react"
 import type { AuthActionState } from "@inner-avatar/auth/actions"
-import { AvatarOrb } from "@inner-avatar/ui/avatar-orb"
 import { TurnstileWidget } from "./turnstile-widget"
 
 type AuthFormProps = {
@@ -26,7 +25,9 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
 
       {/* Brand mark */}
       <div className="text-center">
-        <AvatarOrb size="md" className="mx-auto mb-5" priority />
+        <Link href="/" className="mb-5 inline-block font-display text-lg tracking-[0.16em] text-[var(--text-secondary)]">
+          SUPRACONSCIOUS
+        </Link>
         <h1 className="font-display text-[32px] font-light text-[var(--primary)] leading-tight">
           {isRegister ? (
             <>{t("registerTitlePrimary")}<br /><em className="italic font-normal text-[var(--clay)]">{t("registerTitleAccent")}</em></>
@@ -44,13 +45,13 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
       <div className="space-y-3">
         <a
           href={buildOAuthHref("google", nextPath)}
-          className="flex w-full items-center justify-center rounded-full border border-[rgba(43,27,53,0.1)] bg-white px-6 py-3 text-[14px] font-medium text-[var(--primary)] hover:bg-[rgba(43,27,53,0.03)]"
+          className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-6 py-3 text-[14px] font-medium text-[var(--text-primary)] hover:bg-[var(--secondary)]"
         >
           {t("continueWithGoogle")}
         </a>
         <a
           href={buildOAuthHref("apple", nextPath)}
-          className="flex w-full items-center justify-center rounded-full border border-[rgba(43,27,53,0.1)] bg-white px-6 py-3 text-[14px] font-medium text-[var(--primary)] hover:bg-[rgba(43,27,53,0.03)]"
+          className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-6 py-3 text-[14px] font-medium text-[var(--text-primary)] hover:bg-[var(--secondary)]"
         >
           {t("continueWithApple")}
         </a>
@@ -87,7 +88,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
               name="name"
               autoComplete="name"
               required
-              className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
+              className="w-full rounded-xl border bg-[var(--surface)] px-4 py-3 text-[14px] font-light text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--focus-ring)]"
               style={{ borderColor: "rgba(43,27,53,0.1)" }}
               placeholder={t("namePlaceholder")}
             />
@@ -104,7 +105,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
             autoComplete="email"
             defaultValue={defaultEmail}
             required
-            className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
+            className="w-full rounded-xl border bg-[var(--surface)] px-4 py-3 text-[14px] font-light text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--focus-ring)]"
             style={{ borderColor: "rgba(43,27,53,0.1)" }}
             placeholder="you@example.com"
           />
@@ -120,7 +121,7 @@ export function AuthForm({ mode, action, defaultEmail = "", nextPath = "" }: Aut
             autoComplete={isRegister ? "new-password" : "current-password"}
             minLength={isRegister ? 8 : undefined}
             required
-            className="w-full rounded-xl border px-4 py-3 text-[14px] font-light text-[var(--primary)] bg-[var(--cream)] outline-none focus:border-[var(--clay)] transition-colors"
+            className="w-full rounded-xl border bg-[var(--surface)] px-4 py-3 text-[14px] font-light text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--focus-ring)]"
             style={{ borderColor: "rgba(43,27,53,0.1)" }}
             placeholder="••••••••"
           />

@@ -41,18 +41,18 @@ export async function requestEmailVerificationForUser(user: UserEmailTarget): Pr
   const url = await buildAppUrl(`/verify-email?token=${encodeURIComponent(token)}`)
   const email = await sendTransactionalEmail({
     to: user.email,
-    subject: "Verify your Supraconscious email",
+    subject: "Confirm your Supraconscious email",
     text: [
       `Hi ${user.name ?? "there"},`,
       "",
-      "Verify your Supraconscious email by opening this link:",
+      "Please confirm your email address to finish setting up your Supraconscious account:",
       url,
       "",
       "This link expires in 24 hours. If you did not request this, you can ignore this email.",
     ].join("\n"),
     html: [
       `<p>Hi ${escapeHtml(user.name ?? "there")},</p>`,
-      "<p>Verify your Supraconscious email by opening this link:</p>",
+      "<p>Please confirm your email address to finish setting up your Supraconscious account:</p>",
       `<p><a href="${escapeHtml(url)}">Verify email</a></p>`,
       "<p>This link expires in 24 hours. If you did not request this, you can ignore this email.</p>",
     ].join(""),
@@ -160,14 +160,14 @@ export async function requestPasswordResetByEmail(email: string): Promise<Accoun
     text: [
       `Hi ${user.name ?? "there"},`,
       "",
-      "Reset your Supraconscious password by opening this link:",
+      "A password reset was requested for your Supraconscious account. Use this link to choose a new password:",
       url,
       "",
       "This link expires in 60 minutes. If you did not request this, you can ignore this email.",
     ].join("\n"),
     html: [
       `<p>Hi ${escapeHtml(user.name ?? "there")},</p>`,
-      "<p>Reset your Supraconscious password by opening this link:</p>",
+      "<p>A password reset was requested for your Supraconscious account. Use this link to choose a new password:</p>",
       `<p><a href="${escapeHtml(url)}">Reset password</a></p>`,
       "<p>This link expires in 60 minutes. If you did not request this, you can ignore this email.</p>",
     ].join(""),

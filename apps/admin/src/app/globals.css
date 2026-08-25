@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f1ea;
-  --foreground: #2b1b35;
-  --card: #fffaf4;
-  --card-foreground: #2b1b35;
-  --primary: #2b1b35;
-  --primary-foreground: #fffaf4;
-  --muted: #eee4d8;
-  --muted-foreground: #76627f;
-  --accent: #ead8c4;
-  --accent-foreground: #2b1b35;
-  --destructive: #b42318;
-  --destructive-foreground: #fffaf4;
-  --border: rgba(43, 27, 53, 0.12);
-  --input: rgba(43, 27, 53, 0.18);
-  --ring: #b8895a;
+  --background: #050914;
+  --foreground: #f4ebdd;
+  --card: #121321;
+  --card-foreground: #f4ebdd;
+  --primary: #c87432;
+  --primary-foreground: #fff8ef;
+  --muted: #171827;
+  --muted-foreground: #d8ccbd;
+  --accent: rgba(143, 145, 232, 0.14);
+  --accent-foreground: #f4ebdd;
+  --destructive: #c85c54;
+  --destructive-foreground: #fff7ee;
+  --border: rgba(226, 199, 166, 0.18);
+  --input: rgba(226, 199, 166, 0.22);
+  --ring: #8ca0ff;
 }
 
 @theme inline {
@@ -37,11 +37,19 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 4% 24%, rgba(112, 57, 89, 0.18), transparent 25rem),
+    radial-gradient(circle at 88% 4%, rgba(64, 77, 139, 0.12), transparent 30rem),
+    var(--background);
   color: var(--foreground);
   isolation: isolate;
 }
 
 * {
   border-color: var(--border);
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
 }

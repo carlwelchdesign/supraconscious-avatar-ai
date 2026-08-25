@@ -5,8 +5,14 @@ import { APP_SECURITY_HEADERS } from "@inner-avatar/config/security-headers"
 import path from "node:path"
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts")
+const allowedDevOrigins = process.env.NODE_ENV === "development"
+  ? ["127.0.0.1", "localhost", ...(process.env.DEV_ALLOWED_ORIGINS ?? "").split(",")]
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  : undefined
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins,
   output: "standalone",
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
   async headers() {

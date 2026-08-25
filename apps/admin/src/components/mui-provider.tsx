@@ -8,25 +8,26 @@ import { useState } from "react"
 
 const theme = createTheme({
   palette: {
-    mode: "light",
+    mode: "dark",
     background: {
-      default: "#f6f1ea",
-      paper: "#fffaf4",
+      default: "#050914",
+      paper: "#121321",
     },
     primary: {
-      main: "#2b1b35",
+      main: "#c87432",
+      contrastText: "#fff8ef",
     },
     secondary: {
-      main: "#9a6a44",
+      main: "#8f91e8",
     },
     text: {
-      primary: "#2b1b35",
-      secondary: "#76627f",
+      primary: "#f4ebdd",
+      secondary: "#d8ccbd",
     },
-    divider: "rgba(43, 27, 53, 0.12)",
+    divider: "rgba(226, 199, 166, 0.18)",
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   typography: {
     fontFamily:
@@ -53,6 +54,7 @@ const theme = createTheme({
         root: {
           textTransform: "none",
           fontWeight: 650,
+          minHeight: 44,
         },
       },
     },
@@ -60,6 +62,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
+          borderColor: "rgba(226, 199, 166, 0.18)",
         },
       },
     },

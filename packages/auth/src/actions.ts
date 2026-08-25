@@ -294,7 +294,7 @@ export async function requestEmailVerificationAction(_state: AuthActionState, fo
     await recordAuthFailure("email_verification", parsed.data.email)
   }
 
-  return { success: "If this account needs verification, a verification link has been sent." }
+  return { success: "If this address needs verification, you’ll receive a link shortly." }
 }
 
 export async function verifyEmailAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -312,7 +312,7 @@ export async function verifyEmailAction(_state: AuthActionState, formData: FormD
   const result = await verifyEmailWithToken(parsed.data.token)
   if (!result.verified) return { error: result.error ?? "Could not verify email." }
 
-  return { success: "Your email is verified. You can continue using Supraconscious." }
+  return { success: "Your email is confirmed. You can continue to Supraconscious." }
 }
 
 export async function requestPasswordResetAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -339,7 +339,7 @@ export async function requestPasswordResetAction(_state: AuthActionState, formDa
     await recordAuthFailure("password_reset", parsed.data.email)
   }
 
-  return { success: "If an account exists for this email, a password reset link has been sent." }
+  return { success: "If an account uses this address, you’ll receive a password reset link shortly." }
 }
 
 export async function resetPasswordAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -357,7 +357,7 @@ export async function resetPasswordAction(_state: AuthActionState, formData: For
   const result = await resetPasswordWithToken(parsed.data.token, parsed.data.password)
   if (!result.reset) return { error: result.error ?? "Could not reset password." }
 
-  return { success: "Your password has been reset. Please sign in again." }
+  return { success: "Your password has been reset. Sign in with your new password." }
 }
 
 function authDatabaseErrorMessage(error: unknown) {

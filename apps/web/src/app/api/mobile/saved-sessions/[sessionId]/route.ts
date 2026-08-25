@@ -31,6 +31,31 @@ export async function GET(_request: Request, context: { params: Promise<{ sessio
                 closingLine: true,
               },
             },
+            reflectionSession: {
+              select: {
+                id: true,
+                dimensions: {
+                  where: { disabledAt: null },
+                  orderBy: { displayOrder: "asc" },
+                  select: {
+                    id: true,
+                    dimension: true,
+                    observationText: true,
+                    tentativeInterpretation: true,
+                  },
+                },
+                corrections: {
+                  where: { disabledAt: null, deletedAt: null },
+                  orderBy: { createdAt: "asc" },
+                  select: {
+                    id: true,
+                    dimension: true,
+                    correctionType: true,
+                    note: true,
+                  },
+                },
+              },
+            },
           },
         },
         messages: {

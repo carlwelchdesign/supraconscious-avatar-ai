@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +10,52 @@ import 'package:inner_council_mobile/src/session_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late GoldenFileComparator previousGoldenFileComparator;
+
+  setUpAll(() {
+    previousGoldenFileComparator = goldenFileComparator;
+    goldenFileComparator = _TolerantGoldenFileComparator(
+      Uri.parse('test/widget_test.dart'),
+      precisionTolerance: 0.02,
+    );
+  });
+
+  tearDownAll(() {
+    goldenFileComparator = previousGoldenFileComparator;
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  testWidgets('Observatory landing remains composed at 390px', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
+    await _loadObservatoryAsset(tester);
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/observatory-landing-390.png'),
+    );
+  });
+
+  testWidgets('authenticated Observatory shell remains composed at 390px', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
+    await _loadObservatoryAsset(tester);
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/observatory-shell-390.png'),
+    );
   });
 
   testWidgets('bootstrap shows auth entry points when unauthenticated', (
@@ -19,7 +65,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Supraconscious'), findsWidgets);
-    expect(find.text('This is not a journal.'), findsOneWidget);
+    expect(find.text('Bring what’s been on your mind.'), findsOneWidget);
     expect(find.text('Start Your First Reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
     expect(find.text('API: http://localhost:3000'), findsOneWidget);
@@ -37,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Supraconscious'), findsWidgets);
-    expect(find.text('Αυτό δεν είναι ημερολόγιο.'), findsOneWidget);
+    expect(find.text('Έλα με ό,τι σε απασχολεί.'), findsOneWidget);
     expect(find.text('Αντίληψη'), findsOneWidget);
     expect(find.text('Ιδιοφυΐα'), findsOneWidget);
     expect(find.text('Το Εσωτερικό Συμβούλιο'), findsNothing);
@@ -59,7 +105,9 @@ void main() {
     await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sign in'));
+    final signIn = find.text('Sign in');
+    await tester.ensureVisible(signIn);
+    await tester.tap(signIn);
     await tester.pumpAndSettle();
 
     expect(find.text('Email'), findsOneWidget);
@@ -75,7 +123,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Español').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Iniciar sesión'));
+    final signIn = find.text('Iniciar sesión');
+    await tester.ensureVisible(signIn);
+    await tester.tap(signIn);
     await tester.pumpAndSettle();
 
     expect(find.text('Supraconscious'), findsWidgets);
@@ -105,7 +155,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Español').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Iniciar sesión'));
+    final signIn = find.text('Iniciar sesión');
+    await tester.ensureVisible(signIn);
+    await tester.tap(signIn);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), 'carl@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password');
@@ -117,7 +169,7 @@ void main() {
     await tester.tap(find.text('Diario'));
     await tester.pumpAndSettle();
 
-    expect(find.text('¿Qué está presente hoy?'), findsOneWidget);
+    expect(find.text('¿A qué te gustaría dar espacio hoy?'), findsOneWidget);
     expect(find.text('Mirror · Mes 7, día 11'), findsOneWidget);
     expect(
       find.text('El alma susurra antes de que hable el destino.'),
@@ -140,6 +192,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
+    await _loadObservatoryAsset(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome, Carl'), findsOneWidget);
@@ -151,18 +204,37 @@ void main() {
     await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Journal'));
+    await tester.tap(find.byIcon(Icons.edit_note_outlined));
     await tester.pumpAndSettle();
 
     expect(find.text('What is present today?'), findsOneWidget);
     expect(
       find.text(
-        'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.',
+        'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.',
       ),
       findsOneWidget,
     );
     expect(find.text('Mirror · Month 7, Day 10'), findsOneWidget);
     expect(find.text('What are you not letting yourself say?'), findsOneWidget);
+  });
+
+  testWidgets('journal editor leads preferences at 390px', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_testApp(_FakeApiClient(_ready())));
+    await _loadObservatoryAsset(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.edit_note_outlined));
+    await tester.pumpAndSettle();
+
+    final editor = tester.getRect(find.byType(TextField).last);
+    expect(editor.top, lessThan(844));
+    expect(find.text('Gentler handling'), findsNothing);
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/observatory-journal-390.png'),
+    );
   });
 
   testWidgets('journal tab works when prompt is unavailable', (tester) async {
@@ -267,6 +339,25 @@ void main() {
           'integrationStep': 'Step',
           'closingLine': 'Close',
         },
+        'reflectionSession': {
+          'id': 'reflection-1',
+          'dimensions': [
+            {
+              'id': 'dimension-1',
+              'dimension': 'fear',
+              'observationText': 'You may be protecting belonging.',
+              'tentativeInterpretation': 'A boundary may feel risky.',
+            },
+          ],
+          'corrections': [
+            {
+              'id': 'correction-1',
+              'dimension': 'fear',
+              'correctionType': 'correct',
+              'note': 'I am protecting recovery time.',
+            },
+          ],
+        },
         'messages': [
           {
             'displayName': 'The Protector',
@@ -301,6 +392,11 @@ void main() {
 
       expect(session.id, 'session-1');
       expect(session.avatarResponse?.mirror, 'Mirror');
+      expect(session.reflectionSession?.dimensions.single.dimension, 'fear');
+      expect(
+        session.reflectionSession?.corrections.single.note,
+        'I am protecting recovery time.',
+      );
       expect(session.messages.single.displayName, 'The Protector');
       expect(session.feedback.single.hasNote, true);
       expect(session.embodimentGateResponses.single.text, 'One small shift.');
@@ -381,6 +477,52 @@ void main() {
       );
     },
   );
+}
+
+/// Allows small cross-platform rasterization differences while still failing
+/// meaningful composition drift. The golden tests are also paired with
+/// semantic and geometry assertions in this suite.
+class _TolerantGoldenFileComparator extends LocalFileComparator {
+  _TolerantGoldenFileComparator(
+    super.testFile, {
+    required double precisionTolerance,
+  }) : assert(
+         0 <= precisionTolerance && precisionTolerance <= 1,
+         'precisionTolerance must be between 0 and 1',
+       ),
+       _precisionTolerance = precisionTolerance;
+
+  final double _precisionTolerance;
+
+  @override
+  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final result = await GoldenFileComparator.compareLists(
+      imageBytes,
+      await getGoldenBytes(golden),
+    );
+    final passed = result.passed || result.diffPercent <= _precisionTolerance;
+    final diffPercent = result.diffPercent;
+    result.dispose();
+
+    if (!passed) {
+      throw TestFailure(
+        'Golden "$golden" differed by ${(diffPercent * 100).toStringAsFixed(2)}%, '
+        'above the ${(_precisionTolerance * 100).toStringAsFixed(2)}% cross-platform tolerance.',
+      );
+    }
+    return true;
+  }
+}
+
+Future<void> _loadObservatoryAsset(WidgetTester tester) async {
+  final context = tester.element(find.byType(MaterialApp));
+  await tester.runAsync(
+    () => precacheImage(
+      const AssetImage('assets/images/mineral-boundary-v3-portrait.png'),
+      context,
+    ),
+  );
+  await tester.pump();
 }
 
 class _FailingHttpClient extends http.BaseClient {
