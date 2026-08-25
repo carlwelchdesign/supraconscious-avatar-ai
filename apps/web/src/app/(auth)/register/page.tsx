@@ -18,7 +18,7 @@ export default async function RegisterPage({
 
   return (
     <main className="member-app public-observatory flex min-h-screen items-center justify-center px-4 relative overflow-hidden" style={{ background: "var(--canvas)" }}>
-      <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[100px] opacity-25 pointer-events-none" style={{ background: "radial-gradient(circle, #D8C9B8, transparent)" }} />
+      <span aria-hidden="true" className="member-app-ambient absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[100px] opacity-25 pointer-events-none" style={{ background: "radial-gradient(circle, #D8C9B8, transparent)" }} />
       <AuthForm mode="register" action={registerAction} defaultEmail={defaultEmail} nextPath={nextPath} />
     </main>
   )

@@ -177,7 +177,7 @@ body {
   z-index: 0;
 }
 
-.member-app > * {
+.member-app > :not(.member-app-ambient) {
   position: relative;
   z-index: 1;
 }
