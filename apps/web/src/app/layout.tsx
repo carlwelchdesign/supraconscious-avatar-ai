@@ -3,6 +3,7 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { getWebLocale, getWebMessages } from "@/lib/web-messages"
 import { resolveWebLanguage } from "@/lib/language"
+import { resolveAppTimeZone } from "@/lib/date-format"
 import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
@@ -70,6 +71,7 @@ export default async function RootLayout({
   const user = await getCurrentUser()
   const locale = getWebLocale(await resolveWebLanguage(user?.preferredLanguage))
   const messages = getWebMessages(locale)
+  const timeZone = resolveAppTimeZone()
 
   return (
     <html
@@ -91,7 +93,7 @@ export default async function RootLayout({
             mixBlendMode: "multiply",
           }}
         />
-        <AppProviders locale={locale} messages={messages}>{children}</AppProviders>
+        <AppProviders locale={locale} messages={messages} timeZone={timeZone}>{children}</AppProviders>
       </body>
     </html>
   )

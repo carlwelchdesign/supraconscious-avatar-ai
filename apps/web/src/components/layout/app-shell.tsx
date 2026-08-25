@@ -1,18 +1,19 @@
 import Link from "next/link"
-import { BookOpen, BarChart2, Sparkles, Settings, LogOut, LayoutDashboard } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { logoutAction } from "@inner-avatar/auth/actions"
 import { getCurrentUser } from "@inner-avatar/auth/session"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
+import { DesktopNavigation } from "@/components/layout/desktop-navigation"
 import { resolveWebLanguage } from "@/lib/language"
 import { getWebMessages } from "@/lib/web-messages"
 
 const navItems = [
-  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
-  { href: "/journal", labelKey: "journal", icon: BookOpen },
-  { href: "/patterns", labelKey: "patterns", icon: BarChart2 },
-  { href: "/guide", labelKey: "guide", icon: Sparkles },
-  { href: "/settings", labelKey: "settings", icon: Settings },
-]
+  { href: "/dashboard", labelKey: "dashboard" },
+  { href: "/journal", labelKey: "journal" },
+  { href: "/patterns", labelKey: "patterns" },
+  { href: "/guide", labelKey: "guide" },
+  { href: "/settings", labelKey: "settings" },
+] as const
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
@@ -20,99 +21,45 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const messages = getWebMessages(currentLanguage)
   const shell = messages.appShell
 
-  return (
-    <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
+  const localizedNavItems = navItems.map((item) => ({
+    href: item.href,
+    label: shell.nav[item.labelKey],
+  }))
 
-      {/* ── Sidebar ───────────────────────────────────────────── */}
-      <aside
-        className="hidden md:flex flex-col w-[220px] flex-shrink-0 sticky top-0 h-screen border-r"
-        style={{
-          background: "var(--pearl)",
-          borderColor: "rgba(43,27,53,0.08)",
-        }}
-      >
-        {/* Logo */}
-        <div className="px-6 py-6 border-b" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
-          <Link href="/dashboard" className="font-display text-lg font-medium text-[var(--primary)] tracking-wide">
+  return (
+    <div className="member-app">
+      <header className="member-shell-header sticky top-0 z-40">
+        <div className="mx-auto flex min-h-16 w-full max-w-[92rem] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
+          <Link
+            href="/dashboard"
+            className="font-display text-xl font-medium tracking-[0.12em] text-[var(--text-primary)] md:text-[22px]"
+          >
             Supraconscious
           </Link>
-        </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] hover:bg-[var(--plum-pale)] transition-all"
-            >
-              <item.icon className="w-[15px] h-[15px] flex-shrink-0 opacity-70" />
-              {shell.nav[item.labelKey as keyof typeof shell.nav]}
-            </Link>
-          ))}
-        </nav>
+          <DesktopNavigation items={localizedNavItems} />
 
-        {/* Guide presence + user */}
-        <div className="px-5 pb-5 pt-4 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
-          <div className="flex flex-col items-center text-center mb-4">
-            <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-[var(--clay)] leading-none mb-0.5">
-              Supraconscious Guide
-            </p>
-            <p className="text-[12px] font-light text-[var(--plum-soft)]">
-              Constant Guide
-            </p>
+          <div className="flex min-w-11 items-center justify-end md:min-w-[11rem]">
+            {user ? <span className="mr-3 hidden max-w-32 truncate text-xs text-[var(--text-secondary)] lg:inline">{user.email}</span> : null}
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] md:min-w-0 md:px-3"
+                title={shell.signOut}
+                aria-label={shell.signOut}
+              >
+                <LogOut className="h-5 w-5" aria-hidden="true" />
+                <span className="hidden text-sm md:inline">{shell.signOut}</span>
+              </button>
+            </form>
           </div>
-
-          {user && (
-            <div className="pt-3 border-t" style={{ borderColor: "rgba(43,27,53,0.07)" }}>
-              <p className="text-[11px] font-light text-[var(--plum-soft)] truncate mb-2">
-                {user.email}
-              </p>
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 text-[11px] font-light text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
-                >
-                  <LogOut className="w-3 h-3" />
-                  {shell.signOut}
-                </button>
-              </form>
-            </div>
-          )}
         </div>
-      </aside>
+      </header>
 
-      {/* ── Mobile top bar ─────────────────────────────────────── */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-4 border-b"
-        style={{
-          background: "rgba(244,237,228,0.92)",
-          backdropFilter: "blur(16px)",
-          borderColor: "rgba(43,27,53,0.08)",
-        }}
-      >
-        <Link href="/dashboard" className="font-display text-lg font-medium text-[var(--primary)]">
-          Supraconscious
-        </Link>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="p-1.5 text-[var(--plum-soft)] hover:text-[var(--primary)] transition-colors"
-            title={shell.signOut}
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
-        </form>
-      </div>
-
-      {/* ── Mobile bottom nav ──────────────────────────────────── */}
       <MobileBottomNav />
 
-      {/* ── Main content ───────────────────────────────────────── */}
-      <main className="flex-1 min-w-0 md:pt-0 pt-16">
-        <div className="max-w-4xl mx-auto px-6 py-10 md:pb-10 pb-24">
-          {children}
-        </div>
+      <main className="min-w-0">
+        <div className="member-shell-content">{children}</div>
       </main>
     </div>
   )
