@@ -7,6 +7,9 @@ const shell = readFileSync(new URL("../src/components/layout/app-shell.tsx", imp
 const desktopNavigation = readFileSync(new URL("../src/components/layout/desktop-navigation.tsx", import.meta.url), "utf8")
 const mobileNavigation = readFileSync(new URL("../src/components/layout/mobile-bottom-nav.tsx", import.meta.url), "utf8")
 const providers = readFileSync(new URL("../src/components/providers/app-providers.tsx", import.meta.url), "utf8")
+const authRoutes = ["login", "register", "forgot-password", "reset-password", "verify-email"].map((route) =>
+  readFileSync(new URL(`../src/app/(auth)/${route}/page.tsx`, import.meta.url), "utf8"),
+)
 
 test("Observatory foundation exposes semantic roles and legacy compatibility aliases", () => {
   for (const token of [
@@ -41,4 +44,11 @@ test("member shell provides visible focus and responsive navigation landmarks", 
   assert.match(mobileNavigation, /aria-label="Primary"/)
   assert.match(mobileNavigation, /min-h-16/)
   assert.match(providers, /NextIntlClientProvider locale=\{locale\} messages=\{messages\} timeZone=\{timeZone\}/)
+})
+
+test("auth ambient decoration stays out of the centered flex layout", () => {
+  assert.match(css, /\.member-app > :not\(\.member-app-ambient\)/)
+  for (const route of authRoutes) {
+    assert.match(route, /aria-hidden="true" className="member-app-ambient absolute/)
+  }
 })
