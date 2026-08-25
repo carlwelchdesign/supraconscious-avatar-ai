@@ -8,11 +8,9 @@ import { AppProviders } from "@/components/providers/app-providers"
 import "./globals.css"
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://supraconscious.co"
-const title = "Supraconscious — A quieter place for honest reflection"
+const title = "Supraconscious — Honest reflection, in your own words"
 const description =
-  "Write what is present. The Supraconscious Guide offers tentative perspectives through seven equal dimensions, while the meaning and next choice remain yours."
-const openGraphImage = "/opengraph-image.png"
-const twitterImage = "/twitter-image.png"
+  "A private place to write what is present and receive a thoughtful reflection. Keep what fits; the meaning and next choice remain yours."
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -33,33 +31,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title,
   description,
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
-    ],
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
-  },
   openGraph: {
     title,
     description,
     url: appUrl,
     siteName: "Supraconscious",
-    images: [
-      {
-        url: openGraphImage,
-        width: 1200,
-        height: 630,
-        alt: "Supraconscious Observatory mineral field",
-      },
-    ],
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [twitterImage],
   },
 }
 
