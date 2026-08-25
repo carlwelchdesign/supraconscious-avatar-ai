@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,20 @@ import 'package:inner_council_mobile/src/session_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late GoldenFileComparator previousGoldenFileComparator;
+
+  setUpAll(() {
+    previousGoldenFileComparator = goldenFileComparator;
+    goldenFileComparator = _TolerantGoldenFileComparator(
+      Uri.parse('test/widget_test.dart'),
+      precisionTolerance: 0.02,
+    );
+  });
+
+  tearDownAll(() {
+    goldenFileComparator = previousGoldenFileComparator;
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
@@ -461,6 +477,41 @@ void main() {
       );
     },
   );
+}
+
+/// Allows small cross-platform rasterization differences while still failing
+/// meaningful composition drift. The golden tests are also paired with
+/// semantic and geometry assertions in this suite.
+class _TolerantGoldenFileComparator extends LocalFileComparator {
+  _TolerantGoldenFileComparator(
+    super.testFile, {
+    required double precisionTolerance,
+  }) : assert(
+         0 <= precisionTolerance && precisionTolerance <= 1,
+         'precisionTolerance must be between 0 and 1',
+       ),
+       _precisionTolerance = precisionTolerance;
+
+  final double _precisionTolerance;
+
+  @override
+  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final result = await GoldenFileComparator.compareLists(
+      imageBytes,
+      await getGoldenBytes(golden),
+    );
+    final passed = result.passed || result.diffPercent <= _precisionTolerance;
+    final diffPercent = result.diffPercent;
+    result.dispose();
+
+    if (!passed) {
+      throw TestFailure(
+        'Golden "$golden" differed by ${(diffPercent * 100).toStringAsFixed(2)}%, '
+        'above the ${(_precisionTolerance * 100).toStringAsFixed(2)}% cross-platform tolerance.',
+      );
+    }
+    return true;
+  }
 }
 
 Future<void> _loadObservatoryAsset(WidgetTester tester) async {
