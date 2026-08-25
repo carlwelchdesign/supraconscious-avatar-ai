@@ -3,6 +3,7 @@ import { runFounderCalibrationJournalReadiness } from "@inner-avatar/ai"
 import { JournalWorkspace } from "@/components/journal/journal-workspace"
 import { getAppCalendarDate } from "@/lib/date-format"
 import { requireJournalAccessPageUser } from "@/lib/journal-access"
+import { resolveWebLanguage, SUPPORTED_LANGUAGE_DETAILS } from "@/lib/language"
 
 export default async function JournalPage() {
   const user = await requireJournalAccessPageUser("/journal")
@@ -10,6 +11,7 @@ export default async function JournalPage() {
   const month = today.month
   const day = today.day
   const todayLabel = today.label
+  const currentLanguage = await resolveWebLanguage(user.preferredLanguage)
   const promptSelect = {
     id: true,
     month: true,
@@ -46,6 +48,8 @@ export default async function JournalPage() {
       needsFounderFirstSessionGuide={founderReadiness.needsFounderFirstSessionGuide}
       needsFounderFeedback={founderReadiness.needsFounderFeedback}
       founderFeedbackHref={founderReadiness.founderFeedbackHref}
+      responseLanguageLabel={SUPPORTED_LANGUAGE_DETAILS[currentLanguage].nativeLabel}
+      patternMemoryEnabled={user.patternMemoryEnabled ?? false}
       voicePrefs={{
         voiceEnabled: user.voiceEnabled ?? false,
         voiceAutoPlay: user.voiceAutoPlay ?? false,
