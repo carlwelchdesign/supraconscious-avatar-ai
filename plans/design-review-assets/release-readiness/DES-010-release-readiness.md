@@ -1,7 +1,7 @@
 # DES-010 redesign release-readiness evidence
 
-Status: in progress, not deployed
-Review date: 2026-08-24 PT
+Status: in progress, founder-review web deployment live
+Review date: 2026-08-25 PT
 
 The previous screenshot set was invalidated and removed after it was found to show the retired eye composition. The active web, Flutter, metadata, Open Graph, and Twitter presentation now use the v3 diagonal mineral-boundary Observatory direction; source and catalog searches find no active eye-artwork reference.
 
@@ -30,6 +30,7 @@ The automated suite covers these boundaries through journal composer, completed 
 - Public evidence: `landing-observatory-current.png`.
 - Authenticated admin evidence: overview and feature-flags pages at 390 and 1440 px. The initial users-page captures were immediately deleted because they contained account identifiers; release evidence is privacy-safe.
 - Flutter 390 px composition regressions are stored under `apps/mobile/test/goldens/`, including a dedicated journal golden that requires the editor to appear in the initial viewport while preferences remain below it. Real iPhone 17 Simulator captures cover landing, authenticated journal, completed reflection, and accessibility-extra-extra-large text.
+- After an iPhone report exposed a mobile auth centering regression, the ambient glow was removed from the flex layout on registration, login, recovery, reset, and verification routes. Local measurements confirm symmetric gutters and no horizontal overflow at 320, 390, and 430 px; the live production 390 px panel spans 16–374 px in a 390 px viewport.
 
 ## Accessibility and motion
 
@@ -45,24 +46,24 @@ The automated suite covers these boundaries through journal composer, completed 
 ## Automated verification
 
 - Web typecheck and lint: pass.
-- Web tests: 105 pass.
+- Web tests: 107 pass.
 - Auth tests: 24 pass.
 - Admin typecheck, lint, and tests: pass; 22 admin tests pass.
 - Flutter localization generation, analyze, and tests: pass; 25 Flutter tests pass, including three 390 px composition goldens.
 - Production web and admin builds: pass.
 - Real iPhone 17 Simulator build/install/run: pass.
 - Physical-device target preflight: `flutter build ios --debug --no-codesign` passes and produces an arm64 `Runner.app` for `co.supraconscious.innerCouncilMobile`. Installation remains intentionally pending signing and a connected iPhone.
-- Container-image construction is not required for local design approval and remains a release-operation gate.
+- GitHub CI application, Flutter, and Docker-image gates pass for both the redesign deployment and the mobile auth centering correction.
 
 ## Known risks and decisions
 
 - The warmer voice pass now covers English, German, French, Greek, Spanish, and Simplified Chinese public/supporting surfaces without changing Maria's locked framework language; automated locked-key comparisons and doctrine guards pass. Greek and Simplified Chinese nuance still merit native-speaker review. Older web catalogs also retain substantial English fallback copy outside this redesign pass, especially in founder calibration, account/security/billing, pattern-action, and voice surfaces; that broader translation-completion work is tracked separately from the redesign voice correction.
 - The uncalibrated pattern-confidence percentage and bar were removed from web and Flutter presentation. Evidence count and source excerpts remain visible; the underlying score remains an internal ordering signal and is not presented as diagnostic certainty.
 - Member-flow captures use a clearly synthetic local design-review account and synthetic reflection fixture. No real member journal, generated reflection, correction, or pattern content is included in release evidence or analytics.
-- Real simulator capture, accessibility-extra-extra-large text, genuine 200% Safari zoom, the cross-locale warmth pass, and an unsigned arm64 physical-device build are complete. `devicectl` currently reports no connected iPhone, so physical-device VoiceOver remains open. This document therefore remains `in progress`, not approval-ready.
+- Real simulator capture, accessibility-extra-extra-large text, genuine 200% Safari zoom, the cross-locale warmth pass, and an unsigned arm64 physical-device build are complete. A fresh `devicectl` check on 2026-08-25 still reports no connected iPhone, so physical-device VoiceOver remains open. This document therefore remains `in progress`, not approval-ready.
 - Admin receives the semantic palette and interaction standards, but no mineral artwork or ambient motion in sensitive operational workflows.
 
 ## Rollback and approval boundary
 
-- Rollback is a single revert of the redesign completion merge commit; DES-003 through DES-005 remain independently merged foundations.
-- This gate ends at founder review. Deployment, promotion, mobile store submission, and production activation require a separate explicit instruction from Carl.
+- The founder-review web deployment is `dpl_22wGNjqUPdRs9y8gy2o27dp3Homn` at merge commit `8844ac0d70f95db788720f84b9abd9c1baf6bde8`. Roll back the mobile correction by reverting PR #55, or the full redesign by reverting PR #54 after first accounting for the dependent hotfix.
+- Carl explicitly authorized the current founder-review web deployment. DES-010 completion, broader production promotion, mobile store submission, and production activation remain separate decisions and require the outstanding VoiceOver evidence or an explicitly accepted exception.
