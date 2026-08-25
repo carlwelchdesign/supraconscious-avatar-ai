@@ -12,7 +12,7 @@ export function DesktopNavigation({ items }: { items: NavigationItem[] }) {
   const pathname = usePathname()
 
   return (
-    <nav aria-label="Primary" className="hidden items-stretch md:flex">
+    <nav aria-label="Primary" className="hidden items-stretch xl:flex">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
 
@@ -21,7 +21,7 @@ export function DesktopNavigation({ items }: { items: NavigationItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className="relative flex min-h-16 items-center px-4 text-[13px] font-medium uppercase tracking-[0.09em] transition-colors"
+            className="relative flex min-h-20 items-center px-5 text-[13px] font-medium uppercase tracking-[0.12em] transition-colors"
             style={{ color: active ? "var(--text-primary)" : "var(--text-secondary)" }}
           >
             {item.label}

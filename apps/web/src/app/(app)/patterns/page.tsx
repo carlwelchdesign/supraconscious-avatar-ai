@@ -9,35 +9,9 @@ type PatternSummary = {
   id: string
   patternLabel: string
   evidenceCount: number
-  confidence: number
   examples: unknown
   lastSeenAt: Date
   active: boolean
-}
-
-function ConfidenceBar({ value, label }: { value: number; label: string }) {
-  const pct = Math.round(value * 100)
-  const color =
-    pct >= 75 ? "var(--clay)" : pct >= 50 ? "var(--moonblue)" : "var(--plum-soft)"
-  return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--plum-soft)]">
-          {label}
-        </span>
-        <span className="text-[12px] font-light text-[var(--plum-soft)]">{pct}%</span>
-      </div>
-      <div
-        className="h-1.5 rounded-full overflow-hidden"
-        style={{ background: "rgba(43,27,53,0.08)" }}
-      >
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
-    </div>
-  )
 }
 
 export default async function PatternsPage({
@@ -54,7 +28,7 @@ export default async function PatternsPage({
   const patterns: PatternSummary[] = await prisma.patternMemory.findMany({
     where: { userId: user.id },
     orderBy: [{ evidenceCount: "desc" }, { lastSeenAt: "desc" }],
-    select: { id: true, patternLabel: true, evidenceCount: true, confidence: true, examples: true, lastSeenAt: true, active: true },
+    select: { id: true, patternLabel: true, evidenceCount: true, examples: true, lastSeenAt: true, active: true },
   })
   const activePatterns = patterns.filter((pattern) => pattern.active)
   const hiddenPatterns = patterns.filter((pattern) => !pattern.active)
@@ -136,7 +110,6 @@ export default async function PatternsPage({
                     </p>
                   </div>
                 )}
-                <ConfidenceBar value={pattern.confidence} label={patternMessages.confidence} />
                 <div className="mt-5 flex flex-wrap gap-2">
                   {[
                     ["helpful", patternMessages.actions.helpful],

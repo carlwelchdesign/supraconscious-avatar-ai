@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         id: correction.id,
         dimension: correction.dimension,
         correctionType: correction.correctionType,
+        note: correction.note,
       },
     })
   } catch (error) {

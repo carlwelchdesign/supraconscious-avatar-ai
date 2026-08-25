@@ -20,7 +20,7 @@ export default async function PricingPage({
   const billingEnabled = isStripeConfigured()
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-6 py-10 text-[var(--primary)]">
+    <main className="member-app public-observatory min-h-screen overflow-x-hidden bg-[var(--cream)] px-5 py-10 text-[var(--primary)] sm:px-6">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/"
@@ -30,8 +30,8 @@ export default async function PricingPage({
           {pricing.back}
         </Link>
 
-        <section className="mt-14 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
+        <section className="mt-14 grid min-w-0 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--clay)]">
               {pricing.eyebrow}
             </p>
@@ -41,7 +41,7 @@ export default async function PricingPage({
               <em className="font-normal italic text-[var(--clay)]">{pricing.titleB}</em>
             </h1>
           </div>
-          <p className="max-w-xl text-[16px] font-light leading-[1.75] text-[var(--plum-soft)]">
+          <p className="min-w-0 max-w-xl text-[16px] font-light leading-[1.75] text-[var(--plum-soft)]">
             {pricing.body}
           </p>
         </section>

@@ -25,3 +25,17 @@ test("active signed-in experience does not render avatar or council-member image
   assert.equal(savedSession.includes("message.displayName"), false)
   assert.equal(savedSession.includes("sessionMessages.innerCouncil"), false)
 })
+
+test("approved Observatory mineral boundary replaces the retired eye artwork", () => {
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8")
+  const landing = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8")
+  const mobile = readFileSync(new URL("../../mobile/lib/src/app.dart", import.meta.url), "utf8")
+
+  assert.match(css, /mineral-boundary-v3-wide\.png/)
+  assert.match(landing, /mineral-boundary-v3-wide\.png/)
+  assert.match(mobile, /mineral-boundary-v3-portrait\.png/)
+  assert.equal(css.includes("echo-eye-cosmos"), false)
+  assert.equal(landing.includes("echo-eye-cosmos"), false)
+  assert.equal(mobile.includes("echo-eye-cosmos"), false)
+  assert.equal(/mirror-forming-orbit|mirror-forming-ring|mirror-forming-orb/i.test(css), false)
+})

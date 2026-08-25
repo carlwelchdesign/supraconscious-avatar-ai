@@ -1,13 +1,14 @@
 {
   "brand": "Supraconscious Admin",
   "signOut": "Sign out",
-  "loginTitle": "Admin Login",
-  "loginSubtitle": "Sign in with an account that has admin or super_admin access.",
+  "loginTitle": "Operations console",
+  "loginSubtitle": "Sign in with an approved administrator account to continue.",
   "email": "Email",
   "password": "Password",
-  "signIn": "Sign In",
+  "signIn": "Sign in",
   "website": "Website",
   "nav": {
+    "navigation": "Navigation",
     "overview": "Overview",
     "users": "Users",
     "subscriptions": "Subscriptions",

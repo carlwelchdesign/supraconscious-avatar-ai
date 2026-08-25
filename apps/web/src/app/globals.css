@@ -169,14 +169,17 @@ body {
 
 .member-app::before {
   position: fixed;
-  inset: 0 auto 0 0;
-  width: clamp(0.25rem, 1.4vw, 1.25rem);
+  inset: 0;
   content: "";
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 4%, rgba(200, 116, 50, 0.78) 28%, rgba(112, 132, 255, 0.44) 66%, transparent 96%);
-  box-shadow: 0 0 44px rgba(200, 116, 50, 0.12);
-  opacity: 0.72;
-  z-index: 20;
+  background: url("/mineral-boundary-v3-wide.png") left center / cover no-repeat;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.member-app > * {
+  position: relative;
+  z-index: 1;
 }
 
 .member-app :where(a, button, input, select, textarea, summary):focus-visible {
@@ -189,12 +192,32 @@ body {
   opacity: 1;
 }
 
+.member-app :where(input, select, textarea) {
+  color-scheme: dark;
+}
+
 /* Temporary compatibility for legacy components that used --primary for
    both dark feature panels and light-page text. Page tickets remove these
    selectors as each surface moves to semantic roles. */
 .member-app [style*="background: var(--primary)"] {
   border-color: var(--border-subtle) !important;
   background: linear-gradient(145deg, #171321, var(--surface-raised)) !important;
+}
+
+/* Public Observatory uses the same semantic system while preserving legacy
+   utility names until each public surface has been migrated completely. */
+.public-observatory [class*="bg-[var(--cream)]"] {
+  background-color: var(--canvas) !important;
+}
+
+.public-observatory :where(section, div, main)[class*="bg-[var(--primary)]"] {
+  background-color: var(--surface) !important;
+}
+
+.public-observatory input,
+.public-observatory textarea,
+.public-observatory select {
+  color-scheme: dark;
 }
 
 .member-app :is(a, button)[class*="bg-[var(--primary)]"] {
@@ -214,9 +237,16 @@ body {
 }
 
 .member-shell-content {
-  width: min(100%, var(--content-measure));
-  margin-inline: auto;
+  width: 100%;
   padding: var(--space-page-block) var(--space-page-inline) 7rem;
+}
+
+@media (max-width: 47.999rem) {
+  .member-app::before {
+    width: 10rem;
+    opacity: 0.28;
+    transform: translateX(-42%);
+  }
 }
 
 .member-app .journal-lines {
@@ -380,34 +410,9 @@ body {
   50% { opacity: 0.45; transform: scale(0.75); }
 }
 
-@keyframes mirror-forming-gather {
-  0%, 100% { opacity: 0.52; transform: scale(0.94); }
-  50% { opacity: 0.92; transform: scale(1); }
-}
-
-@keyframes mirror-forming-turn {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes mirror-forming-counterturn {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@keyframes mirror-forming-orbit-clay {
-  0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.55; }
-  50% { transform: translate(-10px, 8px) scale(1.08); opacity: 0.95; }
-}
-
-@keyframes mirror-forming-orbit-blue {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
-  50% { transform: translate(9px, -7px) scale(0.82); opacity: 0.9; }
-}
-
-@keyframes mirror-forming-orb-light {
-  0%, 100% { transform: scale(0.97); filter: saturate(0.9); }
-  50% { transform: scale(1.025); filter: saturate(1.08); }
+@keyframes mirror-forming-current {
+  0%, 100% { opacity: 0.34; transform: translate3d(-3%, 2px, 0); }
+  50% { opacity: 0.72; transform: translate3d(5%, -3px, 0); }
 }
 
 /* ─── Utility Classes ───────────────────────────────────────────────── */
@@ -460,98 +465,31 @@ body {
 }
 
 /* ─── Journal Mirror-forming state ────────────────────────────────── */
-.mirror-forming-visual {
+.mirror-forming-field {
   background:
-    radial-gradient(circle at 50% 50%, rgba(250, 247, 243, 0.96) 0 25%, transparent 58%),
-    radial-gradient(circle at 28% 34%, rgba(184, 137, 90, 0.18), transparent 42%),
-    radial-gradient(circle at 72% 66%, rgba(123, 155, 181, 0.2), transparent 44%);
+    linear-gradient(120deg, rgba(76, 42, 69, 0.52), rgba(5, 9, 20, 0.74) 42%, rgba(5, 9, 20, 0.98)),
+    var(--surface-raised);
 }
 
-.mirror-forming-halo {
-  background: radial-gradient(circle, rgba(250, 247, 243, 0.75), rgba(184, 137, 90, 0.15) 46%, transparent 72%);
-  filter: blur(8px);
-  animation: mirror-forming-gather 5.8s ease-in-out infinite;
+.mirror-forming-current {
+  left: -8%;
+  width: 116%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(224, 160, 107, 0.7), rgba(143, 145, 232, 0.34), transparent);
+  box-shadow: 0 0 18px rgba(200, 116, 50, 0.2);
+  animation: mirror-forming-current 6.8s ease-in-out infinite;
 }
 
-.mirror-forming-ring {
-  border: 1px solid rgba(184, 137, 90, 0.24);
-  box-shadow: inset 0 0 22px rgba(250, 247, 243, 0.7), 0 0 18px rgba(123, 155, 181, 0.1);
-}
-
-.mirror-forming-ring::after {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  content: "";
-  border-radius: 999px;
-  background: rgba(250, 247, 243, 0.96);
-  box-shadow: 0 0 12px rgba(184, 137, 90, 0.5);
-}
-
-.mirror-forming-ring-outer {
-  border-color: rgba(123, 155, 181, 0.24);
-  animation: mirror-forming-turn 18s linear infinite;
-}
-
-.mirror-forming-ring-outer::after { top: 15%; right: 13%; }
-
-.mirror-forming-ring-inner {
-  animation: mirror-forming-counterturn 14s linear infinite;
-}
-
-.mirror-forming-ring-inner::after { bottom: 5%; left: 28%; }
-
-.mirror-forming-point {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  filter: blur(0.4px);
-}
-
-.mirror-forming-point-clay {
-  top: 22%;
-  left: 18%;
-  background: rgba(184, 137, 90, 0.62);
-  box-shadow: 0 0 18px rgba(184, 137, 90, 0.46);
-  animation: mirror-forming-orbit-clay 7s ease-in-out infinite;
-}
-
-.mirror-forming-point-blue {
-  right: 17%;
-  bottom: 25%;
-  background: rgba(123, 155, 181, 0.58);
-  box-shadow: 0 0 18px rgba(123, 155, 181, 0.42);
-  animation: mirror-forming-orbit-blue 8.5s ease-in-out infinite;
-}
-
-.mirror-forming-point-pearl {
-  top: 21%;
-  right: 29%;
-  width: 8px;
-  height: 8px;
-  background: rgba(250, 247, 243, 0.98);
-  box-shadow: 0 0 15px rgba(250, 247, 243, 0.9);
-  animation: mirror-forming-gather 6.5s ease-in-out infinite 0.8s;
-}
-
-.mirror-forming-orb {
-  animation: mirror-forming-orb-light 5.8s ease-in-out infinite;
-}
+.mirror-forming-current-a { top: 38%; transform: rotate(-5deg); }
+.mirror-forming-current-b { top: 64%; animation-delay: -3.2s; transform: rotate(4deg); }
 
 @media (prefers-reduced-motion: reduce) {
   .mirror-forming-motion,
-  .mirror-forming-ring::after {
+  .mirror-forming-current {
     animation: none !important;
     transform: none !important;
   }
 }
-
-/* staggered hero entrance */
-.hero-item-1 { animation: fade-up 0.65s ease both 0.10s; }
-.hero-item-2 { animation: fade-up 0.65s ease both 0.22s; }
-.hero-item-3 { animation: fade-up 0.65s ease both 0.36s; }
-.hero-item-4 { animation: fade-up 0.65s ease both 0.52s; }
-.hero-visual  { animation: fade-up 0.85s ease both 0.28s; }
 
 /* ─── Journal Editor ───────────────────────────────────────────────── */
 .journal-lines {

@@ -158,25 +158,25 @@ abstract class AppLocalizations {
   /// No description provided for @landingEyebrow.
   ///
   /// In en, this message translates to:
-  /// **'AI-powered identity reflection'**
+  /// **'A quieter place for honest reflection'**
   String get landingEyebrow;
 
   /// No description provided for @landingNotJournal.
   ///
   /// In en, this message translates to:
-  /// **'This is not a journal.'**
+  /// **'Bring what’s been on your mind.'**
   String get landingNotJournal;
 
   /// No description provided for @landingMeetYourself.
   ///
   /// In en, this message translates to:
-  /// **'This is where you meet yourself.'**
+  /// **'Meet it with a little more space.'**
   String get landingMeetYourself;
 
   /// No description provided for @landingBody.
   ///
   /// In en, this message translates to:
-  /// **'You do not need more advice. You need to see clearly. The Mirror helps you recognize what may already be present.'**
+  /// **'Write in your own words. Your Guide offers a thoughtful reflection through the dimensions that may fit the moment. You decide what fits—and what you want to carry forward.'**
   String get landingBody;
 
   /// No description provided for @tabJournal.
@@ -230,7 +230,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalHelper.
   ///
   /// In en, this message translates to:
-  /// **'Write one honest entry. The Guide will reflect patterns, tensions, and one grounded next step.'**
+  /// **'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.'**
   String get journalHelper;
 
   /// No description provided for @journalPlaceholder.
@@ -254,7 +254,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBody.
   ///
   /// In en, this message translates to:
-  /// **'Your journal entries stay private to this account and are used for reflection, safety checks, voice features, and pattern memory when enabled.'**
+  /// **'Your entries are stored with your account and used for reflections and safety checks. AI providers may process text or audio needed for features you choose. Pattern memory stores recurring signals only when enabled.'**
   String get privacyBody;
 
   /// No description provided for @languageTitle.
@@ -280,6 +280,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow recurring signals to appear over time.'**
   String get patternMemorySubtitle;
+
+  /// No description provided for @gentlerHandling.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentler handling'**
+  String get gentlerHandling;
+
+  /// No description provided for @gentlerHandlingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Guide will respond with extra care and a slower pace.'**
+  String get gentlerHandlingSubtitle;
+
+  /// No description provided for @livingField.
+  ///
+  /// In en, this message translates to:
+  /// **'Living field'**
+  String get livingField;
+
+  /// No description provided for @livingFieldSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambient motion only, never an emotion reading.'**
+  String get livingFieldSubtitle;
+
+  /// No description provided for @draftSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving draft…'**
+  String get draftSaving;
+
+  /// No description provided for @draftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved privately'**
+  String get draftSaved;
 
   /// No description provided for @landingProblemEyebrow.
   ///
@@ -515,6 +551,72 @@ abstract class AppLocalizations {
   /// **'Saved reflection'**
   String get savedReflectionTitle;
 
+  /// No description provided for @reflectionToConsider.
+  ///
+  /// In en, this message translates to:
+  /// **'A reflection to consider'**
+  String get reflectionToConsider;
+
+  /// No description provided for @reviewCarryForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and carry forward'**
+  String get reviewCarryForward;
+
+  /// No description provided for @correctThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct this'**
+  String get correctThis;
+
+  /// No description provided for @doesNotFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Doesn’t fit'**
+  String get doesNotFit;
+
+  /// No description provided for @correctionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you correct this observation?'**
+  String get correctionPrompt;
+
+  /// No description provided for @saveCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Save correction'**
+  String get saveCorrection;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @memberCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your correction'**
+  String get memberCorrection;
+
+  /// No description provided for @correctionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your correction was saved.'**
+  String get correctionSaved;
+
+  /// No description provided for @correctionError.
+  ///
+  /// In en, this message translates to:
+  /// **'That correction could not be saved. Try again.'**
+  String get correctionError;
+
+  /// No description provided for @saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'That could not be saved. Check your connection and try again.'**
+  String get saveError;
+
   /// No description provided for @feedbackSaved.
   ///
   /// In en, this message translates to:
@@ -623,6 +725,12 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get retry;
 
+  /// No description provided for @loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'This reflection could not be loaded. Try again.'**
+  String get loadError;
+
   /// No description provided for @guideResponse.
   ///
   /// In en, this message translates to:
@@ -662,7 +770,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Write your first entry to begin building your practice.'**
+  /// **'Your first reflection begins with your own words. No structure is required.'**
   String get firstEntryBody;
 
   /// No description provided for @savedReflections.
@@ -898,12 +1006,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'API: {apiBaseUrl}'**
   String apiLabel(String apiBaseUrl);
-
-  /// No description provided for @cosmicEyeSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cosmic eye artwork'**
-  String get cosmicEyeSemanticLabel;
 
   /// No description provided for @feedbackTypeLabel.
   ///

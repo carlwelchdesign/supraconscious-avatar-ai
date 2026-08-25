@@ -8,6 +8,7 @@
   "signIn": "登录",
   "website": "网站",
   "nav": {
+    "navigation": "导航",
     "overview": "概览",
     "users": "用户",
     "subscriptions": "订阅",

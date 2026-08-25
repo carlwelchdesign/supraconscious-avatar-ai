@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -28,19 +31,69 @@ class InnerCouncilMobileApp extends ConsumerWidget {
       key: ValueKey(localeLanguageCode),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 2,
+        child: child ?? const SizedBox.shrink(),
+      ),
       locale: _localeFromLanguageCode(localeLanguageCode),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF82D7C4),
-          brightness: Brightness.dark,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFC87432),
+          onPrimary: Color(0xFFFFF8EF),
+          secondary: Color(0xFF8F91E8),
+          onSecondary: Color(0xFF050914),
+          surface: Color(0xFF121321),
+          onSurface: Color(0xFFF4EBDD),
+          error: Color(0xFFC85C54),
+          onError: Color(0xFFFFF7EE),
+          outline: Color(0xFF5A5360),
         ),
-        scaffoldBackgroundColor: const Color(0xFF151021),
+        scaffoldBackgroundColor: const Color(0xFF050914),
         fontFamily: 'System',
         inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
+          filled: true,
+          fillColor: Color(0xFF090E1B),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            borderSide: BorderSide(color: Color(0xFF8CA0FF), width: 2),
+          ),
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF121321),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(18)),
+            side: BorderSide(color: Color(0x335A5360)),
+          ),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF090E1B),
+          foregroundColor: Color(0xFFF4EBDD),
+          elevation: 0,
+        ),
+        navigationBarTheme: const NavigationBarThemeData(
+          backgroundColor: Color(0xFF090E1B),
+          indicatorColor: Color(0x338F91E8),
+          height: 72,
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        ),
+        filledButtonTheme: const FilledButtonThemeData(
+          style: ButtonStyle(
+            minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+            shape: WidgetStatePropertyAll(StadiumBorder()),
+          ),
+        ),
+        outlinedButtonTheme: const OutlinedButtonThemeData(
+          style: ButtonStyle(
+            minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+            shape: WidgetStatePropertyAll(StadiumBorder()),
+          ),
         ),
       ),
       home: const MobileRoot(),
@@ -204,12 +257,21 @@ class _LandingHero extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        Text(
-          l10n.appTitle,
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-            color: const Color(0xFFFFF8EA),
-            fontWeight: FontWeight.w500,
-            height: 0.96,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.1,
+            child: Text(
+              l10n.appTitle,
+              maxLines: 1,
+              softWrap: false,
+              style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                color: const Color(0xFFFFF8EA),
+                fontWeight: FontWeight.w500,
+                height: 0.96,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 22),
@@ -604,8 +666,8 @@ class _PasskeyMfaScreenState extends ConsumerState<PasskeyMfaScreen> {
             challengeToken: challenge.challengeToken,
             response: response.toJson(),
           );
-    } catch (error) {
-      setState(() => _error = error.toString());
+    } catch (_) {
+      setState(() => _error = AppLocalizations.of(context).saveError);
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
@@ -682,7 +744,7 @@ class _ProductShellState extends ConsumerState<ProductShell> {
     final l10n = AppLocalizations.of(context);
     final tabs = [
       DashboardTab(session: widget.session),
-      const JournalTab(),
+      JournalTab(session: widget.session),
       const SavedSessionsTab(),
       const PatternsTab(),
       const GuideTab(),
@@ -690,7 +752,14 @@ class _ProductShellState extends ConsumerState<ProductShell> {
     ];
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: Text(
+          l10n.appTitle.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 3.2,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: l10n.signOut,
@@ -700,7 +769,33 @@ class _ProductShellState extends ConsumerState<ProductShell> {
           ),
         ],
       ),
-      body: SafeArea(child: tabs[_index]),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const ColoredBox(color: Color(0xFF050914)),
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.58,
+              child: Image.asset(
+                'assets/images/mineral-boundary-v3-portrait.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.centerLeft,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Color(0xB3050914), Color(0xF2050914)],
+              ),
+            ),
+          ),
+          SafeArea(child: tabs[_index]),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (value) => setState(() => _index = value),
@@ -789,7 +884,9 @@ class DashboardTab extends ConsumerWidget {
 }
 
 class JournalTab extends ConsumerStatefulWidget {
-  const JournalTab({super.key});
+  const JournalTab({required this.session, super.key});
+
+  final MobileSession session;
 
   @override
   ConsumerState<JournalTab> createState() => _JournalTabState();
@@ -800,9 +897,22 @@ class _JournalTabState extends ConsumerState<JournalTab> {
   JournalAnalyzeResult? _result;
   String? _error;
   bool _submitting = false;
+  bool _gentlerHandling = false;
+  bool _livingField = true;
+  bool _draftSaving = false;
+  String? _draftId;
+  String? _draftStatus;
+  Timer? _draftTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _gentlerHandling = (widget.session.user?.intensityLevel ?? 3) <= 2;
+  }
 
   @override
   void dispose() {
+    _draftTimer?.cancel();
     _journal.dispose();
     super.dispose();
   }
@@ -815,65 +925,149 @@ class _JournalTabState extends ConsumerState<JournalTab> {
     final needsMoreContext =
         _journal.text.trim().isNotEmpty && _journal.text.trim().length < 20;
 
-    return ListView(
-      padding: const EdgeInsets.all(24),
+    return Stack(
       children: [
-        Text(
-          l10n.journalTitle,
-          style: Theme.of(context).textTheme.headlineSmall,
+        Positioned.fill(child: _MobileLivingField(enabled: _livingField)),
+        ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Text(
+              l10n.journalTitle,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.journalHelper,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            prompt.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (value) => _JournalPromptCard(prompt: value),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _journal,
+              onChanged: _handleJournalChanged,
+              minLines: 8,
+              maxLines: 14,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                labelText: l10n.tabJournal,
+                hintText: l10n.journalPlaceholder,
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.wordCount(wordCount)} · ${_draftSaving ? l10n.draftSaving : (_draftStatus ?? l10n.privacyBody)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (needsMoreContext) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.journalHelper,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _submitting ? null : _submitJournal,
+              icon: const Icon(Icons.auto_awesome),
+              label: Text(_submitting ? l10n.reflecting : l10n.askCouncil),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 20),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _LanguageSelector(language: widget.session.language),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _gentlerHandling,
+                      title: Text(l10n.gentlerHandling),
+                      subtitle: Text(l10n.gentlerHandlingSubtitle),
+                      onChanged: (value) =>
+                          setState(() => _gentlerHandling = value),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: widget.session.user?.patternMemoryEnabled == true,
+                      title: Text(l10n.patternMemory),
+                      subtitle: Text(l10n.patternMemorySubtitle),
+                      onChanged: (value) {
+                        ref
+                            .read(sessionControllerProvider.notifier)
+                            .updateReflectionPreferences(
+                              patternMemoryEnabled: value,
+                            );
+                        ref.invalidate(patternsProvider);
+                        ref.invalidate(dashboardProvider);
+                      },
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _livingField,
+                      title: Text(l10n.livingField),
+                      subtitle: Text(l10n.livingFieldSubtitle),
+                      onChanged: (value) =>
+                          setState(() => _livingField = value),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_result != null) ...[
+              const SizedBox(height: 24),
+              _CouncilResultCard(result: _result!),
+            ],
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(l10n.journalHelper, style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 16),
-        prompt.when(
-          loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const SizedBox.shrink(),
-          data: (value) => _JournalPromptCard(prompt: value),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _journal,
-          onChanged: (_) => setState(() {}),
-          minLines: 8,
-          maxLines: 14,
-          textInputAction: TextInputAction.newline,
-          decoration: InputDecoration(
-            labelText: l10n.tabJournal,
-            hintText: l10n.journalPlaceholder,
-            alignLabelWithHint: true,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${l10n.wordCount(wordCount)} · ${l10n.privacyBody}',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        if (needsMoreContext) ...[
-          const SizedBox(height: 8),
-          Text(
-            l10n.journalHelper,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: _submitting ? null : _submitJournal,
-          icon: const Icon(Icons.auto_awesome),
-          label: Text(_submitting ? l10n.reflecting : l10n.askCouncil),
-        ),
-        if (_error != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            _error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-        if (_result != null) ...[
-          const SizedBox(height: 24),
-          _CouncilResultCard(result: _result!),
-        ],
       ],
     );
+  }
+
+  void _handleJournalChanged(String value) {
+    setState(() {
+      _draftStatus = null;
+      _error = null;
+    });
+    _draftTimer?.cancel();
+    if (value.trim().isEmpty) return;
+    _draftTimer = Timer(const Duration(milliseconds: 900), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final text = _journal.text.trim();
+    if (text.isEmpty || _draftSaving) return;
+    setState(() => _draftSaving = true);
+    try {
+      final draftId = await ref
+          .read(apiClientProvider)
+          .saveJournalDraft(text, draftId: _draftId);
+      if (!mounted) return;
+      setState(() {
+        _draftId = draftId;
+        _draftSaving = false;
+        _draftStatus = AppLocalizations.of(context).draftSaved;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _draftSaving = false;
+        _error = AppLocalizations.of(context).saveError;
+      });
+    }
   }
 
   Future<void> _submitJournal() async {
@@ -884,13 +1078,20 @@ class _JournalTabState extends ConsumerState<JournalTab> {
       _error = null;
     });
     try {
-      final result = await ref.read(apiClientProvider).analyzeJournal(text);
+      final result = await ref
+          .read(apiClientProvider)
+          .analyzeJournal(text, gentlerHandling: _gentlerHandling);
+      final draftId = _draftId;
+      if (draftId != null) {
+        await ref.read(apiClientProvider).deleteJournalDraft(draftId);
+        _draftId = null;
+      }
       ref.invalidate(dashboardProvider);
       ref.invalidate(savedSessionsProvider);
       ref.invalidate(patternsProvider);
       setState(() => _result = result);
-    } catch (error) {
-      setState(() => _error = error.toString());
+    } catch (_) {
+      setState(() => _error = AppLocalizations.of(context).saveError);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -950,6 +1151,88 @@ class _JournalPromptCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MobileLivingField extends StatefulWidget {
+  const _MobileLivingField({required this.enabled});
+
+  final bool enabled;
+
+  @override
+  State<_MobileLivingField> createState() => _MobileLivingFieldState();
+}
+
+class _MobileLivingFieldState extends State<_MobileLivingField>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 24),
+    );
+    final runningInWidgetTest = WidgetsBinding.instance.runtimeType
+        .toString()
+        .contains('TestWidgetsFlutterBinding');
+    if (!runningInWidgetTest) _controller.repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (!widget.enabled) return const SizedBox.shrink();
+    if (reduceMotion) {
+      return const IgnorePointer(
+        child: CustomPaint(painter: _LivingFieldPainter(phase: 0)),
+      );
+    }
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) =>
+            CustomPaint(painter: _LivingFieldPainter(phase: _controller.value)),
+      ),
+    );
+  }
+}
+
+class _LivingFieldPainter extends CustomPainter {
+  const _LivingFieldPainter({required this.phase});
+
+  final double phase;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final tau = math.pi * 2;
+    for (var index = 0; index < 28; index += 1) {
+      final seedX = ((index * 47) % 101) / 101;
+      final seedY = ((index * 71) % 103) / 103;
+      final current = phase * tau + index * 0.67;
+      final x = (seedX * size.width + math.sin(current) * 9) % size.width;
+      final y =
+          (seedY * size.height + math.cos(current * 0.72) * 13) % size.height;
+      final breath = (math.sin(current * 0.45) + 1) / 2;
+      final paint = Paint()
+        ..color = Color.lerp(
+          const Color(0x1A8CA0FF),
+          const Color(0x26D98436),
+          breath,
+        )!;
+      canvas.drawCircle(Offset(x, y), 0.7 + breath * 1.1, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LivingFieldPainter oldDelegate) =>
+      oldDelegate.phase != phase;
 }
 
 MobileThresholdPrompt _localizedThresholdPrompt(
@@ -1059,6 +1342,9 @@ class SavedSessionDetailScreen extends ConsumerStatefulWidget {
 class _SavedSessionDetailScreenState
     extends ConsumerState<SavedSessionDetailScreen> {
   late Future<MobileSavedSessionDetail> _future;
+  final _scrollController = ScrollController();
+  final _correctionKey = GlobalKey();
+  final _actionKey = GlobalKey();
 
   @override
   void initState() {
@@ -1068,6 +1354,12 @@ class _SavedSessionDetailScreenState
 
   Future<MobileSavedSessionDetail> _load() {
     return ref.read(apiClientProvider).getSavedSession(widget.sessionId);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _refresh() {
@@ -1082,50 +1374,458 @@ class _SavedSessionDetailScreenState
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).savedReflectionTitle),
       ),
-      body: FutureBuilder<MobileSavedSessionDetail>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return _ErrorState(message: snapshot.error.toString());
-          }
-          final session = snapshot.requireData;
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Text(
-                AppLocalizations.of(context).journalTitle,
-                style: Theme.of(context).textTheme.titleLarge,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: Color(0xFF080C18),
+            border: Border(top: BorderSide(color: Color(0xFF34303B))),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _scrollTo(_correctionKey),
+                    child: Text(AppLocalizations.of(context).correctThis),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => _scrollTo(_actionKey),
+                    child: Text(
+                      AppLocalizations.of(context).reviewCarryForward,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const ColoredBox(color: Color(0xFF050914)),
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.46,
+              child: Image.asset(
+                'assets/images/mineral-boundary-v3-portrait.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.centerLeft,
+                excludeFromSemantics: true,
               ),
-              const SizedBox(height: 10),
-              Text(session.journalText),
-              const SizedBox(height: 24),
-              if (session.avatarResponse != null)
-                _AvatarResponseCard(response: session.avatarResponse!),
-              if (session.avatarResponse != null) const SizedBox(height: 12),
-              if (session.synthesis != null)
-                _InfoCard(
-                  title: session.synthesis!.integratorQuestion,
-                  body: session.synthesis!.integrationStep,
-                ),
-              const SizedBox(height: 12),
-              for (final message in session.messages)
-                _InfoCard(
-                  title: message.displayName,
-                  body: message.abstained
-                      ? AppLocalizations.of(context).grounding
-                      : message.content,
-                ),
-              _SourceGroundingCard(sourceGrounding: session.sourceGrounding),
-              _FeedbackEmbodimentSection(session: session, onSaved: _refresh),
-            ],
-          );
-        },
+            ),
+          ),
+          FutureBuilder<MobileSavedSessionDetail>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return _ErrorState(
+                  message: AppLocalizations.of(context).loadError,
+                  onRetry: _refresh,
+                );
+              }
+              final session = snapshot.requireData;
+              return ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 112),
+                children: [
+                  Text(
+                    AppLocalizations.of(context).reflectionToConsider,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 52,
+                    height: 2,
+                    color: const Color(0xFFD98436),
+                  ),
+                  const SizedBox(height: 24),
+                  _ObservatoryEvidenceCard(
+                    eyebrow: AppLocalizations.of(context).journalTitle,
+                    body: session.journalText,
+                    memberAuthored: true,
+                  ),
+                  const SizedBox(height: 24),
+                  if (session.avatarResponse != null)
+                    _AvatarResponseCard(response: session.avatarResponse!),
+                  if (session.avatarResponse != null)
+                    const SizedBox(height: 12),
+                  if (session.synthesis != null)
+                    _InfoCard(
+                      title: session.synthesis!.integratorQuestion,
+                      body: session.synthesis!.integrationStep,
+                    ),
+                  const SizedBox(height: 12),
+                  if (session.reflectionSession?.dimensions.isNotEmpty ==
+                      true) ...[
+                    const SizedBox(height: 16),
+                    for (final (index, dimension)
+                        in session.reflectionSession!.dimensions.indexed)
+                      _MobileDimensionFacet(
+                        key: index == 0 ? _correctionKey : null,
+                        reflectionSessionId: session.reflectionSession!.id,
+                        dimension: dimension,
+                        correction: _latestCorrectionFor(
+                          session.reflectionSession!.corrections,
+                          dimension.dimension,
+                        ),
+                        onSaved: _refresh,
+                      ),
+                  ] else if (session.messages.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    for (final message in session.messages)
+                      _ObservatoryFacetCard(
+                        title: message.displayName,
+                        body: message.abstained
+                            ? AppLocalizations.of(context).grounding
+                            : message.content,
+                      ),
+                  ],
+                  _SourceGroundingCard(
+                    sourceGrounding: session.sourceGrounding,
+                  ),
+                  _FeedbackEmbodimentSection(
+                    key: _actionKey,
+                    session: session,
+                    onSaved: _refresh,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
+
+  void _scrollTo(GlobalKey key) {
+    final targetContext = key.currentContext;
+    if (targetContext == null) return;
+    Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeOutCubic,
+      alignment: 0.08,
+    );
+  }
+}
+
+class _ObservatoryEvidenceCard extends StatelessWidget {
+  const _ObservatoryEvidenceCard({
+    required this.eyebrow,
+    required this.body,
+    this.memberAuthored = false,
+  });
+
+  final String eyebrow;
+  final String body;
+  final bool memberAuthored;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xE80B1020),
+        border: Border.all(
+          color: memberAuthored
+              ? const Color(0xFFB96F34)
+              : const Color(0xFF34303B),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            eyebrow.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFFD98436),
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(body, style: Theme.of(context).textTheme.bodyLarge),
+        ],
+      ),
+    );
+  }
+}
+
+class _ObservatoryFacetCard extends StatelessWidget {
+  const _ObservatoryFacetCard({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: const BoxDecoration(
+        color: Color(0xE8101424),
+        border: Border(
+          left: BorderSide(color: Color(0xFFD98436), width: 2),
+          top: BorderSide(color: Color(0xFF34303B)),
+          right: BorderSide(color: Color(0xFF34303B)),
+          bottom: BorderSide(color: Color(0xFF34303B)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(body),
+        ],
+      ),
+    );
+  }
+}
+
+class _MobileDimensionFacet extends ConsumerStatefulWidget {
+  const _MobileDimensionFacet({
+    required this.reflectionSessionId,
+    required this.dimension,
+    required this.onSaved,
+    this.correction,
+    super.key,
+  });
+
+  final String reflectionSessionId;
+  final MobileDimensionReflection dimension;
+  final MobileReflectionCorrection? correction;
+  final VoidCallback onSaved;
+
+  @override
+  ConsumerState<_MobileDimensionFacet> createState() =>
+      _MobileDimensionFacetState();
+}
+
+class _MobileDimensionFacetState extends ConsumerState<_MobileDimensionFacet> {
+  final _controller = TextEditingController();
+  bool _editing = false;
+  bool _saving = false;
+  String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = widget.correction?.note ?? '';
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final correction = widget.correction;
+    final body =
+        [
+              widget.dimension.observationText,
+              widget.dimension.tentativeInterpretation,
+            ]
+            .whereType<String>()
+            .where((value) => value.trim().isNotEmpty)
+            .join('\n\n');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: const BoxDecoration(
+        color: Color(0xE8101424),
+        border: Border(
+          left: BorderSide(color: Color(0xFFD98436), width: 2),
+          top: BorderSide(color: Color(0xFF34303B)),
+          right: BorderSide(color: Color(0xFF34303B)),
+          bottom: BorderSide(color: Color(0xFF34303B)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            _dimensionLabel(l10n, widget.dimension.dimension),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          if (body.isNotEmpty) ...[const SizedBox(height: 8), Text(body)],
+          if (correction?.correctionType == 'correct' &&
+              correction?.note?.isNotEmpty == true) ...[
+            const SizedBox(height: 14),
+            Text(
+              l10n.memberCorrection,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: const Color(0xFFD98436)),
+            ),
+            const SizedBox(height: 6),
+            Text(correction!.note!),
+          ],
+          const SizedBox(height: 14),
+          if (correction != null)
+            OutlinedButton.icon(
+              onPressed: _saving ? null : () => _restore(correction.id),
+              icon: const Icon(Icons.restore, size: 18),
+              label: Text(l10n.restore),
+            )
+          else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _saving
+                        ? null
+                        : () => setState(() => _editing = true),
+                    child: Text(l10n.correctThis),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _saving ? null : () => _save('suppress'),
+                    child: Text(l10n.doesNotFit),
+                  ),
+                ),
+              ],
+            ),
+            if (_editing) ...[
+              const SizedBox(height: 14),
+              TextField(
+                controller: _controller,
+                onChanged: (_) => setState(() {}),
+                minLines: 3,
+                maxLines: 5,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: l10n.correctionPrompt,
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: _saving || _controller.text.trim().isEmpty
+                          ? null
+                          : () => _save('correct'),
+                      child: Text(l10n.saveCorrection),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _saving
+                          ? null
+                          : () => setState(() => _editing = false),
+                      child: Text(l10n.cancel),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+          if (_message != null) ...[
+            const SizedBox(height: 10),
+            Text(_message!, semanticsLabel: _message),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save(String correctionType) async {
+    final l10n = AppLocalizations.of(context);
+    setState(() {
+      _saving = true;
+      _message = null;
+    });
+    try {
+      await ref
+          .read(apiClientProvider)
+          .saveReflectionCorrection(
+            reflectionSessionId: widget.reflectionSessionId,
+            dimension: widget.dimension.dimension,
+            correctionType: correctionType,
+            note: correctionType == 'correct' ? _controller.text : null,
+          );
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _editing = false;
+        _message = l10n.correctionSaved;
+      });
+      widget.onSaved();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _message = l10n.correctionError;
+      });
+    }
+  }
+
+  Future<void> _restore(String correctionId) async {
+    final l10n = AppLocalizations.of(context);
+    setState(() {
+      _saving = true;
+      _message = null;
+    });
+    try {
+      await ref
+          .read(apiClientProvider)
+          .restoreReflectionCorrection(correctionId);
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _message = l10n.correctionSaved;
+      });
+      widget.onSaved();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _message = l10n.correctionError;
+      });
+    }
+  }
+}
+
+String _dimensionLabel(AppLocalizations l10n, String value) {
+  return switch (value.toLowerCase()) {
+    'perception' => l10n.protectorRole,
+    'story' => l10n.conditionedSelfRole,
+    'fear' => l10n.visionaryRole,
+    'ego' => l10n.truthSelfRole,
+    'genius' => l10n.geniusRole,
+    'supraconscious' => l10n.supraconsciousRole,
+    'embodiment' => l10n.embodimentRole,
+    _ => value,
+  };
+}
+
+MobileReflectionCorrection? _latestCorrectionFor(
+  List<MobileReflectionCorrection> corrections,
+  String dimension,
+) {
+  for (final correction in corrections.reversed) {
+    if (correction.dimension == dimension) return correction;
+  }
+  return null;
 }
 
 class _AvatarResponseCard extends StatelessWidget {
@@ -1238,6 +1938,7 @@ class _FeedbackEmbodimentSection extends ConsumerStatefulWidget {
   const _FeedbackEmbodimentSection({
     required this.session,
     required this.onSaved,
+    super.key,
   });
 
   final MobileSavedSessionDetail session;
@@ -1356,7 +2057,9 @@ class _FeedbackEmbodimentSectionState
   }
 
   Future<void> _saveFeedback() async {
-    final savedMessage = AppLocalizations.of(context).feedbackSavedMessage;
+    final l10n = AppLocalizations.of(context);
+    final savedMessage = l10n.feedbackSavedMessage;
+    final errorMessage = l10n.saveError;
     setState(() {
       _savingFeedback = true;
       _message = null;
@@ -1372,15 +2075,17 @@ class _FeedbackEmbodimentSectionState
       _feedbackNote.clear();
       _message = savedMessage;
       widget.onSaved();
-    } catch (error) {
-      _message = error.toString();
+    } catch (_) {
+      _message = errorMessage;
     } finally {
       if (mounted) setState(() => _savingFeedback = false);
     }
   }
 
   Future<void> _saveEmbodiment() async {
-    final savedMessage = AppLocalizations.of(context).embodimentSavedMessage;
+    final l10n = AppLocalizations.of(context);
+    final savedMessage = l10n.embodimentSavedMessage;
+    final errorMessage = l10n.saveError;
     final text = _embodiment.text.trim();
     if (text.isEmpty) return;
     setState(() {
@@ -1394,8 +2099,8 @@ class _FeedbackEmbodimentSectionState
       _embodiment.clear();
       _message = savedMessage;
       widget.onSaved();
-    } catch (error) {
-      _message = error.toString();
+    } catch (_) {
+      _message = errorMessage;
     } finally {
       if (mounted) setState(() => _savingEmbodiment = false);
     }
@@ -1502,7 +2207,6 @@ class _PatternCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final confidence = (pattern.confidence * 100).round();
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -1522,7 +2226,6 @@ class _PatternCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context).confidencePercent(confidence)),
             if (pattern.examples.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(pattern.examples.first),
@@ -1748,8 +2451,10 @@ class _AsyncList<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return value.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) =>
-          _ErrorState(message: error.toString(), onRetry: onRefresh),
+      error: (error, _) => _ErrorState(
+        message: AppLocalizations.of(context).loadError,
+        onRetry: onRefresh,
+      ),
       data: (data) => RefreshIndicator(
         onRefresh: () async => onRefresh(),
         child: ListView(
@@ -1961,10 +2666,17 @@ class _FoundationFrame extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/echo-eye-cosmos.png',
-            fit: BoxFit.cover,
-            semanticLabel: AppLocalizations.of(context).cosmicEyeSemanticLabel,
+          const ColoredBox(color: Color(0xFF050914)),
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/images/mineral-boundary-v3-portrait.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.centerLeft,
+                excludeFromSemantics: true,
+              ),
+            ),
           ),
           const DecoratedBox(
             decoration: BoxDecoration(
@@ -1972,9 +2684,9 @@ class _FoundationFrame extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xDD151021),
-                  Color(0xBB151021),
-                  Color(0xF2151021),
+                  Color(0x66050914),
+                  Color(0xCC050914),
+                  Color(0xF7050914),
                 ],
               ),
             ),

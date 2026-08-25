@@ -12,7 +12,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appTitle => 'Supraconscious';
 
   @override
-  String get startReflection => 'Commencer ta première réflexion';
+  String get startReflection => 'Commencer une réflexion';
 
   @override
   String get signIn => 'Se connecter';
@@ -21,7 +21,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get createAccount => 'Créer un compte';
 
   @override
-  String get useExistingAccount => 'Utiliser un compte existant';
+  String get useExistingAccount => 'J’ai déjà un compte';
 
   @override
   String get nameLabel => 'Nom';
@@ -33,17 +33,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passwordLabel => 'Mot de passe';
 
   @override
-  String get landingEyebrow => 'Réflexion identitaire avec l\'IA';
+  String get landingEyebrow =>
+      'Un espace plus calme pour une réflexion sincère';
 
   @override
-  String get landingNotJournal => 'Ce n\'est pas un journal.';
+  String get landingNotJournal => 'Apporte ce qui t’occupe l’esprit.';
 
   @override
-  String get landingMeetYourself => 'C\'est ici que tu te rencontres.';
+  String get landingMeetYourself => 'Regarde-le avec un peu plus de recul.';
 
   @override
   String get landingBody =>
-      'Tu n’as pas besoin de plus de conseils. Tu as besoin de voir clairement. Le Mirror t’aide à reconnaître ce qui est peut-être déjà présent.';
+      'Écris avec tes propres mots. Le Guide propose une réflexion attentive à travers les dimensions qui pourraient correspondre à ce moment. Tu décides de ce qui correspond à ton expérience et de ce que tu veux garder.';
 
   @override
   String get tabJournal => 'Journal';
@@ -61,23 +62,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabSettings => 'Réglages';
 
   @override
-  String get welcome => 'Bienvenue';
+  String get welcome => 'Bon retour';
 
   @override
   String welcomeName(String name) {
-    return 'Bienvenue, $name';
+    return 'Bonjour, $name';
   }
 
   @override
-  String get journalTitle => 'Qu\'est-ce qui est présent aujourd\'hui ?';
+  String get journalTitle =>
+      'À quoi aimerais-tu faire de la place aujourd’hui ?';
 
   @override
   String get journalHelper =>
-      'Écris une entrée honnête. Le Guide peut refléter les schémas, les tensions et un prochain pas ancré.';
+      'Écris ce qui est présent. Le Guide peut refléter des schémas, des tensions et une prochaine étape possible.';
 
   @override
   String get journalPlaceholder =>
-      'Écris ce qui est présent — émotions, observations, tensions. Aucune structure requise…';
+      'Commence où tu veux : une émotion, une observation, une question ou une tension. Aucune structure n’est imposée…';
 
   @override
   String get settingsTitle => 'Réglages';
@@ -87,7 +89,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'Tes entrées restent privées sur ce compte et sont utilisées pour la réflexion, la sécurité, les fonctions vocales et la mémoire des schémas quand elle est activée.';
+      'Your entries are stored with your account and used for reflections and safety checks. AI providers may process text or audio needed for features you choose. Pattern memory stores recurring signals only when enabled.';
 
   @override
   String get languageTitle => 'Langue';
@@ -104,21 +106,41 @@ class AppLocalizationsFr extends AppLocalizations {
       'Autoriser les signaux récurrents à apparaître avec le temps.';
 
   @override
-  String get landingProblemEyebrow => 'Le problème';
+  String get gentlerHandling => 'Approche plus douce';
+
+  @override
+  String get gentlerHandlingSubtitle =>
+      'Le Guide répondra avec plus de soin et à un rythme plus lent.';
+
+  @override
+  String get livingField => 'Champ vivant';
+
+  @override
+  String get livingFieldSubtitle =>
+      'Un mouvement ambiant uniquement, jamais une lecture des émotions.';
+
+  @override
+  String get draftSaving => 'Enregistrement du brouillon…';
+
+  @override
+  String get draftSaved => 'Brouillon enregistré en privé';
+
+  @override
+  String get landingProblemEyebrow => 'Quand les pensées tournent en boucle';
 
   @override
   String get landingProblemTitle =>
-      'You are not stuck. You are not seeing clearly.';
+      'Parfois, tu sais que quelque chose compte. Tu ne peux simplement pas tout voir d’un seul regard.';
 
   @override
   String get landingProblemBody =>
-      'You have thought about it, analyzed it, replayed it, and still something in you hesitates.';
+      'Tu y as peut-être réfléchi, tu en as parlé ou tu l’as repassé plusieurs fois dans ta tête, sans savoir pour autant par où commencer.';
 
   @override
   String get landingCouncilEyebrow => 'Fonctionnement';
 
   @override
-  String get landingCouncilTitle => 'Découvrez les Sept Dimensions';
+  String get landingCouncilTitle => 'Sept façons de regarder avec attention';
 
   @override
   String get landingCouncilBody =>
@@ -172,27 +194,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get embodimentRoleBody => 'Comment vais-je vivre ce choix ?';
 
   @override
-  String get landingExperienceEyebrow => 'L’expérience';
+  String get landingExperienceEyebrow => 'La pratique';
 
   @override
   String get landingExperienceTitle => 'Write. See. Face. Choose. Become.';
 
   @override
   String get landingExperienceBody =>
-      'Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.';
+      'Écris ce qui est présent. Garde ce qui t’aide, corrige ce qui ne correspond pas et choisis une petite étape suivante, ou fais simplement une pause.';
 
   @override
-  String get landingDifferentEyebrow => 'Différent par conception';
+  String get landingDifferentEyebrow => 'Tu restes au centre';
 
   @override
-  String get landingDifferentTitle => 'Not another place to talk in circles.';
+  String get landingDifferentTitle =>
+      'Une réflexion qui laisse de la place à ce que tu sais déjà.';
 
   @override
   String get landingDifferentBody =>
-      'This is an identity reflection system, a decision clarity engine, and a mirror for becoming.';
+      'Une pratique guidée d’exploration de soi qui propose plusieurs façons de regarder un même moment, ainsi qu’une réflexion que tu peux questionner, corriger ou laisser de côté.';
 
   @override
-  String get landingFinalCta => 'Commencer ta première réflexion';
+  String get landingFinalCta => 'Commencer une réflexion';
 
   @override
   String get landingBack => 'Accueil';
@@ -207,7 +230,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get entries => 'Entrées';
 
   @override
-  String get guideStage => 'Étape du guide';
+  String get guideStage => 'Guide';
 
   @override
   String get noSavedTitle => 'Aucune réflexion enregistrée pour le moment';
@@ -219,7 +242,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get askCouncil => 'Entrer dans le Mirror';
 
   @override
-  String get reflecting => 'Réflexion...';
+  String get reflecting => 'Préparation de ta réflexion…';
 
   @override
   String wordCount(int count) {
@@ -231,6 +254,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get savedReflectionTitle => 'Réflexion enregistrée';
+
+  @override
+  String get reflectionToConsider => 'Une réflexion à considérer';
+
+  @override
+  String get reviewCarryForward => 'Relire et poursuivre';
+
+  @override
+  String get correctThis => 'Corriger ceci';
+
+  @override
+  String get doesNotFit => 'Ne correspond pas';
+
+  @override
+  String get correctionPrompt => 'Comment corrigerais-tu cette observation ?';
+
+  @override
+  String get saveCorrection => 'Enregistrer la correction';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get memberCorrection => 'Ta correction';
+
+  @override
+  String get correctionSaved => 'Ta correction a été enregistrée.';
+
+  @override
+  String get correctionError =>
+      'Cette correction n’a pas pu être enregistrée. Réessaie.';
+
+  @override
+  String get saveError =>
+      'L’enregistrement a échoué. Vérifie ta connexion et réessaie.';
 
   @override
   String get feedbackSaved => 'Commentaires enregistrés';
@@ -287,10 +345,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get retry => 'Réessayer';
 
   @override
-  String get guideResponse => 'Réponse du guide';
+  String get loadError => 'Cette réflexion n’a pas pu être chargée. Réessaie.';
 
   @override
-  String get oneGroundedStep => 'Une étape concrète';
+  String get guideResponse => 'Réflexion du Guide';
+
+  @override
+  String get oneGroundedStep => 'Une étape à considérer';
 
   @override
   String get sourceGrounding => 'Ancrage des sources';
@@ -306,7 +367,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get firstEntryBody =>
-      'Écris ta première entrée pour commencer ta pratique.';
+      'Ta première réflexion commence avec tes propres mots. Aucune structure n’est imposée.';
 
   @override
   String get savedReflections => 'Réflexions enregistrées';
@@ -374,7 +435,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get verifyPasskeyBody =>
-      'Ce compte est protégé par une MFA résistante au hameçonnage. Utilisez votre YubiKey ou la clé d’accès de l’appareil pour terminer la connexion.';
+      'Ce compte utilise une clé d’accès comme contrôle de sécurité supplémentaire. Utilise ta YubiKey ou la clé d’accès de ton appareil pour terminer la connexion.';
 
   @override
   String get usePasskey => 'Utiliser la clé d’accès';
@@ -405,11 +466,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedbackSavedMessage => 'Retour enregistré.';
 
   @override
-  String get embodimentSavedMessage => 'Choix incarné enregistré.';
+  String get embodimentSavedMessage => 'Ton choix a été enregistré.';
 
   @override
   String get patternsEmptyBody =>
-      'Continuez à écrire. Les signaux récurrents apparaîtront ici.';
+      'Lorsque des signaux reviennent dans plusieurs entrées, tu les trouveras ici.';
 
   @override
   String get theFiveStages => 'Les Sept Dimensions du Supraconscious';
@@ -441,9 +502,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String apiLabel(String apiBaseUrl) {
     return 'API : $apiBaseUrl';
   }
-
-  @override
-  String get cosmicEyeSemanticLabel => 'Illustration d’œil cosmique';
 
   @override
   String feedbackTypeLabel(String label) {

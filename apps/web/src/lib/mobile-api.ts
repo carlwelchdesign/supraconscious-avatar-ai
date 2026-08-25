@@ -120,6 +120,21 @@ export function buildMobileSavedSessionResponse(session: {
       integrationStep?: string | null
       closingLine?: string | null
     } | null
+    reflectionSession?: {
+      id: string
+      dimensions: Array<{
+        id: string
+        dimension: string
+        observationText?: string | null
+        tentativeInterpretation?: string | null
+      }>
+      corrections: Array<{
+        id: string
+        dimension?: string | null
+        correctionType: string
+        note?: string | null
+      }>
+    } | null
   }
   messages: Array<{
     id: string
@@ -185,6 +200,23 @@ export function buildMobileSavedSessionResponse(session: {
             socraticQuestion: session.journalEntry.avatarResponse.socraticQuestion ?? null,
             integrationStep: session.journalEntry.avatarResponse.integrationStep ?? null,
             closingLine: session.journalEntry.avatarResponse.closingLine ?? null,
+          }
+        : null,
+      reflectionSession: session.journalEntry.reflectionSession
+        ? {
+            id: session.journalEntry.reflectionSession.id,
+            dimensions: session.journalEntry.reflectionSession.dimensions.map((dimension) => ({
+              id: dimension.id,
+              dimension: dimension.dimension,
+              observationText: dimension.observationText ?? null,
+              tentativeInterpretation: dimension.tentativeInterpretation ?? null,
+            })),
+            corrections: session.journalEntry.reflectionSession.corrections.map((correction) => ({
+              id: correction.id,
+              dimension: correction.dimension ?? null,
+              correctionType: correction.correctionType,
+              note: correction.note ?? null,
+            })),
           }
         : null,
       messages: session.messages.map((message) => ({

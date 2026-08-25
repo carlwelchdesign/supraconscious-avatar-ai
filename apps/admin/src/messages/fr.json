@@ -8,6 +8,7 @@
   "signIn": "Se connecter",
   "website": "Site web",
   "nav": {
+    "navigation": "Navigation",
     "overview": "Vue d’ensemble",
     "users": "Utilisateurs",
     "subscriptions": "Abonnements",

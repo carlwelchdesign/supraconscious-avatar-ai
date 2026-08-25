@@ -7,7 +7,7 @@ export default async function MfaPage() {
   if (!pending?.userId) redirect("/login")
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--cream)] px-6 py-12">
+    <main className="member-app public-observatory flex min-h-screen items-center justify-center bg-[var(--cream)] px-6 py-12">
       <PasskeyMfaForm />
     </main>
   )

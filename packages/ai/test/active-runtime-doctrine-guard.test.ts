@@ -33,22 +33,10 @@ const PUBLIC_SURFACE_PATHS = [
 
 const DOCUMENTED_COMPATIBILITY_ALLOWLIST = [
   {
-    path: "apps/web/src/app/page.tsx",
-    rule: "removed_public_term:Echo",
-    valuePattern: /landing\/echo-eye-cosmos\.png/i,
-    reason: "Legacy asset filename; no persona-stage name is rendered.",
-  },
-  {
     path: "apps/web/src/lib/voice/voice-config.ts",
     rule: "removed_public_term:Echo",
     valuePattern: /^echo$/i,
     reason: "OpenAI vendor voice identifier, not product terminology.",
-  },
-  {
-    path: "apps/mobile/lib/src/app.dart",
-    rule: "removed_public_term:Echo",
-    valuePattern: /assets\/images\/echo-eye-cosmos\.png/i,
-    reason: "Legacy asset filename; no persona-stage name is rendered.",
   },
   {
     path: "apps/admin/src/app/(admin)/council/page.tsx",

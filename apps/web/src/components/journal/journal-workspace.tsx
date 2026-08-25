@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { Loader2, ArrowRight, Check, CloudOff, RotateCcw, ShieldCheck } from "lucide-react"
+import { Loader2, ArrowRight, Check, ChevronDown, CloudOff, RotateCcw, ShieldCheck } from "lucide-react"
 import {
   FOUNDER_CALIBRATION_SCENARIO_PROMPTS,
   type FounderCalibrationScenario,
@@ -132,6 +132,35 @@ type Props = {
   founderFeedbackHref?: string | null
   responseLanguageLabel: string
   patternMemoryEnabled: boolean
+}
+
+function ObservatorySwitch({ checked, onChange, label, disabled = false }: {
+  checked: boolean
+  onChange?: (checked: boolean) => void
+  label: string
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange?.(!checked)}
+      className="relative h-9 w-[3.75rem] shrink-0 rounded-full border transition-colors disabled:cursor-default disabled:opacity-70"
+      style={{
+        borderColor: checked ? "color-mix(in srgb, var(--signal-selection) 72%, white)" : "var(--border-subtle)",
+        background: checked ? "color-mix(in srgb, var(--signal-selection) 72%, #1b2040)" : "var(--surface-raised)",
+      }}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[var(--text-primary)] shadow-md transition-[left]"
+        style={{ left: checked ? "calc(100% - 1.75rem)" : "0.3rem" }}
+      />
+    </button>
+  )
 }
 
 export function JournalWorkspace({
@@ -321,19 +350,17 @@ export function JournalWorkspace({
     ? buildSpeakText(result.avatarResponse)
     : ""
   return (
-    <div className="relative isolate overflow-hidden rounded-[28px] border border-[var(--border-subtle)] bg-[var(--canvas)] px-4 py-6 sm:px-6 lg:px-8">
-      <LivingField state={fieldState} motionEnabled={motionEnabled} className="absolute inset-0 z-0 h-full w-full opacity-90" />
+    <div className="relative isolate overflow-hidden px-1 py-4 sm:px-3 lg:pl-[22vw] lg:pr-1 xl:pl-[23vw]">
+      <LivingField state={fieldState} motionEnabled={motionEnabled} className="absolute inset-0 z-0 h-full w-full opacity-35" />
       <div className="relative z-10 space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────── */}
       <div>
-        <p className="text-[11px] font-medium tracking-[0.14em] uppercase text-[var(--clay)] mb-1">
-          {t("eyebrow")}
-        </p>
-        <h1 className="font-display text-[40px] font-light text-[var(--primary)] leading-tight">
+        <h1 className="observatory-heading max-w-4xl">
           {t("title")}
         </h1>
-        <p className="mt-2 text-[14px] font-light text-[var(--plum-soft)]">
+        <div className="mt-5 h-0.5 w-16 bg-[var(--action-primary)]" aria-hidden="true" />
+        <p className="mt-5 text-[17px] font-light text-[var(--text-secondary)]">
           {t("helper")}
         </p>
       </div>
@@ -434,37 +461,54 @@ export function JournalWorkspace({
         </section>
       )}
 
-      <section className="grid gap-px overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--border-subtle)] sm:grid-cols-2 xl:grid-cols-4" aria-label={t("composerPreferences")}>
-        <div className="bg-[var(--surface)] px-4 py-3">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.9fr)] lg:items-start xl:gap-12">
+      <section className="order-2 overflow-hidden border-y border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] lg:order-none lg:col-start-2 lg:row-start-1" aria-label={t("composerPreferences")}>
+        <div className="border-b border-[var(--border-subtle)] px-5 py-5">
           <p className="observatory-label">{t("responseLanguage")}</p>
-          <p className="mt-1 text-sm text-[var(--text-primary)]">{responseLanguageLabel}</p>
-          <Link href="/settings" className="mt-1 inline-block text-xs text-[var(--action-primary)] underline-offset-4 hover:underline">{t("changeInSettings")}</Link>
+          <Link href="/settings" className="mt-4 flex min-h-14 items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] px-4 text-base text-[var(--text-primary)] transition-colors hover:border-[var(--action-primary)]">
+            <span>{responseLanguageLabel}</span>
+            <ChevronDown className="h-5 w-5 text-[var(--text-secondary)]" aria-hidden="true" />
+          </Link>
+          <p className="mt-3 text-xs text-[var(--text-secondary)]">{t("changeInSettings")}</p>
         </div>
-        <label className="flex cursor-pointer items-center justify-between gap-3 bg-[var(--surface)] px-4 py-3">
+        <div className="flex min-h-28 items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-5 py-5">
           <span><span className="observatory-label block">{t("gentlerHandling")}</span><span className="mt-1 block text-xs text-[var(--text-secondary)]">{t("gentlerHandlingHelp")}</span></span>
-          <input type="checkbox" checked={gentlerHandling} onChange={(event) => setGentlerHandling(event.target.checked)} className="h-5 w-5 accent-[var(--action-primary)]" />
-        </label>
-        <div className="bg-[var(--surface)] px-4 py-3">
-          <p className="observatory-label">{t("patternMemory")}</p>
-          <p className="mt-1 text-sm text-[var(--text-primary)]">{patternMemoryEnabled ? t("on") : t("off")}</p>
-          <Link href="/settings" className="mt-1 inline-block text-xs text-[var(--action-primary)] underline-offset-4 hover:underline">{t("reviewPrivacyControl")}</Link>
+          <ObservatorySwitch checked={gentlerHandling} onChange={setGentlerHandling} label={t("gentlerHandling")} />
         </div>
-        <label className="flex cursor-pointer items-center justify-between gap-3 bg-[var(--surface)] px-4 py-3">
+        <div className="flex min-h-28 items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-5 py-5">
+          <div>
+            <p className="observatory-label">{t("patternMemory")}</p>
+            <p className="mt-2 text-xs leading-5 text-[var(--text-secondary)]">{t("privacyNote")}</p>
+            <Link href="/settings" className="mt-1 inline-block text-xs text-[var(--signal-selection)] underline-offset-4 hover:underline">{t("reviewPrivacyControl")}</Link>
+          </div>
+          <ObservatorySwitch checked={patternMemoryEnabled} label={t("patternMemory")} disabled />
+        </div>
+        <div className="flex min-h-24 items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-5 py-5">
           <span><span className="observatory-label block">{t("livingField")}</span><span className="mt-1 block text-xs text-[var(--text-secondary)]">{t("livingFieldHelp")}</span></span>
-          <input type="checkbox" checked={motionEnabled} onChange={(event) => setMotionEnabled(event.target.checked)} className="h-5 w-5 accent-[var(--action-primary)]" />
-        </label>
+          <ObservatorySwitch checked={motionEnabled} onChange={setMotionEnabled} label={t("livingField")} />
+        </div>
+        <div className="m-5 rounded-md border border-[color-mix(in_srgb,var(--signal-selection)_34%,transparent)] bg-[color-mix(in_srgb,var(--signal-selection)_8%,var(--surface))] p-5">
+          <div className="flex gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[var(--signal-selection)]" aria-hidden="true" />
+            <div>
+              <p className="observatory-label text-[var(--signal-selection)]">{t("privacyTitle")}</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{t("privacyNote")}</p>
+              <Link href="/settings" className="mt-2 inline-block text-sm text-[var(--signal-selection)] underline-offset-4 hover:underline">{t("reviewPrivacyControl")}</Link>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="order-1 space-y-6 lg:contents">
 
         {/* ── Editor ─────────────────────────────────────────────── */}
-        <section className="space-y-0">
+        <section className="space-y-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
           <div
-            className="rounded-3xl border overflow-hidden"
+            className="overflow-hidden rounded-xl border"
             style={{
-              background: "var(--pearl)",
-              borderColor: "rgba(43,27,53,0.08)",
-              boxShadow: "0 4px 32px rgba(43,27,53,0.06)",
+              background: "color-mix(in srgb, var(--surface) 88%, transparent)",
+              borderColor: isFocused ? "var(--border-active)" : "var(--border-subtle)",
+              boxShadow: isFocused ? "0 0 0 1px var(--action-primary), var(--shadow-raised)" : "var(--shadow-soft)",
             }}
           >
             {/* Editor top bar */}
@@ -493,7 +537,7 @@ export function JournalWorkspace({
                 readOnly={isSubmitting}
                 aria-busy={isSubmitting}
                 placeholder={t("journalPlaceholder")}
-                className="w-full min-h-[340px] resize-none bg-transparent outline-none font-display text-[18px] font-light leading-[1.95] text-[var(--primary)] placeholder:text-[var(--primary)]/20 journal-lines read-only:cursor-default read-only:opacity-75"
+                className="journal-lines min-h-[360px] w-full resize-none bg-transparent font-sans text-[18px] font-light leading-[1.95] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-secondary)]/45 read-only:cursor-default read-only:opacity-75 sm:min-h-[400px] xl:min-h-[420px]"
                 style={{ caretColor: "var(--clay)" }}
               />
             </div>
@@ -515,18 +559,25 @@ export function JournalWorkspace({
                   <MicButton onTranscribe={handleTranscribe} disabled={isSubmitting} />
                 )}
               </div>
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting || !canSubmit}
-                className="inline-flex items-center gap-2 bg-[var(--primary)] text-[var(--cream)] text-[14px] font-medium px-6 py-2.5 rounded-full hover:bg-[var(--plum-mid)] transition-all hover:-translate-y-px disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {isSubmitting ? (
-                  <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin motion-reduce:animate-none" />
-                ) : (
-                  <ArrowRight className="w-4 h-4" />
-                )}
-                {isSubmitting ? t("reflecting") : t("reflect")}
-              </button>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Link
+                  href="/dashboard"
+                  className="inline-flex min-h-12 items-center justify-center rounded-md border border-[var(--action-primary)] px-5 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[color-mix(in_srgb,var(--action-primary)_10%,transparent)]"
+                >
+                  {t("backToDashboard")}
+                </Link>
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !canSubmit}
+                  className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[var(--action-primary)] px-7 py-3 text-sm font-medium text-[var(--action-on-primary)] shadow-[var(--shadow-soft)] transition-all hover:-translate-y-px hover:bg-[var(--action-primary-hover)] disabled:cursor-not-allowed disabled:opacity-40 disabled:transform-none"
+                >
+                  {isSubmitting ? (
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" />
+                  ) : null}
+                  {isSubmitting ? t("reflecting") : t("reflect")}
+                  {!isSubmitting ? <ArrowRight aria-hidden="true" className="h-4 w-4" /> : null}
+                </button>
+              </div>
             </div>
             {text.trim().length > 0 && text.trim().length < 20 && (
               <p className="px-8 pb-4 text-[11px] font-light text-[var(--plum-soft)]/70">
@@ -562,10 +613,10 @@ export function JournalWorkspace({
         </section>
 
         {/* ── Reflection panel ───────────────────────────────────── */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:col-start-2 lg:row-start-2">
 
           {/* Guide header */}
-          <div
+          {(isSubmitting || result) ? <div
             className="rounded-3xl border p-6"
             style={{
               background: "var(--pearl)",
@@ -671,7 +722,7 @@ export function JournalWorkspace({
                 {t("emptyReflection")}
               </p>
             )}
-          </div>
+          </div> : null}
 
           {result?.dimensionRationale && (
             <DimensionRationalePanel rationale={result.dimensionRationale} />
@@ -721,7 +772,7 @@ export function JournalWorkspace({
           )}
 
           {/* Generated prompt */}
-          {(result || !result) && (
+          {result && (
             <div
               className="rounded-3xl border p-6"
               style={{
@@ -761,6 +812,7 @@ export function JournalWorkspace({
           )}
 
         </aside>
+      </div>
       </div>
       </div>
     </div>

@@ -197,10 +197,9 @@ export default async function DashboardPage({
 
       {/* ── Guide hero ───────────────────────────────────────── */}
       <div
-        className="rounded-3xl border p-8 overflow-hidden relative"
+        className="observatory-panel relative overflow-hidden p-8"
         style={{
-          background: "var(--primary)",
-          borderColor: "var(--primary)",
+          background: "linear-gradient(135deg, color-mix(in srgb, var(--surface-raised) 96%, transparent), color-mix(in srgb, var(--signal-selection) 8%, var(--surface)))",
         }}
       >
         {/* ambient glow */}
@@ -211,17 +210,17 @@ export default async function DashboardPage({
 
         <div className="relative z-10">
           <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--clay-light)] mb-2">
-            Supraconscious Guide · constant presence
+            {dashboard.guideHeroEyebrow}
           </p>
-          <h2 className="font-display text-[28px] font-light text-[var(--cream)] mb-3 leading-tight">
+          <h2 className="font-display text-[28px] font-light text-[var(--text-primary)] mb-3 leading-tight">
             Supraconscious Guide
           </h2>
-          <p className="text-[14px] font-light leading-[1.7] text-[var(--cream)]/60 max-w-sm">
+          <p className="max-w-lg text-[14px] font-light leading-[1.7] text-[var(--text-secondary)]">
             {dashboard.guideHeroBody}
           </p>
           <Link
             href="/guide"
-            className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-[var(--clay-light)] hover:text-[var(--cream)] transition-colors"
+            className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--action-primary)] transition-colors hover:text-[var(--text-primary)]"
           >
             Explore the seven dimensions
             <ArrowRight className="w-3.5 h-3.5" />
