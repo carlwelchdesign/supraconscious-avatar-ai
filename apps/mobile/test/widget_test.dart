@@ -66,7 +66,7 @@ void main() {
 
     expect(find.text('Supraconscious'), findsWidgets);
     expect(find.text('Bring what’s been on your mind.'), findsOneWidget);
-    expect(find.text('Start Your First Reflection'), findsOneWidget);
+    expect(find.text('Begin your first reflection'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
     expect(find.text('API: http://localhost:3000'), findsOneWidget);
   });
@@ -93,7 +93,9 @@ void main() {
     await tester.pumpWidget(_testApp(_FakeApiClient(_unauthenticated())));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Start Your First Reflection').first);
+    final createAccountButton = find.text('Begin your first reflection').first;
+    await tester.ensureVisible(createAccountButton);
+    await tester.tap(createAccountButton);
     await tester.pumpAndSettle();
 
     expect(find.text('Name'), findsOneWidget);
@@ -207,10 +209,13 @@ void main() {
     await tester.tap(find.byIcon(Icons.edit_note_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('What is present today?'), findsOneWidget);
+    expect(
+      find.text('What would you like to make room for today?'),
+      findsOneWidget,
+    );
     expect(
       find.text(
-        'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.',
+        'Write whatever feels present. The Guide may reflect patterns, tensions, and one possible next step.',
       ),
       findsOneWidget,
     );
@@ -246,7 +251,10 @@ void main() {
     await tester.tap(find.text('Journal'));
     await tester.pumpAndSettle();
 
-    expect(find.text('What is present today?'), findsOneWidget);
+    expect(
+      find.text('What would you like to make room for today?'),
+      findsOneWidget,
+    );
     expect(
       find.text(
         'No Mirror prompt is published for today. Write what is present without forcing a structure.',

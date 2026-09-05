@@ -8,7 +8,7 @@ import { RevealEntryForm } from "./reveal-entry-form"
 
 const SAFETY_STATUS_MESSAGES: Record<string, { tone: "success" | "error"; message: string }> = {
   saved: { tone: "success", message: "Safety review saved." },
-  invalid: { tone: "error", message: "Safety review needs a valid event, status, and reason." },
+  invalid: { tone: "error", message: "Choose a valid review status and add a reason of at least 10 characters." },
 }
 
 export default async function SafetyPage({
@@ -31,7 +31,7 @@ export default async function SafetyPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Safety Events</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Raw journal content is hidden by default. Reveals require a reason and create an audit log.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Journal text stays hidden in list views. Opening a private entry requires a documented support or safety reason and is recorded in the audit log.</p>
       </div>
       <AdminStatusBanner message={statusMessage} />
       <div className="space-y-4">

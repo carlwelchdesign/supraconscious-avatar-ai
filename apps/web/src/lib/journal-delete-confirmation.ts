@@ -5,5 +5,5 @@ export function readJournalDeleteButtonLabel(armed: boolean) {
 export function readJournalDeleteHelperText(armed: boolean) {
   return armed
     ? "This permanently removes the entry and its saved reflection. Select Confirm delete to continue."
-    : "Deletion is permanent. Select Delete this entry once to confirm your intent."
+    : "Select once to review before deleting. Nothing will be removed yet."
 }

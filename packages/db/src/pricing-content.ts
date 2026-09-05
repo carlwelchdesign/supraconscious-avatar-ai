@@ -113,37 +113,37 @@ const DEFAULT_PLAN_ORDER: PricingPlanKey[] = ["free", "starter", "pro"]
 export const ENGLISH_PRICING_DEFAULTS: PricingDefaults = {
   back: "Supraconscious",
   eyebrow: "Plans",
-  titleA: "Choose your",
-  titleB: "reflection rhythm.",
-  body: "Start privately, then upgrade when you want a richer Supraconscious practice with memory, voice, and deeper pattern review. Paid plans use Stripe Checkout and can be managed from settings.",
+  titleA: "Choose a pace",
+  titleB: "that feels right.",
+  body: "Begin free and take your time. If you want more continuity, voice, or pattern review later, you can choose the plan that fits your practice. Paid plans use Stripe Checkout and can be managed in settings.",
   recommended: "Recommended",
   cadenceAlways: "always",
   cadenceMonth: "month",
-  billingDisabledNotice: "Paid checkout is not enabled in this environment yet. The free reflection flow remains available.",
-  checkoutDisabled: "Paid checkout is currently disabled.",
-  signInFor: "Sign in for {plan}",
-  continueFree: "Continue Free",
+  billingDisabledNotice: "Paid checkout is not available here yet. You can continue with the free reflection experience.",
+  checkoutDisabled: "Paid checkout is not available yet.",
+  signInFor: "Sign in to choose {plan}",
+  continueFree: "Continue free",
   status: {
     invalidPlan: "That plan was not recognized. Please choose one of the plans below.",
-    cancelled: "Checkout was cancelled. Nothing was changed.",
-    unavailable: "Paid checkout is not available in this environment yet. You can keep using the free reflection flow.",
+    cancelled: "Checkout was cancelled. Your plan has not changed.",
+    unavailable: "Paid checkout is not available right now. You can continue with the free reflection experience.",
   },
   plans: {
     free: {
       name: "Free",
       price: "$0",
-      description: "A private place to start writing and receive grounded reflection.",
+      description: "A private place to write and receive a grounded reflection at your own pace.",
       features: [
         "Journal entries",
         "Safety-aware response handling",
         "Saved reflection history",
       ],
-      cta: "Start Free",
+      cta: "Begin free",
     },
     starter: {
       name: "Starter",
       price: "$9",
-      description: "The core Supraconscious Guide loop for regular reflection.",
+      description: "More continuity for a regular Supraconscious reflection practice.",
       features: [
         "Guided reflections",
         "Personalized prompts",
@@ -155,7 +155,7 @@ export const ENGLISH_PRICING_DEFAULTS: PricingDefaults = {
     pro: {
       name: "Pro",
       price: "$19",
-      description: "More continuity for deeper pattern review and sustained practice.",
+      description: "More room to revisit patterns and follow your reflection practice over time.",
       features: [
         "Everything in Starter",
         "Expanded pattern dashboard",
