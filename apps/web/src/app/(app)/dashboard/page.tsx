@@ -213,7 +213,7 @@ export default async function DashboardPage({
             {dashboard.guideHeroEyebrow}
           </p>
           <h2 className="font-display text-[28px] font-light text-[var(--text-primary)] mb-3 leading-tight">
-            Supraconscious Guide
+            {messages.appShell.innerCouncil}
           </h2>
           <p className="max-w-lg text-[14px] font-light leading-[1.7] text-[var(--text-secondary)]">
             {dashboard.guideHeroBody}
@@ -222,7 +222,7 @@ export default async function DashboardPage({
             href="/guide"
             className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--action-primary)] transition-colors hover:text-[var(--text-primary)]"
           >
-            Explore the seven dimensions
+            {dashboard.seeGuideEvolution}
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

@@ -158,7 +158,7 @@ test('server redacts tool errors in production responses', async () => {
     const body = await response.json()
 
     assert.strictEqual(response.status, 400)
-    assert.deepStrictEqual(body, { error: 'Tool execution failed' })
+    assert.deepStrictEqual(body, { error: 'That action couldn’t be completed. Please try again.' })
     assert.ok(errors.some((line) => line.includes('Tool execution error')))
     assert.equal(JSON.stringify(body).includes('Authentication required'), false)
   } finally {

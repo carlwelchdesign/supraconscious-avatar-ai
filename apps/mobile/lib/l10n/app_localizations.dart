@@ -116,7 +116,7 @@ abstract class AppLocalizations {
   /// No description provided for @startReflection.
   ///
   /// In en, this message translates to:
-  /// **'Start Your First Reflection'**
+  /// **'Begin your first reflection'**
   String get startReflection;
 
   /// No description provided for @signIn.
@@ -212,7 +212,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
-  /// **'Welcome'**
+  /// **'Welcome back'**
   String get welcome;
 
   /// No description provided for @welcomeName.
@@ -224,19 +224,19 @@ abstract class AppLocalizations {
   /// No description provided for @journalTitle.
   ///
   /// In en, this message translates to:
-  /// **'What is present today?'**
+  /// **'What would you like to make room for today?'**
   String get journalTitle;
 
   /// No description provided for @journalHelper.
   ///
   /// In en, this message translates to:
-  /// **'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.'**
+  /// **'Write whatever feels present. The Guide may reflect patterns, tensions, and one possible next step.'**
   String get journalHelper;
 
   /// No description provided for @journalPlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'Write what is present — emotions, observations, tensions. No structure required…'**
+  /// **'Begin anywhere—an emotion, an observation, a question, or a tension. No structure is required…'**
   String get journalPlaceholder;
 
   /// No description provided for @settingsTitle.
@@ -320,19 +320,19 @@ abstract class AppLocalizations {
   /// No description provided for @landingProblemEyebrow.
   ///
   /// In en, this message translates to:
-  /// **'The problem'**
+  /// **'When thoughts keep circling'**
   String get landingProblemEyebrow;
 
   /// No description provided for @landingProblemTitle.
   ///
   /// In en, this message translates to:
-  /// **'You are not stuck. You are not seeing clearly.'**
+  /// **'Sometimes you know something matters. You just cannot see it all at once.'**
   String get landingProblemTitle;
 
   /// No description provided for @landingProblemBody.
   ///
   /// In en, this message translates to:
-  /// **'You have thought about it, analyzed it, replayed it, and still something in you hesitates.'**
+  /// **'You may have thought it through, talked it over, or replayed it more than once—and still feel unsure where to begin.'**
   String get landingProblemBody;
 
   /// No description provided for @landingCouncilEyebrow.
@@ -344,13 +344,13 @@ abstract class AppLocalizations {
   /// No description provided for @landingCouncilTitle.
   ///
   /// In en, this message translates to:
-  /// **'Meet the Seven Dimensions'**
+  /// **'Seven ways to look with care'**
   String get landingCouncilTitle;
 
   /// No description provided for @landingCouncilBody.
   ///
   /// In en, this message translates to:
-  /// **'You enter through the Mirror. The Guide may surface the dimensions that fit this moment, in varying number and depth. Each is an equally valid facet; interpretation and choice stay with you.'**
+  /// **'You begin in the Mirror with your own words. The Guide may bring forward the dimensions that fit this moment, in different combinations and depths. Each is an equally valid facet; interpretation and choice stay with you.'**
   String get landingCouncilBody;
 
   /// No description provided for @protectorRole.
@@ -374,7 +374,7 @@ abstract class AppLocalizations {
   /// No description provided for @conditionedSelfRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'What meaning have I created? The Observer can notice it without attachment.'**
+  /// **'What meaning have I created?'**
   String get conditionedSelfRoleBody;
 
   /// No description provided for @visionaryRole.
@@ -386,7 +386,7 @@ abstract class AppLocalizations {
   /// No description provided for @visionaryRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'What might I be protecting?'**
+  /// **'What am I protecting?'**
   String get visionaryRoleBody;
 
   /// No description provided for @truthSelfRole.
@@ -398,7 +398,7 @@ abstract class AppLocalizations {
   /// No description provided for @truthSelfRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'Which identity may be responding?'**
+  /// **'Which identity is responding?'**
   String get truthSelfRoleBody;
 
   /// No description provided for @geniusRole.
@@ -410,7 +410,7 @@ abstract class AppLocalizations {
   /// No description provided for @geniusRoleBody.
   ///
   /// In en, this message translates to:
-  /// **'What higher possibility may be available?'**
+  /// **'What higher possibility is available?'**
   String get geniusRoleBody;
 
   /// No description provided for @supraconsciousRole.
@@ -440,7 +440,7 @@ abstract class AppLocalizations {
   /// No description provided for @landingExperienceEyebrow.
   ///
   /// In en, this message translates to:
-  /// **'The experience'**
+  /// **'The practice'**
   String get landingExperienceEyebrow;
 
   /// No description provided for @landingExperienceTitle.
@@ -452,31 +452,31 @@ abstract class AppLocalizations {
   /// No description provided for @landingExperienceBody.
   ///
   /// In en, this message translates to:
-  /// **'Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.'**
+  /// **'Write what is here. Keep what resonates, correct what does not, and choose one small next step—or simply pause.'**
   String get landingExperienceBody;
 
   /// No description provided for @landingDifferentEyebrow.
   ///
   /// In en, this message translates to:
-  /// **'Different by design'**
+  /// **'You remain at the center'**
   String get landingDifferentEyebrow;
 
   /// No description provided for @landingDifferentTitle.
   ///
   /// In en, this message translates to:
-  /// **'Not another place to talk in circles.'**
+  /// **'Reflection that leaves room for your own knowing.'**
   String get landingDifferentTitle;
 
   /// No description provided for @landingDifferentBody.
   ///
   /// In en, this message translates to:
-  /// **'This is an identity reflection system, a decision clarity engine, and a mirror for becoming.'**
+  /// **'A guided self-inquiry practice that offers several ways to view one moment—and a reflection you can question, correct, or leave.'**
   String get landingDifferentBody;
 
   /// No description provided for @landingFinalCta.
   ///
   /// In en, this message translates to:
-  /// **'Begin Your First Reflection'**
+  /// **'Begin a reflection'**
   String get landingFinalCta;
 
   /// No description provided for @landingBack.
@@ -530,7 +530,7 @@ abstract class AppLocalizations {
   /// No description provided for @reflecting.
   ///
   /// In en, this message translates to:
-  /// **'Reflecting...'**
+  /// **'Preparing your reflection…'**
   String get reflecting;
 
   /// No description provided for @wordCount.
@@ -734,13 +734,13 @@ abstract class AppLocalizations {
   /// No description provided for @guideResponse.
   ///
   /// In en, this message translates to:
-  /// **'Guide Response'**
+  /// **'Guide reflection'**
   String get guideResponse;
 
   /// No description provided for @oneGroundedStep.
   ///
   /// In en, this message translates to:
-  /// **'One grounded step'**
+  /// **'One step to consider'**
   String get oneGroundedStep;
 
   /// No description provided for @sourceGrounding.
@@ -884,7 +884,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifyPasskeyBody.
   ///
   /// In en, this message translates to:
-  /// **'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.'**
+  /// **'This account uses a passkey for an additional security check. Use your YubiKey or device passkey to finish signing in.'**
   String get verifyPasskeyBody;
 
   /// No description provided for @usePasskey.
@@ -944,13 +944,13 @@ abstract class AppLocalizations {
   /// No description provided for @embodimentSavedMessage.
   ///
   /// In en, this message translates to:
-  /// **'Embodied choice saved.'**
+  /// **'Your choice is saved.'**
   String get embodimentSavedMessage;
 
   /// No description provided for @patternsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep writing. Recurring signals will appear here.'**
+  /// **'When recurring signals appear across several entries, you’ll find them here.'**
   String get patternsEmptyBody;
 
   /// No description provided for @theFiveStages.

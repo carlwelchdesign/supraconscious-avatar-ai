@@ -51,5 +51,5 @@ for (const [locale, catalog] of Object.entries({ en, ...catalogs })) {
   )
 }
 
-assert.equal(en.journal.mirrorFormingStatus, "The Guide is reflecting…")
+assert.equal(en.journal.mirrorFormingStatus, "Your reflection is taking shape…")
 assert.equal(en.journal.mirrorFormingSupport, "Your words remain visible while the reflection takes shape.")

@@ -4,7 +4,7 @@ import { readSessionRevokeAllButtonLabel, readSessionRevokeAllHelperText } from 
 
 test("session revoke-all confirmation starts unarmed", () => {
   assert.equal(readSessionRevokeAllButtonLabel(false), "Sign out everywhere")
-  assert.match(readSessionRevokeAllHelperText(false), /Select Sign out everywhere once/)
+  assert.match(readSessionRevokeAllHelperText(false), /Nothing will be signed out yet/)
 })
 
 test("session revoke-all confirmation explains account-wide sign out before submit", () => {

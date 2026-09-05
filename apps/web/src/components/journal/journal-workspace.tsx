@@ -628,7 +628,7 @@ export function JournalWorkspace({
                 <p className="text-[10px] font-medium tracking-[0.12em] uppercase text-[var(--clay)]">
                   {t("guideResponse")}
                 </p>
-                <p className="text-[12px] font-light text-[var(--plum-soft)]">Supraconscious Guide · constant presence</p>
+                <p className="text-[12px] font-light text-[var(--plum-soft)]">{t("innerCouncil")}</p>
               </div>
             )}
 

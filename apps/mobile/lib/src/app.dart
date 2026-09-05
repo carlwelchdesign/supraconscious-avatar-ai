@@ -2158,7 +2158,7 @@ class GuideTab extends ConsumerWidget {
           _InfoCard(
             title: data.name,
             body:
-                'The Guide remains constant while your capacity to perceive and choose develops.',
+                'The Guide’s voice stays consistent while you explore the seven dimensions.',
           ),
           const SizedBox(height: 12),
           Wrap(

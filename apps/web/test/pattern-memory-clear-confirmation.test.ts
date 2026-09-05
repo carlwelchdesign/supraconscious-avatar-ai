@@ -4,10 +4,10 @@ import { readPatternMemoryClearButtonLabel, readPatternMemoryClearHelperText } f
 
 test("pattern memory clear confirmation starts unarmed", () => {
   assert.equal(readPatternMemoryClearButtonLabel(false), "Clear remembered signals")
-  assert.match(readPatternMemoryClearHelperText(false), /keeps your journal entries/)
+  assert.match(readPatternMemoryClearHelperText(false), /journal entries will stay saved/)
 })
 
 test("pattern memory clear confirmation explains future-use impact before submit", () => {
   assert.equal(readPatternMemoryClearButtonLabel(true), "Confirm clear")
-  assert.match(readPatternMemoryClearHelperText(true), /future use/)
+  assert.match(readPatternMemoryClearHelperText(true), /turns pattern memory off/)
 })

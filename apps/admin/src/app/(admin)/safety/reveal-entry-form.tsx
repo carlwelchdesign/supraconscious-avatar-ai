@@ -14,9 +14,9 @@ export function RevealEntryForm({ safetyEventId }: { safetyEventId: string }) {
   return (
     <form action={formAction} className="space-y-3">
       <input type="hidden" name="safetyEventId" value={safetyEventId} />
-      <Input name="reason" placeholder="Reason for reveal, e.g. user support ticket..." required minLength={10} />
+      <Input name="reason" placeholder="Why access is necessary (required; recorded in the audit log)" required minLength={10} />
       <Button type="submit" disabled={isPending} variant="outline">
-        {isPending ? "Revealing..." : "Reveal raw entry"}
+        {isPending ? "Opening private entry…" : "Open private entry"}
       </Button>
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
       {state.rawText ? (

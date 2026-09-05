@@ -11,11 +11,11 @@ type ChatGptMessages = {
 
 const messages = {
   en: {
-    rateLimit: "Too many requests from this IP, please try again later.",
-    authRequired: "Authentication required",
-    toolNotFound: "Tool not found",
-    internalServerError: "Internal server error",
-    toolExecutionFailed: "Tool execution failed",
+    rateLimit: "You’ve sent several requests in a short time. Please wait a moment and try again.",
+    authRequired: "Please sign in to continue.",
+    toolNotFound: "That action is not available.",
+    internalServerError: "We couldn’t complete that request just now.",
+    toolExecutionFailed: "That action couldn’t be completed. Please try again.",
     tools: {
       create_journal_entry: "Creates a journal entry for the authenticated user.",
       analyze_journal_entry: "Analyzes a journal entry for emotional signals, language patterns, contradictions, and safety flags.",

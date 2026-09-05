@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Supraconscious';
 
   @override
-  String get startReflection => 'Start Your First Reflection';
+  String get startReflection => 'Begin your first reflection';
 
   @override
   String get signIn => 'Sign in';
@@ -61,7 +61,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabSettings => 'Settings';
 
   @override
-  String get welcome => 'Welcome';
+  String get welcome => 'Welcome back';
 
   @override
   String welcomeName(String name) {
@@ -69,15 +69,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get journalTitle => 'What is present today?';
+  String get journalTitle => 'What would you like to make room for today?';
 
   @override
   String get journalHelper =>
-      'Write what feels present. The Guide may offer patterns, tensions, and one grounded next step for you to consider.';
+      'Write whatever feels present. The Guide may reflect patterns, tensions, and one possible next step.';
 
   @override
   String get journalPlaceholder =>
-      'Write what is present — emotions, observations, tensions. No structure required…';
+      'Begin anywhere—an emotion, an observation, a question, or a tension. No structure is required…';
 
   @override
   String get settingsTitle => 'Settings';
@@ -124,25 +124,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get draftSaved => 'Draft saved privately';
 
   @override
-  String get landingProblemEyebrow => 'The problem';
+  String get landingProblemEyebrow => 'When thoughts keep circling';
 
   @override
   String get landingProblemTitle =>
-      'You are not stuck. You are not seeing clearly.';
+      'Sometimes you know something matters. You just cannot see it all at once.';
 
   @override
   String get landingProblemBody =>
-      'You have thought about it, analyzed it, replayed it, and still something in you hesitates.';
+      'You may have thought it through, talked it over, or replayed it more than once—and still feel unsure where to begin.';
 
   @override
   String get landingCouncilEyebrow => 'How it works';
 
   @override
-  String get landingCouncilTitle => 'Meet the Seven Dimensions';
+  String get landingCouncilTitle => 'Seven ways to look with care';
 
   @override
   String get landingCouncilBody =>
-      'You enter through the Mirror. The Guide may surface the dimensions that fit this moment, in varying number and depth. Each is an equally valid facet; interpretation and choice stay with you.';
+      'You begin in the Mirror with your own words. The Guide may bring forward the dimensions that fit this moment, in different combinations and depths. Each is an equally valid facet; interpretation and choice stay with you.';
 
   @override
   String get protectorRole => 'Perception';
@@ -154,26 +154,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conditionedSelfRole => 'Story';
 
   @override
-  String get conditionedSelfRoleBody =>
-      'What meaning have I created? The Observer can notice it without attachment.';
+  String get conditionedSelfRoleBody => 'What meaning have I created?';
 
   @override
   String get visionaryRole => 'Fear';
 
   @override
-  String get visionaryRoleBody => 'What might I be protecting?';
+  String get visionaryRoleBody => 'What am I protecting?';
 
   @override
   String get truthSelfRole => 'Ego';
 
   @override
-  String get truthSelfRoleBody => 'Which identity may be responding?';
+  String get truthSelfRoleBody => 'Which identity is responding?';
 
   @override
   String get geniusRole => 'Genius';
 
   @override
-  String get geniusRoleBody => 'What higher possibility may be available?';
+  String get geniusRoleBody => 'What higher possibility is available?';
 
   @override
   String get supraconsciousRole => 'Supraconscious';
@@ -188,27 +187,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get embodimentRoleBody => 'How will I live that choice?';
 
   @override
-  String get landingExperienceEyebrow => 'The experience';
+  String get landingExperienceEyebrow => 'The practice';
 
   @override
   String get landingExperienceTitle => 'Write. See. Face. Choose. Become.';
 
   @override
   String get landingExperienceBody =>
-      'Every session moves through a simple path: no noise, no overwhelm, just one clearer next step.';
+      'Write what is here. Keep what resonates, correct what does not, and choose one small next step—or simply pause.';
 
   @override
-  String get landingDifferentEyebrow => 'Different by design';
+  String get landingDifferentEyebrow => 'You remain at the center';
 
   @override
-  String get landingDifferentTitle => 'Not another place to talk in circles.';
+  String get landingDifferentTitle =>
+      'Reflection that leaves room for your own knowing.';
 
   @override
   String get landingDifferentBody =>
-      'This is an identity reflection system, a decision clarity engine, and a mirror for becoming.';
+      'A guided self-inquiry practice that offers several ways to view one moment—and a reflection you can question, correct, or leave.';
 
   @override
-  String get landingFinalCta => 'Begin Your First Reflection';
+  String get landingFinalCta => 'Begin a reflection';
 
   @override
   String get landingBack => 'Landing';
@@ -235,7 +235,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get askCouncil => 'Enter the Mirror';
 
   @override
-  String get reflecting => 'Reflecting...';
+  String get reflecting => 'Preparing your reflection…';
 
   @override
   String wordCount(int count) {
@@ -341,10 +341,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadError => 'This reflection could not be loaded. Try again.';
 
   @override
-  String get guideResponse => 'Guide Response';
+  String get guideResponse => 'Guide reflection';
 
   @override
-  String get oneGroundedStep => 'One grounded step';
+  String get oneGroundedStep => 'One step to consider';
 
   @override
   String get sourceGrounding => 'Source grounding';
@@ -427,7 +427,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifyPasskeyBody =>
-      'This account is protected with phishing-resistant MFA. Use your YubiKey or device passkey to finish signing in.';
+      'This account uses a passkey for an additional security check. Use your YubiKey or device passkey to finish signing in.';
 
   @override
   String get usePasskey => 'Use passkey';
@@ -457,11 +457,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackSavedMessage => 'Feedback saved.';
 
   @override
-  String get embodimentSavedMessage => 'Embodied choice saved.';
+  String get embodimentSavedMessage => 'Your choice is saved.';
 
   @override
   String get patternsEmptyBody =>
-      'Keep writing. Recurring signals will appear here.';
+      'When recurring signals appear across several entries, you’ll find them here.';
 
   @override
   String get theFiveStages => 'The Seven Dimensions of the Supraconscious';
